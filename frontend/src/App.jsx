@@ -17,6 +17,7 @@ export default function App() {
   const [logs, setLogs] = useState({}) // id -> transcript text (in-progress + open card)
   const [selectedId, setSelectedId] = useState(null)
   const [notify, setNotify] = useState(() => notifyPref())
+  const [toasts, setToasts] = useState([]) // in-app notifications (always shown)
 
   const refresh = useCallback(async () => {
     try {
@@ -35,13 +36,26 @@ export default function App() {
     return () => clearInterval(t)
   }, [refresh])
 
-  // Fire a desktop notification whenever a task crosses into a terminal state
-  // (Done / Needs Attention). We remember each task's last-seen status; the very
-  // first poll only seeds that map (so we never notify for tasks that were
-  // already finished when the page loaded) and thereafter we notify on the
-  // transition edge only. `notify` gates it, checked live via a ref.
+  // Notify whenever a task crosses into a terminal state (Done / Needs
+  // Attention). We remember each task's last-seen status; the very first poll
+  // only seeds that map (so we never notify for tasks that were already
+  // finished when the page loaded) and thereafter we notify on the transition
+  // edge only. Two channels fire together:
+  //   • an in-app toast — ALWAYS, so something visibly pops up even when native
+  //     desktop notifications are muted, blocked, or OS Do-Not-Disturb is on;
+  //   • a native desktop notification — only when the `notify` toggle is on and
+  //     browser permission was granted (checked live via a ref).
   const notifyRef = useRef(notify)
   notifyRef.current = notify
+  const toastSeq = useRef(0)
+  const pushToast = useCallback((t) => {
+    const key = ++toastSeq.current
+    setToasts((cur) => [...cur, { key, id: t.id, status: t.status, title: t.title }])
+    setTimeout(() => setToasts((cur) => cur.filter((x) => x.key !== key)), 7000)
+  }, [])
+  const dismissToast = useCallback((key) => {
+    setToasts((cur) => cur.filter((x) => x.key !== key))
+  }, [])
   const prevStatusRef = useRef(null)
   useEffect(() => {
     const prev = prevStatusRef.current
@@ -49,13 +63,14 @@ export default function App() {
       for (const t of todos) {
         const before = prev.get(t.id)
         const terminal = t.status === 'RESOLVED' || t.status === 'FAILED'
-        if (terminal && before && before !== t.status && notifyRef.current) {
-          notifyTaskDone(t)
+        if (terminal && before && before !== t.status) {
+          pushToast(t)
+          if (notifyRef.current) notifyTaskDone(t)
         }
       }
     }
     prevStatusRef.current = new Map(todos.map((t) => [t.id, t.status]))
-  }, [todos])
+  }, [todos, pushToast])
 
   async function toggleNotify() {
     if (notify) {
@@ -160,6 +175,32 @@ export default function App() {
           onRetry={() => retryTodo(selected.id)}
         />
       )}
+
+      <Toasts items={toasts} onDismiss={dismissToast} />
+    </div>
+  )
+}
+
+// In-app notification stack, bottom-right. This is the reliable channel: unlike
+// native desktop notifications it needs no permission and shows even when the OS
+// is muted, so a finished task always surfaces something on screen.
+function Toasts({ items, onDismiss }) {
+  if (!items.length) return null
+  return (
+    <div className="toast-stack" role="status" aria-live="polite">
+      {items.map((t) => {
+        const done = t.status === 'RESOLVED'
+        return (
+          <div key={t.key} className={`toast ${done ? 'toast-done' : 'toast-fail'}`}>
+            <span className="toast-icon" aria-hidden>{done ? '✓' : '⚠'}</span>
+            <div className="toast-body">
+              <div className="toast-title">{done ? 'Task done' : 'Task needs attention'}</div>
+              <div className="toast-sub">#{t.id} {t.title}</div>
+            </div>
+            <button className="toast-close" onClick={() => onDismiss(t.key)} aria-label="Dismiss">×</button>
+          </div>
+        )
+      })}
     </div>
   )
 }
