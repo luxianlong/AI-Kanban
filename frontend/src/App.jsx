@@ -132,6 +132,13 @@ export default function App() {
     await refresh()
   }
 
+  // Attach a brand-new task as the next step of an existing story instead of
+  // letting it start its own chain — the UI half of "attach task to related story".
+  async function attachToStory(storyId, title, description) {
+    await api.addStoryStep(storyId, title, description)
+    await refresh()
+  }
+
   async function removeTodo(id) {
     try {
       await api.deleteTodo(id)
@@ -176,6 +183,7 @@ export default function App() {
             onOpen={setSelectedId}
             onCreate={col.status === 'PENDING' ? createTodo : null}
             onCreateStory={col.status === 'PENDING' ? createStory : null}
+            onAttach={col.status === 'PENDING' ? attachToStory : null}
           />
           )
         })}
@@ -259,7 +267,7 @@ function Topbar({ worker, total, notify, onToggleNotify }) {
   )
 }
 
-function Column({ col, todos, logs, storyMeta, onOpen, onCreate, onCreateStory }) {
+function Column({ col, todos, logs, storyMeta, onOpen, onCreate, onCreateStory, onAttach }) {
   return (
     <section className={`column ${col.status.toLowerCase()}`}>
       <div className="col-head">
@@ -268,7 +276,7 @@ function Column({ col, todos, logs, storyMeta, onOpen, onCreate, onCreateStory }
         <span className="col-count">{todos.length}</span>
       </div>
 
-      {onCreate && <Composer onCreate={onCreate} />}
+      {onCreate && <Composer onCreate={onCreate} onAttach={onAttach} />}
       {onCreateStory && <StoryComposer onCreateStory={onCreateStory} />}
 
       <div className="col-body">
@@ -287,11 +295,41 @@ function Column({ col, todos, logs, storyMeta, onOpen, onCreate, onCreateStory }
   )
 }
 
-function Composer({ onCreate }) {
+function Composer({ onCreate, onAttach }) {
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Existing stories this task looks related to (top match first), so we can
+  // offer to attach it to an existing chain instead of starting a fresh one.
+  const [related, setRelated] = useState([])
+
+  // As the user types, ask the server which existing stories the task looks
+  // related to. Debounced so we don't fire on every keystroke, and skipped
+  // until there's enough text to be meaningful.
+  useEffect(() => {
+    if (!onAttach) return
+    const text = `${title} ${desc}`.trim()
+    if (text.length < 4) {
+      setRelated([])
+      return
+    }
+    const t = setTimeout(async () => {
+      try {
+        setRelated(await api.relatedStories(text))
+      } catch {
+        setRelated([])
+      }
+    }, 400)
+    return () => clearTimeout(t)
+  }, [title, desc, onAttach])
+
+  function clear() {
+    setTitle('')
+    setDesc('')
+    setRelated([])
+    setOpen(false)
+  }
 
   async function submit(e) {
     e.preventDefault()
@@ -300,9 +338,20 @@ function Composer({ onCreate }) {
     setBusy(true)
     try {
       await onCreate(t, desc.trim())
-      setTitle('')
-      setDesc('')
-      setOpen(false)
+      clear()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Attach the drafted task to an existing story as its next step.
+  async function attach(story) {
+    const t = title.trim()
+    if (!t || busy || !onAttach) return
+    setBusy(true)
+    try {
+      await onAttach(story.storyId, t, desc.trim())
+      clear()
     } finally {
       setBusy(false)
     }
@@ -327,6 +376,23 @@ function Composer({ onCreate }) {
             onChange={(e) => setDesc(e.target.value)}
             rows={3}
           />
+          {onAttach && related.length > 0 && (
+            <div className="composer-related">
+              <span className="composer-related-label">Looks related to:</span>
+              {related.map((s) => (
+                <button
+                  key={s.storyId}
+                  type="button"
+                  className="composer-related-chip"
+                  disabled={busy}
+                  onClick={() => attach(s)}
+                  title={`Add this task as the next step of "${s.name}"`}
+                >
+                  ▤ {s.name}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="composer-actions">
             <button type="submit" className="btn primary" disabled={!title.trim() || busy}>
               {busy ? 'Adding…' : 'Add task'}
