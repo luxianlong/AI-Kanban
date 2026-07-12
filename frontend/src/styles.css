@@ -247,11 +247,8 @@ body {
 .btn.danger-ghost:hover { background: #fff1f4; }
 .btn.danger { background: var(--failed); color: #fff; }
 .btn.danger:hover { filter: brightness(1.07); }
-.delete-confirm { display: inline-flex; gap: 8px; align-items: center; }
-.delete-confirm-label { font-size: 0.82rem; color: var(--failed); font-weight: 600; }
-
 .delete-confirm { display: flex; align-items: center; gap: 10px; }
-.delete-confirm-label { font-size: 0.82rem; color: var(--muted); }
+.delete-confirm-label { font-size: 0.82rem; color: var(--failed); font-weight: 600; }
 
 /* ---------- Card ---------- */
 .card {
