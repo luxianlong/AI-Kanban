@@ -16,6 +16,7 @@ export default function App() {
   const [error, setError] = useState(null)
   const [logs, setLogs] = useState({}) // id -> transcript text (in-progress + open card)
   const [selectedId, setSelectedId] = useState(null)
+  const [notify, setNotify] = useState(() => notifyPref())
 
   const refresh = useCallback(async () => {
     try {
@@ -33,6 +34,48 @@ export default function App() {
     const t = setInterval(refresh, 4000)
     return () => clearInterval(t)
   }, [refresh])
+
+  // Fire a desktop notification whenever a task crosses into a terminal state
+  // (Done / Needs Attention). We remember each task's last-seen status; the very
+  // first poll only seeds that map (so we never notify for tasks that were
+  // already finished when the page loaded) and thereafter we notify on the
+  // transition edge only. `notify` gates it, checked live via a ref.
+  const notifyRef = useRef(notify)
+  notifyRef.current = notify
+  const prevStatusRef = useRef(null)
+  useEffect(() => {
+    const prev = prevStatusRef.current
+    if (prev) {
+      for (const t of todos) {
+        const before = prev.get(t.id)
+        const terminal = t.status === 'RESOLVED' || t.status === 'FAILED'
+        if (terminal && before && before !== t.status && notifyRef.current) {
+          notifyTaskDone(t)
+        }
+      }
+    }
+    prevStatusRef.current = new Map(todos.map((t) => [t.id, t.status]))
+  }, [todos])
+
+  async function toggleNotify() {
+    if (notify) {
+      setNotify(false)
+      setNotifyPref(false)
+      return
+    }
+    if (typeof Notification === 'undefined') {
+      setError('This browser does not support notifications.')
+      return
+    }
+    let perm = Notification.permission
+    if (perm === 'default') perm = await Notification.requestPermission()
+    if (perm === 'granted') {
+      setNotify(true)
+      setNotifyPref(true)
+    } else {
+      setError('Notifications are blocked — enable them in your browser settings.')
+    }
+  }
 
   const fetchLog = useCallback(async (id) => {
     try {
@@ -91,7 +134,7 @@ export default function App() {
 
   return (
     <div className="page">
-      <Topbar worker={worker} total={todos.length} />
+      <Topbar worker={worker} total={todos.length} notify={notify} onToggleNotify={toggleNotify} />
 
       {error && <div className="error">⚠ {error}</div>}
 
@@ -121,7 +164,8 @@ export default function App() {
   )
 }
 
-function Topbar({ worker, total }) {
+function Topbar({ worker, total, notify, onToggleNotify }) {
+  const supported = typeof Notification !== 'undefined'
   return (
     <header className="topbar">
       <div className="brand">
@@ -132,6 +176,18 @@ function Topbar({ worker, total }) {
         </div>
       </div>
       <div className="status">
+        {supported && (
+          <button
+            type="button"
+            className={`notify-toggle ${notify ? 'on' : 'off'}`}
+            onClick={onToggleNotify}
+            aria-pressed={notify}
+            title={notify ? 'Task-done notifications on — click to mute' : 'Notify me when a task finishes'}
+          >
+            <span aria-hidden>{notify ? '🔔' : '🔕'}</span>
+            {notify ? 'Notifications on' : 'Notify me'}
+          </button>
+        )}
         {worker && (
           <span className={`worker-pill ${worker.enabled ? 'on' : 'off'}`}>
             <span className="dot" />
@@ -389,6 +445,44 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
 }
 
 // --- helpers ---
+
+// Notification preference persists across reloads in localStorage. Wrapped in
+// try/catch because storage can throw (private mode, disabled cookies).
+const NOTIFY_KEY = 'dashboard.notify'
+
+function notifyPref() {
+  try {
+    return localStorage.getItem(NOTIFY_KEY) === 'on' &&
+      typeof Notification !== 'undefined' &&
+      Notification.permission === 'granted'
+  } catch {
+    return false
+  }
+}
+
+function setNotifyPref(on) {
+  try {
+    localStorage.setItem(NOTIFY_KEY, on ? 'on' : 'off')
+  } catch {
+    /* ignore — notifications just won't persist */
+  }
+}
+
+// Pop a native desktop notification for a finished task. Guarded so it's a
+// no-op if the API is missing or permission was revoked. `tag` dedupes so the
+// same task never stacks multiple banners.
+function notifyTaskDone(todo) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+  const done = todo.status === 'RESOLVED'
+  try {
+    new Notification(done ? '✓ Task done' : '⚠ Task needs attention', {
+      body: `#${todo.id} ${todo.title}`,
+      tag: `dashboard-todo-${todo.id}`,
+    })
+  } catch {
+    /* some browsers reject construction outside a SW; ignore */
+  }
+}
 
 function tailLine(log) {
   if (!log) return ''
