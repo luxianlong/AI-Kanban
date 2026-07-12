@@ -122,8 +122,8 @@ export default function App() {
     return () => clearInterval(t)
   }, [fetchLog])
 
-  async function createTodo(title, description) {
-    await api.createTodo(title, description)
+  async function createTodo(title, description, projectImprovement) {
+    await api.createTodo(title, description, projectImprovement)
     await refresh()
   }
 
@@ -374,6 +374,9 @@ function Composer({ onCreate, onAttach }) {
   const [desc, setDesc] = useState('')
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  // Whether this task is about improving the Kanban project itself. Off by
+  // default: a plain task is a general task, not aimed at the project.
+  const [projectImprovement, setProjectImprovement] = useState(false)
   // Existing stories this task looks related to (top match first), so we can
   // offer to attach it to an existing chain instead of starting a fresh one.
   const [related, setRelated] = useState([])
@@ -402,6 +405,7 @@ function Composer({ onCreate, onAttach }) {
     setTitle('')
     setDesc('')
     setRelated([])
+    setProjectImprovement(false)
     setOpen(false)
   }
 
@@ -411,7 +415,7 @@ function Composer({ onCreate, onAttach }) {
     if (!t || busy) return
     setBusy(true)
     try {
-      await onCreate(t, desc.trim())
+      await onCreate(t, desc.trim(), projectImprovement)
       clear()
     } finally {
       setBusy(false)
@@ -467,6 +471,14 @@ function Composer({ onCreate, onAttach }) {
               ))}
             </div>
           )}
+          <label className="composer-flag" title="Mark this task as one that improves the Kanban project itself (its code, docs, tests). Off = a general task.">
+            <input
+              type="checkbox"
+              checked={projectImprovement}
+              onChange={(e) => setProjectImprovement(e.target.checked)}
+            />
+            Improves this Kanban project itself
+          </label>
           <div className="composer-actions">
             <button type="submit" className="btn primary" disabled={!title.trim() || busy}>
               {busy ? 'Adding…' : 'Add task'}
@@ -622,6 +634,11 @@ function Card({ todo, tail, story, onOpen }) {
   return (
     <button className={`card ${todo.status.toLowerCase()}`} onClick={onOpen}>
       {story && <StoryBadge story={story} />}
+      {todo.projectImprovement && (
+        <span className="card-tag project" title="This task improves the Kanban project itself">
+          ⚙ Project
+        </span>
+      )}
       <div className="card-title">{todo.title}</div>
       {todo.description && !running && <div className="card-desc">{todo.description}</div>}
 

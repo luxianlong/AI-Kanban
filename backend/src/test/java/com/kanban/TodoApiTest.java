@@ -51,6 +51,8 @@ class TodoApiTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title", is("Write a haiku")))
                 .andExpect(jsonPath("$.status", is("PENDING")))
+                // A plain task is a general task, not aimed at the project itself.
+                .andExpect(jsonPath("$.projectImprovement", is(false)))
                 // Cost/duration are part of the schema but unset until an agent run reports them.
                 .andExpect(jsonPath("$.costUsd", is(nullValue())))
                 .andExpect(jsonPath("$.durationMs", is(nullValue())));
@@ -60,6 +62,22 @@ class TodoApiTest {
                 .andExpect(jsonPath("$[0].title", is("Write a haiku")))
                 .andExpect(jsonPath("$[0].costUsd", is(nullValue())))
                 .andExpect(jsonPath("$[0].durationMs", is(nullValue())));
+    }
+
+    @Test
+    void projectImprovementFlagIsStoredAndReturned() throws Exception {
+        // Explicitly opting in marks the task as a project-improvement task.
+        long id = mapper.readTree(mvc.perform(post("/api/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Improve the board\",\"projectImprovement\":true}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.projectImprovement", is(true)))
+                .andReturn().getResponse().getContentAsString())
+                .get("id").asLong();
+
+        mvc.perform(get("/api/todos/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projectImprovement", is(true)));
     }
 
     @Test

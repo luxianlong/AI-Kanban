@@ -12,11 +12,13 @@ async function json(res) {
 export const api = {
   listTodos: () => fetch(`${BASE}/todos`).then(json),
 
-  createTodo: (title, description) =>
+  // `projectImprovement` marks the task as one that improves the Kanban project
+  // itself; it defaults to false (a general task) when omitted.
+  createTodo: (title, description, projectImprovement = false) =>
     fetch(`${BASE}/todos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description }),
+      body: JSON.stringify({ title, description, projectImprovement }),
     }).then(json),
 
   // Create a story: a named, ordered chain of tasks the worker runs one after

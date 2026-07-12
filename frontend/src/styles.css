@@ -217,6 +217,12 @@ body {
 .composer-title:focus,
 .composer-desc:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.14); }
 .composer-desc { margin-top: 8px; resize: vertical; }
+.composer-flag {
+  display: flex; align-items: center; gap: 7px;
+  margin-top: 10px;
+  font-size: 0.8rem; color: var(--muted); cursor: pointer;
+}
+.composer-flag input { cursor: pointer; }
 .composer-actions { display: flex; gap: 8px; margin-top: 8px; }
 .composer-related {
   margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
@@ -299,6 +305,19 @@ body {
   padding: 0;
 }
 .story-step-add:hover { text-decoration: underline; }
+
+/* ---------- Card tag (project-improvement flag) ---------- */
+.card-tag.project {
+  display: inline-flex; align-items: center; gap: 4px;
+  align-self: flex-start;
+  margin-bottom: 6px;
+  font-size: 0.68rem; font-weight: 700;
+  color: #7a4a00;
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
 
 /* ---------- Story badge (on cards + drawer) ---------- */
 .story-badge {
