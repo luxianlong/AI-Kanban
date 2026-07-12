@@ -1,4 +1,4 @@
-package com.dashboard.worker;
+package com.kanban.worker;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

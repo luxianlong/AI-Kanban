@@ -1,8 +1,8 @@
-package com.dashboard.worker;
+package com.kanban.worker;
 
-import com.dashboard.todo.Todo;
-import com.dashboard.todo.TodoRepository;
-import com.dashboard.todo.TodoStatus;
+import com.kanban.todo.Todo;
+import com.kanban.todo.TodoRepository;
+import com.kanban.todo.TodoStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -178,7 +178,7 @@ public class ClaudeWorkerService {
     private String buildPrompt(Todo todo) {
         StringBuilder sb = new StringBuilder();
         sb.append("You are an autonomous worker resolving a single todo item (id ")
-                .append(todo.getId()).append(") from a dashboard.\n");
+                .append(todo.getId()).append(") from a Kanban board.\n");
         sb.append("Do the work needed to complete it, then reply with a short summary of what you did ");
         sb.append("and any result or answer the user needs.\n");
         sb.append("If the task genuinely cannot be completed, end your reply with a line containing ")

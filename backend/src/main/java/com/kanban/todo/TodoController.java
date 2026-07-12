@@ -1,9 +1,9 @@
-package com.dashboard.todo;
+package com.kanban.todo;
 
-import com.dashboard.todo.TodoDtos.CreateTodoRequest;
-import com.dashboard.todo.TodoDtos.TodoResponse;
-import com.dashboard.todo.TodoDtos.UpdateStatusRequest;
-import com.dashboard.worker.LiveLogRegistry;
+import com.kanban.todo.TodoDtos.CreateTodoRequest;
+import com.kanban.todo.TodoDtos.TodoResponse;
+import com.kanban.todo.TodoDtos.UpdateStatusRequest;
+import com.kanban.worker.LiveLogRegistry;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.dashboard</groupId>
-    <artifactId>dashboard-backend</artifactId>
+    <groupId>com.kanban</groupId>
+    <artifactId>kanban-backend</artifactId>
     <version>0.1.0</version>
-    <name>dashboard-backend</name>
-    <description>Claude Code-powered todo dashboard backend</description>
+    <name>kanban-backend</name>
+    <description>Claude Code-powered todo kanban backend</description>
 
     <properties>
         <java.version>21</java.version>

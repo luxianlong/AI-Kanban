@@ -1,6 +1,6 @@
-# Claude Code Dashboard
+# Claude Code Kanban
 
-A dashboard where you create **todo items** and a scheduled **Claude Code session**
+A kanban board where you create **todo items** and a scheduled **Claude Code session**
 regularly picks them up and tries to resolve them — writing the result back for you to read.
 
 - **Frontend** — React + Vite, styled as a **kanban board**: tasks are cards that flow
@@ -159,7 +159,7 @@ Covers the API with the worker disabled (no Claude process is launched).
 
 ```bash
 cd frontend && npm run build      # emits frontend/dist/
-cd ../backend && ./mvnw package   # emits backend/target/dashboard-backend-*.jar
+cd ../backend && ./mvnw package   # emits backend/target/kanban-backend-*.jar
 ```
 
 Serve `frontend/dist/` from any static host (or copy it into

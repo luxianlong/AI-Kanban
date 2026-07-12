@@ -1,7 +1,7 @@
-# Working on the Dashboard — agent guide
+# Working on the Kanban — agent guide
 
 You are a Claude Code session launched **by this project's own worker** to resolve one
-dashboard task. You are running inside the repo at the path shown by `pwd`. This file
+kanban task. You are running inside the repo at the path shown by `pwd`. This file
 tells you how to (a) propose improvements, (b) implement them safely, and (c) let the
 app redeploy itself. Follow it exactly.
 
@@ -12,7 +12,7 @@ The app is a kanban board backed by a Spring Boot API. Tasks flow
 
 ### 1. Planner tasks — "think about improvements" (spawn work, don't change code)
 
-If the task asks you to brainstorm / plan / suggest improvements to the dashboard:
+If the task asks you to brainstorm / plan / suggest improvements to the kanban board:
 
 1. Explore the repo and think about what would genuinely make it better (UX, reliability,
    features, tests, docs). Prefer small, independently shippable changes.

@@ -1,4 +1,4 @@
-package com.dashboard.todo;
+package com.kanban.todo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

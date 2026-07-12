@@ -1,4 +1,4 @@
-package com.dashboard.todo;
+package com.kanban.todo;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

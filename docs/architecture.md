@@ -1,6 +1,6 @@
-# Dashboard architecture — topology
+# Kanban architecture — topology
 
-A visual map of how the Claude Code Dashboard is put together, rendered with
+A visual map of how the Claude Code Kanban is put together, rendered with
 [Mermaid](https://mermaid.js.org/). GitHub renders these diagrams inline; in an
 editor use a Mermaid preview extension.
 
@@ -73,7 +73,7 @@ Spring beans and how they wire together.
 
 ```mermaid
 flowchart TB
-    app["DashboardApplication<br/>@SpringBootApplication<br/>@EnableScheduling"]
+    app["KanbanApplication<br/>@SpringBootApplication<br/>@EnableScheduling"]
 
     subgraph web["Web layer (REST)"]
         todoCtl["TodoController<br/>GET/POST/PATCH/DELETE /api/todos<br/>GET /api/todos/{id}/log"]

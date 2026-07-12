@@ -164,5 +164,5 @@ flowchart TB
 
 _Created as a reference topology of the AI supply chain to aid understanding
 (task #84). It is a conceptual map of the industry, not a description of this
-dashboard's own architecture — for that, see [`architecture.md`](architecture.md).
+kanban board's own architecture — for that, see [`architecture.md`](architecture.md).
 Named companies are representative leaders as of 2025–2026 and may change._

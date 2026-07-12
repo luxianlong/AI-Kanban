@@ -1,13 +1,13 @@
-package com.dashboard.todo;
+package com.kanban.todo;
 
-import com.dashboard.todo.TodoDtos.CreateStoryRequest;
-import com.dashboard.todo.TodoDtos.RelatedStory;
-import com.dashboard.todo.TodoDtos.StoryResponse;
-import com.dashboard.todo.TodoDtos.StoryStep;
-import com.dashboard.todo.TodoDtos.SuggestStoryRequest;
-import com.dashboard.todo.TodoDtos.SuggestStoryResponse;
-import com.dashboard.todo.TodoDtos.TodoResponse;
-import com.dashboard.todo.StorySuggestionService.SuggestedStory;
+import com.kanban.todo.TodoDtos.CreateStoryRequest;
+import com.kanban.todo.TodoDtos.RelatedStory;
+import com.kanban.todo.TodoDtos.StoryResponse;
+import com.kanban.todo.TodoDtos.StoryStep;
+import com.kanban.todo.TodoDtos.SuggestStoryRequest;
+import com.kanban.todo.TodoDtos.SuggestStoryResponse;
+import com.kanban.todo.TodoDtos.TodoResponse;
+import com.kanban.todo.StorySuggestionService.SuggestedStory;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;

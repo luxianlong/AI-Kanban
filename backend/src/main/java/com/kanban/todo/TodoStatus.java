@@ -1,4 +1,4 @@
-package com.dashboard.todo;
+package com.kanban.todo;
 
 /**
  * Lifecycle of a todo item as it flows through the Claude Code worker.
