@@ -32,7 +32,7 @@ else
 fi
 
 echo "▶ Scheduling detached backend restart…"
-setsid bash "$REPO/scripts/restart-backend.sh" < /dev/null >> /tmp/dashboard-deploy.log 2>&1 &
+setsid bash "$REPO/scripts/restart-backend.sh" < /dev/null >> /tmp/kanban-deploy.log 2>&1 &
 disown || true
 
 echo "✔ DEPLOYED — the app will restart momentarily with the new code."

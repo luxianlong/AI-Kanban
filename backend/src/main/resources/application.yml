@@ -2,8 +2,8 @@ spring:
   application:
     name: kanban
   datasource:
-    # File-based H2 so todos survive restarts. Delete ./data/dashboard.mv.db to reset.
-    url: jdbc:h2:file:./data/dashboard;AUTO_SERVER=TRUE
+    # File-based H2 so todos survive restarts. Delete ./data/kanban.mv.db to reset.
+    url: jdbc:h2:file:./data/kanban;AUTO_SERVER=TRUE
     username: sa
     password: ""
     driver-class-name: org.h2.Driver
@@ -32,7 +32,7 @@ worker:
     - "stream-json"
     - "--verbose"
   # The directory each Claude session runs in — point this at a repo or sandbox.
-  working-directory: ${user.home}/dashboard-work
+  working-directory: ${user.home}/kanban-work
   # Per-task hard timeout. Autonomous/agentic tasks (research, multi-file edits,
   # anything that browses or runs many tools) can take tens of minutes — 30 min
   # is a safer default than a few minutes. Raise it for very long jobs.

@@ -26,7 +26,7 @@ public class WorkerProperties {
     private List<String> extraArgs = List.of("--output-format", "stream-json", "--verbose");
 
     /** Working directory the Claude session runs in (its sandbox/repo). */
-    private String workingDirectory = System.getProperty("java.io.tmpdir") + "/dashboard-work";
+    private String workingDirectory = System.getProperty("java.io.tmpdir") + "/kanban-work";
 
     /** Hard timeout for a single item, in seconds (default 30 min). */
     private long timeoutSeconds = 1800;

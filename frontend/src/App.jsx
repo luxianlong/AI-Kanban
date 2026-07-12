@@ -859,7 +859,7 @@ function rollupStatus(steps) {
 // --- helpers ---
 
 // Whether the Stories overview rail is collapsed, persisted across reloads.
-const STORY_PANEL_KEY = 'dashboard.storiesCollapsed'
+const STORY_PANEL_KEY = 'kanban.storiesCollapsed'
 
 function storyPanelCollapsed() {
   try {
@@ -879,7 +879,7 @@ function setStoryPanelCollapsed(on) {
 
 // Notification preference persists across reloads in localStorage. Wrapped in
 // try/catch because storage can throw (private mode, disabled cookies).
-const NOTIFY_KEY = 'dashboard.notify'
+const NOTIFY_KEY = 'kanban.notify'
 
 function notifyPref() {
   try {
@@ -908,7 +908,7 @@ function notifyTaskDone(todo) {
   try {
     new Notification(done ? '✓ Task done' : '⚠ Task needs attention', {
       body: `#${todo.id} ${todo.title}`,
-      tag: `dashboard-todo-${todo.id}`,
+      tag: `kanban-todo-${todo.id}`,
     })
   } catch {
     /* some browsers reject construction outside a SW; ignore */

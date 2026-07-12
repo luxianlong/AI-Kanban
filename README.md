@@ -96,7 +96,7 @@ JVM) is automatically requeued to `PENDING`.
 | `worker.enabled` | `true` | Master switch. `false` = never launch Claude. |
 | `worker.claude-command` | `claude` | Path to the CLI (use an absolute path if not on the service `PATH`). |
 | `worker.extra-args` | `--output-format text` | Args inserted before the prompt. |
-| `worker.working-directory` | `~/dashboard-work` | The directory each session runs in (its sandbox/repo). |
+| `worker.working-directory` | `~/kanban-work` | The directory each session runs in (its sandbox/repo). |
 | `worker.timeout-seconds` | `300` | Per-item hard timeout. |
 | `worker.batch-size` | `1` | Max items handled per tick. |
 | `worker.poll-interval-ms` | `15000` | Poll cadence. |

@@ -6,6 +6,7 @@ backend/target/
 backend/data/
 *.mv.db
 *.trace.db
+*.lock.db
 
 # Node / Vite
 frontend/node_modules/

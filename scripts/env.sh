@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared environment + config for the Dashboard run/deploy scripts.
+# Shared environment + config for the Kanban run/deploy scripts.
 # Source this at the top of the other scripts:  source "$(dirname "$0")/env.sh"
 #
 # Everything is overridable via environment variables so the scripts stay
@@ -38,8 +38,8 @@ export WORKER_TIMEOUT="${WORKER_TIMEOUT:-3600}"
 export WORKER_POLL_MS="${WORKER_POLL_MS:-5000}"
 export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"
 
-export BACKEND_LOG="${BACKEND_LOG:-/tmp/dashboard-backend.log}"
-export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/dashboard-frontend.log}"
+export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"
+export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/kanban-frontend.log}"
 export JAR="$REPO/backend/target/kanban-backend-0.1.0.jar"
 
 # Build the java launch args array shared by start/restart.
