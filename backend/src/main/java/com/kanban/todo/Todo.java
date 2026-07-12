@@ -38,6 +38,14 @@ public class Todo {
     @Column(nullable = false)
     private TodoStatus status = TodoStatus.PENDING;
 
+    /**
+     * Whether this task is about improving the Kanban project itself (its code,
+     * docs, tests) rather than a general task. Defaults to {@code false}: a plain
+     * task is not aimed at the project unless the creator opts in.
+     */
+    @Column(nullable = false)
+    private boolean projectImprovement = false;
+
     /** Free-form output the Claude Code session produced for this item. */
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -114,6 +122,14 @@ public class Todo {
 
     public void setStatus(TodoStatus status) {
         this.status = status;
+    }
+
+    public boolean isProjectImprovement() {
+        return projectImprovement;
+    }
+
+    public void setProjectImprovement(boolean projectImprovement) {
+        this.projectImprovement = projectImprovement;
     }
 
     public String getResult() {

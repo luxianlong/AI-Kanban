@@ -73,6 +73,8 @@ public class TodoController {
         todo.setTitle(req.title().trim());
         todo.setDescription(req.description());
         todo.setStatus(TodoStatus.PENDING);
+        // Optional flag; a plain task defaults to a general (non-project) task.
+        todo.setProjectImprovement(Boolean.TRUE.equals(req.projectImprovement()));
         // If the user has declared stories, classify this new task against them:
         // file it under the story it most clearly belongs to, or leave it
         // standalone when nothing fits. Story-tagged tasks run in chain order.

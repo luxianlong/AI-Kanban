@@ -14,10 +14,15 @@ public final class TodoDtos {
     private TodoDtos() {
     }
 
-    /** Body for creating a todo. */
+    /**
+     * Body for creating a todo. {@code projectImprovement} marks the task as one
+     * that improves the Kanban project itself; it is optional and defaults to
+     * {@code false} (a general task) when omitted.
+     */
     public record CreateTodoRequest(
             @NotBlank @Size(max = 200) String title,
-            @Size(max = 10_000) String description) {
+            @Size(max = 10_000) String description,
+            Boolean projectImprovement) {
     }
 
     /** One step of a story chain. */
@@ -90,6 +95,7 @@ public final class TodoDtos {
             String description,
             TodoStatus status,
             String result,
+            boolean projectImprovement,
             Instant createdAt,
             Instant updatedAt,
             Instant processedAt,
@@ -106,6 +112,7 @@ public final class TodoDtos {
                     t.getDescription(),
                     t.getStatus(),
                     t.getResult(),
+                    t.isProjectImprovement(),
                     t.getCreatedAt(),
                     t.getUpdatedAt(),
                     t.getProcessedAt(),
