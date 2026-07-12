@@ -107,6 +107,24 @@ body {
 .worker-pill.on .dot { background: var(--done); animation: breathe 2s ease-in-out infinite; }
 .worker-pill.off { color: var(--muted); }
 
+.notify-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hair);
+  background: #fff;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.notify-toggle:hover { color: var(--ink); border-color: var(--faint); }
+.notify-toggle.on { color: var(--brand); border-color: #c7d2fe; background: #eef2ff; }
+
 @keyframes breathe { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 /* ---------- Board ---------- */
