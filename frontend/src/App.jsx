@@ -355,6 +355,10 @@ function StoryComposer({ onCreateStory }) {
   const [name, setName] = useState('')
   const [steps, setSteps] = useState(['', ''])
   const [busy, setBusy] = useState(false)
+  const [suggesting, setSuggesting] = useState(false)
+  // Descriptions the server proposed, keyed by (trimmed) step title, so the
+  // context it generated survives a manual edit and rides along on submit.
+  const [suggestedDescs, setSuggestedDescs] = useState({})
 
   function setStep(i, value) {
     setSteps((cur) => cur.map((s, idx) => (idx === i ? value : s)))
@@ -369,6 +373,27 @@ function StoryComposer({ onCreateStory }) {
     setOpen(false)
     setName('')
     setSteps(['', ''])
+    setSuggestedDescs({})
+  }
+
+  // Turn the story name/goal into a ready-to-edit chain of steps via the server.
+  async function suggest() {
+    const goal = name.trim()
+    if (!goal || suggesting) return
+    setSuggesting(true)
+    try {
+      const s = await api.suggestStory(goal)
+      if (s?.name) setName(s.name)
+      const titles = (s?.steps || []).map((step) => step.title)
+      if (titles.length) setSteps(titles)
+      const descs = {}
+      for (const step of s?.steps || []) descs[step.title.trim()] = step.description || ''
+      setSuggestedDescs(descs)
+    } catch {
+      // Leave the composer as-is; suggestion is a convenience, not a requirement.
+    } finally {
+      setSuggesting(false)
+    }
   }
 
   const filled = steps.map((s) => s.trim()).filter(Boolean)
@@ -381,7 +406,7 @@ function StoryComposer({ onCreateStory }) {
     try {
       await onCreateStory(
         name.trim(),
-        filled.map((title) => ({ title, description: '' })),
+        filled.map((title) => ({ title, description: suggestedDescs[title] || '' })),
       )
       reset()
     } finally {
@@ -399,14 +424,25 @@ function StoryComposer({ onCreateStory }) {
 
   return (
     <form className="composer story-form" onSubmit={submit}>
-      <input
-        className="composer-title"
-        placeholder="Story name (e.g. Ship dark mode)"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        maxLength={200}
-        autoFocus
-      />
+      <div className="story-name-row">
+        <input
+          className="composer-title"
+          placeholder="Story name or goal (e.g. Ship dark mode)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={200}
+          autoFocus
+        />
+        <button
+          type="button"
+          className="story-suggest"
+          onClick={suggest}
+          disabled={!name.trim() || suggesting}
+          title="Generate steps from the story name"
+        >
+          {suggesting ? '…' : '✨ Suggest steps'}
+        </button>
+      </div>
       <div className="story-steps">
         {steps.map((s, i) => (
           <div className="story-step-row" key={i}>
