@@ -77,6 +77,15 @@ export default function App() {
     }
   }
 
+  async function retryTodo(id) {
+    try {
+      await api.retryTodo(id)
+      await refresh()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   const byStatus = (s) => todos.filter((t) => t.status === s)
   const selected = todos.find((t) => t.id === selectedId) || null
 
@@ -105,6 +114,7 @@ export default function App() {
           log={logs[selected.id]}
           onClose={() => setSelectedId(null)}
           onDelete={() => removeTodo(selected.id)}
+          onRetry={() => retryTodo(selected.id)}
         />
       )}
     </div>
@@ -271,8 +281,20 @@ function Card({ todo, tail, onOpen }) {
   )
 }
 
-function Drawer({ todo, log, onClose, onDelete }) {
+function Drawer({ todo, log, onClose, onDelete, onRetry }) {
   const running = todo.status === 'IN_PROGRESS'
+  const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
+  const [retrying, setRetrying] = useState(false)
+
+  async function retry() {
+    if (retrying) return
+    setRetrying(true)
+    try {
+      await onRetry()
+    } finally {
+      setRetrying(false)
+    }
+  }
   const logRef = useRef(null)
   useEffect(() => {
     if (running && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
@@ -328,6 +350,11 @@ function Drawer({ todo, log, onClose, onDelete }) {
         )}
 
         <div className="drawer-foot">
+          {canRetry && (
+            <button className="btn primary" onClick={retry} disabled={retrying}>
+              {retrying ? 'Retrying…' : todo.status === 'FAILED' ? 'Retry task' : 'Run again'}
+            </button>
+          )}
           <button className="btn danger-ghost" onClick={onDelete}>Delete task</button>
         </div>
       </aside>

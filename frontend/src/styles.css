@@ -420,7 +420,7 @@ body {
 .badge.resolved { background: #dcfce7; color: #15803d; }
 .badge.failed { background: #ffe0e6; color: #be123c; }
 
-.drawer-foot { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hair); }
+.drawer-foot { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hair); display: flex; gap: 10px; align-items: center; }
 
 /* ---------- misc ---------- */
 .error {
