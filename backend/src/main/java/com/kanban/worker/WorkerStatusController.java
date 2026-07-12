@@ -1,4 +1,4 @@
-package com.dashboard.worker;
+package com.kanban.worker;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;

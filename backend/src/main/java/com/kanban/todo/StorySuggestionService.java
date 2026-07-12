@@ -1,6 +1,6 @@
-package com.dashboard.todo;
+package com.kanban.todo;
 
-import com.dashboard.todo.TodoDtos.StoryStep;
+import com.kanban.todo.TodoDtos.StoryStep;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

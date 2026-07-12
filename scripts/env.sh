@@ -40,7 +40,7 @@ export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"
 
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/dashboard-backend.log}"
 export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/dashboard-frontend.log}"
-export JAR="$REPO/backend/target/dashboard-backend-0.1.0.jar"
+export JAR="$REPO/backend/target/kanban-backend-0.1.0.jar"
 
 # Build the java launch args array shared by start/restart.
 backend_launch_args() {

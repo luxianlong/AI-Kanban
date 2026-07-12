@@ -1,4 +1,4 @@
-package com.dashboard.todo;
+package com.kanban.todo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

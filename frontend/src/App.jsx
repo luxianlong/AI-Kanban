@@ -239,7 +239,7 @@ function Topbar({ worker, total, notify, onToggleNotify }) {
       <div className="brand">
         <span className="mark" aria-hidden />
         <div>
-          <h1>Dashboard</h1>
+          <h1>Kanban</h1>
           <p className="tagline">Queue a task — a Claude Code agent picks it up and works it.</p>
         </div>
       </div>
