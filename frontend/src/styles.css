@@ -335,6 +335,9 @@ body {
   font-size: 0.72rem;
   color: var(--faint);
 }
+.card-cost {
+  font-variant-numeric: tabular-nums;
+}
 
 /* ---------- Drawer ---------- */
 .scrim {
