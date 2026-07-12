@@ -84,17 +84,43 @@ public class ClaudeWorkerService {
         }
         try {
             List<Todo> pending = repository.findByStatusOrderByCreatedAtAsc(TodoStatus.PENDING);
-            if (pending.isEmpty()) {
+            // Story steps run in order: a step is skipped until every earlier step
+            // in its chain has RESOLVED, so a story never runs two tasks at once
+            // and halts if one of its steps fails.
+            List<Todo> eligible = pending.stream().filter(t -> !isBlockedByStory(t)).toList();
+            if (eligible.isEmpty()) {
                 return;
             }
-            int limit = Math.min(props.getBatchSize(), pending.size());
-            log.info("Worker picked up {} of {} pending todo(s).", limit, pending.size());
+            int limit = Math.min(props.getBatchSize(), eligible.size());
+            log.info("Worker picked up {} of {} eligible pending todo(s).", limit, eligible.size());
             for (int i = 0; i < limit; i++) {
-                process(pending.get(i));
+                process(eligible.get(i));
             }
         } finally {
             tickLock.unlock();
         }
+    }
+
+    /**
+     * A story step is blocked while any earlier step in the same chain is not yet
+     * RESOLVED (still pending, running, or failed). Standalone todos are never
+     * blocked. Keeping blocked steps in PENDING means they flow automatically the
+     * moment their predecessor finishes — no extra bookkeeping needed.
+     */
+    private boolean isBlockedByStory(Todo todo) {
+        String storyId = todo.getStoryId();
+        if (storyId == null || todo.getStoryOrder() == null) {
+            return false;
+        }
+        int order = todo.getStoryOrder();
+        for (Todo step : repository.findByStoryIdOrderByStoryOrderAsc(storyId)) {
+            if (step.getStoryOrder() != null
+                    && step.getStoryOrder() < order
+                    && step.getStatus() != TodoStatus.RESOLVED) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void process(Todo todo) {
@@ -159,11 +185,53 @@ public class ClaudeWorkerService {
                 .append("exactly ").append(FAIL_SENTINEL).append(" followed by a brief reason.\n");
         sb.append("If this project has a CLAUDE.md, follow it — it explains how to make changes ")
                 .append("to this project and how to file follow-up tasks.\n\n");
+        appendStoryContext(sb, todo);
         sb.append("TODO TITLE: ").append(todo.getTitle()).append('\n');
         if (todo.getDescription() != null && !todo.getDescription().isBlank()) {
             sb.append("DETAILS:\n").append(todo.getDescription()).append('\n');
         }
         return sb.toString();
+    }
+
+    /** Max chars of a prior step's result to carry into the next step's prompt. */
+    private static final int STORY_RESULT_BUDGET = 4000;
+
+    /**
+     * If the todo is a step in a story, prepend the chain's context: which step
+     * this is, and what the earlier steps produced. This is what makes a story a
+     * <em>chain</em> — each step builds on the results of the ones before it.
+     */
+    private void appendStoryContext(StringBuilder sb, Todo todo) {
+        if (todo.getStoryId() == null || todo.getStoryOrder() == null) {
+            return;
+        }
+        List<Todo> steps = repository.findByStoryIdOrderByStoryOrderAsc(todo.getStoryId());
+        int order = todo.getStoryOrder();
+        sb.append("This task is step ").append(order + 1).append(" of ").append(steps.size())
+                .append(" in the story \"").append(todo.getStoryName()).append("\". ")
+                .append("The steps run in order and build on each other; do your part so the ")
+                .append("next step can continue.\n");
+        boolean any = false;
+        for (Todo step : steps) {
+            if (step.getStoryOrder() == null || step.getStoryOrder() >= order) {
+                continue;
+            }
+            if (!any) {
+                sb.append("\nResults of the earlier steps (use them as context):\n");
+                any = true;
+            }
+            sb.append("\n— Step ").append(step.getStoryOrder() + 1)
+                    .append(" \"").append(step.getTitle()).append("\":\n");
+            String result = step.getResult();
+            if (result == null || result.isBlank()) {
+                sb.append("(no result recorded)\n");
+            } else {
+                sb.append(result.length() > STORY_RESULT_BUDGET
+                        ? result.substring(0, STORY_RESULT_BUDGET) + "\n…(truncated)\n"
+                        : result + "\n");
+            }
+        }
+        sb.append('\n');
     }
 
     private ProcessResult runClaude(Todo todo, String prompt) throws IOException, InterruptedException {

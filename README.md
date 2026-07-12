@@ -124,9 +124,22 @@ enabling this — the session will run tools without prompting.
 | `GET` | `/api/todos/{id}/log` | Live session transcript (poll while in progress). |
 | `PATCH` | `/api/todos/{id}` | Update `{ "status": "...", "result": "..." }`. |
 | `DELETE` | `/api/todos/{id}` | Delete. |
+| `GET` | `/api/stories` | List stories with their ordered steps. |
+| `POST` | `/api/stories` | Create a story `{ "name": "...", "steps": [{ "title": "...", "description": "..." }] }`. |
 | `GET` | `/api/worker/status` | Worker config (enabled, interval, ...). |
 
 H2 console (dev): <http://localhost:8080/h2-console> (JDBC URL from `application.yml`).
+
+### Stories — chaining tasks
+
+A **story** is a named, ordered chain of tasks. Creating one via `POST /api/stories`
+(or the **New story** button in the To Do column) spins up a normal todo per step,
+each tagged with a shared `storyId` and its position in the chain. The worker runs a
+story **one step at a time, top to bottom**: a step stays queued until every earlier
+step in its chain has RESOLVED, so later steps can safely build on earlier results —
+and the chain halts if a step fails. Each card shows a `Story · n/total` badge; blocked
+steps are dimmed until their turn. Standalone todos are unaffected (their story fields
+are `null`).
 
 ---
 

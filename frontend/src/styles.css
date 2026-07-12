@@ -245,6 +245,93 @@ body {
 .suggest:disabled { opacity: 0.6; cursor: default; }
 .suggest-spark { color: var(--brand); }
 
+/* ---------- Story composer ---------- */
+.story-add {
+  width: 100%;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--brand-ink);
+  background: #fff;
+  border: 1px dashed var(--board-line);
+  border-radius: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.story-add:hover { border-color: var(--brand); background: #f7f8ff; }
+.story-add-icon { color: var(--brand); }
+
+.story-form { padding: 10px; border: 1px solid var(--board-line); border-radius: 10px; background: #fff; box-shadow: var(--shadow-sm); }
+.story-steps { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.story-step-row { display: flex; align-items: center; gap: 6px; }
+.story-step-num {
+  flex: none;
+  width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--brand-ink); background: #eef2ff; border-radius: 50%;
+}
+.story-step-input {
+  flex: 1;
+  font: inherit; font-size: 0.85rem;
+  padding: 7px 9px;
+  border: 1px solid var(--hair); border-radius: 8px;
+}
+.story-step-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.14); }
+.story-step-remove {
+  flex: none;
+  font-size: 1rem; line-height: 1;
+  color: var(--faint); background: none; border: none; cursor: pointer;
+  padding: 2px 4px;
+}
+.story-step-remove:hover:not(:disabled) { color: var(--failed); }
+.story-step-remove:disabled { opacity: 0.3; cursor: default; }
+.story-step-add {
+  margin-top: 8px;
+  font: inherit; font-size: 0.8rem; font-weight: 600;
+  color: var(--brand-ink); background: none; border: none; cursor: pointer;
+  padding: 0;
+}
+.story-step-add:hover { text-decoration: underline; }
+
+/* ---------- Story badge (on cards + drawer) ---------- */
+.story-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  align-self: flex-start;
+  margin-bottom: 6px;
+  max-width: 100%;
+  font-size: 0.68rem; font-weight: 700;
+  color: var(--brand-ink);
+  background: #eef2ff;
+  border: 1px solid #dfe4ff;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.story-badge.blocked {
+  color: var(--muted);
+  background: #f2f4f8;
+  border-style: dashed;
+  border-color: var(--board-line);
+}
+.story-badge-icon { flex: none; opacity: 0.8; }
+.story-badge-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.story-badge-step {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  padding-left: 5px; margin-left: 1px;
+  border-left: 1px solid currentColor;
+  opacity: 0.75;
+}
+.drawer-story { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.drawer-story-name { font-size: 0.9rem; font-weight: 600; }
+.drawer-story-note { font-size: 0.78rem; color: var(--muted); }
+
 /* ---------- Buttons ---------- */
 .btn {
   font: inherit;

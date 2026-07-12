@@ -43,6 +43,22 @@ public class Todo {
     @Column(columnDefinition = "TEXT")
     private String result;
 
+    /**
+     * Identifier of the story (an ordered chain of tasks) this item belongs to,
+     * or {@code null} for a standalone task. All steps of one story share this id.
+     */
+    private String storyId;
+
+    /** Human-readable name of the story, duplicated on each step for display. */
+    private String storyName;
+
+    /**
+     * Zero-based position of this task within its story chain. The worker only
+     * picks up a step once every earlier step in the same story is
+     * {@link TodoStatus#RESOLVED}, so a story runs one task at a time in order.
+     */
+    private Integer storyOrder;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -138,5 +154,29 @@ public class Todo {
 
     public void setDurationMs(Long durationMs) {
         this.durationMs = durationMs;
+    }
+
+    public String getStoryId() {
+        return storyId;
+    }
+
+    public void setStoryId(String storyId) {
+        this.storyId = storyId;
+    }
+
+    public String getStoryName() {
+        return storyName;
+    }
+
+    public void setStoryName(String storyName) {
+        this.storyName = storyName;
+    }
+
+    public Integer getStoryOrder() {
+        return storyOrder;
+    }
+
+    public void setStoryOrder(Integer storyOrder) {
+        this.storyOrder = storyOrder;
     }
 }

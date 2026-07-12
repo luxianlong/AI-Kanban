@@ -126,6 +126,11 @@ export default function App() {
     await refresh()
   }
 
+  async function createStory(name, steps) {
+    await api.createStory(name, steps)
+    await refresh()
+  }
+
   async function removeTodo(id) {
     try {
       await api.deleteTodo(id)
@@ -147,6 +152,7 @@ export default function App() {
 
   const byStatus = (s) => todos.filter((t) => t.status === s)
   const selected = todos.find((t) => t.id === selectedId) || null
+  const storyMeta = computeStoryMeta(todos)
 
   return (
     <div className="page">
@@ -161,8 +167,10 @@ export default function App() {
             col={col}
             todos={byStatus(col.status)}
             logs={logs}
+            storyMeta={storyMeta}
             onOpen={setSelectedId}
             onCreate={col.status === 'PENDING' ? createTodo : null}
+            onCreateStory={col.status === 'PENDING' ? createStory : null}
           />
         ))}
       </div>
@@ -171,6 +179,7 @@ export default function App() {
         <Drawer
           todo={selected}
           log={logs[selected.id]}
+          story={storyMeta[selected.id]}
           onClose={() => setSelectedId(null)}
           onDelete={() => removeTodo(selected.id)}
           onRetry={() => retryTodo(selected.id)}
@@ -244,7 +253,7 @@ function Topbar({ worker, total, notify, onToggleNotify }) {
   )
 }
 
-function Column({ col, todos, logs, onOpen, onCreate }) {
+function Column({ col, todos, logs, storyMeta, onOpen, onCreate, onCreateStory }) {
   return (
     <section className={`column ${col.status.toLowerCase()}`}>
       <div className="col-head">
@@ -254,12 +263,19 @@ function Column({ col, todos, logs, onOpen, onCreate }) {
       </div>
 
       {onCreate && <Composer onCreate={onCreate} />}
+      {onCreateStory && <StoryComposer onCreateStory={onCreateStory} />}
       {onCreate && <SuggestButton onCreate={onCreate} />}
 
       <div className="col-body">
         {todos.length === 0 && !onCreate && <p className="col-empty">{col.hint}</p>}
         {todos.map((t) => (
-          <Card key={t.id} todo={t} tail={tailLine(logs[t.id])} onOpen={() => onOpen(t.id)} />
+          <Card
+            key={t.id}
+            todo={t}
+            tail={tailLine(logs[t.id])}
+            story={storyMeta[t.id]}
+            onOpen={() => onOpen(t.id)}
+          />
         ))}
       </div>
     </section>
@@ -327,6 +343,99 @@ function Composer({ onCreate }) {
   )
 }
 
+// Build a story chain: a name plus an ordered list of step titles. The worker
+// runs the steps top-to-bottom, each waiting for the previous one to finish.
+function StoryComposer({ onCreateStory }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [steps, setSteps] = useState(['', ''])
+  const [busy, setBusy] = useState(false)
+
+  function setStep(i, value) {
+    setSteps((cur) => cur.map((s, idx) => (idx === i ? value : s)))
+  }
+  function addStep() {
+    setSteps((cur) => [...cur, ''])
+  }
+  function removeStep(i) {
+    setSteps((cur) => (cur.length <= 1 ? cur : cur.filter((_, idx) => idx !== i)))
+  }
+  function reset() {
+    setOpen(false)
+    setName('')
+    setSteps(['', ''])
+  }
+
+  const filled = steps.map((s) => s.trim()).filter(Boolean)
+  const canSubmit = name.trim() && filled.length >= 1 && !busy
+
+  async function submit(e) {
+    e.preventDefault()
+    if (!canSubmit) return
+    setBusy(true)
+    try {
+      await onCreateStory(
+        name.trim(),
+        filled.map((title) => ({ title, description: '' })),
+      )
+      reset()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button className="story-add" onClick={() => setOpen(true)} title="Chain several tasks into a story">
+        <span className="story-add-icon">▤</span> New story
+      </button>
+    )
+  }
+
+  return (
+    <form className="composer story-form" onSubmit={submit}>
+      <input
+        className="composer-title"
+        placeholder="Story name (e.g. Ship dark mode)"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        maxLength={200}
+        autoFocus
+      />
+      <div className="story-steps">
+        {steps.map((s, i) => (
+          <div className="story-step-row" key={i}>
+            <span className="story-step-num">{i + 1}</span>
+            <input
+              className="story-step-input"
+              placeholder={`Step ${i + 1}`}
+              value={s}
+              onChange={(e) => setStep(i, e.target.value)}
+              maxLength={200}
+            />
+            <button
+              type="button"
+              className="story-step-remove"
+              onClick={() => removeStep(i)}
+              disabled={steps.length <= 1}
+              aria-label={`Remove step ${i + 1}`}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <button type="button" className="story-step-add" onClick={addStep}>+ Add step</button>
+      <div className="composer-actions">
+        <button type="submit" className="btn primary" disabled={!canSubmit}>
+          {busy ? 'Creating…' : `Create story${filled.length ? ` · ${filled.length} steps` : ''}`}
+        </button>
+        <button type="button" className="btn ghost" onClick={reset}>Cancel</button>
+      </div>
+    </form>
+  )
+}
+
 function SuggestButton({ onCreate }) {
   const [busy, setBusy] = useState(false)
   async function suggest() {
@@ -350,10 +459,11 @@ function SuggestButton({ onCreate }) {
   )
 }
 
-function Card({ todo, tail, onOpen }) {
+function Card({ todo, tail, story, onOpen }) {
   const running = todo.status === 'IN_PROGRESS'
   return (
     <button className={`card ${todo.status.toLowerCase()}`} onClick={onOpen}>
+      {story && <StoryBadge story={story} />}
       <div className="card-title">{todo.title}</div>
       {todo.description && !running && <div className="card-desc">{todo.description}</div>}
 
@@ -380,7 +490,7 @@ function Card({ todo, tail, onOpen }) {
   )
 }
 
-function Drawer({ todo, log, onClose, onDelete, onRetry }) {
+function Drawer({ todo, log, story, onClose, onDelete, onRetry }) {
   const running = todo.status === 'IN_PROGRESS'
   const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
   const [retrying, setRetrying] = useState(false)
@@ -429,6 +539,19 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
           #{todo.id} · created {relTime(todo.createdAt)} · updated {relTime(todo.updatedAt)}
           {costMeta(todo) && <> · {costMeta(todo)}</>}
         </div>
+
+        {story && (
+          <div className="drawer-section">
+            <div className="section-label">Story</div>
+            <div className="drawer-story">
+              <StoryBadge story={story} />
+              <span className="drawer-story-name">{story.name}</span>
+              {story.blocked && (
+                <span className="drawer-story-note">waiting for earlier steps to finish</span>
+              )}
+            </div>
+          </div>
+        )}
 
         {todo.description && (
           <div className="drawer-section">
@@ -490,6 +613,45 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
       </aside>
     </>
   )
+}
+
+// Compact chip shown on every task that belongs to a story: the chain name plus
+// this task's position (e.g. "2/4"). Blocked steps (waiting on an earlier step)
+// get a muted, dashed treatment so it's clear they aren't queued yet.
+function StoryBadge({ story }) {
+  return (
+    <span className={`story-badge ${story.blocked ? 'blocked' : ''}`} title={`Story: ${story.name}`}>
+      <span className="story-badge-icon" aria-hidden>▤</span>
+      <span className="story-badge-name">{story.name}</span>
+      <span className="story-badge-step">{story.step}/{story.total}</span>
+    </span>
+  )
+}
+
+// Derive per-task story info keyed by todo id: the chain's name, this task's
+// 1-based position and length, and whether it's blocked — a PENDING step is
+// blocked until every earlier step in its chain has resolved.
+function computeStoryMeta(todos) {
+  const groups = new Map()
+  for (const t of todos) {
+    if (!t.storyId) continue
+    if (!groups.has(t.storyId)) groups.set(t.storyId, [])
+    groups.get(t.storyId).push(t)
+  }
+  const meta = {}
+  for (const steps of groups.values()) {
+    steps.sort((a, b) => (a.storyOrder ?? 0) - (b.storyOrder ?? 0))
+    steps.forEach((t, i) => {
+      const earlierAllDone = steps.slice(0, i).every((s) => s.status === 'RESOLVED')
+      meta[t.id] = {
+        name: t.storyName || 'Story',
+        step: i + 1,
+        total: steps.length,
+        blocked: t.status === 'PENDING' && !earlierAllDone,
+      }
+    })
+  }
+  return meta
 }
 
 // --- helpers ---

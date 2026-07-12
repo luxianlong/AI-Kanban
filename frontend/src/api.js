@@ -19,6 +19,15 @@ export const api = {
       body: JSON.stringify({ title, description }),
     }).then(json),
 
+  // Create a story: a named, ordered chain of tasks the worker runs one after
+  // another. `steps` is [{ title, description }]. Returns the created todos.
+  createStory: (name, steps) =>
+    fetch(`${BASE}/stories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, steps }),
+    }).then(json),
+
   deleteTodo: (id) =>
     fetch(`${BASE}/todos/${id}`, { method: 'DELETE' }).then(json),
 
