@@ -66,6 +66,7 @@ export default function App() {
         const terminal = t.status === 'RESOLVED' || t.status === 'FAILED'
         if (terminal && before && before !== t.status) {
           pushToast(t)
+          playChime(t.status)
           if (notifyRef.current) notifyTaskDone(t)
         }
       }
@@ -691,6 +692,43 @@ function notifyTaskDone(todo) {
     })
   } catch {
     /* some browsers reject construction outside a SW; ignore */
+  }
+}
+
+// A short synthesized chime so a finished task is *audible*, not just visible —
+// the in-app toast otherwise pops silently. We generate the tone with the Web
+// Audio API (no asset to ship, works offline) rather than an <audio> file. A
+// rising two-note major third says "done"; a lower falling pair says "needs
+// attention". Everything is wrapped in try/catch and the context is lazily
+// created + resumed, so it's a harmless no-op where audio is blocked (e.g. no
+// user gesture yet under browser autoplay rules, or in a headless test env).
+let audioCtx = null
+function playChime(status) {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext
+    if (!Ctx) return
+    if (!audioCtx) audioCtx = new Ctx()
+    if (audioCtx.state === 'suspended') audioCtx.resume()
+    const now = audioCtx.currentTime
+    const notes = status === 'RESOLVED' ? [659.25, 830.61] : [415.30, 311.13]
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator()
+      const gain = audioCtx.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      const start = now + i * 0.12
+      const end = start + 0.18
+      // Quick attack, smooth exponential decay — avoids the click a hard
+      // gain cutoff would produce.
+      gain.gain.setValueAtTime(0.0001, start)
+      gain.gain.exponentialRampToValueAtTime(0.15, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, end)
+      osc.connect(gain).connect(audioCtx.destination)
+      osc.start(start)
+      osc.stop(end + 0.02)
+    })
+  } catch {
+    /* audio unsupported or blocked — the toast is still shown, so this is fine */
   }
 }
 
