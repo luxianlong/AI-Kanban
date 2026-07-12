@@ -20,6 +20,10 @@ regularly picks them up and tries to resolve them — writing the result back fo
 
 A todo flows: `PENDING → IN_PROGRESS → RESOLVED` (or `FAILED`).
 
+See **[docs/architecture.md](docs/architecture.md)** for a full topology of the
+design — system, components, the todo lifecycle, the worker poll cycle, stories,
+and the guarded deploy — rendered as Mermaid diagrams.
+
 ---
 
 ## Prerequisites
