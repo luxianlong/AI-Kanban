@@ -28,8 +28,8 @@ public class WorkerProperties {
     /** Working directory the Claude session runs in (its sandbox/repo). */
     private String workingDirectory = System.getProperty("java.io.tmpdir") + "/dashboard-work";
 
-    /** Hard timeout for a single item, in seconds. */
-    private long timeoutSeconds = 300;
+    /** Hard timeout for a single item, in seconds (default 30 min). */
+    private long timeoutSeconds = 1800;
 
     /** Max pending items handled per poll tick. */
     private int batchSize = 1;
