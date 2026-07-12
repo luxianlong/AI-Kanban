@@ -52,6 +52,12 @@ public class Todo {
     /** When the worker last started/finished processing this item. */
     private Instant processedAt;
 
+    /** Total USD cost the Claude Code session reported, if any. */
+    private Double costUsd;
+
+    /** Wall-clock duration of the Claude Code session in milliseconds, if any. */
+    private Long durationMs;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
@@ -116,5 +122,21 @@ public class Todo {
 
     public void setProcessedAt(Instant processedAt) {
         this.processedAt = processedAt;
+    }
+
+    public Double getCostUsd() {
+        return costUsd;
+    }
+
+    public void setCostUsd(Double costUsd) {
+        this.costUsd = costUsd;
+    }
+
+    public Long getDurationMs() {
+        return durationMs;
+    }
+
+    public void setDurationMs(Long durationMs) {
+        this.durationMs = durationMs;
     }
 }

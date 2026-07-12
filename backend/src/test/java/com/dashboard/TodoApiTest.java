@@ -9,6 +9,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -33,11 +34,16 @@ class TodoApiTest {
                         .content("{\"title\":\"Write a haiku\",\"description\":\"about spring\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title", is("Write a haiku")))
-                .andExpect(jsonPath("$.status", is("PENDING")));
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                // Cost/duration are part of the schema but unset until an agent run reports them.
+                .andExpect(jsonPath("$.costUsd", is(nullValue())))
+                .andExpect(jsonPath("$.durationMs", is(nullValue())));
 
         mvc.perform(get("/api/todos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title", is("Write a haiku")));
+                .andExpect(jsonPath("$[0].title", is("Write a haiku")))
+                .andExpect(jsonPath("$[0].costUsd", is(nullValue())))
+                .andExpect(jsonPath("$[0].durationMs", is(nullValue())));
     }
 
     @Test

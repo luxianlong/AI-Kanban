@@ -32,7 +32,9 @@ public final class TodoDtos {
             String result,
             Instant createdAt,
             Instant updatedAt,
-            Instant processedAt) {
+            Instant processedAt,
+            Double costUsd,
+            Long durationMs) {
 
         public static TodoResponse from(Todo t) {
             return new TodoResponse(
@@ -43,7 +45,9 @@ public final class TodoDtos {
                     t.getResult(),
                     t.getCreatedAt(),
                     t.getUpdatedAt(),
-                    t.getProcessedAt());
+                    t.getProcessedAt(),
+                    t.getCostUsd(),
+                    t.getDurationMs());
         }
     }
 }

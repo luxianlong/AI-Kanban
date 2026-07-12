@@ -275,6 +275,7 @@ function Card({ todo, tail, onOpen }) {
 
       <div className="card-foot">
         <span className="card-id">#{todo.id}</span>
+        {costMeta(todo) && <span className="card-cost">{costMeta(todo)}</span>}
         <span className="card-time">{relTime(todo.updatedAt)}</span>
       </div>
     </button>
@@ -328,6 +329,7 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
         <h2 className="drawer-title">{todo.title}</h2>
         <div className="drawer-meta">
           #{todo.id} · created {relTime(todo.createdAt)} · updated {relTime(todo.updatedAt)}
+          {costMeta(todo) && <> · {costMeta(todo)}</>}
         </div>
 
         {todo.description && (
@@ -397,6 +399,15 @@ function tailLine(log) {
 function firstLines(text, n) {
   if (!text) return ''
   return text.split('\n').filter((l) => l.trim()).slice(0, n).join(' ').slice(0, 160)
+}
+
+// Renders the agent run's runtime/cost as e.g. "12.3s · $0.0421". Either half
+// may be missing (older tasks predate the columns), so we show whatever we have.
+function costMeta(todo) {
+  const parts = []
+  if (todo.durationMs != null) parts.push(`${(todo.durationMs / 1000).toFixed(1)}s`)
+  if (todo.costUsd != null) parts.push(`$${todo.costUsd.toFixed(4)}`)
+  return parts.join(' · ')
 }
 
 function label(status) {

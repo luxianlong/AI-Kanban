@@ -108,6 +108,14 @@ public class ClaudeWorkerService {
 
         try {
             ProcessResult r = runClaude(todo, buildPrompt(todo));
+            // Record whatever the session reported about cost/runtime, whether it
+            // resolved or failed, so the card can show what the run consumed.
+            if (r.costUsd() != null) {
+                todo.setCostUsd(r.costUsd());
+            }
+            if (r.durationMs() != null) {
+                todo.setDurationMs(r.durationMs());
+            }
             if (r.timedOut()) {
                 liveLog.append(todo.getId(), "✗ Timed out after " + props.getTimeoutSeconds() + "s.");
                 fail(todo, "Timed out after " + props.getTimeoutSeconds() + "s.");
@@ -179,7 +187,9 @@ public class ClaudeWorkerService {
         // Drain stdout on a separate thread so we can enforce the timeout even if
         // the process wedges without closing its stream.
         StringBuilder finalOutput = new StringBuilder();
-        Thread reader = new Thread(() -> streamOutput(todo.getId(), process, finalOutput), "claude-reader-" + todo.getId());
+        RunMetrics metrics = new RunMetrics();
+        Thread reader = new Thread(() -> streamOutput(todo.getId(), process, finalOutput, metrics),
+                "claude-reader-" + todo.getId());
         reader.start();
 
         boolean finished = process.waitFor(props.getTimeoutSeconds(), TimeUnit.SECONDS);
@@ -187,10 +197,10 @@ public class ClaudeWorkerService {
             process.destroyForcibly();
             process.waitFor(10, TimeUnit.SECONDS);
             reader.join(5_000);
-            return new ProcessResult(-1, finalOutput.toString(), true);
+            return new ProcessResult(-1, finalOutput.toString(), true, metrics.costUsd, metrics.durationMs);
         }
         reader.join(5_000);
-        return new ProcessResult(process.exitValue(), finalOutput.toString(), false);
+        return new ProcessResult(process.exitValue(), finalOutput.toString(), false, metrics.costUsd, metrics.durationMs);
     }
 
     /**
@@ -198,7 +208,7 @@ public class ClaudeWorkerService {
      * event (rendered to a friendly log line, with the terminal {@code result}
      * event captured as the final answer) or plain text (streamed as-is).
      */
-    private void streamOutput(Long todoId, Process process, StringBuilder finalOutput) {
+    private void streamOutput(Long todoId, Process process, StringBuilder finalOutput, RunMetrics metrics) {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
@@ -213,7 +223,7 @@ public class ClaudeWorkerService {
                     finalOutput.append(line).append('\n');
                     continue;
                 }
-                String rendered = renderEvent(event, finalOutput);
+                String rendered = renderEvent(event, finalOutput, metrics);
                 if (rendered != null && !rendered.isBlank()) {
                     liveLog.append(todoId, rendered);
                 }
@@ -237,7 +247,7 @@ public class ClaudeWorkerService {
      * answer from the terminal {@code result} event into {@code finalOutput}.
      * Returns {@code null} to skip an event that has nothing worth showing.
      */
-    private String renderEvent(JsonNode e, StringBuilder finalOutput) {
+    private String renderEvent(JsonNode e, StringBuilder finalOutput, RunMetrics metrics) {
         String type = e.path("type").asText("");
         switch (type) {
             case "system" -> {
@@ -278,8 +288,14 @@ public class ClaudeWorkerService {
                     finalOutput.setLength(0);
                     finalOutput.append(result);
                 }
-                String cost = e.has("total_cost_usd")
-                        ? String.format(" · $%.4f", e.path("total_cost_usd").asDouble()) : "";
+                if (e.has("total_cost_usd")) {
+                    metrics.costUsd = e.path("total_cost_usd").asDouble();
+                }
+                if (e.has("duration_ms")) {
+                    metrics.durationMs = e.path("duration_ms").asLong();
+                }
+                String cost = metrics.costUsd != null
+                        ? String.format(" · $%.4f", metrics.costUsd) : "";
                 double secs = e.path("duration_ms").asLong(0) / 1000.0;
                 return String.format("✔ Completed in %.1fs%s", secs, cost);
             }
@@ -327,6 +343,16 @@ public class ClaudeWorkerService {
         return line.length() > max ? line.substring(0, max) + "…" : line;
     }
 
-    private record ProcessResult(int exitCode, String finalOutput, boolean timedOut) {
+    private record ProcessResult(int exitCode, String finalOutput, boolean timedOut,
+                                 Double costUsd, Long durationMs) {
+    }
+
+    /**
+     * Mutable holder for run metrics captured off the terminal {@code result}
+     * event by the streaming reader thread and read back once it finishes.
+     */
+    private static final class RunMetrics {
+        Double costUsd;
+        Long durationMs;
     }
 }
