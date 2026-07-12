@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: dashboard
+  datasource:
+    # File-based H2 so todos survive restarts. Delete ./data/dashboard.mv.db to reset.
+    url: jdbc:h2:file:./data/dashboard;AUTO_SERVER=TRUE
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8080
+
+# --- Claude Code worker ---
+worker:
+  enabled: true
+  # Path to the Claude Code CLI. Use an absolute path if it isn't on the service PATH.
+  claude-command: claude
+  # Args before the prompt. To let the session edit files / run commands unattended, add
+  # "--dangerously-skip-permissions" here (only in a trusted, sandboxed working directory).
+  extra-args:
+    - "--output-format"
+    - "text"
+  # The directory each Claude session runs in — point this at a repo or sandbox.
+  working-directory: ${user.home}/dashboard-work
+  timeout-seconds: 300
+  batch-size: 1
+  poll-interval-ms: 15000
+  initial-delay-ms: 10000
+
+logging:
+  level:
+    com.dashboard: INFO
