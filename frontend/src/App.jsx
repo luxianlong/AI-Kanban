@@ -285,6 +285,7 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
   const running = todo.status === 'IN_PROGRESS'
   const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
   const [retrying, setRetrying] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   async function retry() {
     if (retrying) return
@@ -370,7 +371,15 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
               {retrying ? 'Retrying…' : todo.status === 'FAILED' ? 'Retry task' : 'Run again'}
             </button>
           )}
-          <button className="btn danger-ghost" onClick={onDelete}>Delete task</button>
+          {confirmingDelete ? (
+            <span className="delete-confirm">
+              <span className="delete-confirm-label">Delete? This can't be undone.</span>
+              <button className="btn danger" onClick={onDelete}>Yes, delete</button>
+              <button className="btn ghost" onClick={() => setConfirmingDelete(false)}>Cancel</button>
+            </span>
+          ) : (
+            <button className="btn danger-ghost" onClick={() => setConfirmingDelete(true)}>Delete task</button>
+          )}
         </div>
       </aside>
     </>
