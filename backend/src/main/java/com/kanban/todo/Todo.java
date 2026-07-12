@@ -12,6 +12,8 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import java.time.Instant;
 
 /**
@@ -44,6 +46,7 @@ public class Todo {
      * task is not aimed at the project unless the creator opts in.
      */
     @Column(nullable = false)
+    @ColumnDefault("false")
     private boolean projectImprovement = false;
 
     /** Free-form output the Claude Code session produced for this item. */
