@@ -332,6 +332,129 @@ body {
 .drawer-story-name { font-size: 0.9rem; font-weight: 600; }
 .drawer-story-note { font-size: 0.78rem; color: var(--muted); }
 
+/* ---------- Stories overview rail ---------- */
+/* Gathers each story's scattered steps back into one consolidated card so a
+   chain can be read and managed as a unit, above the by-status board. */
+.stories-panel {
+  margin: 16px 26px 0;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  flex: none;
+}
+.stories-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+}
+.stories-head:hover { background: rgba(91, 91, 214, 0.04); }
+.stories-caret { color: var(--faint); font-size: 0.7rem; width: 12px; flex: none; }
+.stories-icon { color: var(--brand); flex: none; }
+.stories-head h2 {
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin: 0;
+}
+.stories-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brand-ink);
+  background: #eef2ff;
+  border: 1px solid #dfe4ff;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-variant-numeric: tabular-nums;
+}
+.stories-hint { font-size: 0.74rem; color: var(--faint); }
+
+.stories-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  padding: 4px 14px 14px;
+}
+
+.story-overview {
+  background: var(--card);
+  border: 1px solid var(--hair);
+  border-left: 3px solid var(--todo);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.story-overview.in_progress { border-left-color: var(--progress); }
+.story-overview.resolved { border-left-color: var(--done); }
+.story-overview.failed { border-left-color: var(--failed); }
+
+.story-overview-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.story-overview-name {
+  font-size: 0.85rem; font-weight: 700;
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.story-status-pill {
+  flex: none;
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 2px 7px; border-radius: 999px;
+  color: var(--muted); background: #f2f4f8; border: 1px solid var(--board-line);
+}
+.story-status-pill.in_progress { color: #b45309; background: #fffbeb; border-color: #fde68a; }
+.story-status-pill.resolved { color: #15803d; background: #f0fdf4; border-color: #bbf7d0; }
+.story-status-pill.failed { color: var(--failed); background: #fff1f3; border-color: #fecdd3; }
+.story-overview-progress {
+  flex: none;
+  font-size: 0.7rem; font-weight: 600; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.story-progress-track {
+  height: 5px; border-radius: 999px; background: var(--hair); overflow: hidden; margin-bottom: 10px;
+}
+.story-progress-fill {
+  height: 100%; border-radius: 999px; background: var(--done);
+  transition: width 0.3s ease;
+}
+.story-overview.failed .story-progress-fill { background: var(--failed); }
+
+.story-overview-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.story-step-pill {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%;
+  font: inherit; font-size: 0.76rem;
+  text-align: left;
+  padding: 5px 8px;
+  border: 1px solid var(--hair);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.story-step-pill:hover { border-color: var(--brand); background: #f7f8ff; }
+.story-step-pill.active { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(91, 91, 214, 0.16); }
+.story-step-pill.blocked { color: var(--muted); border-style: dashed; }
+.story-step-pill-num {
+  flex: none;
+  font-size: 0.62rem; font-weight: 700; color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  min-width: 12px;
+}
+.story-step-pill-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--todo); }
+.story-step-pill.in_progress .story-step-pill-dot { background: var(--progress); animation: breathe 2s ease-in-out infinite; }
+.story-step-pill.resolved .story-step-pill-dot { background: var(--done); }
+.story-step-pill.failed .story-step-pill-dot { background: var(--failed); }
+.story-step-pill-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ---------- Buttons ---------- */
 .btn {
   font: inherit;

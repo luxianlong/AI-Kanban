@@ -161,12 +161,15 @@ export default function App() {
   const byStatus = (s) => todos.filter((t) => t.status === s)
   const selected = todos.find((t) => t.id === selectedId) || null
   const storyMeta = computeStoryMeta(todos)
+  const stories = computeStories(todos)
 
   return (
     <div className="page">
       <Topbar worker={worker} total={todos.length} notify={notify} onToggleNotify={toggleNotify} />
 
       {error && <div className="error">⚠ {error}</div>}
+
+      <StoriesPanel stories={stories} selectedId={selectedId} onOpen={setSelectedId} />
 
       <div className="board">
         {COLUMNS.map((col) => {
@@ -264,6 +267,77 @@ function Topbar({ worker, total, notify, onToggleNotify }) {
         <span className="count-pill">{total} {total === 1 ? 'task' : 'tasks'}</span>
       </div>
     </header>
+  )
+}
+
+// A single, consolidated view of every story. Because a story's steps flow
+// through the same four columns as loose tasks, an active story is otherwise
+// scattered across the board — one step "In Progress", the next two waiting in
+// "To Do", an earlier one in "Done". This rail gathers each chain back into one
+// place: a progress bar plus its ordered steps, so a story can be read and
+// managed as a unit. Clicking any step opens it in the same drawer the board uses.
+function StoriesPanel({ stories, selectedId, onOpen }) {
+  const [collapsed, setCollapsed] = useState(() => storyPanelCollapsed())
+  if (!stories.length) return null
+
+  function toggle() {
+    setCollapsed((c) => {
+      setStoryPanelCollapsed(!c)
+      return !c
+    })
+  }
+
+  return (
+    <section className={`stories-panel ${collapsed ? 'collapsed' : ''}`}>
+      <button className="stories-head" onClick={toggle} aria-expanded={!collapsed}>
+        <span className="stories-caret" aria-hidden>{collapsed ? '▸' : '▾'}</span>
+        <span className="stories-icon" aria-hidden>▤</span>
+        <h2>Stories</h2>
+        <span className="stories-count">{stories.length}</span>
+        {collapsed && <span className="stories-hint">click to expand</span>}
+      </button>
+      {!collapsed && (
+        <div className="stories-body">
+          {stories.map((s) => (
+            <StoryOverview key={s.storyId} story={s} selectedId={selectedId} onOpen={onOpen} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+// One story as a self-contained unit: name, an overall status pill, a
+// done/total progress bar, and every step as a clickable pill coloured by its
+// own status. This is the piece that "un-separates" a story from the board.
+function StoryOverview({ story, selectedId, onOpen }) {
+  const pct = story.total ? Math.round((story.done / story.total) * 100) : 0
+  return (
+    <div className={`story-overview ${story.status.toLowerCase()}`}>
+      <div className="story-overview-head">
+        <span className="story-overview-name" title={story.name}>{story.name}</span>
+        <span className={`story-status-pill ${story.status.toLowerCase()}`}>{label(story.status)}</span>
+        <span className="story-overview-progress">{story.done}/{story.total} done</span>
+      </div>
+      <div className="story-progress-track">
+        <div className="story-progress-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <ol className="story-overview-steps">
+        {story.steps.map((step, i) => (
+          <li key={step.id}>
+            <button
+              className={`story-step-pill ${step.status.toLowerCase()} ${step.blocked ? 'blocked' : ''} ${step.id === selectedId ? 'active' : ''}`}
+              onClick={() => onOpen(step.id)}
+              title={`${label(step.status)}${step.blocked ? ' · waiting for earlier steps' : ''}`}
+            >
+              <span className="story-step-pill-num">{i + 1}</span>
+              <span className="story-step-pill-dot" aria-hidden />
+              <span className="story-step-pill-title">{step.title}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }
 
@@ -738,7 +812,70 @@ function computeStoryMeta(todos) {
   return meta
 }
 
+// Gather the story-tagged todos into whole chains for the Stories overview.
+// Returns one entry per story — its ordered steps, how many have resolved, and
+// a rolled-up status — newest chain first (mirroring the board's newest-first
+// ordering). Each step is annotated with `blocked` (a pending step still
+// waiting on an earlier one) so the panel can mirror the on-card badge.
+function computeStories(todos) {
+  const groups = new Map()
+  for (const t of todos) {
+    if (!t.storyId) continue
+    if (!groups.has(t.storyId)) groups.set(t.storyId, [])
+    groups.get(t.storyId).push(t)
+  }
+  const stories = []
+  for (const [storyId, raw] of groups) {
+    const steps = [...raw].sort((a, b) => (a.storyOrder ?? 0) - (b.storyOrder ?? 0))
+    const annotated = steps.map((t, i) => ({
+      ...t,
+      blocked: t.status === 'PENDING' && !steps.slice(0, i).every((s) => s.status === 'RESOLVED'),
+    }))
+    const done = annotated.filter((s) => s.status === 'RESOLVED').length
+    stories.push({
+      storyId,
+      name: steps[0].storyName || 'Story',
+      steps: annotated,
+      done,
+      total: annotated.length,
+      status: rollupStatus(annotated),
+      newest: Math.max(...steps.map((s) => new Date(s.createdAt || 0).getTime())),
+    })
+  }
+  stories.sort((a, b) => b.newest - a.newest)
+  return stories
+}
+
+// Roll a story's steps up to one status for its pill: anything failed needs
+// attention; all resolved is done; anything running is in progress; otherwise
+// it's still queued.
+function rollupStatus(steps) {
+  if (steps.some((s) => s.status === 'FAILED')) return 'FAILED'
+  if (steps.every((s) => s.status === 'RESOLVED')) return 'RESOLVED'
+  if (steps.some((s) => s.status === 'IN_PROGRESS')) return 'IN_PROGRESS'
+  return 'PENDING'
+}
+
 // --- helpers ---
+
+// Whether the Stories overview rail is collapsed, persisted across reloads.
+const STORY_PANEL_KEY = 'dashboard.storiesCollapsed'
+
+function storyPanelCollapsed() {
+  try {
+    return localStorage.getItem(STORY_PANEL_KEY) === 'on'
+  } catch {
+    return false
+  }
+}
+
+function setStoryPanelCollapsed(on) {
+  try {
+    localStorage.setItem(STORY_PANEL_KEY, on ? 'on' : 'off')
+  } catch {
+    /* ignore — panel state just won't persist */
+  }
+}
 
 // Notification preference persists across reloads in localStorage. Wrapped in
 // try/catch because storage can throw (private mode, disabled cookies).
