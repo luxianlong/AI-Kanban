@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,10 +40,13 @@ public class StoryController {
 
     private final TodoRepository repository;
     private final StorySuggestionService suggestions;
+    private final StoryClassifier classifier;
 
-    public StoryController(TodoRepository repository, StorySuggestionService suggestions) {
+    public StoryController(TodoRepository repository, StorySuggestionService suggestions,
+            StoryClassifier classifier) {
         this.repository = repository;
         this.suggestions = suggestions;
+        this.classifier = classifier;
     }
 
     /** Lists every story with its ordered steps, newest chain first. */
@@ -53,7 +55,7 @@ public class StoryController {
         // Group the story-tagged todos by storyId, preserving the newest-first
         // order the query returns, then order each chain by its step index.
         List<StoryResponse> stories = new ArrayList<>();
-        for (Map.Entry<String, List<Todo>> e : groupByStory().entrySet()) {
+        for (Map.Entry<String, List<Todo>> e : classifier.groupByStory().entrySet()) {
             List<Todo> steps = e.getValue();
             steps.sort((a, b) -> Integer.compare(
                     a.getStoryOrder() == null ? 0 : a.getStoryOrder(),
@@ -102,21 +104,7 @@ public class StoryController {
      */
     @GetMapping("/related")
     public List<RelatedStory> related(@RequestParam String text) {
-        List<RelatedStory> matches = new ArrayList<>();
-        for (Map.Entry<String, List<Todo>> e : groupByStory().entrySet()) {
-            List<Todo> steps = e.getValue();
-            String name = steps.get(0).getStoryName();
-            StringBuilder haystack = new StringBuilder(name == null ? "" : name);
-            for (Todo step : steps) {
-                haystack.append(' ').append(step.getTitle());
-            }
-            int score = suggestions.relatednessScore(text, haystack.toString());
-            if (score > 0) {
-                matches.add(new RelatedStory(e.getKey(), name, score));
-            }
-        }
-        matches.sort((a, b) -> Integer.compare(b.score(), a.score()));
-        return matches.size() > 5 ? matches.subList(0, 5) : matches;
+        return classifier.related(text);
     }
 
     /**
@@ -131,28 +119,13 @@ public class StoryController {
         if (steps.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Story not found: " + storyId);
         }
-        int nextOrder = 0;
-        for (Todo s : steps) {
-            if (s.getStoryOrder() != null && s.getStoryOrder() >= nextOrder) {
-                nextOrder = s.getStoryOrder() + 1;
-            }
-        }
         Todo todo = new Todo();
         todo.setTitle(step.title().trim());
         todo.setDescription(step.description());
         todo.setStatus(TodoStatus.PENDING);
         todo.setStoryId(storyId);
         todo.setStoryName(steps.get(0).getStoryName());
-        todo.setStoryOrder(nextOrder);
+        todo.setStoryOrder(classifier.nextOrder(steps));
         return TodoResponse.from(repository.save(todo));
-    }
-
-    /** Story-tagged todos grouped by storyId, preserving newest-first order. */
-    private Map<String, List<Todo>> groupByStory() {
-        Map<String, List<Todo>> byStory = new LinkedHashMap<>();
-        for (Todo t : repository.findByStoryIdIsNotNullOrderByCreatedAtDesc()) {
-            byStory.computeIfAbsent(t.getStoryId(), k -> new ArrayList<>()).add(t);
-        }
-        return byStory;
     }
 }

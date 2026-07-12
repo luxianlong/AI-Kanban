@@ -290,6 +290,75 @@ class TodoApiTest {
     }
 
     @Test
+    void newTodoIsClassifiedIntoRelatedStory() throws Exception {
+        // A declared story about a distinctive subject...
+        String body = mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Build kayak rental checkout\",\"steps\":["
+                                + "{\"title\":\"Add kayak inventory model\"},"
+                                + "{\"title\":\"Build kayak checkout page\"}]}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String storyId = mapper.readTree(body).get(0).get("storyId").asText();
+
+        // ...means a newly created task whose words clearly overlap it (kayak,
+        // checkout) is auto-filed onto that chain as the next step, not orphaned.
+        mvc.perform(post("/api/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Refine the kayak checkout flow\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.storyId", is(storyId)))
+                .andExpect(jsonPath("$.storyName", is("Build kayak rental checkout")))
+                .andExpect(jsonPath("$.storyOrder", is(2)))
+                .andExpect(jsonPath("$.status", is("PENDING")));
+
+        // The classified task shows up as the appended step of the chain.
+        mvc.perform(get("/api/stories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name", is("Build kayak rental checkout")))
+                .andExpect(jsonPath("$[0].steps.length()", is(3)))
+                .andExpect(jsonPath("$[0].steps[2].title", is("Refine the kayak checkout flow")));
+    }
+
+    @Test
+    void newTodoWithNoStoryOverlapStaysStandalone() throws Exception {
+        // Stories exist, but a task about something entirely different is left
+        // unclassified rather than force-fitted into an unrelated chain.
+        mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Tune the caching layer\",\"steps\":["
+                                + "{\"title\":\"Add a cache warmer\"}]}"))
+                .andExpect(status().isCreated());
+
+        mvc.perform(post("/api/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Document the quarterly zebra picnic\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.storyId", is(nullValue())))
+                .andExpect(jsonPath("$.storyName", is(nullValue())))
+                .andExpect(jsonPath("$.storyOrder", is(nullValue())));
+    }
+
+    @Test
+    void singleSharedWordIsNotEnoughToClassify() throws Exception {
+        // "flow" alone overlaps this story, but one incidental word is below the
+        // auto-classify threshold, so the task stays standalone.
+        mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Harden authentication flow\",\"steps\":["
+                                + "{\"title\":\"Rotate the auth tokens\"},"
+                                + "{\"title\":\"Add auth rate limiting\"}]}"))
+                .andExpect(status().isCreated());
+
+        mvc.perform(post("/api/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Design the onboarding flow\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.storyId", is(nullValue())))
+                .andExpect(jsonPath("$.storyName", is(nullValue())));
+    }
+
+    @Test
     void addStepToMissingStoryReturns404() throws Exception {
         mvc.perform(post("/api/stories/does-not-exist/steps")
                         .contentType(MediaType.APPLICATION_JSON)
