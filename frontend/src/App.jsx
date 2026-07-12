@@ -265,7 +265,6 @@ function Column({ col, todos, logs, storyMeta, onOpen, onCreate, onCreateStory }
 
       {onCreate && <Composer onCreate={onCreate} />}
       {onCreateStory && <StoryComposer onCreateStory={onCreateStory} />}
-      {onCreate && <SuggestButton onCreate={onCreate} />}
 
       <div className="col-body">
         {todos.length === 0 && !onCreate && <p className="col-empty">{col.hint}</p>}
@@ -434,29 +433,6 @@ function StoryComposer({ onCreateStory }) {
         <button type="button" className="btn ghost" onClick={reset}>Cancel</button>
       </div>
     </form>
-  )
-}
-
-function SuggestButton({ onCreate }) {
-  const [busy, setBusy] = useState(false)
-  async function suggest() {
-    if (busy) return
-    setBusy(true)
-    try {
-      await onCreate(
-        'Think about improvements to the dashboard',
-        'Explore this repo and file up to 5 concrete, small follow-up tasks that would ' +
-          'make the dashboard better. Follow CLAUDE.md. Do not edit code in this task.',
-      )
-    } finally {
-      setBusy(false)
-    }
-  }
-  return (
-    <button className="suggest" onClick={suggest} disabled={busy} title="Ask the agent to propose improvement tasks">
-      <span className="suggest-spark">✦</span>
-      {busy ? 'Queuing…' : 'Suggest improvements'}
-    </button>
   )
 }
 
