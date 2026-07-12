@@ -162,7 +162,11 @@ export default function App() {
       {error && <div className="error">⚠ {error}</div>}
 
       <div className="board">
-        {COLUMNS.map((col) => (
+        {COLUMNS.map((col) => {
+          // Hide the "Needs Attention" column entirely when nothing has failed —
+          // an empty terminal-error column is just noise on a healthy board.
+          if (col.status === 'FAILED' && byStatus('FAILED').length === 0) return null
+          return (
           <Column
             key={col.status}
             col={col}
@@ -173,7 +177,8 @@ export default function App() {
             onCreate={col.status === 'PENDING' ? createTodo : null}
             onCreateStory={col.status === 'PENDING' ? createStory : null}
           />
-        ))}
+          )
+        })}
       </div>
 
       {selected && (
