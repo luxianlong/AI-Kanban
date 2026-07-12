@@ -22,6 +22,16 @@ export const api = {
   deleteTodo: (id) =>
     fetch(`${BASE}/todos/${id}`, { method: 'DELETE' }).then(json),
 
+  // Requeue a finished (FAILED/RESOLVED) task: flip status back to PENDING so
+  // the worker re-picks it on the next poll. Clears the old result by default
+  // for a clean slate; pass keepResult=true to preserve the prior output.
+  retryTodo: (id, { keepResult = false } = {}) =>
+    fetch(`${BASE}/todos/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(keepResult ? { status: 'PENDING' } : { status: 'PENDING', result: '' }),
+    }).then(json),
+
   todoLog: (id) => fetch(`${BASE}/todos/${id}/log`).then(json),
 
   workerStatus: () => fetch(`${BASE}/worker/status`).then(json),
