@@ -1,5 +1,7 @@
 package com.dashboard;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,7 +12,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,6 +30,18 @@ class TodoApiTest {
 
     @Autowired
     MockMvc mvc;
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    /** Creates a todo and returns its generated id. */
+    private long createTodo(String title) throws Exception {
+        String body = mvc.perform(post("/api/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return mapper.readTree(body).get("id").asLong();
+    }
 
     @Test
     void createThenListTodo() throws Exception {
@@ -52,5 +68,74 @@ class TodoApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deleteReturns204ThenGoneOnFollowup() throws Exception {
+        long id = createTodo("Delete me");
+
+        mvc.perform(delete("/api/todos/" + id))
+                .andExpect(status().isNoContent());
+
+        // The item is gone: fetching or deleting it again is a 404.
+        mvc.perform(get("/api/todos/" + id))
+                .andExpect(status().isNotFound());
+        mvc.perform(delete("/api/todos/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void patchWithUnknownStatusReturns400() throws Exception {
+        long id = createTodo("Advance me");
+
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"BOGUS\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getOnMissingIdReturns404() throws Exception {
+        mvc.perform(get("/api/todos/999999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void patchOnMissingIdReturns404() throws Exception {
+        mvc.perform(patch("/api/todos/999999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"IN_PROGRESS\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void patchAdvancesStatusAndStoresResult() throws Exception {
+        long id = createTodo("Resolve me");
+
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"resolved\",\"result\":\"all done\"}"))
+                .andExpect(status().isOk())
+                // valueOf is applied to a trimmed, upper-cased value, so lowercase works.
+                .andExpect(jsonPath("$.status", is("RESOLVED")))
+                .andExpect(jsonPath("$.result", is("all done")));
+    }
+
+    @Test
+    void logEndpointReturnsIdStatusAndLog() throws Exception {
+        long id = createTodo("Show my log");
+
+        mvc.perform(get("/api/todos/" + id + "/log"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is((int) id)))
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                // No session has run yet, so the live log is empty rather than absent.
+                .andExpect(jsonPath("$.log", is("")));
+    }
+
+    @Test
+    void logEndpointOnMissingIdReturns404() throws Exception {
+        mvc.perform(get("/api/todos/999999/log"))
+                .andExpect(status().isNotFound());
     }
 }
