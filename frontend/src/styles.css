@@ -112,11 +112,75 @@ header h1 {
   padding: 14px 16px;
 }
 
+.todo.open {
+  border-color: #3a4250;
+}
+
 .todo .row {
   display: flex;
   align-items: center;
   gap: 10px;
+  cursor: pointer;
+  user-select: none;
 }
+
+.chevron {
+  color: var(--muted);
+  font-size: 0.8rem;
+  width: 14px;
+  text-align: center;
+}
+
+.detail {
+  margin-top: 12px;
+}
+
+.logblock {
+  margin-top: 12px;
+}
+
+.loglabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+  animation: pulse 1.4s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+  70% { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+.log {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  line-height: 1.5;
+}
+
+.muted { color: var(--muted); }
+
+.transcript {
+  margin-top: 10px;
+}
+.transcript summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.transcript summary:hover { color: var(--text); }
 
 .todo-title {
   font-weight: 600;

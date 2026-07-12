@@ -23,7 +23,7 @@ public class WorkerProperties {
      * autonomously (edit files, run commands) without prompting, add
      * {@code --dangerously-skip-permissions} here — understand the risk first.
      */
-    private List<String> extraArgs = List.of("--output-format", "text");
+    private List<String> extraArgs = List.of("--output-format", "stream-json", "--verbose");
 
     /** Working directory the Claude session runs in (its sandbox/repo). */
     private String workingDirectory = System.getProperty("java.io.tmpdir") + "/dashboard-work";

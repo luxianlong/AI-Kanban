@@ -3,6 +3,7 @@ package com.dashboard.todo;
 import com.dashboard.todo.TodoDtos.CreateTodoRequest;
 import com.dashboard.todo.TodoDtos.TodoResponse;
 import com.dashboard.todo.TodoDtos.UpdateStatusRequest;
+import com.dashboard.worker.LiveLogRegistry;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST API for todo items. The frontend uses this to create/list/delete todos;
@@ -30,9 +32,11 @@ import java.util.List;
 public class TodoController {
 
     private final TodoRepository repository;
+    private final LiveLogRegistry liveLog;
 
-    public TodoController(TodoRepository repository) {
+    public TodoController(TodoRepository repository, LiveLogRegistry liveLog) {
         this.repository = repository;
+        this.liveLog = liveLog;
     }
 
     @GetMapping
@@ -45,6 +49,19 @@ public class TodoController {
     @GetMapping("/{id}")
     public TodoResponse get(@PathVariable Long id) {
         return TodoResponse.from(find(id));
+    }
+
+    /**
+     * Live session transcript for a todo — the running log of what the Claude
+     * session is doing. Useful to poll while the item is IN_PROGRESS.
+     */
+    @GetMapping("/{id}/log")
+    public Map<String, Object> log(@PathVariable Long id) {
+        Todo todo = find(id);
+        return Map.of(
+                "id", todo.getId(),
+                "status", todo.getStatus(),
+                "log", liveLog.get(id));
     }
 
     @PostMapping
@@ -80,6 +97,7 @@ public class TodoController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo not found: " + id);
         }
         repository.deleteById(id);
+        liveLog.clear(id);
     }
 
     private Todo find(Long id) {

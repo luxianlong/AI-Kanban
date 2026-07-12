@@ -54,7 +54,12 @@ Open <http://localhost:5173>. Vite proxies `/api/*` to the backend on :8080, so
 there's a single origin in dev.
 
 Create a todo, and within one poll interval the status flips to **In progress**,
-then **Resolved** with the Claude session's output attached ("Show result").
+then **Resolved** with the Claude session's output attached.
+
+**Click any todo to expand it.** While it's *In progress*, the expanded view shows
+a **live session log** — the Claude session's reasoning, tool calls, and results
+streaming in as they happen (polled every ~1.5s). When it finishes you get the
+final **Result**, with the full session transcript available under "Full session log".
 
 ---
 
@@ -70,6 +75,12 @@ then **Resolved** with the Claude session's output attached ("Show result").
 
 A `ReentrantLock` guarantees ticks never overlap, so a long-running session simply
 delays the next poll rather than spawning parallel Claude processes.
+
+Output is consumed with `--output-format stream-json`, so each event (assistant text,
+tool call, tool result, final result) is rendered to a readable line and appended to
+an in-memory transcript (`LiveLogRegistry`) as it arrives — that's what the live log
+shows. On restart, any todo still marked `IN_PROGRESS` (its process died with the old
+JVM) is automatically requeued to `PENDING`.
 
 ### Configuration (`backend/src/main/resources/application.yml`)
 
@@ -107,6 +118,7 @@ enabling this — the session will run tools without prompting.
 | `GET` | `/api/todos` | List todos (newest first). |
 | `POST` | `/api/todos` | Create `{ "title": "...", "description": "..." }`. |
 | `GET` | `/api/todos/{id}` | Fetch one. |
+| `GET` | `/api/todos/{id}/log` | Live session transcript (poll while in progress). |
 | `PATCH` | `/api/todos/{id}` | Update `{ "status": "...", "result": "..." }`. |
 | `DELETE` | `/api/todos/{id}` | Delete. |
 | `GET` | `/api/worker/status` | Worker config (enabled, interval, ...). |

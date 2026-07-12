@@ -24,11 +24,13 @@ worker:
   enabled: true
   # Path to the Claude Code CLI. Use an absolute path if it isn't on the service PATH.
   claude-command: claude
-  # Args before the prompt. To let the session edit files / run commands unattended, add
-  # "--dangerously-skip-permissions" here (only in a trusted, sandboxed working directory).
+  # Args before the prompt. stream-json (+ --verbose) makes the session emit events as
+  # they happen, which feed the live per-todo log. To let the session edit files / run
+  # commands unattended, add "--dangerously-skip-permissions" (only in a trusted sandbox).
   extra-args:
     - "--output-format"
-    - "text"
+    - "stream-json"
+    - "--verbose"
   # The directory each Claude session runs in — point this at a repo or sandbox.
   working-directory: ${user.home}/dashboard-work
   timeout-seconds: 300

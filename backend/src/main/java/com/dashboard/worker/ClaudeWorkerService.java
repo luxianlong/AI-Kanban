@@ -3,14 +3,19 @@ package com.dashboard.worker;
 import com.dashboard.todo.Todo;
 import com.dashboard.todo.TodoRepository;
 import com.dashboard.todo.TodoStatus;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,9 +27,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * Periodically drains the {@link TodoStatus#PENDING} queue by launching a
  * headless Claude Code session per item and recording whatever it produced.
  *
- * <p>One item is moved to {@link TodoStatus#IN_PROGRESS} before the session
- * starts, so a crash mid-run leaves a visible, non-repeating trail. The poll
- * uses a {@link ReentrantLock} so slow sessions never cause overlapping ticks.
+ * <p>Output is consumed <em>as it streams</em>: each event is rendered into a
+ * human-readable line and appended to {@link LiveLogRegistry}, so the UI can
+ * show live progress on an in-progress item. When Claude is run with
+ * {@code --output-format stream-json} (the default), the terminal {@code result}
+ * event carries the final answer, which is persisted on the todo. If a different
+ * output format is configured, raw lines are streamed through unchanged.
  */
 @Service
 @EnableConfigurationProperties(WorkerProperties.class)
@@ -34,17 +42,33 @@ public class ClaudeWorkerService {
 
     private final TodoRepository repository;
     private final WorkerProperties props;
+    private final LiveLogRegistry liveLog;
+    private final ObjectMapper mapper = new ObjectMapper();
     private final ReentrantLock tickLock = new ReentrantLock();
 
-    public ClaudeWorkerService(TodoRepository repository, WorkerProperties props) {
+    public ClaudeWorkerService(TodoRepository repository, WorkerProperties props, LiveLogRegistry liveLog) {
         this.repository = repository;
         this.props = props;
+        this.liveLog = liveLog;
     }
 
     /**
-     * Poll for pending work. Interval is {@code worker.poll-interval-ms}
-     * (default 15s). Skips the tick entirely if a previous one is still running.
+     * On startup, any todo left {@link TodoStatus#IN_PROGRESS} belongs to a
+     * session that died with the previous process (its live log is gone). Put
+     * it back in the queue so the worker re-attempts it.
      */
+    @PostConstruct
+    void requeueOrphans() {
+        List<Todo> orphans = repository.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS);
+        for (Todo t : orphans) {
+            t.setStatus(TodoStatus.PENDING);
+            repository.save(t);
+        }
+        if (!orphans.isEmpty()) {
+            log.info("Requeued {} orphaned in-progress todo(s) after restart.", orphans.size());
+        }
+    }
+
     @Scheduled(fixedDelayString = "${worker.poll-interval-ms:15000}",
             initialDelayString = "${worker.initial-delay-ms:10000}")
     public void poll() {
@@ -74,22 +98,30 @@ public class ClaudeWorkerService {
         todo.setStatus(TodoStatus.IN_PROGRESS);
         todo.setProcessedAt(Instant.now());
         repository.save(todo);
+
+        liveLog.start(todo.getId());
+        liveLog.append(todo.getId(), "● Picked up todo #" + todo.getId() + ": " + todo.getTitle());
         log.info("Resolving todo #{}: {}", todo.getId(), todo.getTitle());
 
         try {
-            ProcessResult r = runClaude(buildPrompt(todo));
+            ProcessResult r = runClaude(todo, buildPrompt(todo));
             if (r.timedOut()) {
-                fail(todo, "Timed out after " + props.getTimeoutSeconds() + "s.\n\n" + r.output());
+                liveLog.append(todo.getId(), "✗ Timed out after " + props.getTimeoutSeconds() + "s.");
+                fail(todo, "Timed out after " + props.getTimeoutSeconds() + "s.");
             } else if (r.exitCode() != 0) {
-                fail(todo, "Claude exited with code " + r.exitCode() + ".\n\n" + r.output());
+                liveLog.append(todo.getId(), "✗ Claude exited with code " + r.exitCode() + ".");
+                fail(todo, "Claude exited with code " + r.exitCode() + ".\n\n" + r.finalOutput());
             } else {
+                String output = r.finalOutput().isBlank() ? "(no output)" : r.finalOutput();
                 todo.setStatus(TodoStatus.RESOLVED);
-                todo.setResult(r.output().isBlank() ? "(no output)" : r.output());
+                todo.setResult(output);
                 repository.save(todo);
+                liveLog.append(todo.getId(), "✔ Done.");
                 log.info("Resolved todo #{}.", todo.getId());
             }
         } catch (Exception e) {
             log.error("Worker error on todo #{}", todo.getId(), e);
+            liveLog.append(todo.getId(), "✗ Worker error: " + e.getMessage());
             fail(todo, "Worker error: " + e.getMessage());
         }
     }
@@ -101,7 +133,6 @@ public class ClaudeWorkerService {
         log.warn("Failed todo #{}: {}", todo.getId(), message.lines().findFirst().orElse(""));
     }
 
-    /** The instruction handed to the Claude Code session. */
     private String buildPrompt(Todo todo) {
         StringBuilder sb = new StringBuilder();
         sb.append("You are an autonomous worker resolving a single todo item from a dashboard.\n");
@@ -114,7 +145,7 @@ public class ClaudeWorkerService {
         return sb.toString();
     }
 
-    private ProcessResult runClaude(String prompt) throws IOException, InterruptedException {
+    private ProcessResult runClaude(Todo todo, String prompt) throws IOException, InterruptedException {
         File workDir = new File(props.getWorkingDirectory());
         if (!workDir.exists() && !workDir.mkdirs()) {
             log.warn("Could not create working directory {}", workDir);
@@ -126,25 +157,163 @@ public class ClaudeWorkerService {
         cmd.add("-p");
         cmd.add(prompt);
 
-        ProcessBuilder pb = new ProcessBuilder(cmd)
+        Process process = new ProcessBuilder(cmd)
                 .directory(workDir)
-                .redirectErrorStream(true);
-
-        Process process = pb.start();
-        // Print mode takes the prompt as an arg, so we don't need stdin.
+                .redirectErrorStream(true)
+                .start();
         process.getOutputStream().close();
 
-        String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        // Drain stdout on a separate thread so we can enforce the timeout even if
+        // the process wedges without closing its stream.
+        StringBuilder finalOutput = new StringBuilder();
+        Thread reader = new Thread(() -> streamOutput(todo.getId(), process, finalOutput), "claude-reader-" + todo.getId());
+        reader.start();
 
         boolean finished = process.waitFor(props.getTimeoutSeconds(), TimeUnit.SECONDS);
         if (!finished) {
             process.destroyForcibly();
             process.waitFor(10, TimeUnit.SECONDS);
-            return new ProcessResult(-1, output, true);
+            reader.join(5_000);
+            return new ProcessResult(-1, finalOutput.toString(), true);
         }
-        return new ProcessResult(process.exitValue(), output, false);
+        reader.join(5_000);
+        return new ProcessResult(process.exitValue(), finalOutput.toString(), false);
     }
 
-    private record ProcessResult(int exitCode, String output, boolean timedOut) {
+    /**
+     * Reads the process output line by line. Each line is either a stream-json
+     * event (rendered to a friendly log line, with the terminal {@code result}
+     * event captured as the final answer) or plain text (streamed as-is).
+     */
+    private void streamOutput(Long todoId, Process process, StringBuilder finalOutput) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.isBlank()) {
+                    continue;
+                }
+                JsonNode event = tryParse(line);
+                if (event == null) {
+                    // Not JSON (e.g. text/plain output format) — stream verbatim.
+                    liveLog.append(todoId, line);
+                    finalOutput.append(line).append('\n');
+                    continue;
+                }
+                String rendered = renderEvent(event, finalOutput);
+                if (rendered != null && !rendered.isBlank()) {
+                    liveLog.append(todoId, rendered);
+                }
+            }
+        } catch (IOException e) {
+            liveLog.append(todoId, "✗ Error reading session output: " + e.getMessage());
+        }
+    }
+
+    private JsonNode tryParse(String line) {
+        try {
+            JsonNode node = mapper.readTree(line);
+            return node.isObject() ? node : null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Turns one stream-json event into a readable log line. Captures the final
+     * answer from the terminal {@code result} event into {@code finalOutput}.
+     * Returns {@code null} to skip an event that has nothing worth showing.
+     */
+    private String renderEvent(JsonNode e, StringBuilder finalOutput) {
+        String type = e.path("type").asText("");
+        switch (type) {
+            case "system" -> {
+                if ("init".equals(e.path("subtype").asText())) {
+                    return "● Session started · model " + e.path("model").asText("?");
+                }
+                return null;
+            }
+            case "assistant" -> {
+                StringBuilder out = new StringBuilder();
+                for (JsonNode part : e.path("message").path("content")) {
+                    String pt = part.path("type").asText();
+                    if ("text".equals(pt)) {
+                        String text = part.path("text").asText("").strip();
+                        if (!text.isBlank()) {
+                            out.append("🤖 ").append(text).append('\n');
+                        }
+                    } else if ("tool_use".equals(pt)) {
+                        out.append("🔧 ").append(part.path("name").asText("tool"))
+                                .append("  ").append(summarizeInput(part.path("input"))).append('\n');
+                    }
+                }
+                String s = out.toString().strip();
+                return s.isBlank() ? null : s;
+            }
+            case "user" -> {
+                for (JsonNode part : e.path("message").path("content")) {
+                    if ("tool_result".equals(part.path("type").asText())) {
+                        boolean err = part.path("is_error").asBoolean(false);
+                        return (err ? "   ↳ ✗ " : "   ↳ ✓ ") + firstLine(toolResultText(part), 160);
+                    }
+                }
+                return null;
+            }
+            case "result" -> {
+                String result = e.path("result").asText("");
+                if (!result.isBlank()) {
+                    finalOutput.setLength(0);
+                    finalOutput.append(result);
+                }
+                String cost = e.has("total_cost_usd")
+                        ? String.format(" · $%.4f", e.path("total_cost_usd").asDouble()) : "";
+                double secs = e.path("duration_ms").asLong(0) / 1000.0;
+                return String.format("✔ Completed in %.1fs%s", secs, cost);
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    private String summarizeInput(JsonNode input) {
+        if (input == null || input.isMissingNode() || input.isNull()) {
+            return "";
+        }
+        // Common single-field tools read better unwrapped.
+        for (String key : new String[]{"command", "file_path", "path", "pattern", "prompt", "url", "query"}) {
+            if (input.hasNonNull(key)) {
+                return firstLine(input.get(key).asText(), 160);
+            }
+        }
+        return firstLine(input.toString(), 160);
+    }
+
+    private String toolResultText(JsonNode part) {
+        JsonNode content = part.path("content");
+        if (content.isTextual()) {
+            return content.asText();
+        }
+        if (content.isArray()) {
+            StringBuilder sb = new StringBuilder();
+            for (JsonNode c : content) {
+                if (c.hasNonNull("text")) {
+                    sb.append(c.get("text").asText());
+                }
+            }
+            return sb.toString();
+        }
+        return content.toString();
+    }
+
+    private String firstLine(String s, int max) {
+        if (s == null) {
+            return "";
+        }
+        String line = s.strip().lines().findFirst().orElse("");
+        return line.length() > max ? line.substring(0, max) + "…" : line;
+    }
+
+    private record ProcessResult(int exitCode, String finalOutput, boolean timedOut) {
     }
 }

@@ -22,5 +22,7 @@ export const api = {
   deleteTodo: (id) =>
     fetch(`${BASE}/todos/${id}`, { method: 'DELETE' }).then(json),
 
+  todoLog: (id) => fetch(`${BASE}/todos/${id}/log`).then(json),
+
   workerStatus: () => fetch(`${BASE}/worker/status`).then(json),
 }
