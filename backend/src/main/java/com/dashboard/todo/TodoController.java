@@ -33,10 +33,12 @@ public class TodoController {
 
     private final TodoRepository repository;
     private final LiveLogRegistry liveLog;
+    private final StoryClassifier classifier;
 
-    public TodoController(TodoRepository repository, LiveLogRegistry liveLog) {
+    public TodoController(TodoRepository repository, LiveLogRegistry liveLog, StoryClassifier classifier) {
         this.repository = repository;
         this.liveLog = liveLog;
+        this.classifier = classifier;
     }
 
     @GetMapping
@@ -71,6 +73,17 @@ public class TodoController {
         todo.setTitle(req.title().trim());
         todo.setDescription(req.description());
         todo.setStatus(TodoStatus.PENDING);
+        // If the user has declared stories, classify this new task against them:
+        // file it under the story it most clearly belongs to, or leave it
+        // standalone when nothing fits. Story-tagged tasks run in chain order.
+        String text = (todo.getTitle() + " "
+                + (req.description() == null ? "" : req.description())).trim();
+        classifier.classify(text).ifPresent(story -> {
+            todo.setStoryId(story.storyId());
+            todo.setStoryName(story.name());
+            todo.setStoryOrder(classifier.nextOrder(
+                    repository.findByStoryIdOrderByStoryOrderAsc(story.storyId())));
+        });
         return TodoResponse.from(repository.save(todo));
     }
 
