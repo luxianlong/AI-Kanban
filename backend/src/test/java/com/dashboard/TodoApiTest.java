@@ -201,4 +201,99 @@ class TodoApiTest {
                         .content("{\"name\":\"Bad\",\"steps\":[{\"title\":\"\"}]}"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void suggestDecomposesGoalIntoOrderedSteps() throws Exception {
+        // A feature goal with backend + frontend hints yields a design → backend →
+        // UI → tests → docs chain, and the steps are ready to POST straight back.
+        mvc.perform(post("/api/stories/suggest")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"goal\":\"Add an API endpoint and a UI page for exporting todos\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Add an API endpoint and a UI page for exporting todos")))
+                .andExpect(jsonPath("$.steps.length()", is(5)))
+                .andExpect(jsonPath("$.steps[0].title", is("Design and plan the change")))
+                .andExpect(jsonPath("$.steps[1].title", is("Implement the backend")))
+                .andExpect(jsonPath("$.steps[2].title", is("Build the UI")))
+                .andExpect(jsonPath("$.steps[3].title", is("Add tests")))
+                .andExpect(jsonPath("$.steps[4].title", is("Update documentation")));
+    }
+
+    @Test
+    void suggestRecognisesBugFixes() throws Exception {
+        mvc.perform(post("/api/stories/suggest")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"goal\":\"Fix the crash when deleting a running task\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.steps.length()", is(3)))
+                .andExpect(jsonPath("$.steps[0].title", is("Reproduce and diagnose the problem")))
+                .andExpect(jsonPath("$.steps[1].title", is("Implement the fix")))
+                .andExpect(jsonPath("$.steps[2].title", is("Add a regression test")));
+    }
+
+    @Test
+    void suggestRejectsBlankGoal() throws Exception {
+        mvc.perform(post("/api/stories/suggest")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"goal\":\"\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void relatedFindsMatchingStoryAndIgnoresUnrelatedText() throws Exception {
+        // Unique keywords ("avatar"/"gallery") keep this isolated from the shared
+        // in-memory DB that other tests also write stories into.
+        mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Redesign avatar gallery\",\"steps\":["
+                                + "{\"title\":\"Add avatar upload\"},"
+                                + "{\"title\":\"Lay out gallery grid\"}]}"))
+                .andExpect(status().isCreated());
+
+        mvc.perform(get("/api/stories/related").param("text", "improve the avatar gallery grid"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$[0].name", is("Redesign avatar gallery")))
+                .andExpect(jsonPath("$[0].score", org.hamcrest.Matchers.greaterThan(0)));
+
+        mvc.perform(get("/api/stories/related").param("text", "quarterly zebra picnic umbrella"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(0)));
+    }
+
+    @Test
+    void addStepAppendsToStoryChain() throws Exception {
+        String body = mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Ship search\",\"steps\":["
+                                + "{\"title\":\"Add search box\"},"
+                                + "{\"title\":\"Filter results\"}]}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String storyId = mapper.readTree(body).get(0).get("storyId").asText();
+
+        // The appended task lands as the next step (order 2) on the same chain.
+        mvc.perform(post("/api/stories/" + storyId + "/steps")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Highlight matches\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title", is("Highlight matches")))
+                .andExpect(jsonPath("$.storyId", is(storyId)))
+                .andExpect(jsonPath("$.storyName", is("Ship search")))
+                .andExpect(jsonPath("$.storyOrder", is(2)))
+                .andExpect(jsonPath("$.status", is("PENDING")));
+
+        mvc.perform(get("/api/stories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].steps.length()", is(3)))
+                .andExpect(jsonPath("$[0].steps[2].title", is("Highlight matches")));
+    }
+
+    @Test
+    void addStepToMissingStoryReturns404() throws Exception {
+        mvc.perform(post("/api/stories/does-not-exist/steps")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Orphan\"}"))
+                .andExpect(status().isNotFound());
+    }
 }

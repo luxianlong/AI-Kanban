@@ -28,6 +28,28 @@ export const api = {
       body: JSON.stringify({ name, steps }),
     }).then(json),
 
+  // Ask the server to decompose a free-text goal into ordered steps. Returns
+  // { name, steps: [{ title, description }] } — ready to tweak and submit.
+  suggestStory: (goal) =>
+    fetch(`${BASE}/stories/suggest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goal }),
+    }).then(json),
+
+  // Existing stories that `text` looks related to, most relevant first. Used to
+  // offer attaching a new task to a story instead of starting a fresh chain.
+  relatedStories: (text) =>
+    fetch(`${BASE}/stories/related?text=${encodeURIComponent(text)}`).then(json),
+
+  // Append a task as the next step of an existing story.
+  addStoryStep: (storyId, title, description = '') =>
+    fetch(`${BASE}/stories/${storyId}/steps`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, description }),
+    }).then(json),
+
   deleteTodo: (id) =>
     fetch(`${BASE}/todos/${id}`, { method: 'DELETE' }).then(json),
 

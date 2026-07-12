@@ -35,6 +35,27 @@ public final class TodoDtos {
             @NotEmpty @Size(max = 20) List<@Valid StoryStep> steps) {
     }
 
+    /** Body for asking the server to decompose a free-text goal into steps. */
+    public record SuggestStoryRequest(
+            @NotBlank @Size(max = 10_000) String goal) {
+    }
+
+    /** A proposed story: a suggested name plus the generated ordered steps. */
+    public record SuggestStoryResponse(
+            String name,
+            List<StoryStep> steps) {
+    }
+
+    /**
+     * An existing story that a piece of text looks related to, with a relevance
+     * score (shared meaningful words). Used to suggest attaching a task to a story.
+     */
+    public record RelatedStory(
+            String storyId,
+            String name,
+            int score) {
+    }
+
     /**
      * A story and its ordered steps. Returned when a story is created or listed,
      * so a client can render the whole chain and its progress in one shot.
