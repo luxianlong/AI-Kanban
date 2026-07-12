@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { api } from './api.js'
+import Markdown from './Markdown.jsx'
 
 // The board's columns, in flow order. The worker moves a card left→right by
 // updating its status, so the board mirrors the task's real lifecycle.
@@ -450,7 +451,13 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
         {!running && (todo.result || log) && (
           <div className="drawer-section grow">
             <div className="section-label">{todo.status === 'FAILED' ? 'Failure detail' : 'Result'}</div>
-            <pre className="logbox result">{todo.result || '(no result)'}</pre>
+            {todo.result
+              // Agent results are Markdown; render them. Failure detail is usually
+              // raw error/log text, so keep it monospaced and unparsed.
+              ? (todo.status === 'FAILED'
+                  ? <pre className="logbox result">{todo.result}</pre>
+                  : <Markdown className="logbox result" text={todo.result} />)
+              : <pre className="logbox result">(no result)</pre>}
             {log && (
               <details className="transcript">
                 <summary>Full session log</summary>
