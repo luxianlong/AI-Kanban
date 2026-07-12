@@ -3,8 +3,11 @@
 A dashboard where you create **todo items** and a scheduled **Claude Code session**
 regularly picks them up and tries to resolve them — writing the result back for you to read.
 
+- **Frontend** — React + Vite, styled as a **kanban board**: tasks are cards that flow
+  left→right across **To Do → In Progress → Done → Needs Attention** as the agent works.
+  In-Progress cards show a live "thinking" ticker; click any card for a detail drawer with
+  the full live session log or final result.
 - **Backend** — Java 21 + Spring Boot (REST API, H2 database, scheduled worker)
-- **Frontend** — React + Vite
 - **Worker** — a `@Scheduled` service that shells out to the `claude` CLI in headless
   (`-p` / print) mode, one todo at a time, and records what the session produced.
 

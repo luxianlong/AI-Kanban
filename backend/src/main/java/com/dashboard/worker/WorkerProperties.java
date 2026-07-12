@@ -34,6 +34,9 @@ public class WorkerProperties {
     /** Max pending items handled per poll tick. */
     private int batchSize = 1;
 
+    /** How often the worker polls for pending items, in milliseconds. */
+    private long pollIntervalMs = 15000;
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -80,5 +83,13 @@ public class WorkerProperties {
 
     public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
+    }
+
+    public long getPollIntervalMs() {
+        return pollIntervalMs;
+    }
+
+    public void setPollIntervalMs(long pollIntervalMs) {
+        this.pollIntervalMs = pollIntervalMs;
     }
 }

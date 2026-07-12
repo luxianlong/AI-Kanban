@@ -23,7 +23,7 @@ public class WorkerStatusController {
     public Map<String, Object> status() {
         return Map.of(
                 "enabled", props.isEnabled(),
-                "pollIntervalMs", System.getProperty("worker.poll-interval-ms", "15000"),
+                "pollIntervalMs", props.getPollIntervalMs(),
                 "batchSize", props.getBatchSize(),
                 "timeoutSeconds", props.getTimeoutSeconds());
     }
