@@ -10,4 +10,10 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     List<Todo> findByStatusOrderByCreatedAtAsc(TodoStatus status);
 
     List<Todo> findAllByOrderByCreatedAtDesc();
+
+    /** All steps of a story, in chain order — used to gate sequential pickup. */
+    List<Todo> findByStoryIdOrderByStoryOrderAsc(String storyId);
+
+    /** Every task that belongs to some story, newest chains first. */
+    List<Todo> findByStoryIdIsNotNullOrderByCreatedAtDesc();
 }

@@ -1,9 +1,12 @@
 package com.dashboard.todo;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
+import java.util.List;
 
 /** Request/response payloads for the todo API. */
 public final class TodoDtos {
@@ -15,6 +18,42 @@ public final class TodoDtos {
     public record CreateTodoRequest(
             @NotBlank @Size(max = 200) String title,
             @Size(max = 10_000) String description) {
+    }
+
+    /** One step of a story chain. */
+    public record StoryStep(
+            @NotBlank @Size(max = 200) String title,
+            @Size(max = 10_000) String description) {
+    }
+
+    /**
+     * Body for creating a story — a named, ordered chain of tasks. The steps are
+     * created as todos that the worker runs one after another, top to bottom.
+     */
+    public record CreateStoryRequest(
+            @NotBlank @Size(max = 200) String name,
+            @NotEmpty @Size(max = 20) List<@Valid StoryStep> steps) {
+    }
+
+    /**
+     * A story and its ordered steps. Returned when a story is created or listed,
+     * so a client can render the whole chain and its progress in one shot.
+     */
+    public record StoryResponse(
+            String storyId,
+            String name,
+            Instant createdAt,
+            List<TodoResponse> steps) {
+
+        /** Build from the steps of one story, ordered by {@code storyOrder}. */
+        public static StoryResponse from(String storyId, String name, List<Todo> steps) {
+            Instant createdAt = steps.isEmpty() ? null : steps.get(0).getCreatedAt();
+            return new StoryResponse(
+                    storyId,
+                    name,
+                    createdAt,
+                    steps.stream().map(TodoResponse::from).toList());
+        }
     }
 
     /** Body for updating a todo's status (used by the worker and the UI). */
@@ -34,7 +73,10 @@ public final class TodoDtos {
             Instant updatedAt,
             Instant processedAt,
             Double costUsd,
-            Long durationMs) {
+            Long durationMs,
+            String storyId,
+            String storyName,
+            Integer storyOrder) {
 
         public static TodoResponse from(Todo t) {
             return new TodoResponse(
@@ -47,7 +89,10 @@ public final class TodoDtos {
                     t.getUpdatedAt(),
                     t.getProcessedAt(),
                     t.getCostUsd(),
-                    t.getDurationMs());
+                    t.getDurationMs(),
+                    t.getStoryId(),
+                    t.getStoryName(),
+                    t.getStoryOrder());
         }
     }
 }
