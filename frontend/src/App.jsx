@@ -300,13 +300,28 @@ function Drawer({ todo, log, onClose, onDelete, onRetry }) {
     if (running && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
   }, [log, running])
 
+  // Close on Escape and move focus to the close button when the drawer opens,
+  // for basic keyboard / a11y support. Runs once on open — onClose is read
+  // through a ref so live-log re-renders don't steal focus back to the button.
+  const closeBtnRef = useRef(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  useEffect(() => {
+    closeBtnRef.current?.focus()
+    function onKeyDown(e) {
+      if (e.key === 'Escape') onCloseRef.current()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
   return (
     <>
       <div className="scrim" onClick={onClose} />
       <aside className="drawer" role="dialog" aria-label="Task detail">
         <div className="drawer-head">
           <span className={`badge ${todo.status.toLowerCase()}`}>{label(todo.status)}</span>
-          <button className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
+          <button ref={closeBtnRef} className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
         <h2 className="drawer-title">{todo.title}</h2>
