@@ -201,6 +201,32 @@ body {
 .composer-desc { margin-top: 8px; resize: vertical; }
 .composer-actions { display: flex; gap: 8px; margin-top: 8px; }
 
+/* self-improve trigger */
+.suggest {
+  width: 100%;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--brand-ink);
+  background: linear-gradient(135deg, rgba(91, 91, 214, 0.09), rgba(138, 91, 214, 0.09));
+  border: 1px dashed rgba(91, 91, 214, 0.4);
+  border-radius: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.suggest:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(91, 91, 214, 0.16), rgba(138, 91, 214, 0.16));
+  border-color: var(--brand);
+}
+.suggest:disabled { opacity: 0.6; cursor: default; }
+.suggest-spark { color: var(--brand); }
+
 /* ---------- Buttons ---------- */
 .btn {
   font: inherit;

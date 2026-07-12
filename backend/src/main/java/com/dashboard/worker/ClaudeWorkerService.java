@@ -40,6 +40,9 @@ public class ClaudeWorkerService {
 
     private static final Logger log = LoggerFactory.getLogger(ClaudeWorkerService.class);
 
+    /** Agents print this line to mark a task as failed even when the CLI exits 0. */
+    static final String FAIL_SENTINEL = "[[TASK_FAILED]]";
+
     private final TodoRepository repository;
     private final WorkerProperties props;
     private final LiveLogRegistry liveLog;
@@ -111,6 +114,11 @@ public class ClaudeWorkerService {
             } else if (r.exitCode() != 0) {
                 liveLog.append(todo.getId(), "✗ Claude exited with code " + r.exitCode() + ".");
                 fail(todo, "Claude exited with code " + r.exitCode() + ".\n\n" + r.finalOutput());
+            } else if (r.finalOutput().contains(FAIL_SENTINEL)) {
+                // The agent signalled semantic failure (e.g. a guarded deploy whose
+                // tests failed) even though the CLI exited cleanly.
+                liveLog.append(todo.getId(), "✗ Task reported failure.");
+                fail(todo, r.finalOutput());
             } else {
                 String output = r.finalOutput().isBlank() ? "(no output)" : r.finalOutput();
                 todo.setStatus(TodoStatus.RESOLVED);
@@ -135,9 +143,14 @@ public class ClaudeWorkerService {
 
     private String buildPrompt(Todo todo) {
         StringBuilder sb = new StringBuilder();
-        sb.append("You are an autonomous worker resolving a single todo item from a dashboard.\n");
+        sb.append("You are an autonomous worker resolving a single todo item (id ")
+                .append(todo.getId()).append(") from a dashboard.\n");
         sb.append("Do the work needed to complete it, then reply with a short summary of what you did ");
-        sb.append("and any result or answer the user needs.\n\n");
+        sb.append("and any result or answer the user needs.\n");
+        sb.append("If the task genuinely cannot be completed, end your reply with a line containing ")
+                .append("exactly ").append(FAIL_SENTINEL).append(" followed by a brief reason.\n");
+        sb.append("If this project has a CLAUDE.md, follow it — it explains how to make changes ")
+                .append("to this project and how to file follow-up tasks.\n\n");
         sb.append("TODO TITLE: ").append(todo.getTitle()).append('\n');
         if (todo.getDescription() != null && !todo.getDescription().isBlank()) {
             sb.append("DETAILS:\n").append(todo.getDescription()).append('\n');
