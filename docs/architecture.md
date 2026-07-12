@@ -40,7 +40,7 @@ flowchart LR
         livelog["LiveLogRegistry<br/>(in-memory transcripts)"]
     end
 
-    h2[("H2 file DB<br/>data/dashboard.mv.db")]
+    h2[("H2 file DB<br/>data/kanban.mv.db")]
     cli["claude CLI<br/>claude -p (headless)"]
     repofiles["Repo working dir<br/>(git branch + code)"]
     deploy["scripts/deploy.sh<br/>build · test · merge · restart"]
