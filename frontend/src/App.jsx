@@ -206,6 +206,7 @@ export default function App() {
           storyMeta={storyMeta}
           onOpen={setSelectedId}
           onPromote={promoteToDo}
+          onDelete={removeTodo}
         />
       ) : (
       <div
@@ -421,7 +422,7 @@ function MatrixCell({ col, todos, logs, storyMeta, onOpen, onPromote, onDropTask
 // so on narrow screens App renders this instead: a scrollable status-tab bar
 // picks ONE status, and that status's cards are listed vertically, grouped under
 // their story. Reuses the same Card component and the same rows/columns data.
-function MobileBoard({ rows, columns, logs, storyMeta, onOpen, onPromote }) {
+function MobileBoard({ rows, columns, logs, storyMeta, onOpen, onPromote, onDelete }) {
   const countFor = (status) =>
     rows.reduce((n, r) => n + r.items.filter((t) => t.status === status).length, 0)
 
@@ -475,19 +476,88 @@ function MobileBoard({ rows, columns, logs, storyMeta, onOpen, onPromote }) {
                   </div>
                 )}
                 {g.items.map((t) => (
-                  <Card
-                    key={t.id}
-                    todo={t}
-                    tail={tailLine(logs[t.id])}
-                    story={storyMeta[t.id]}
-                    onOpen={() => onOpen(t.id)}
-                    onPromote={onPromote}
-                  />
+                  <SwipeToDelete key={t.id} onDelete={() => onDelete(t.id)}>
+                    <Card
+                      todo={t}
+                      tail={tailLine(logs[t.id])}
+                      story={storyMeta[t.id]}
+                      onOpen={() => onOpen(t.id)}
+                      onPromote={onPromote}
+                    />
+                  </SwipeToDelete>
                 ))}
               </div>
             )
           })
         )}
+      </div>
+    </div>
+  )
+}
+
+// Swipe-left-to-delete wrapper for mobile cards. Dragging the card left reveals a
+// red Delete button on the right; releasing past halfway latches it open. A tap
+// that follows a drag (or a tap while open) is swallowed so it doesn't also open
+// the card's drawer — instead it closes the row. Touch-only; on desktop the card
+// behaves normally (delete lives in the drawer).
+function SwipeToDelete({ onDelete, children }) {
+  const WIDTH = 88 // px of Delete button revealed when fully open
+  const [dx, setDx] = useState(0)
+  const startX = useRef(null)
+  const openRef = useRef(false)
+  const movedRef = useRef(false)
+
+  function onTouchStart(e) {
+    startX.current = e.touches[0].clientX
+    movedRef.current = false
+  }
+  function onTouchMove(e) {
+    if (startX.current == null) return
+    const delta = e.touches[0].clientX - startX.current
+    if (Math.abs(delta) > 6) movedRef.current = true
+    // base offset depends on whether it's already latched open
+    const next = (openRef.current ? -WIDTH : 0) + delta
+    setDx(Math.max(-WIDTH - 16, Math.min(0, next))) // clamp: only leftward, small rubber-band
+  }
+  function onTouchEnd() {
+    const open = dx < -WIDTH / 2
+    openRef.current = open
+    setDx(open ? -WIDTH : 0)
+    startX.current = null
+  }
+  // If a drag happened, or the row is open, swallow the click so it neither opens
+  // the drawer nor leaks through — and close an open row on tap.
+  function onClickCapture(e) {
+    if (movedRef.current || openRef.current) {
+      e.preventDefault()
+      e.stopPropagation()
+      movedRef.current = false
+      if (openRef.current) {
+        openRef.current = false
+        setDx(0)
+      }
+    }
+  }
+
+  return (
+    <div className="swipe-row">
+      <button
+        className="swipe-delete"
+        style={{ width: WIDTH }}
+        onClick={(e) => { e.stopPropagation(); onDelete() }}
+        aria-label="Delete task"
+      >
+        Delete
+      </button>
+      <div
+        className="swipe-content"
+        style={{ transform: `translateX(${dx}px)` }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onClickCapture={onClickCapture}
+      >
+        {children}
       </div>
     </div>
   )
@@ -793,7 +863,6 @@ function Drawer({ todo, log, story, onClose, onDelete, onRetry }) {
   const running = todo.status === 'IN_PROGRESS'
   const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
   const [retrying, setRetrying] = useState(false)
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   async function retry() {
     if (retrying) return
@@ -899,15 +968,7 @@ function Drawer({ todo, log, story, onClose, onDelete, onRetry }) {
               {retrying ? 'Retrying…' : todo.status === 'FAILED' ? 'Retry task' : 'Run again'}
             </button>
           )}
-          {confirmingDelete ? (
-            <span className="delete-confirm">
-              <span className="delete-confirm-label">Delete? This can't be undone.</span>
-              <button className="btn danger" onClick={onDelete}>Yes, delete</button>
-              <button className="btn ghost" onClick={() => setConfirmingDelete(false)}>Cancel</button>
-            </span>
-          ) : (
-            <button className="btn danger-ghost" onClick={() => setConfirmingDelete(true)}>Delete task</button>
-          )}
+          <button className="btn danger-ghost" onClick={onDelete}>Delete task</button>
         </div>
       </aside>
     </>

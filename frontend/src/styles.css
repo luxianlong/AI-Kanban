@@ -623,8 +623,31 @@ body {
 .btn.danger-ghost:hover { background: #fff1f4; }
 .btn.danger { background: var(--failed); color: #fff; }
 .btn.danger:hover { filter: brightness(1.07); }
-.delete-confirm { display: flex; align-items: center; gap: 10px; }
-.delete-confirm-label { font-size: 0.82rem; color: var(--failed); font-weight: 600; }
+/* ---------- Swipe-to-delete (mobile cards) ---------- */
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.swipe-delete {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+  background: var(--failed);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.swipe-content {
+  position: relative;
+  /* smooth snap on release; the small lag while dragging is imperceptible */
+  transition: transform 0.18s ease;
+  touch-action: pan-y; /* let vertical scroll through; we handle horizontal */
+  will-change: transform;
+}
 
 /* ---------- Card ---------- */
 .card {
