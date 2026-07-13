@@ -34,11 +34,14 @@ public class TodoController {
     private final TodoRepository repository;
     private final LiveLogRegistry liveLog;
     private final StoryClassifier classifier;
+    private final AiStoryClassifier aiClassifier;
 
-    public TodoController(TodoRepository repository, LiveLogRegistry liveLog, StoryClassifier classifier) {
+    public TodoController(TodoRepository repository, LiveLogRegistry liveLog,
+                          StoryClassifier classifier, AiStoryClassifier aiClassifier) {
         this.repository = repository;
         this.liveLog = liveLog;
         this.classifier = classifier;
+        this.aiClassifier = aiClassifier;
     }
 
     @GetMapping
@@ -90,7 +93,15 @@ public class TodoController {
             todo.setStoryOrder(classifier.nextOrder(
                     repository.findByStoryIdOrderByStoryOrderAsc(story.storyId())));
         });
-        return TodoResponse.from(repository.save(todo));
+        Todo saved = repository.save(todo);
+        // If the fast keyword pass left it standalone, ask Claude to take a smarter
+        // (semantic, language-agnostic) look in the background and re-file it if it
+        // finds a home. The response returns now; the task may hop into a story a
+        // few seconds later.
+        if (saved.getStoryId() == null) {
+            aiClassifier.fileAsync(saved.getId(), text);
+        }
+        return TodoResponse.from(saved);
     }
 
     @PatchMapping("/{id}")

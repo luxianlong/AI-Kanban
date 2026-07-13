@@ -37,6 +37,18 @@ public class WorkerProperties {
     /** How often the worker polls for pending items, in milliseconds. */
     private long pollIntervalMs = 15000;
 
+    /**
+     * When true, a task that isn't caught by the fast keyword classifier gets a
+     * second, smarter pass: a short headless Claude call decides which existing
+     * story (if any) it belongs to, and re-files it. This is what lets semantic /
+     * non-English tasks join a story when they share no literal keyword. Runs only
+     * when {@link #enabled} is also true (it uses the same CLI).
+     */
+    private boolean classifyWithClaude = true;
+
+    /** Hard timeout for one background classification call, in seconds. */
+    private long classifyTimeoutSeconds = 45;
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -91,5 +103,21 @@ public class WorkerProperties {
 
     public void setPollIntervalMs(long pollIntervalMs) {
         this.pollIntervalMs = pollIntervalMs;
+    }
+
+    public boolean isClassifyWithClaude() {
+        return classifyWithClaude;
+    }
+
+    public void setClassifyWithClaude(boolean classifyWithClaude) {
+        this.classifyWithClaude = classifyWithClaude;
+    }
+
+    public long getClassifyTimeoutSeconds() {
+        return classifyTimeoutSeconds;
+    }
+
+    public void setClassifyTimeoutSeconds(long classifyTimeoutSeconds) {
+        this.classifyTimeoutSeconds = classifyTimeoutSeconds;
     }
 }
