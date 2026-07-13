@@ -8,6 +8,13 @@ app redeploy itself. Follow it exactly.
 The app is a kanban board backed by a Spring Boot API. Tasks flow
 `PENDING → IN_PROGRESS → RESOLVED / FAILED`. The API is at `http://localhost:8080`.
 
+**Exposing the UI publicly** (tunnel + password gate): see
+[docs/public-tunnel.md](docs/public-tunnel.md) — how to put this app on a public URL
+via `cloudflared` (quick tunnel or stable named tunnel), gated by the Basic-Auth
+middleware in `frontend/vite.config.js` (creds in the gitignored
+`frontend/.public-auth.json`). Start/stop commands, what survives a restart, and
+the security caveats are all there.
+
 ## Two kinds of task
 
 ### 1. Planner tasks — "think about improvements" (spawn work, don't change code)
