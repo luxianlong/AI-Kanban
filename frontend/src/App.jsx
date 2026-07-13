@@ -184,6 +184,8 @@ export default function App() {
   const columns = COLUMNS.filter(
     (c) => c.status !== 'FAILED' || todos.some((t) => t.status === 'FAILED'),
   )
+  // Phones can't use the wide story×status matrix — swap to a stacked layout.
+  const isMobile = useIsMobile()
 
   return (
     <div className="page">
@@ -196,6 +198,16 @@ export default function App() {
         <StoryComposer onCreateStory={createStory} />
       </div>
 
+      {isMobile ? (
+        <MobileBoard
+          rows={rows}
+          columns={columns}
+          logs={logs}
+          storyMeta={storyMeta}
+          onOpen={setSelectedId}
+          onPromote={promoteToDo}
+        />
+      ) : (
       <div
         className="matrix"
         style={{ gridTemplateColumns: `220px repeat(${columns.length}, minmax(220px, 1fr))` }}
@@ -235,6 +247,7 @@ export default function App() {
           </Fragment>
         ))}
       </div>
+      )}
 
       {selected && (
         <Drawer
@@ -401,6 +414,99 @@ function MatrixCell({ col, todos, logs, storyMeta, onOpen, onPromote, onDropTask
       ))}
     </div>
   )
+}
+
+// ---- Mobile layout -------------------------------------------------------
+// The desktop matrix (story-rows × status-columns) is far too wide for a phone,
+// so on narrow screens App renders this instead: a scrollable status-tab bar
+// picks ONE status, and that status's cards are listed vertically, grouped under
+// their story. Reuses the same Card component and the same rows/columns data.
+function MobileBoard({ rows, columns, logs, storyMeta, onOpen, onPromote }) {
+  const countFor = (status) =>
+    rows.reduce((n, r) => n + r.items.filter((t) => t.status === status).length, 0)
+
+  const [picked, setPicked] = useState(null)
+  // Default to the first status that actually has cards (so a phone opens on
+  // something non-empty); fall back to the first column. If `picked` points at a
+  // now-hidden column (FAILED vanishes when nothing's failing), fall back too.
+  const fallback = columns.find((c) => countFor(c.status) > 0)?.status || columns[0].status
+  const activeCol = columns.find((c) => c.status === picked)
+  const status = activeCol ? activeCol.status : fallback
+  const hint = (columns.find((c) => c.status === status) || columns[0]).hint
+
+  const groups = rows
+    .map((r) => ({ row: r, items: r.items.filter((t) => t.status === status) }))
+    .filter((g) => g.items.length)
+
+  return (
+    <div className="mobile-board">
+      <div className="status-tabs" role="tablist" aria-label="Task status">
+        {columns.map((col) => {
+          const on = col.status === status
+          return (
+            <button
+              key={col.status}
+              role="tab"
+              aria-selected={on}
+              className={`status-tab ${col.status.toLowerCase()} ${on ? 'active' : ''}`}
+              onClick={() => setPicked(col.status)}
+            >
+              <span className="status-tab-label">{col.title}</span>
+              <span className="status-tab-count">{countFor(col.status)}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="mobile-list">
+        {groups.length === 0 ? (
+          <p className="col-empty">{hint}</p>
+        ) : (
+          groups.map((g) => {
+            // Hide the group header only when everything is standalone (a single
+            // "No story" group would just be noise); otherwise it anchors context.
+            const showHead = !(g.row.isStandalone && groups.length === 1)
+            return (
+              <div key={g.row.key} className="mobile-group">
+                {showHead && (
+                  <div className="mobile-group-head">
+                    <span className="mobile-group-name">{g.row.name}</span>
+                    <span className="mobile-group-count">{g.items.length}</span>
+                  </div>
+                )}
+                {g.items.map((t) => (
+                  <Card
+                    key={t.id}
+                    todo={t}
+                    tail={tailLine(logs[t.id])}
+                    story={storyMeta[t.id]}
+                    onOpen={() => onOpen(t.id)}
+                    onPromote={onPromote}
+                  />
+                ))}
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Track a CSS media query in React so we can swap whole layouts (not merely
+// restyle) below a breakpoint. Kept in sync with the 720px breakpoint in the CSS.
+function useIsMobile(query = '(max-width: 720px)') {
+  const [match, setMatch] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const onChange = () => setMatch(mq.matches)
+    mq.addEventListener('change', onChange)
+    onChange()
+    return () => mq.removeEventListener('change', onChange)
+  }, [query])
+  return match
 }
 
 function Composer({ onCreate, onAttach }) {

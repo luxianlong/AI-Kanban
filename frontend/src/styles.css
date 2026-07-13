@@ -937,7 +937,121 @@ h4.md-h, h5.md-h, h6.md-h { font-size: 0.9rem; }
   * { animation: none !important; transition: none !important; }
 }
 
-@media (max-width: 640px) {
-  .board { grid-auto-columns: 86vw; padding: 16px; }
-  .topbar { padding: 14px 16px; }
+/* ---------- Mobile board (narrow screens) ---------- */
+/* On phones the matrix is replaced (in App.jsx) by this single-column layout:
+   a sticky status-tab bar picks one status, and its cards are listed vertically,
+   grouped under their story. These classes only render on mobile. */
+.mobile-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.status-tabs {
+  flex: none;
+  display: flex;
+  gap: 7px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid var(--hair);
+}
+.status-tabs::-webkit-scrollbar { display: none; }
+.status-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--hair);
+  background: #fff;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.status-tab::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 3px;
+  background: var(--faint);
+  flex: none;
+}
+.status-tab.pending::before { background: var(--todo); }
+.status-tab.in_progress::before { background: var(--progress); }
+.status-tab.resolved::before { background: var(--done); }
+.status-tab.failed::before { background: var(--failed); }
+.status-tab.active {
+  color: var(--ink);
+  border-color: var(--brand);
+  background: #eef2ff;
+}
+.status-tab-count {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: var(--col);
+  border-radius: 999px;
+  min-width: 20px;
+  padding: 1px 7px;
+  text-align: center;
+}
+.status-tab.active .status-tab-count { background: #fff; color: var(--brand-ink); }
+
+.mobile-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px 14px calc(24px + env(safe-area-inset-bottom));
+}
+.mobile-group { display: flex; flex-direction: column; gap: 10px; }
+.mobile-group-head { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.mobile-group-name {
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 0.8rem; font-weight: 700; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mobile-group-count {
+  flex: none;
+  font-size: 0.68rem; font-weight: 700;
+  color: var(--muted); background: var(--col);
+  border: 1px solid var(--hair); border-radius: 999px;
+  padding: 0 7px; font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Responsive overrides ---------- */
+@media (max-width: 720px) {
+  /* iOS zooms any focused input whose font is < 16px — pin to 16px to stop it. */
+  .composer-title, .composer-desc, .story-step-input { font-size: 16px; }
+
+  .topbar { padding: 11px 14px; gap: 10px; }
+  .topbar h1 { font-size: 1.12rem; }
+  .tagline { display: none; }
+  .status { gap: 8px; }
+  .worker-pill, .count-pill, .notify-toggle { padding: 7px 11px; }
+
+  .board-toolbar { padding: 12px 14px 4px; gap: 10px; }
+  .board-toolbar .composer { flex-basis: 100%; min-width: 0; }
+  .board-toolbar .story-add { width: 100%; }
+
+  /* Comfortable tap targets. */
+  .btn { min-height: 44px; padding: 10px 16px; }
+  .icon-btn { min-width: 40px; min-height: 40px; }
+
+  /* Drawer becomes a full-width sheet so logs read edge-to-edge. */
+  .drawer {
+    width: 100vw;
+    padding: 16px 15px calc(20px + env(safe-area-inset-bottom));
+  }
+  .drawer-title { font-size: 1.12rem; }
 }
