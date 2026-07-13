@@ -67,8 +67,21 @@ public class Todo {
      * Zero-based position of this task within its story chain. The worker only
      * picks up a step once every earlier step in the same story is
      * {@link TodoStatus#RESOLVED}, so a story runs one task at a time in order.
+     * A story's planner ({@link #storyPlanner}) has a {@code null} order — it is
+     * not a numbered step but the seed the worker expands into steps.
      */
     private Integer storyOrder;
+
+    /**
+     * Whether this item is a story's <em>planner</em>: the single seed task
+     * created when a user declares a story from a one-line goal. When the worker
+     * picks it up it does not do the work itself — it decomposes the goal into
+     * concrete step tasks filed under the same {@link #storyId}. Regular tasks
+     * (including the generated steps) are {@code false}.
+     */
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean storyPlanner = false;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -197,5 +210,13 @@ public class Todo {
 
     public void setStoryOrder(Integer storyOrder) {
         this.storyOrder = storyOrder;
+    }
+
+    public boolean isStoryPlanner() {
+        return storyPlanner;
+    }
+
+    public void setStoryPlanner(boolean storyPlanner) {
+        this.storyPlanner = storyPlanner;
     }
 }

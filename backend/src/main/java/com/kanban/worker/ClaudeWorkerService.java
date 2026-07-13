@@ -176,6 +176,9 @@ public class ClaudeWorkerService {
     }
 
     private String buildPrompt(Todo todo) {
+        if (todo.isStoryPlanner()) {
+            return buildPlannerPrompt(todo);
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("You are an autonomous worker resolving a single todo item (id ")
                 .append(todo.getId()).append(") from a Kanban board.\n");
@@ -189,6 +192,43 @@ public class ClaudeWorkerService {
         sb.append("TODO TITLE: ").append(todo.getTitle()).append('\n');
         if (todo.getDescription() != null && !todo.getDescription().isBlank()) {
             sb.append("DETAILS:\n").append(todo.getDescription()).append('\n');
+        }
+        return sb.toString();
+    }
+
+    /** Base URL the worker's agent uses to call back into this API. */
+    private static final String API_BASE = "http://localhost:8080";
+
+    /**
+     * Prompt for a story planner (see {@link Todo#isStoryPlanner()}). The agent's
+     * job is NOT to do the work but to break the goal into concrete step tasks and
+     * file each one under the story via the steps endpoint. The steps are created
+     * staged (NEW) for the user to promote; the worker later runs them in order.
+     */
+    private String buildPlannerPrompt(Todo todo) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are planning a STORY on a Kanban board — a high-level goal that must be ")
+                .append("broken down into concrete, independently-workable tasks. Your job is to PLAN, ")
+                .append("not to implement: do NOT write code, change files, or resolve the goal yourself.\n\n");
+        sb.append("Do this:\n");
+        sb.append("1. Consider the goal below. If this project has a CLAUDE.md or the goal is about this ")
+                .append("repo, you may read files to understand it — but make no changes.\n");
+        sb.append("2. Break the goal into an ordered list of concrete steps (usually 2–6). Each step ")
+                .append("should be a single, clearly-scoped task another agent can pick up and finish.\n");
+        sb.append("3. Create each step, in order, by POSTing to ")
+                .append(API_BASE).append("/api/stories/").append(todo.getStoryId()).append("/steps with a JSON body ")
+                .append("{\"title\":\"…\",\"description\":\"…\"} (title ≤200 chars; description = what to do and why). ")
+                .append("For example:\n")
+                .append("   curl -s -X POST ").append(API_BASE).append("/api/stories/").append(todo.getStoryId())
+                .append("/steps -H 'Content-Type: application/json' -d '{\"title\":\"…\",\"description\":\"…\"}'\n");
+        sb.append("4. The steps are created as NEW (staged); the user promotes them to run. Do not POST to ")
+                .append("/api/todos and do not create the story itself — only add steps to THIS story.\n");
+        sb.append("5. Reply with a short summary listing the steps you created.\n");
+        sb.append("If the goal cannot be decomposed, end your reply with a line containing exactly ")
+                .append(FAIL_SENTINEL).append(" followed by a brief reason.\n\n");
+        sb.append("STORY GOAL: ").append(todo.getTitle()).append('\n');
+        if (todo.getDescription() != null && !todo.getDescription().isBlank()) {
+            sb.append("CONTEXT:\n").append(todo.getDescription()).append('\n');
         }
         return sb.toString();
     }
@@ -207,7 +247,9 @@ public class ClaudeWorkerService {
         }
         List<Todo> steps = repository.findByStoryIdOrderByStoryOrderAsc(todo.getStoryId());
         int order = todo.getStoryOrder();
-        sb.append("This task is step ").append(order + 1).append(" of ").append(steps.size())
+        // Count real steps only — the story's planner seed carries a null order.
+        long total = steps.stream().filter(s -> !s.isStoryPlanner()).count();
+        sb.append("This task is step ").append(order + 1).append(" of ").append(total)
                 .append(" in the story \"").append(todo.getStoryName()).append("\". ")
                 .append("The steps run in order and build on each other; do your part so the ")
                 .append("next step can continue.\n");

@@ -43,6 +43,16 @@ class TodoApiTest {
         return mapper.readTree(body).get("id").asLong();
     }
 
+    /** Creates a story from a one-line goal and returns its generated storyId. */
+    private String createStory(String name) throws Exception {
+        String body = mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"" + name + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return mapper.readTree(body).get("storyId").asText();
+    }
+
     @Test
     void createThenListTodo() throws Exception {
         mvc.perform(post("/api/todos")
@@ -169,54 +179,38 @@ class TodoApiTest {
     }
 
     @Test
-    void createStoryChainsTasksInOrder() throws Exception {
+    void createStoryFilesPlannerSeed() throws Exception {
+        // Creating a story from a one-line goal files a single PLANNER seed — not
+        // pre-written steps. It's queued (PENDING) so the worker plans it; it has
+        // no storyOrder (it isn't a numbered step) and carries storyPlanner=true.
         String body = mvc.perform(post("/api/stories")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Ship dark mode\",\"steps\":["
-                                + "{\"title\":\"Add theme toggle\"},"
-                                + "{\"title\":\"Persist preference\"},"
-                                + "{\"title\":\"Write tests\"}]}"))
+                        .content("{\"name\":\"Ship dark mode\",\"description\":\"support a dark theme\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.length()", is(3)))
-                // Steps share a storyId and are numbered in order, all staged as NEW.
-                .andExpect(jsonPath("$[0].title", is("Add theme toggle")))
-                .andExpect(jsonPath("$[0].storyName", is("Ship dark mode")))
-                .andExpect(jsonPath("$[0].storyOrder", is(0)))
-                .andExpect(jsonPath("$[0].status", is("NEW")))
-                .andExpect(jsonPath("$[1].storyOrder", is(1)))
-                .andExpect(jsonPath("$[2].storyOrder", is(2)))
+                .andExpect(jsonPath("$.title", is("Ship dark mode")))
+                .andExpect(jsonPath("$.storyName", is("Ship dark mode")))
+                .andExpect(jsonPath("$.storyPlanner", is(true)))
+                .andExpect(jsonPath("$.storyOrder", is(nullValue())))
+                .andExpect(jsonPath("$.status", is("PENDING")))
                 .andReturn().getResponse().getContentAsString();
 
-        JsonNode steps = mapper.readTree(body);
-        String storyId = steps.get(0).get("storyId").asText();
-        // Every step carries the same non-blank storyId.
-        for (JsonNode step : steps) {
-            org.junit.jupiter.api.Assertions.assertEquals(storyId, step.get("storyId").asText());
-        }
+        JsonNode planner = mapper.readTree(body);
+        String storyId = planner.get("storyId").asText();
         org.junit.jupiter.api.Assertions.assertFalse(storyId.isBlank());
 
-        // The story is listable with its steps in chain order.
+        // The story is listable, containing its planner seed.
         mvc.perform(get("/api/stories"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name", is("Ship dark mode")))
-                .andExpect(jsonPath("$[0].steps.length()", is(3)))
-                .andExpect(jsonPath("$[0].steps[0].storyOrder", is(0)))
-                .andExpect(jsonPath("$[0].steps[2].storyOrder", is(2)));
+                .andExpect(jsonPath("$[0].steps.length()", is(1)))
+                .andExpect(jsonPath("$[0].steps[0].storyPlanner", is(true)));
     }
 
     @Test
-    void createStoryWithNoStepsReturns400() throws Exception {
+    void createStoryWithBlankNameReturns400() throws Exception {
         mvc.perform(post("/api/stories")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Empty\",\"steps\":[]}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void createStoryWithBlankStepTitleReturns400() throws Exception {
-        mvc.perform(post("/api/stories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Bad\",\"steps\":[{\"title\":\"\"}]}"))
+                        .content("{\"name\":\"\"}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -261,14 +255,9 @@ class TodoApiTest {
     void relatedFindsMatchingStoryAndIgnoresUnrelatedText() throws Exception {
         // Unique keywords ("avatar"/"gallery") keep this isolated from the shared
         // in-memory DB that other tests also write stories into.
-        mvc.perform(post("/api/stories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Redesign avatar gallery\",\"steps\":["
-                                + "{\"title\":\"Add avatar upload\"},"
-                                + "{\"title\":\"Lay out gallery grid\"}]}"))
-                .andExpect(status().isCreated());
+        createStory("Redesign avatar gallery");
 
-        mvc.perform(get("/api/stories/related").param("text", "improve the avatar gallery grid"))
+        mvc.perform(get("/api/stories/related").param("text", "improve the avatar gallery layout"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()", is(1)))
                 .andExpect(jsonPath("$[0].name", is("Redesign avatar gallery")))
@@ -281,73 +270,57 @@ class TodoApiTest {
 
     @Test
     void addStepAppendsToStoryChain() throws Exception {
-        String body = mvc.perform(post("/api/stories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Ship search\",\"steps\":["
-                                + "{\"title\":\"Add search box\"},"
-                                + "{\"title\":\"Filter results\"}]}"))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        String storyId = mapper.readTree(body).get(0).get("storyId").asText();
+        // A fresh story has only its planner (null order), so the first appended
+        // step lands at order 0, staged NEW.
+        String storyId = createStory("Ship search feature");
 
-        // The appended task lands as the next step (order 2) on the same chain.
         mvc.perform(post("/api/stories/" + storyId + "/steps")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Highlight matches\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title", is("Highlight matches")))
                 .andExpect(jsonPath("$.storyId", is(storyId)))
-                .andExpect(jsonPath("$.storyName", is("Ship search")))
-                .andExpect(jsonPath("$.storyOrder", is(2)))
+                .andExpect(jsonPath("$.storyName", is("Ship search feature")))
+                .andExpect(jsonPath("$.storyOrder", is(0)))
                 .andExpect(jsonPath("$.status", is("NEW")));
 
+        // The story now lists its planner plus the appended step.
         mvc.perform(get("/api/stories"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].steps.length()", is(3)))
-                .andExpect(jsonPath("$[0].steps[2].title", is("Highlight matches")));
+                .andExpect(jsonPath("$[0].steps.length()", is(2)));
     }
 
     @Test
     void newTodoIsClassifiedIntoRelatedStory() throws Exception {
-        // A declared story about a distinctive subject...
-        String body = mvc.perform(post("/api/stories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Build kayak rental checkout\",\"steps\":["
-                                + "{\"title\":\"Add kayak inventory model\"},"
-                                + "{\"title\":\"Build kayak checkout page\"}]}"))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        String storyId = mapper.readTree(body).get(0).get("storyId").asText();
+        // A declared story about a distinctive subject (its goal alone carries the
+        // keywords kayak/checkout)...
+        String storyId = createStory("Build kayak rental checkout");
 
         // ...means a newly created task whose words clearly overlap it (kayak,
-        // checkout) is auto-filed onto that chain as the next step, not orphaned.
-        // Joining a story stages it as NEW (like any story step), not straight to the queue.
+        // checkout) is auto-filed onto that story as a step, not orphaned. Joining a
+        // story stages it as NEW (like any story step), not straight to the queue.
         mvc.perform(post("/api/todos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Refine the kayak checkout flow\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.storyId", is(storyId)))
                 .andExpect(jsonPath("$.storyName", is("Build kayak rental checkout")))
-                .andExpect(jsonPath("$.storyOrder", is(2)))
-                .andExpect(jsonPath("$.status", is("NEW")));
+                .andExpect(jsonPath("$.storyOrder", is(0)))
+                .andExpect(jsonPath("$.status", is("NEW")))
+                .andExpect(jsonPath("$.storyPlanner", is(false)));
 
-        // The classified task shows up as the appended step of the chain.
+        // The classified task now lives on the story (planner + this step).
         mvc.perform(get("/api/stories"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name", is("Build kayak rental checkout")))
-                .andExpect(jsonPath("$[0].steps.length()", is(3)))
-                .andExpect(jsonPath("$[0].steps[2].title", is("Refine the kayak checkout flow")));
+                .andExpect(jsonPath("$[0].steps.length()", is(2)));
     }
 
     @Test
     void newTodoWithNoStoryOverlapStaysStandalone() throws Exception {
         // Stories exist, but a task about something entirely different is left
-        // unclassified rather than force-fitted into an unrelated chain.
-        mvc.perform(post("/api/stories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Tune the caching layer\",\"steps\":["
-                                + "{\"title\":\"Add a cache warmer\"}]}"))
-                .andExpect(status().isCreated());
+        // unclassified rather than force-fitted into an unrelated story.
+        createStory("Tune the caching layer");
 
         mvc.perform(post("/api/todos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -362,12 +335,7 @@ class TodoApiTest {
     void singleSharedWordIsNotEnoughToClassify() throws Exception {
         // "flow" alone overlaps this story, but one incidental word is below the
         // auto-classify threshold, so the task stays standalone.
-        mvc.perform(post("/api/stories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Harden authentication flow\",\"steps\":["
-                                + "{\"title\":\"Rotate the auth tokens\"},"
-                                + "{\"title\":\"Add auth rate limiting\"}]}"))
-                .andExpect(status().isCreated());
+        createStory("Harden authentication flow");
 
         mvc.perform(post("/api/todos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -387,17 +355,16 @@ class TodoApiTest {
 
     @Test
     void promoteStoryStepFromNewToPendingQueuesIt() throws Exception {
-        // A story's first step is staged NEW; promoting it (the UI's "→ To Do" /
-        // drag action) flips it to PENDING — the status the worker actually polls.
-        String body = mvc.perform(post("/api/stories")
+        // A worker-generated story step is staged NEW; promoting it (the UI's
+        // "→ To Do" / drag action) flips it to PENDING — the status the worker polls.
+        String storyId = createStory("Ship export feature");
+        String stepBody = mvc.perform(post("/api/stories/" + storyId + "/steps")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Ship export\",\"steps\":["
-                                + "{\"title\":\"Add export endpoint\"},"
-                                + "{\"title\":\"Add export button\"}]}"))
+                        .content("{\"title\":\"Add export endpoint\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$[0].status", is("NEW")))
+                .andExpect(jsonPath("$.status", is("NEW")))
                 .andReturn().getResponse().getContentAsString();
-        long stepId = mapper.readTree(body).get(0).get("id").asLong();
+        long stepId = mapper.readTree(stepBody).get("id").asLong();
 
         mvc.perform(patch("/api/todos/" + stepId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -406,6 +373,19 @@ class TodoApiTest {
                 .andExpect(jsonPath("$.status", is("PENDING")))
                 // Promotion doesn't disturb the task's place in its story chain.
                 .andExpect(jsonPath("$.storyOrder", is(0)));
+    }
+
+    @Test
+    void storyPlannerSeedIsQueuedNotStaged() throws Exception {
+        // The planner seed itself is PENDING (queued for the worker to plan) — it is
+        // the one story task that is NOT staged, so planning starts on the next poll.
+        String storyId = createStory("Add a settings page");
+        mvc.perform(get("/api/todos"))
+                .andExpect(status().isOk())
+                // Newest first: the planner we just created is at index 0.
+                .andExpect(jsonPath("$[0].storyId", is(storyId)))
+                .andExpect(jsonPath("$[0].storyPlanner", is(true)))
+                .andExpect(jsonPath("$[0].status", is("PENDING")));
     }
 
     @Test

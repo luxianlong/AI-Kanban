@@ -130,8 +130,8 @@ export default function App() {
     await refresh()
   }
 
-  async function createStory(name, steps) {
-    await api.createStory(name, steps)
+  async function createStory(name, description) {
+    await api.createStory(name, description)
     await refresh()
   }
 
@@ -224,7 +224,7 @@ export default function App() {
               <MatrixCell
                 key={col.status}
                 col={col}
-                todos={row.steps.filter((t) => t.status === col.status)}
+                todos={row.items.filter((t) => t.status === col.status)}
                 logs={logs}
                 storyMeta={storyMeta}
                 onOpen={setSelectedId}
@@ -329,17 +329,38 @@ function StoryRowHeader({ row }) {
       </div>
     )
   }
+  // Before the worker has produced any steps, the row reflects its planner: it's
+  // either planning (queued/running) or the planning failed.
+  const plannerActive = row.steps.length === 0 && row.planner
+  const planning = plannerActive && (row.planner.status === 'PENDING' || row.planner.status === 'IN_PROGRESS')
+  const planFailed = plannerActive && row.planner.status === 'FAILED'
   const pct = row.total ? Math.round((row.done / row.total) * 100) : 0
   return (
     <div className={`matrix-rowhead ${row.status.toLowerCase()}`}>
       <div className="rowhead-top">
         <span className="rowhead-name" title={row.name}>{row.name}</span>
-        <span className={`story-status-pill ${row.status.toLowerCase()}`}>{label(row.status)}</span>
+        {planning ? (
+          <span className="story-status-pill planning">Planning…</span>
+        ) : planFailed ? (
+          <span className="story-status-pill failed">Plan failed</span>
+        ) : (
+          <span className={`story-status-pill ${row.status.toLowerCase()}`}>{label(row.status)}</span>
+        )}
       </div>
-      <div className="story-progress-track">
-        <div className="story-progress-fill" style={{ width: `${pct}%` }} />
-      </div>
-      <span className="rowhead-sub">{row.done}/{row.total} done</span>
+      {row.steps.length > 0 && (
+        <div className="story-progress-track">
+          <div className="story-progress-fill" style={{ width: `${pct}%` }} />
+        </div>
+      )}
+      <span className="rowhead-sub">
+        {planning
+          ? 'Breaking the goal into tasks…'
+          : planFailed
+            ? 'Planning failed — open the card'
+            : row.steps.length
+              ? `${row.done}/${row.total} done`
+              : 'No steps yet'}
+      </span>
     </div>
   )
 }
@@ -513,66 +534,30 @@ function Composer({ onCreate, onAttach }) {
   )
 }
 
-// Build a story chain: a name plus an ordered list of step titles. The worker
-// runs the steps top-to-bottom, each waiting for the previous one to finish.
+// Declare a story from a single one-line goal. No steps are entered here — after
+// it's created, the worker picks up the story and breaks the goal into concrete
+// step tasks (staged as New for you to promote). Mirrors the task composer: a
+// single input that expands to reveal an optional details field.
 function StoryComposer({ onCreateStory }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
-  const [steps, setSteps] = useState(['', ''])
+  const [desc, setDesc] = useState('')
   const [busy, setBusy] = useState(false)
-  const [suggesting, setSuggesting] = useState(false)
-  // Descriptions the server proposed, keyed by (trimmed) step title, so the
-  // context it generated survives a manual edit and rides along on submit.
-  const [suggestedDescs, setSuggestedDescs] = useState({})
 
-  function setStep(i, value) {
-    setSteps((cur) => cur.map((s, idx) => (idx === i ? value : s)))
-  }
-  function addStep() {
-    setSteps((cur) => [...cur, ''])
-  }
-  function removeStep(i) {
-    setSteps((cur) => (cur.length <= 1 ? cur : cur.filter((_, idx) => idx !== i)))
-  }
   function reset() {
     setOpen(false)
     setName('')
-    setSteps(['', ''])
-    setSuggestedDescs({})
+    setDesc('')
   }
 
-  // Turn the story name/goal into a ready-to-edit chain of steps via the server.
-  async function suggest() {
-    const goal = name.trim()
-    if (!goal || suggesting) return
-    setSuggesting(true)
-    try {
-      const s = await api.suggestStory(goal)
-      if (s?.name) setName(s.name)
-      const titles = (s?.steps || []).map((step) => step.title)
-      if (titles.length) setSteps(titles)
-      const descs = {}
-      for (const step of s?.steps || []) descs[step.title.trim()] = step.description || ''
-      setSuggestedDescs(descs)
-    } catch {
-      // Leave the composer as-is; suggestion is a convenience, not a requirement.
-    } finally {
-      setSuggesting(false)
-    }
-  }
-
-  const filled = steps.map((s) => s.trim()).filter(Boolean)
-  const canSubmit = name.trim() && filled.length >= 1 && !busy
+  const canSubmit = name.trim() && !busy
 
   async function submit(e) {
     e.preventDefault()
     if (!canSubmit) return
     setBusy(true)
     try {
-      await onCreateStory(
-        name.trim(),
-        filled.map((title) => ({ title, description: suggestedDescs[title] || '' })),
-      )
+      await onCreateStory(name.trim(), desc.trim())
       reset()
     } finally {
       setBusy(false)
@@ -581,7 +566,7 @@ function StoryComposer({ onCreateStory }) {
 
   if (!open) {
     return (
-      <button className="story-add" onClick={() => setOpen(true)} title="Chain several tasks into a story">
+      <button className="story-add" onClick={() => setOpen(true)} title="Describe a goal — the worker breaks it into tasks">
         <span className="story-add-icon">▤</span> New story
       </button>
     )
@@ -589,52 +574,27 @@ function StoryComposer({ onCreateStory }) {
 
   return (
     <form className="composer story-form" onSubmit={submit}>
-      <div className="story-name-row">
-        <input
-          className="composer-title"
-          placeholder="Story name or goal (e.g. Ship dark mode)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={200}
-          autoFocus
-        />
-        <button
-          type="button"
-          className="story-suggest"
-          onClick={suggest}
-          disabled={!name.trim() || suggesting}
-          title="Generate steps from the story name"
-        >
-          {suggesting ? '…' : '✨ Suggest steps'}
-        </button>
-      </div>
-      <div className="story-steps">
-        {steps.map((s, i) => (
-          <div className="story-step-row" key={i}>
-            <span className="story-step-num">{i + 1}</span>
-            <input
-              className="story-step-input"
-              placeholder={`Step ${i + 1}`}
-              value={s}
-              onChange={(e) => setStep(i, e.target.value)}
-              maxLength={200}
-            />
-            <button
-              type="button"
-              className="story-step-remove"
-              onClick={() => removeStep(i)}
-              disabled={steps.length <= 1}
-              aria-label={`Remove step ${i + 1}`}
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-      <button type="button" className="story-step-add" onClick={addStep}>+ Add step</button>
+      <input
+        className="composer-title"
+        placeholder="Describe a story / goal (e.g. Ship dark mode)"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        maxLength={200}
+        autoFocus
+      />
+      <textarea
+        className="composer-desc"
+        placeholder="Extra context for the worker's planning (optional)"
+        value={desc}
+        onChange={(e) => setDesc(e.target.value)}
+        rows={2}
+      />
+      <p className="story-hint">
+        The worker will pick this up and break it into tasks — they'll appear on this story's row as New.
+      </p>
       <div className="composer-actions">
         <button type="submit" className="btn primary" disabled={!canSubmit}>
-          {busy ? 'Creating…' : `Create story${filled.length ? ` · ${filled.length} steps` : ''}`}
+          {busy ? 'Creating…' : 'Create story'}
         </button>
         <button type="button" className="btn ghost" onClick={reset}>Cancel</button>
       </div>
@@ -673,6 +633,11 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
       }
     >
       {story && <StoryBadge story={story} />}
+      {todo.storyPlanner && (
+        <span className="card-tag planner" title="Story planner — the worker breaks this story's goal into tasks">
+          📋 Planning
+        </span>
+      )}
       {todo.projectImprovement && (
         <span className="card-tag project" title="This task improves the Kanban project itself">
           ⚙ Project
@@ -858,11 +823,12 @@ function StoryBadge({ story }) {
 
 // Derive per-task story info keyed by todo id: the chain's name, this task's
 // 1-based position and length, and whether it's blocked — a PENDING step is
-// blocked until every earlier step in its chain has resolved.
+// blocked until every earlier step in its chain has resolved. The story's planner
+// seed is skipped (it isn't a numbered step — it gets its own "Planning" tag).
 function computeStoryMeta(todos) {
   const groups = new Map()
   for (const t of todos) {
-    if (!t.storyId) continue
+    if (!t.storyId || t.storyPlanner) continue
     if (!groups.has(t.storyId)) groups.set(t.storyId, [])
     groups.get(t.storyId).push(t)
   }
@@ -882,11 +848,10 @@ function computeStoryMeta(todos) {
   return meta
 }
 
-// Gather the story-tagged todos into whole chains for the Stories overview.
-// Returns one entry per story — its ordered steps, how many have resolved, and
-// a rolled-up status — newest chain first (mirroring the board's newest-first
-// ordering). Each step is annotated with `blocked` (a pending step still
-// waiting on an earlier one) so the panel can mirror the on-card badge.
+// Gather the story-tagged todos into whole stories for the matrix rows. Each entry
+// separates the planner seed from the real (numbered) steps: `steps` drives the
+// row's progress/status, while `items` (planner + steps) are the cards the cells
+// distribute across the status columns. Newest story first.
 function computeStories(todos) {
   const groups = new Map()
   for (const t of todos) {
@@ -896,7 +861,8 @@ function computeStories(todos) {
   }
   const stories = []
   for (const [storyId, raw] of groups) {
-    const steps = [...raw].sort((a, b) => (a.storyOrder ?? 0) - (b.storyOrder ?? 0))
+    const planner = raw.find((t) => t.storyPlanner) || null
+    const steps = raw.filter((t) => !t.storyPlanner).sort((a, b) => (a.storyOrder ?? 0) - (b.storyOrder ?? 0))
     const annotated = steps.map((t, i) => ({
       ...t,
       blocked: t.status === 'PENDING' && !steps.slice(0, i).every((s) => s.status === 'RESOLVED'),
@@ -904,12 +870,14 @@ function computeStories(todos) {
     const done = annotated.filter((s) => s.status === 'RESOLVED').length
     stories.push({
       storyId,
-      name: steps[0].storyName || 'Story',
+      name: (planner && planner.storyName) || steps[0]?.storyName || 'Story',
+      planner,
       steps: annotated,
+      items: [...(planner ? [planner] : []), ...annotated],
       done,
       total: annotated.length,
-      status: rollupStatus(annotated),
-      newest: Math.max(...steps.map((s) => new Date(s.createdAt || 0).getTime())),
+      status: storyRollup(annotated, planner),
+      newest: Math.max(...raw.map((s) => new Date(s.createdAt || 0).getTime())),
     })
   }
   stories.sort((a, b) => b.newest - a.newest)
@@ -918,12 +886,12 @@ function computeStories(todos) {
 
 // Assemble the matrix rows: one row per story (newest first), then a single
 // "No story" row gathering every standalone task, if any exist. Each row exposes
-// `steps` — the tasks the cells distribute across the status columns.
+// `items` — the cards the cells distribute across the status columns.
 function computeRows(todos) {
   const rows = computeStories(todos).map((s) => ({ ...s, key: s.storyId, isStandalone: false }))
   const standalone = todos.filter((t) => !t.storyId)
   if (standalone.length) {
-    rows.push({ key: '__standalone', name: 'No story', isStandalone: true, steps: standalone })
+    rows.push({ key: '__standalone', name: 'No story', isStandalone: true, items: standalone, steps: standalone })
   }
   return rows
 }
@@ -936,6 +904,19 @@ function rollupStatus(steps) {
   if (steps.every((s) => s.status === 'RESOLVED')) return 'RESOLVED'
   if (steps.some((s) => s.status === 'IN_PROGRESS')) return 'IN_PROGRESS'
   if (steps.every((s) => s.status === 'NEW')) return 'NEW'
+  return 'PENDING'
+}
+
+// A story's overall status. Once it has real steps, roll those up. Before that
+// (only the planner exists) reflect the planner: running/queued reads as
+// in-progress (planning), failed as failed.
+function storyRollup(steps, planner) {
+  if (steps.length) return rollupStatus(steps)
+  if (planner) {
+    if (planner.status === 'FAILED') return 'FAILED'
+    if (planner.status === 'PENDING' || planner.status === 'IN_PROGRESS') return 'IN_PROGRESS'
+    return planner.status
+  }
   return 'PENDING'
 }
 

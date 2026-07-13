@@ -2,7 +2,6 @@ package com.kanban.todo;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
@@ -32,12 +31,14 @@ public final class TodoDtos {
     }
 
     /**
-     * Body for creating a story — a named, ordered chain of tasks. The steps are
-     * created as todos that the worker runs one after another, top to bottom.
+     * Body for creating a story from a single one-line goal. No steps are given
+     * up front: the server files one planner task, and the worker decomposes the
+     * goal into concrete step tasks when it processes it. {@code description} is
+     * optional extra context for that planning.
      */
     public record CreateStoryRequest(
             @NotBlank @Size(max = 200) String name,
-            @NotEmpty @Size(max = 20) List<@Valid StoryStep> steps) {
+            @Size(max = 10_000) String description) {
     }
 
     /** Body for asking the server to decompose a free-text goal into steps. */
@@ -103,7 +104,8 @@ public final class TodoDtos {
             Long durationMs,
             String storyId,
             String storyName,
-            Integer storyOrder) {
+            Integer storyOrder,
+            boolean storyPlanner) {
 
         public static TodoResponse from(Todo t) {
             return new TodoResponse(
@@ -120,7 +122,8 @@ public final class TodoDtos {
                     t.getDurationMs(),
                     t.getStoryId(),
                     t.getStoryName(),
-                    t.getStoryOrder());
+                    t.getStoryOrder(),
+                    t.isStoryPlanner());
         }
     }
 }

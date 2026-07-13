@@ -21,13 +21,14 @@ export const api = {
       body: JSON.stringify({ title, description, projectImprovement }),
     }).then(json),
 
-  // Create a story: a named, ordered chain of tasks the worker runs one after
-  // another. `steps` is [{ title, description }]. Returns the created todos.
-  createStory: (name, steps) =>
+  // Create a story from a single one-line goal (plus optional description). The
+  // server files one planner task; the worker decomposes the goal into step tasks
+  // when it processes it. Returns the created planner todo.
+  createStory: (name, description = '') =>
     fetch(`${BASE}/stories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, steps }),
+      body: JSON.stringify({ name, description }),
     }).then(json),
 
   // Ask the server to decompose a free-text goal into ordered steps. Returns

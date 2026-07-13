@@ -424,6 +424,29 @@ body {
   border-radius: 999px;
   padding: 2px 8px;
 }
+/* Story planner seed tag. */
+.card-tag.planner {
+  display: inline-flex; align-items: center; gap: 4px;
+  align-self: flex-start;
+  margin-bottom: 6px;
+  font-size: 0.68rem; font-weight: 700;
+  color: var(--brand-ink);
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.card.new .card-tag.planner { display: none; }
+/* "Planning…" pill on a story row whose steps the worker is still generating. */
+.story-status-pill.planning {
+  color: var(--brand-ink); background: #eef2ff; border-color: #c7d2fe;
+  animation: breathe 1.6s ease-in-out infinite;
+}
+/* Hint under the story composer explaining what happens after create. */
+.story-hint {
+  margin: 8px 0 0;
+  font-size: 0.76rem; line-height: 1.4; color: var(--muted);
+}
 
 /* ---------- Story badge (on cards + drawer) ---------- */
 .story-badge {

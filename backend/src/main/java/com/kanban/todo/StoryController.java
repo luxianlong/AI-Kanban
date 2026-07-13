@@ -27,11 +27,13 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Creates <em>stories</em> — named, ordered chains of tasks. Each step becomes a
- * normal todo tagged with a shared {@code storyId} and its position in the chain;
- * the worker then runs them one at a time, in order (a step waits until every
- * earlier step in its story is RESOLVED). Everything else (listing, live logs,
- * delete, retry) reuses the existing todo API.
+ * Creates <em>stories</em> — a high-level goal the worker decomposes into an
+ * ordered chain of tasks. Creating a story files one {@code storyPlanner} seed
+ * (see {@link #create}); when the worker runs it, the agent appends concrete step
+ * tasks via {@link #addStep}, each tagged with the shared {@code storyId} and its
+ * position in the chain. The worker then runs the steps one at a time, in order (a
+ * step waits until every earlier step in its story is RESOLVED). Everything else
+ * (listing, live logs, delete, retry) reuses the existing todo API.
  */
 @RestController
 @RequestMapping("/api/stories")
@@ -65,26 +67,28 @@ public class StoryController {
         return stories;
     }
 
+    /**
+     * Create a story from a single one-line goal. Instead of taking pre-written
+     * steps, this files ONE planner task: a seed tagged with a fresh storyId and
+     * marked {@code storyPlanner}. It's queued (PENDING) immediately, so the worker
+     * picks it up on its next poll and decomposes the goal into concrete step tasks
+     * (filed under the same storyId, staged as NEW for the user to promote).
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public List<TodoResponse> create(@Valid @RequestBody CreateStoryRequest req) {
+    public TodoResponse create(@Valid @RequestBody CreateStoryRequest req) {
         String storyId = UUID.randomUUID().toString();
         String name = req.name().trim();
-        List<TodoResponse> created = new ArrayList<>();
-        int order = 0;
-        for (StoryStep step : req.steps()) {
-            Todo todo = new Todo();
-            todo.setTitle(step.title().trim());
-            todo.setDescription(step.description());
-            // Story steps start staged in NEW; the user promotes each to the queue
-            // (To Do) when ready, so a story doesn't start running the moment it's created.
-            todo.setStatus(TodoStatus.NEW);
-            todo.setStoryId(storyId);
-            todo.setStoryName(name);
-            todo.setStoryOrder(order++);
-            created.add(TodoResponse.from(repository.save(todo)));
-        }
-        return created;
+        Todo planner = new Todo();
+        planner.setTitle(name);
+        planner.setDescription(req.description());
+        planner.setStoryId(storyId);
+        planner.setStoryName(name);
+        planner.setStoryPlanner(true);
+        // No storyOrder: the planner is the seed, not a numbered step. Queue it so
+        // the worker plans the story right away.
+        planner.setStatus(TodoStatus.PENDING);
+        return TodoResponse.from(repository.save(planner));
     }
 
     /**
