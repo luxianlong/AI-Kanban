@@ -178,11 +178,11 @@ class TodoApiTest {
                                 + "{\"title\":\"Write tests\"}]}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.length()", is(3)))
-                // Steps share a storyId and are numbered in order, all PENDING.
+                // Steps share a storyId and are numbered in order, all staged as NEW.
                 .andExpect(jsonPath("$[0].title", is("Add theme toggle")))
                 .andExpect(jsonPath("$[0].storyName", is("Ship dark mode")))
                 .andExpect(jsonPath("$[0].storyOrder", is(0)))
-                .andExpect(jsonPath("$[0].status", is("PENDING")))
+                .andExpect(jsonPath("$[0].status", is("NEW")))
                 .andExpect(jsonPath("$[1].storyOrder", is(1)))
                 .andExpect(jsonPath("$[2].storyOrder", is(2)))
                 .andReturn().getResponse().getContentAsString();
@@ -299,7 +299,7 @@ class TodoApiTest {
                 .andExpect(jsonPath("$.storyId", is(storyId)))
                 .andExpect(jsonPath("$.storyName", is("Ship search")))
                 .andExpect(jsonPath("$.storyOrder", is(2)))
-                .andExpect(jsonPath("$.status", is("PENDING")));
+                .andExpect(jsonPath("$.status", is("NEW")));
 
         mvc.perform(get("/api/stories"))
                 .andExpect(status().isOk())
@@ -321,6 +321,7 @@ class TodoApiTest {
 
         // ...means a newly created task whose words clearly overlap it (kayak,
         // checkout) is auto-filed onto that chain as the next step, not orphaned.
+        // Joining a story stages it as NEW (like any story step), not straight to the queue.
         mvc.perform(post("/api/todos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Refine the kayak checkout flow\"}"))
@@ -328,7 +329,7 @@ class TodoApiTest {
                 .andExpect(jsonPath("$.storyId", is(storyId)))
                 .andExpect(jsonPath("$.storyName", is("Build kayak rental checkout")))
                 .andExpect(jsonPath("$.storyOrder", is(2)))
-                .andExpect(jsonPath("$.status", is("PENDING")));
+                .andExpect(jsonPath("$.status", is("NEW")));
 
         // The classified task shows up as the appended step of the chain.
         mvc.perform(get("/api/stories"))
@@ -382,5 +383,40 @@ class TodoApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Orphan\"}"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void promoteStoryStepFromNewToPendingQueuesIt() throws Exception {
+        // A story's first step is staged NEW; promoting it (the UI's "→ To Do" /
+        // drag action) flips it to PENDING — the status the worker actually polls.
+        String body = mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Ship export\",\"steps\":["
+                                + "{\"title\":\"Add export endpoint\"},"
+                                + "{\"title\":\"Add export button\"}]}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].status", is("NEW")))
+                .andReturn().getResponse().getContentAsString();
+        long stepId = mapper.readTree(body).get(0).get("id").asLong();
+
+        mvc.perform(patch("/api/todos/" + stepId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"PENDING\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                // Promotion doesn't disturb the task's place in its story chain.
+                .andExpect(jsonPath("$.storyOrder", is(0)));
+    }
+
+    @Test
+    void patchAcceptsNewStatus() throws Exception {
+        // NEW is a valid PATCH target too (e.g. moving a task back to staging).
+        long id = createTodo("Stage me");
+
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"new\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("NEW")));
     }
 }

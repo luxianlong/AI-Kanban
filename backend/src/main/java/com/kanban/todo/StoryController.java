@@ -76,7 +76,9 @@ public class StoryController {
             Todo todo = new Todo();
             todo.setTitle(step.title().trim());
             todo.setDescription(step.description());
-            todo.setStatus(TodoStatus.PENDING);
+            // Story steps start staged in NEW; the user promotes each to the queue
+            // (To Do) when ready, so a story doesn't start running the moment it's created.
+            todo.setStatus(TodoStatus.NEW);
             todo.setStoryId(storyId);
             todo.setStoryName(name);
             todo.setStoryOrder(order++);
@@ -122,7 +124,8 @@ public class StoryController {
         Todo todo = new Todo();
         todo.setTitle(step.title().trim());
         todo.setDescription(step.description());
-        todo.setStatus(TodoStatus.PENDING);
+        // Appended steps also stage in NEW, consistent with the rest of the story.
+        todo.setStatus(TodoStatus.NEW);
         todo.setStoryId(storyId);
         todo.setStoryName(steps.get(0).getStoryName());
         todo.setStoryOrder(classifier.nextOrder(steps));

@@ -52,6 +52,15 @@ export const api = {
       body: JSON.stringify({ title, description }),
     }).then(json),
 
+  // Move a task to a given status. Used to promote a NEW task to the To Do queue
+  // (status='PENDING') via the card button or a drag into the To Do column.
+  updateStatus: (id, status) =>
+    fetch(`${BASE}/todos/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }).then(json),
+
   deleteTodo: (id) =>
     fetch(`${BASE}/todos/${id}`, { method: 'DELETE' }).then(json),
 

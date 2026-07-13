@@ -1,10 +1,13 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, Fragment } from 'react'
 import { api } from './api.js'
 import Markdown from './Markdown.jsx'
 
-// The board's columns, in flow order. The worker moves a card left→right by
-// updating its status, so the board mirrors the task's real lifecycle.
+// The board's status columns, in flow order (left→right). This is the HORIZONTAL
+// axis of the matrix; the vertical axis is one row per story. A task starts in
+// NEW (staged), the user promotes it to To Do, then the worker moves it right by
+// updating its status, mirroring the task's real lifecycle.
 const COLUMNS = [
+  { status: 'NEW', title: 'New', hint: 'Staged — promote to To Do when ready' },
   { status: 'PENDING', title: 'To Do', hint: 'No tasks queued' },
   { status: 'IN_PROGRESS', title: 'In Progress', hint: 'Nothing running right now' },
   { status: 'RESOLVED', title: 'Done', hint: 'Completed tasks land here' },
@@ -158,10 +161,29 @@ export default function App() {
     }
   }
 
-  const byStatus = (s) => todos.filter((t) => t.status === s)
+  // Move a task to a new status. Optimistically flip it locally first so the card
+  // jumps columns immediately (no 4s poll lag), then reconcile from the server.
+  async function moveTask(id, status) {
+    setTodos((cur) => cur.map((t) => (t.id === id ? { ...t, status } : t)))
+    try {
+      await api.updateStatus(id, status)
+    } catch (e) {
+      setError(e.message)
+    }
+    await refresh()
+  }
+  // Promote a NEW (staged) task into the To Do queue so the worker can pick it up.
+  const promoteToDo = (id) => moveTask(id, 'PENDING')
+
   const selected = todos.find((t) => t.id === selectedId) || null
   const storyMeta = computeStoryMeta(todos)
-  const stories = computeStories(todos)
+  // Matrix rows: one per story (newest first) plus a single "No story" row for
+  // standalone tasks. Columns: the statuses, hiding "Needs Attention" until
+  // something actually fails so a healthy board isn't cluttered by an empty one.
+  const rows = computeRows(todos)
+  const columns = COLUMNS.filter(
+    (c) => c.status !== 'FAILED' || todos.some((t) => t.status === 'FAILED'),
+  )
 
   return (
     <div className="page">
@@ -169,27 +191,49 @@ export default function App() {
 
       {error && <div className="error">⚠ {error}</div>}
 
-      <StoriesPanel stories={stories} selectedId={selectedId} onOpen={setSelectedId} />
+      <div className="board-toolbar">
+        <Composer onCreate={createTodo} onAttach={attachToStory} />
+        <StoryComposer onCreateStory={createStory} />
+      </div>
 
-      <div className="board">
-        {COLUMNS.map((col) => {
-          // Hide the "Needs Attention" column entirely when nothing has failed —
-          // an empty terminal-error column is just noise on a healthy board.
-          if (col.status === 'FAILED' && byStatus('FAILED').length === 0) return null
-          return (
-          <Column
-            key={col.status}
-            col={col}
-            todos={byStatus(col.status)}
-            logs={logs}
-            storyMeta={storyMeta}
-            onOpen={setSelectedId}
-            onCreate={col.status === 'PENDING' ? createTodo : null}
-            onCreateStory={col.status === 'PENDING' ? createStory : null}
-            onAttach={col.status === 'PENDING' ? attachToStory : null}
-          />
-          )
-        })}
+      <div
+        className="matrix"
+        style={{ gridTemplateColumns: `220px repeat(${columns.length}, minmax(220px, 1fr))` }}
+      >
+        <div className="matrix-corner" />
+        {columns.map((col) => (
+          <div key={col.status} className={`matrix-colhead ${col.status.toLowerCase()}`}>
+            <span className="col-accent" />
+            <h2>{col.title}</h2>
+            <span className="col-count">
+              {todos.filter((t) => t.status === col.status).length}
+            </span>
+          </div>
+        ))}
+
+        {rows.length === 0 && (
+          <div className="matrix-empty" style={{ gridColumn: '1 / -1' }}>
+            No tasks yet — add one above, or start a story.
+          </div>
+        )}
+
+        {rows.map((row) => (
+          <Fragment key={row.key}>
+            <StoryRowHeader row={row} />
+            {columns.map((col) => (
+              <MatrixCell
+                key={col.status}
+                col={col}
+                todos={row.steps.filter((t) => t.status === col.status)}
+                logs={logs}
+                storyMeta={storyMeta}
+                onOpen={setSelectedId}
+                onPromote={promoteToDo}
+                onDropTask={moveTask}
+              />
+            ))}
+          </Fragment>
+        ))}
       </div>
 
       {selected && (
@@ -270,102 +314,71 @@ function Topbar({ worker, total, notify, onToggleNotify }) {
   )
 }
 
-// A single, consolidated view of every story. Because a story's steps flow
-// through the same four columns as loose tasks, an active story is otherwise
-// scattered across the board — one step "In Progress", the next two waiting in
-// "To Do", an earlier one in "Done". This rail gathers each chain back into one
-// place: a progress bar plus its ordered steps, so a story can be read and
-// managed as a unit. Clicking any step opens it in the same drawer the board uses.
-function StoriesPanel({ stories, selectedId, onOpen }) {
-  const [collapsed, setCollapsed] = useState(() => storyPanelCollapsed())
-  if (!stories.length) return null
-
-  function toggle() {
-    setCollapsed((c) => {
-      setStoryPanelCollapsed(!c)
-      return !c
-    })
+// The sticky left-column header for one matrix row. For a story it shows the
+// name, a rolled-up status pill and a done/total progress bar, so the whole row
+// reads as one unit. The synthetic "No story" row (standalone tasks) gets a
+// plainer header with just a task count.
+function StoryRowHeader({ row }) {
+  if (row.isStandalone) {
+    return (
+      <div className="matrix-rowhead standalone">
+        <span className="rowhead-name">No story</span>
+        <span className="rowhead-sub">
+          {row.steps.length} {row.steps.length === 1 ? 'task' : 'tasks'}
+        </span>
+      </div>
+    )
   }
-
+  const pct = row.total ? Math.round((row.done / row.total) * 100) : 0
   return (
-    <section className={`stories-panel ${collapsed ? 'collapsed' : ''}`}>
-      <button className="stories-head" onClick={toggle} aria-expanded={!collapsed}>
-        <span className="stories-caret" aria-hidden>{collapsed ? '▸' : '▾'}</span>
-        <span className="stories-icon" aria-hidden>▤</span>
-        <h2>Stories</h2>
-        <span className="stories-count">{stories.length}</span>
-        {collapsed && <span className="stories-hint">click to expand</span>}
-      </button>
-      {!collapsed && (
-        <div className="stories-body">
-          {stories.map((s) => (
-            <StoryOverview key={s.storyId} story={s} selectedId={selectedId} onOpen={onOpen} />
-          ))}
-        </div>
-      )}
-    </section>
-  )
-}
-
-// One story as a self-contained unit: name, an overall status pill, a
-// done/total progress bar, and every step as a clickable pill coloured by its
-// own status. This is the piece that "un-separates" a story from the board.
-function StoryOverview({ story, selectedId, onOpen }) {
-  const pct = story.total ? Math.round((story.done / story.total) * 100) : 0
-  return (
-    <div className={`story-overview ${story.status.toLowerCase()}`}>
-      <div className="story-overview-head">
-        <span className="story-overview-name" title={story.name}>{story.name}</span>
-        <span className={`story-status-pill ${story.status.toLowerCase()}`}>{label(story.status)}</span>
-        <span className="story-overview-progress">{story.done}/{story.total} done</span>
+    <div className={`matrix-rowhead ${row.status.toLowerCase()}`}>
+      <div className="rowhead-top">
+        <span className="rowhead-name" title={row.name}>{row.name}</span>
+        <span className={`story-status-pill ${row.status.toLowerCase()}`}>{label(row.status)}</span>
       </div>
       <div className="story-progress-track">
         <div className="story-progress-fill" style={{ width: `${pct}%` }} />
       </div>
-      <ol className="story-overview-steps">
-        {story.steps.map((step, i) => (
-          <li key={step.id}>
-            <button
-              className={`story-step-pill ${step.status.toLowerCase()} ${step.blocked ? 'blocked' : ''} ${step.id === selectedId ? 'active' : ''}`}
-              onClick={() => onOpen(step.id)}
-              title={`${label(step.status)}${step.blocked ? ' · waiting for earlier steps' : ''}`}
-            >
-              <span className="story-step-pill-num">{i + 1}</span>
-              <span className="story-step-pill-dot" aria-hidden />
-              <span className="story-step-pill-title">{step.title}</span>
-            </button>
-          </li>
-        ))}
-      </ol>
+      <span className="rowhead-sub">{row.done}/{row.total} done</span>
     </div>
   )
 }
 
-function Column({ col, todos, logs, storyMeta, onOpen, onCreate, onCreateStory, onAttach }) {
+// One cell of the matrix: the tasks of a given row that are currently in this
+// column's status. The To Do (PENDING) cell is a drop target so a NEW card can
+// be dragged in to promote it; other columns are worker-driven and inert to drops.
+function MatrixCell({ col, todos, logs, storyMeta, onOpen, onPromote, onDropTask }) {
+  const [over, setOver] = useState(false)
+  const isDropTarget = col.status === 'PENDING'
+  const dropProps = isDropTarget
+    ? {
+        onDragOver: (e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          setOver(true)
+        },
+        onDragLeave: () => setOver(false),
+        onDrop: (e) => {
+          e.preventDefault()
+          setOver(false)
+          const id = Number(e.dataTransfer.getData('text/todo-id'))
+          if (id) onDropTask(id, 'PENDING')
+        },
+      }
+    : {}
   return (
-    <section className={`column ${col.status.toLowerCase()}`}>
-      <div className="col-head">
-        <span className="col-accent" />
-        <h2>{col.title}</h2>
-        <span className="col-count">{todos.length}</span>
-      </div>
-
-      {onCreate && <Composer onCreate={onCreate} onAttach={onAttach} />}
-      {onCreateStory && <StoryComposer onCreateStory={onCreateStory} />}
-
-      <div className="col-body">
-        {todos.length === 0 && !onCreate && <p className="col-empty">{col.hint}</p>}
-        {todos.map((t) => (
-          <Card
-            key={t.id}
-            todo={t}
-            tail={tailLine(logs[t.id])}
-            story={storyMeta[t.id]}
-            onOpen={() => onOpen(t.id)}
-          />
-        ))}
-      </div>
-    </section>
+    <div className={`matrix-cell ${col.status.toLowerCase()} ${over ? 'drag-over' : ''}`} {...dropProps}>
+      {todos.map((t) => (
+        <Card
+          key={t.id}
+          todo={t}
+          tail={tailLine(logs[t.id])}
+          story={storyMeta[t.id]}
+          onOpen={() => onOpen(t.id)}
+          onPromote={onPromote}
+        />
+      ))}
+    </div>
   )
 }
 
@@ -629,10 +642,36 @@ function StoryComposer({ onCreateStory }) {
   )
 }
 
-function Card({ todo, tail, story, onOpen }) {
+// A task card. The body opens the detail drawer (click, or Enter/Space for
+// keyboard). It's a <div role="button"> rather than a <button> so it can legally
+// contain the inner "→ To Do" button (nested buttons are invalid HTML). NEW cards
+// are draggable (drag into the To Do column to promote) and carry the promote button.
+function Card({ todo, tail, story, onOpen, onPromote }) {
   const running = todo.status === 'IN_PROGRESS'
+  const isNew = todo.status === 'NEW'
+  function onKeyDown(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onOpen()
+    }
+  }
   return (
-    <button className={`card ${todo.status.toLowerCase()}`} onClick={onOpen}>
+    <div
+      className={`card ${todo.status.toLowerCase()} ${isNew ? 'draggable' : ''}`}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={onKeyDown}
+      draggable={isNew}
+      onDragStart={
+        isNew
+          ? (e) => {
+              e.dataTransfer.setData('text/todo-id', String(todo.id))
+              e.dataTransfer.effectAllowed = 'move'
+            }
+          : undefined
+      }
+    >
       {story && <StoryBadge story={story} />}
       {todo.projectImprovement && (
         <span className="card-tag project" title="This task improves the Kanban project itself">
@@ -656,12 +695,26 @@ function Card({ todo, tail, story, onOpen }) {
         <div className="card-fail">{firstLines(todo.result, 2) || 'Failed'}</div>
       )}
 
+      {isNew && onPromote && (
+        <button
+          type="button"
+          className="card-promote"
+          title="Move this task to the To Do queue so the agent can pick it up"
+          onClick={(e) => {
+            e.stopPropagation()
+            onPromote(todo.id)
+          }}
+        >
+          → To Do
+        </button>
+      )}
+
       <div className="card-foot">
         <span className="card-id">#{todo.id}</span>
         {costMeta(todo) && <span className="card-cost">{costMeta(todo)}</span>}
         <span className="card-time">{relTime(todo.updatedAt)}</span>
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -863,36 +916,30 @@ function computeStories(todos) {
   return stories
 }
 
+// Assemble the matrix rows: one row per story (newest first), then a single
+// "No story" row gathering every standalone task, if any exist. Each row exposes
+// `steps` — the tasks the cells distribute across the status columns.
+function computeRows(todos) {
+  const rows = computeStories(todos).map((s) => ({ ...s, key: s.storyId, isStandalone: false }))
+  const standalone = todos.filter((t) => !t.storyId)
+  if (standalone.length) {
+    rows.push({ key: '__standalone', name: 'No story', isStandalone: true, steps: standalone })
+  }
+  return rows
+}
+
 // Roll a story's steps up to one status for its pill: anything failed needs
-// attention; all resolved is done; anything running is in progress; otherwise
-// it's still queued.
+// attention; all resolved is done; anything running is in progress; all-staged
+// is still New; otherwise it's queued (To Do).
 function rollupStatus(steps) {
   if (steps.some((s) => s.status === 'FAILED')) return 'FAILED'
   if (steps.every((s) => s.status === 'RESOLVED')) return 'RESOLVED'
   if (steps.some((s) => s.status === 'IN_PROGRESS')) return 'IN_PROGRESS'
+  if (steps.every((s) => s.status === 'NEW')) return 'NEW'
   return 'PENDING'
 }
 
 // --- helpers ---
-
-// Whether the Stories overview rail is collapsed, persisted across reloads.
-const STORY_PANEL_KEY = 'kanban.storiesCollapsed'
-
-function storyPanelCollapsed() {
-  try {
-    return localStorage.getItem(STORY_PANEL_KEY) === 'on'
-  } catch {
-    return false
-  }
-}
-
-function setStoryPanelCollapsed(on) {
-  try {
-    localStorage.setItem(STORY_PANEL_KEY, on ? 'on' : 'off')
-  } catch {
-    /* ignore — panel state just won't persist */
-  }
-}
 
 // Notification preference persists across reloads in localStorage. Wrapped in
 // try/catch because storage can throw (private mode, disabled cookies).
@@ -992,6 +1039,7 @@ function costMeta(todo) {
 function label(status) {
   return (
     {
+      NEW: 'New',
       PENDING: 'To Do',
       IN_PROGRESS: 'In Progress',
       RESOLVED: 'Done',

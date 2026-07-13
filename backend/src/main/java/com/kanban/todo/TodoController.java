@@ -72,15 +72,19 @@ public class TodoController {
         Todo todo = new Todo();
         todo.setTitle(req.title().trim());
         todo.setDescription(req.description());
+        // A standalone task queues straight to To Do (PENDING) so the worker can
+        // run it right away. If it joins a story below, it's re-staged as NEW.
         todo.setStatus(TodoStatus.PENDING);
         // Optional flag; a plain task defaults to a general (non-project) task.
         todo.setProjectImprovement(Boolean.TRUE.equals(req.projectImprovement()));
         // If the user has declared stories, classify this new task against them:
         // file it under the story it most clearly belongs to, or leave it
-        // standalone when nothing fits. Story-tagged tasks run in chain order.
+        // standalone when nothing fits. Story-tagged tasks run in chain order and
+        // are staged in NEW like any other story step, awaiting promotion.
         String text = (todo.getTitle() + " "
                 + (req.description() == null ? "" : req.description())).trim();
         classifier.classify(text).ifPresent(story -> {
+            todo.setStatus(TodoStatus.NEW);
             todo.setStoryId(story.storyId());
             todo.setStoryName(story.name());
             todo.setStoryOrder(classifier.nextOrder(
