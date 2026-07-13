@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef, Fragment } from 'react'
 import { api } from './api.js'
 import Markdown from './Markdown.jsx'
+import Icon from './Icon.jsx'
 
 // The board's status columns, in flow order (left→right). This is the HORIZONTAL
 // axis of the matrix; the vertical axis is one row per story. A task starts in
@@ -212,7 +213,7 @@ export default function App() {
         addOpen={showComposer}
       />
 
-      {error && <div className="error">⚠ {error}</div>}
+      {error && <div className="error"><Icon name="alert" size={15} /> {error}</div>}
 
       {(!isMobile || showComposer) && (
         <div className="board-toolbar">
@@ -302,12 +303,12 @@ function Toasts({ items, onDismiss }) {
         const done = t.status === 'RESOLVED'
         return (
           <div key={t.key} className={`toast ${done ? 'toast-done' : 'toast-fail'}`}>
-            <span className="toast-icon" aria-hidden>{done ? '✓' : '⚠'}</span>
+            <span className="toast-icon"><Icon name={done ? 'check' : 'alert'} size={16} /></span>
             <div className="toast-body">
               <div className="toast-title">{done ? 'Task done' : 'Task needs attention'}</div>
               <div className="toast-sub">#{t.id} {t.title}</div>
             </div>
-            <button className="toast-close" onClick={() => onDismiss(t.key)} aria-label="Dismiss">×</button>
+            <button className="toast-close" onClick={() => onDismiss(t.key)} aria-label="Dismiss"><Icon name="close" size={16} /></button>
           </div>
         )
       })}
@@ -335,8 +336,8 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
             aria-pressed={notify}
             title={notify ? 'Task-done notifications on — click to mute' : 'Notify me when a task finishes'}
           >
-            <span aria-hidden>{notify ? '🔔' : '🔕'}</span>
-            {notify ? 'Notifications on' : 'Notify me'}
+            <Icon name={notify ? 'bell' : 'bellOff'} size={16} />
+            <span className="label">{notify ? 'Notifications on' : 'Notify me'}</span>
           </button>
         )}
         {/* Mobile: a single "+" reveals the task/story composers, which are hidden
@@ -350,7 +351,7 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
             aria-label={addOpen ? 'Close create panel' : 'Create a task or story'}
             title="Create a task or story"
           >
-            <span aria-hidden>{addOpen ? '×' : '+'}</span>
+            <Icon name={addOpen ? 'close' : 'plus'} size={20} />
           </button>
         )}
       </div>
@@ -710,7 +711,7 @@ function Composer({ onCreate, onAttach }) {
                   onClick={() => attach(s)}
                   title={`Add this task as the next step of "${s.name}"`}
                 >
-                  ▤ {s.name}
+                  <Icon name="story" size={12} /> {s.name}
                 </button>
               ))}
             </div>
@@ -777,7 +778,7 @@ function StoryComposer({ onCreateStory }) {
   if (!open) {
     return (
       <button className="story-add" onClick={() => setOpen(true)} title="Describe a goal — the worker breaks it into tasks">
-        <span className="story-add-icon">▤</span> New story
+        <span className="story-add-icon"><Icon name="story" size={16} /></span> New story
       </button>
     )
   }
@@ -842,15 +843,15 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
           : undefined
       }
     >
-      {story && <StoryBadge story={story} />}
+      {story && <StoryBadge story={story} showName={false} />}
       {todo.storyPlanner && (
         <span className="card-tag planner" title="Story planner — the worker breaks this story's goal into tasks">
-          📋 Planning
+          <Icon name="planner" size={12} /> Planning
         </span>
       )}
       {todo.projectImprovement && (
         <span className="card-tag project" title="This task improves the Kanban project itself">
-          ⚙ Project
+          <Icon name="project" size={12} /> Project
         </span>
       )}
       <div className="card-title">{todo.title}</div>
@@ -897,7 +898,6 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
   const running = todo.status === 'IN_PROGRESS'
   const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
   const [retrying, setRetrying] = useState(false)
-  const [storyOpen, setStoryOpen] = useState(false) // the ▤ icon toggles the story picker
 
   async function retry() {
     if (retrying) return
@@ -913,14 +913,15 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
     if (running && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
   }, [log, running])
 
-  // Close on Escape and move focus to the close button when the drawer opens,
-  // for basic keyboard / a11y support. Runs once on open — onClose is read
-  // through a ref so live-log re-renders don't steal focus back to the button.
-  const closeBtnRef = useRef(null)
+  // Close on Escape and move focus into the drawer when it opens, for basic
+  // keyboard / a11y support. Focus the panel itself (not a button) so no control
+  // lights up with a focus ring just from opening. onClose is read through a ref
+  // so live-log re-renders don't re-run this.
+  const drawerRef = useRef(null)
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
   useEffect(() => {
-    closeBtnRef.current?.focus()
+    drawerRef.current?.focus()
     function onKeyDown(e) {
       if (e.key === 'Escape') onCloseRef.current()
     }
@@ -931,21 +932,10 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
   return (
     <>
       <div className="scrim" onClick={onClose} />
-      <aside className="drawer" role="dialog" aria-label="Task detail">
+      <aside className="drawer" role="dialog" aria-label="Task detail" tabIndex={-1} ref={drawerRef}>
         <div className="drawer-head">
           <span className={`badge ${todo.status.toLowerCase()}`}>{label(todo.status)}</span>
           <div className="drawer-actions">
-            {onSetStory && (
-              <button
-                className={`icon-btn ${storyOpen ? 'active' : ''}`}
-                onClick={() => setStoryOpen((v) => !v)}
-                aria-pressed={storyOpen}
-                title="Assign to a story"
-                aria-label="Assign to a story"
-              >
-                ▤
-              </button>
-            )}
             {canRetry && (
               <button
                 className="icon-btn"
@@ -954,7 +944,7 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
                 title={todo.status === 'FAILED' ? 'Retry task' : 'Run again'}
                 aria-label="Run again"
               >
-                ↻
+                <Icon name="run" />
               </button>
             )}
             <button
@@ -963,9 +953,11 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
               title="Delete task"
               aria-label="Delete task"
             >
-              🗑
+              <Icon name="delete" />
             </button>
-            <button ref={closeBtnRef} className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
+            <button className="icon-btn" onClick={onClose} aria-label="Close">
+              <Icon name="close" />
+            </button>
           </div>
         </div>
 
@@ -975,7 +967,7 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
           {costMeta(todo) && <> · {costMeta(todo)}</>}
         </div>
 
-        {(story || storyOpen) && (
+        {(story || onSetStory) && (
           <div className="drawer-section">
             <div className="section-label">Story</div>
             {story && (
@@ -986,13 +978,12 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
                 )}
               </div>
             )}
-            {storyOpen && onSetStory && (
+            {onSetStory && (
               <select
                 className="story-select"
                 value={todo.storyId || ''}
-                onChange={(e) => { onSetStory(e.target.value || null); setStoryOpen(false) }}
+                onChange={(e) => onSetStory(e.target.value || null)}
                 aria-label="Assign this task to a story"
-                autoFocus
               >
                 <option value="">No story (standalone)</option>
                 {stories.map((s) => (
@@ -1051,11 +1042,11 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
 // Compact chip shown on every task that belongs to a story: the chain name plus
 // this task's position (e.g. "2/4"). Blocked steps (waiting on an earlier step)
 // get a muted, dashed treatment so it's clear they aren't queued yet.
-function StoryBadge({ story }) {
+function StoryBadge({ story, showName = true }) {
   return (
     <span className={`story-badge ${story.blocked ? 'blocked' : ''}`} title={`Story: ${story.name}`}>
-      <span className="story-badge-icon" aria-hidden>▤</span>
-      <span className="story-badge-name">{story.name}</span>
+      <span className="story-badge-icon"><Icon name="story" size={12} /></span>
+      {showName && <span className="story-badge-name">{story.name}</span>}
       <span className="story-badge-step">{story.step}/{story.total}</span>
     </span>
   )
