@@ -62,6 +62,15 @@ export const api = {
       body: JSON.stringify({ status }),
     }).then(json),
 
+  // Manually file a task under a story, or unassign it (storyId = null). Appends
+  // the task to the end of the chosen story's chain; status is left unchanged.
+  setStory: (id, storyId) =>
+    fetch(`${BASE}/todos/${id}/story`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ storyId: storyId || null }),
+    }).then(json),
+
   deleteTodo: (id) =>
     fetch(`${BASE}/todos/${id}`, { method: 'DELETE' }).then(json),
 

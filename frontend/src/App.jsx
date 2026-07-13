@@ -22,6 +22,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [notify, setNotify] = useState(() => notifyPref())
   const [toasts, setToasts] = useState([]) // in-app notifications (always shown)
+  const [showComposer, setShowComposer] = useState(false) // mobile: the "+" toggles the composers
 
   const refresh = useCallback(async () => {
     try {
@@ -128,11 +129,13 @@ export default function App() {
   async function createTodo(title, description, projectImprovement) {
     await api.createTodo(title, description, projectImprovement)
     await refresh()
+    setShowComposer(false)
   }
 
   async function createStory(name, description) {
     await api.createStory(name, description)
     await refresh()
+    setShowComposer(false)
   }
 
   // Attach a brand-new task as the next step of an existing story instead of
@@ -140,6 +143,7 @@ export default function App() {
   async function attachToStory(storyId, title, description) {
     await api.addStoryStep(storyId, title, description)
     await refresh()
+    setShowComposer(false)
   }
 
   async function removeTodo(id) {
@@ -155,6 +159,16 @@ export default function App() {
   async function retryTodo(id) {
     try {
       await api.retryTodo(id)
+      await refresh()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
+  // Manually file a task under a story (or unassign it: storyId = null).
+  async function setTaskStory(id, storyId) {
+    try {
+      await api.setStory(id, storyId)
       await refresh()
     } catch (e) {
       setError(e.message)
@@ -177,6 +191,8 @@ export default function App() {
 
   const selected = todos.find((t) => t.id === selectedId) || null
   const storyMeta = computeStoryMeta(todos)
+  // Existing stories (id + name), for the drawer's manual story picker.
+  const storyList = computeStories(todos).map((s) => ({ storyId: s.storyId, name: s.name }))
   // Matrix rows: one per story (newest first) plus a single "No story" row for
   // standalone tasks. Columns: the statuses, hiding "Needs Attention" until
   // something actually fails so a healthy board isn't cluttered by an empty one.
@@ -189,14 +205,21 @@ export default function App() {
 
   return (
     <div className="page">
-      <Topbar worker={worker} total={todos.length} notify={notify} onToggleNotify={toggleNotify} />
+      <Topbar
+        notify={notify}
+        onToggleNotify={toggleNotify}
+        onAdd={isMobile ? () => setShowComposer((v) => !v) : null}
+        addOpen={showComposer}
+      />
 
       {error && <div className="error">⚠ {error}</div>}
 
-      <div className="board-toolbar">
-        <Composer onCreate={createTodo} onAttach={attachToStory} />
-        <StoryComposer onCreateStory={createStory} />
-      </div>
+      {(!isMobile || showComposer) && (
+        <div className="board-toolbar">
+          <Composer onCreate={createTodo} onAttach={attachToStory} />
+          <StoryComposer onCreateStory={createStory} />
+        </div>
+      )}
 
       {isMobile ? (
         <MobileBoard
@@ -255,6 +278,8 @@ export default function App() {
           todo={selected}
           log={logs[selected.id]}
           story={storyMeta[selected.id]}
+          stories={storyList}
+          onSetStory={(storyId) => setTaskStory(selected.id, storyId)}
           onClose={() => setSelectedId(null)}
           onDelete={() => removeTodo(selected.id)}
           onRetry={() => retryTodo(selected.id)}
@@ -290,7 +315,7 @@ function Toasts({ items, onDismiss }) {
   )
 }
 
-function Topbar({ worker, total, notify, onToggleNotify }) {
+function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
   const supported = typeof Notification !== 'undefined'
   return (
     <header className="topbar">
@@ -314,15 +339,20 @@ function Topbar({ worker, total, notify, onToggleNotify }) {
             {notify ? 'Notifications on' : 'Notify me'}
           </button>
         )}
-        {worker && (
-          <span className={`worker-pill ${worker.enabled ? 'on' : 'off'}`}>
-            <span className="dot" />
-            {worker.enabled
-              ? `Agent online · checks every ${Math.round(worker.pollIntervalMs / 1000)}s`
-              : 'Agent paused'}
-          </span>
+        {/* Mobile: a single "+" reveals the task/story composers, which are hidden
+            by default to reclaim the space the two rows used to take. */}
+        {onAdd && (
+          <button
+            type="button"
+            className={`add-toggle ${addOpen ? 'on' : ''}`}
+            onClick={onAdd}
+            aria-pressed={addOpen}
+            aria-label={addOpen ? 'Close create panel' : 'Create a task or story'}
+            title="Create a task or story"
+          >
+            <span aria-hidden>{addOpen ? '×' : '+'}</span>
+          </button>
         )}
-        <span className="count-pill">{total} {total === 1 ? 'task' : 'tasks'}</span>
       </div>
     </header>
   )
@@ -541,14 +571,18 @@ function SwipeToDelete({ onDelete, children }) {
 
   return (
     <div className="swipe-row">
-      <button
-        className="swipe-delete"
-        style={{ width: WIDTH }}
-        onClick={(e) => { e.stopPropagation(); onDelete() }}
-        aria-label="Delete task"
-      >
-        Delete
-      </button>
+      {/* Only mount the red action while actually swiped — otherwise it flashes
+          behind cards as they animate in when you switch status tabs. */}
+      {dx < 0 && (
+        <button
+          className="swipe-delete"
+          style={{ width: WIDTH }}
+          onClick={(e) => { e.stopPropagation(); onDelete() }}
+          aria-label="Delete task"
+        >
+          Delete
+        </button>
+      )}
       <div
         className="swipe-content"
         style={{ transform: `translateX(${dx}px)` }}
@@ -859,10 +893,11 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
   )
 }
 
-function Drawer({ todo, log, story, onClose, onDelete, onRetry }) {
+function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete, onRetry }) {
   const running = todo.status === 'IN_PROGRESS'
   const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
   const [retrying, setRetrying] = useState(false)
+  const [storyOpen, setStoryOpen] = useState(false) // the ▤ icon toggles the story picker
 
   async function retry() {
     if (retrying) return
@@ -899,7 +934,39 @@ function Drawer({ todo, log, story, onClose, onDelete, onRetry }) {
       <aside className="drawer" role="dialog" aria-label="Task detail">
         <div className="drawer-head">
           <span className={`badge ${todo.status.toLowerCase()}`}>{label(todo.status)}</span>
-          <button ref={closeBtnRef} className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
+          <div className="drawer-actions">
+            {onSetStory && (
+              <button
+                className={`icon-btn ${storyOpen ? 'active' : ''}`}
+                onClick={() => setStoryOpen((v) => !v)}
+                aria-pressed={storyOpen}
+                title="Assign to a story"
+                aria-label="Assign to a story"
+              >
+                ▤
+              </button>
+            )}
+            {canRetry && (
+              <button
+                className="icon-btn"
+                onClick={retry}
+                disabled={retrying}
+                title={todo.status === 'FAILED' ? 'Retry task' : 'Run again'}
+                aria-label="Run again"
+              >
+                ↻
+              </button>
+            )}
+            <button
+              className="icon-btn danger"
+              onClick={onDelete}
+              title="Delete task"
+              aria-label="Delete task"
+            >
+              🗑
+            </button>
+            <button ref={closeBtnRef} className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
+          </div>
         </div>
 
         <h2 className="drawer-title">{todo.title}</h2>
@@ -908,16 +975,31 @@ function Drawer({ todo, log, story, onClose, onDelete, onRetry }) {
           {costMeta(todo) && <> · {costMeta(todo)}</>}
         </div>
 
-        {story && (
+        {(story || storyOpen) && (
           <div className="drawer-section">
             <div className="section-label">Story</div>
-            <div className="drawer-story">
-              <StoryBadge story={story} />
-              <span className="drawer-story-name">{story.name}</span>
-              {story.blocked && (
-                <span className="drawer-story-note">waiting for earlier steps to finish</span>
-              )}
-            </div>
+            {story && (
+              <div className="drawer-story">
+                <StoryBadge story={story} />
+                {story.blocked && (
+                  <span className="drawer-story-note">waiting for earlier steps to finish</span>
+                )}
+              </div>
+            )}
+            {storyOpen && onSetStory && (
+              <select
+                className="story-select"
+                value={todo.storyId || ''}
+                onChange={(e) => { onSetStory(e.target.value || null); setStoryOpen(false) }}
+                aria-label="Assign this task to a story"
+                autoFocus
+              >
+                <option value="">No story (standalone)</option>
+                {stories.map((s) => (
+                  <option key={s.storyId} value={s.storyId}>{s.name}</option>
+                ))}
+              </select>
+            )}
           </div>
         )}
 
@@ -961,15 +1043,6 @@ function Drawer({ todo, log, story, onClose, onDelete, onRetry }) {
         {!running && !todo.result && !log && (
           <p className="drawer-desc muted">No session output yet.</p>
         )}
-
-        <div className="drawer-foot">
-          {canRetry && (
-            <button className="btn primary" onClick={retry} disabled={retrying}>
-              {retrying ? 'Retrying…' : todo.status === 'FAILED' ? 'Retry task' : 'Run again'}
-            </button>
-          )}
-          <button className="btn danger-ghost" onClick={onDelete}>Delete task</button>
-        </div>
       </aside>
     </>
   )
