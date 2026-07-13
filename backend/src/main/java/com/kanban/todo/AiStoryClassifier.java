@@ -78,8 +78,26 @@ public class AiStoryClassifier {
                 file(todoId, text);
             } catch (Exception e) {
                 log.warn("AI classify failed for todo #{}: {}", todoId, e.toString());
+                releaseStandalone(todoId); // fail open: never strand a task in NEW
             }
         });
+    }
+
+    /**
+     * Fail-safe used when classification errors out: a task we staged as NEW must
+     * still be allowed to run, so release it to PENDING if it's still staged and
+     * unfiled. Best-effort — swallow any secondary failure.
+     */
+    private void releaseStandalone(Long todoId) {
+        try {
+            Todo todo = repository.findById(todoId).orElse(null);
+            if (todo != null && todo.getStatus() == TodoStatus.NEW && todo.getStoryId() == null) {
+                todo.setStatus(TodoStatus.PENDING);
+                repository.save(todo);
+            }
+        } catch (Exception ignore) {
+            /* best effort */
+        }
     }
 
     private void file(Long todoId, String text) throws Exception {
@@ -88,33 +106,38 @@ public class AiStoryClassifier {
         for (Map.Entry<String, List<Todo>> e : classifier.groupByStory().entrySet()) {
             stories.add(StoryRef.of(e.getKey(), e.getValue()));
         }
-        if (stories.isEmpty()) {
-            return; // nothing to classify into
+
+        // Ask Claude which story (if any) fits. No stories, a "none" answer, or a
+        // failed/timed-out call all resolve to "no match" — the task is then
+        // released to run standalone.
+        StoryRef chosen = null;
+        if (!stories.isEmpty()) {
+            int choice = parseChoice(runClaude(buildPrompt(text, stories)), stories.size());
+            if (choice > 0) {
+                chosen = stories.get(choice - 1);
+            }
         }
 
-        String output = runClaude(buildPrompt(text, stories));
-        int choice = parseChoice(output, stories.size());
-        if (choice == 0) {
-            log.debug("AI classify: todo #{} stays standalone.", todoId);
-            return;
-        }
-        StoryRef chosen = stories.get(choice - 1);
-
-        // Re-file only if the task is still exactly as we created it: standalone
-        // and still queued. If the user promoted/moved it or the worker already
-        // picked it up (or it was deleted), leave it alone.
+        // Finalize under a fresh read. The task was created NEW (staged) so the
+        // worker couldn't run it before we decided; only act if it's still in that
+        // exact state (not promoted/moved by the user, already filed, or deleted).
         Todo todo = repository.findById(todoId).orElse(null);
-        if (todo == null || todo.getStatus() != TodoStatus.PENDING || todo.getStoryId() != null) {
+        if (todo == null || todo.getStatus() != TodoStatus.NEW || todo.getStoryId() != null) {
             return;
         }
-        todo.setStoryId(chosen.storyId());
-        todo.setStoryName(chosen.name());
-        todo.setStoryOrder(classifier.nextOrder(
-                repository.findByStoryIdOrderByStoryOrderAsc(chosen.storyId())));
-        // Story steps are staged NEW awaiting promotion, like any other step.
-        todo.setStatus(TodoStatus.NEW);
+        if (chosen != null) {
+            todo.setStoryId(chosen.storyId());
+            todo.setStoryName(chosen.name());
+            todo.setStoryOrder(classifier.nextOrder(
+                    repository.findByStoryIdOrderByStoryOrderAsc(chosen.storyId())));
+            // Stays NEW — a story step awaiting promotion, like any other.
+            log.info("AI-classified todo #{} into story \"{}\".", todoId, chosen.name());
+        } else {
+            // No home found — release it to run standalone.
+            todo.setStatus(TodoStatus.PENDING);
+            log.debug("AI classify: todo #{} released to run standalone.", todoId);
+        }
         repository.save(todo);
-        log.info("AI-classified todo #{} into story \"{}\".", todoId, chosen.name());
     }
 
     /** Build the classification prompt. Package-private for testing. */

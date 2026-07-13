@@ -93,12 +93,19 @@ public class TodoController {
             todo.setStoryOrder(classifier.nextOrder(
                     repository.findByStoryIdOrderByStoryOrderAsc(story.storyId())));
         });
+        // If the fast keyword pass left it standalone and the smart pass is on,
+        // stage it as NEW first so the worker (which never picks up NEW) can't
+        // start it during the few seconds the background Claude classification
+        // takes. The async pass then either files it into a story (keeps it NEW,
+        // awaiting promotion) or releases it to PENDING to run standalone. Without
+        // this, the fast worker poll routinely beats classification and the task
+        // runs before it can be filed.
+        boolean smartPass = todo.getStoryId() == null && aiClassifier.isEnabled();
+        if (smartPass) {
+            todo.setStatus(TodoStatus.NEW);
+        }
         Todo saved = repository.save(todo);
-        // If the fast keyword pass left it standalone, ask Claude to take a smarter
-        // (semantic, language-agnostic) look in the background and re-file it if it
-        // finds a home. The response returns now; the task may hop into a story a
-        // few seconds later.
-        if (saved.getStoryId() == null) {
+        if (smartPass) {
             aiClassifier.fileAsync(saved.getId(), text);
         }
         return TodoResponse.from(saved);
