@@ -89,6 +89,14 @@ public final class TodoDtos {
             String result) {
     }
 
+    /**
+     * Manually file a task under a story, or unassign it. A null/blank
+     * {@code storyId} makes the task standalone; otherwise it must be an existing
+     * story's id and the task is appended to the end of that chain.
+     */
+    public record SetStoryRequest(String storyId) {
+    }
+
     /** Full view returned to clients. */
     public record TodoResponse(
             Long id,

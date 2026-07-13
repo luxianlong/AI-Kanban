@@ -399,4 +399,45 @@ class TodoApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("NEW")));
     }
+
+    @Test
+    void manuallyFilesTaskUnderStory() throws Exception {
+        String storyId = createStory("Redesign avatar gallery");
+        long id = createTodo("A standalone chore");
+
+        mvc.perform(patch("/api/todos/" + id + "/story")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"storyId\":\"" + storyId + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.storyId", is(storyId)))
+                .andExpect(jsonPath("$.storyName", is("Redesign avatar gallery")))
+                // status is untouched — filing is organisation, not a re-run.
+                .andExpect(jsonPath("$.status", is("PENDING")));
+    }
+
+    @Test
+    void unassigningTaskMakesItStandalone() throws Exception {
+        String storyId = createStory("Ship search feature");
+        long id = createTodo("A chore");
+        mvc.perform(patch("/api/todos/" + id + "/story")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"storyId\":\"" + storyId + "\"}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(patch("/api/todos/" + id + "/story")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"storyId\":null}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.storyId", is(nullValue())))
+                .andExpect(jsonPath("$.storyName", is(nullValue())));
+    }
+
+    @Test
+    void filingUnderUnknownStoryReturns404() throws Exception {
+        long id = createTodo("A chore");
+        mvc.perform(patch("/api/todos/" + id + "/story")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"storyId\":\"does-not-exist\"}"))
+                .andExpect(status().isNotFound());
+    }
 }

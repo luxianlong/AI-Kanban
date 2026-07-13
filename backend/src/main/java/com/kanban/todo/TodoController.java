@@ -1,6 +1,7 @@
 package com.kanban.todo;
 
 import com.kanban.todo.TodoDtos.CreateTodoRequest;
+import com.kanban.todo.TodoDtos.SetStoryRequest;
 import com.kanban.todo.TodoDtos.TodoResponse;
 import com.kanban.todo.TodoDtos.UpdateStatusRequest;
 import com.kanban.worker.LiveLogRegistry;
@@ -123,6 +124,39 @@ public class TodoController {
         todo.setStatus(status);
         if (req.result() != null) {
             todo.setResult(req.result());
+        }
+        return TodoResponse.from(repository.save(todo));
+    }
+
+    /**
+     * Manually file a task under a story (or unassign it). A null/blank storyId
+     * makes the task standalone; otherwise the story must exist and the task is
+     * appended to the end of that chain. The task's status is left unchanged — the
+     * user is organising, not re-running it.
+     */
+    @PatchMapping("/{id}/story")
+    public TodoResponse setStory(@PathVariable Long id, @RequestBody SetStoryRequest req) {
+        Todo todo = find(id);
+        String storyId = req.storyId() == null ? null : req.storyId().trim();
+        if (storyId == null || storyId.isEmpty()) {
+            todo.setStoryId(null);
+            todo.setStoryName(null);
+            todo.setStoryOrder(null);
+        } else {
+            List<Todo> steps = repository.findByStoryIdOrderByStoryOrderAsc(storyId);
+            if (steps.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Story not found: " + storyId);
+            }
+            String name = "Story";
+            for (Todo s : steps) {
+                if (s.getStoryName() != null) {
+                    name = s.getStoryName();
+                    break;
+                }
+            }
+            todo.setStoryId(storyId);
+            todo.setStoryName(name);
+            todo.setStoryOrder(classifier.nextOrder(steps)); // append at the chain's end
         }
         return TodoResponse.from(repository.save(todo));
     }
