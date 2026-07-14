@@ -207,6 +207,13 @@ body {
   padding: var(--s-4) var(--s-6) var(--s-6);
   overflow: auto;
   align-content: start;
+  /* The grid is a flex child with a definite (viewport-bound) height, so the
+     default `auto` implicit rows collapse tall cells to the free-space share
+     instead of growing — a Done column with many cards then overflows its row
+     and its cards overlap the row below. `min-content` sizes each row to the
+     natural height of its tallest cell, so busy columns grow and the board
+     scrolls instead of overlapping. */
+  grid-auto-rows: min-content;
 }
 
 /* Column headers (sticky to the top so they survive vertical scroll). */
