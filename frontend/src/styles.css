@@ -692,7 +692,12 @@ body {
 .drawer {
   position: fixed;
   top: 0; right: 0; bottom: 0;
-  width: min(480px, 92vw);
+  /* On desktop the detail panel used to be a cramped 480px strip that left most
+     of the screen dimmed and squashed long results into a narrow scroll box.
+     Give it real reading room: ~half the viewport, clamped so it never gets
+     hard-to-read wide or narrower than the old width. The ≤720px media query
+     below overrides this to a full-width sheet. */
+  width: clamp(560px, 52vw, 960px);
   background: #fff;
   border-left: 1px solid var(--hair);
   box-shadow: var(--shadow-drawer);
