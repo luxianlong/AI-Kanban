@@ -300,11 +300,26 @@ body {
   flex-direction: column;
   gap: var(--s-2);
   min-height: 64px;
+  /* Cap a cell's height so a busy column (e.g. a story with many Done cards)
+     scrolls *inside* its own cell instead of ballooning the whole grid row.
+     Without this the tallest cell forces every sibling cell in the row to the
+     same height, leaving a sea of empty space in the emptier columns — and, on
+     older layouts, letting cards overflow and overlap the row below. Internal
+     scroll keeps rows compact and each column self-contained. */
+  max-height: min(60vh, 640px);
+  overflow-y: auto;
   padding: var(--s-2);
   border: 1px dashed var(--board-line);
   border-radius: var(--r-md);
   background: rgba(255, 255, 255, 0.35);
 }
+/* Slim, unobtrusive scrollbar for the busy cells that overflow. */
+.matrix-cell::-webkit-scrollbar { width: 8px; }
+.matrix-cell::-webkit-scrollbar-thumb {
+  background: var(--board-line);
+  border-radius: var(--r-pill);
+}
+.matrix-cell::-webkit-scrollbar-track { background: transparent; }
 .matrix-cell.drag-over {
   border-color: var(--brand);
   border-style: solid;
