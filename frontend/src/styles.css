@@ -550,6 +550,13 @@ body {
 .card {
   display: block;
   width: 100%;
+  /* A card is a flex child of the column-flex .matrix-cell. Without this it
+     inherits the default flex-shrink:1, so once the stacked cards exceed the
+     cell's capped height the browser can compress each card below its own
+     content height — the cards then visually overlap (the classic "Done column
+     overlap"). Pinning flex-shrink:0 makes every card keep its natural height
+     and forces the cell to scroll instead, so cards can never overlap. */
+  flex: none;
   text-align: left;
   background: var(--card);
   border: 1px solid var(--hair);
