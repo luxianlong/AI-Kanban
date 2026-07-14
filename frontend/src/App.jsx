@@ -369,59 +369,35 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
   )
 }
 
-// A story rendered as a full-width colored swimlane band spanning every status
-// column, above that story's row of cells. Replaces the old dedicated left-hand
-// row-header column (removed per "the first column is useless"): the story is
-// now a horizontal colored rectangle — its own tint (set inline via
-// --story-tint) plus name, rolled-up status pill and a done/total progress bar
-// — with its task cards in the tinted cells beneath. The synthetic "No story"
-// band stays neutral so loose tasks are visibly not a story.
+// A story rendered as a slim, light caption label above its row of tinted cells.
+// It used to be a tall full-width band carrying the name + a status pill + a
+// done/total progress bar, but that "spent too much space for the story row";
+// now it's just a thin name tag in the story's own ink, sitting on the same tint
+// as the cells beneath so the label + cells together read as one light colored
+// rectangle. The status/progress it used to show are still on the cards and in
+// the drawer. The synthetic "No story" tag stays neutral so loose tasks are
+// visibly not a story.
 function StorySwimlane({ row, tint }) {
   if (row.isStandalone) {
     return (
       <div className="swimlane standalone" style={{ gridColumn: '1 / -1' }}>
         <span className="swimlane-name">No story</span>
-        <span className="swimlane-sub">
-          {row.steps.length} {row.steps.length === 1 ? 'task' : 'tasks'}
-        </span>
       </div>
     )
   }
-  // Before the worker has produced any steps, the band reflects its planner: it's
-  // either planning (queued/running) or the planning failed.
+  // Before the worker has produced any steps there's nothing on the cells to show
+  // the story's state, so the label keeps a tiny planner hint (planning / failed).
   const plannerActive = row.steps.length === 0 && row.planner
   const planning = plannerActive && (row.planner.status === 'PENDING' || row.planner.status === 'IN_PROGRESS')
   const planFailed = plannerActive && row.planner.status === 'FAILED'
-  const pct = row.total ? Math.round((row.done / row.total) * 100) : 0
   return (
     <div
       className={`swimlane storied ${row.status.toLowerCase()}`}
       style={{ ...tint, gridColumn: '1 / -1' }}
     >
       <span className="swimlane-name" title={row.name}>{row.name}</span>
-      {planning ? (
-        <span className="story-status-pill planning">Planning…</span>
-      ) : planFailed ? (
-        <span className="story-status-pill failed">Plan failed</span>
-      ) : (
-        <span className={`story-status-pill ${row.status.toLowerCase()}`}>{label(row.status)}</span>
-      )}
-      {row.steps.length > 0 ? (
-        <div className="swimlane-progress">
-          <div className="story-progress-track">
-            <div className="story-progress-fill" style={{ width: `${pct}%` }} />
-          </div>
-          <span className="swimlane-sub">{row.done}/{row.total} done</span>
-        </div>
-      ) : (
-        <span className="swimlane-sub">
-          {planning
-            ? 'Breaking the goal into tasks…'
-            : planFailed
-              ? 'Planning failed — open the card'
-              : 'No steps yet'}
-        </span>
-      )}
+      {planning && <span className="swimlane-sub">Planning…</span>}
+      {planFailed && <span className="swimlane-sub">Plan failed — open the card</span>}
     </div>
   )
 }

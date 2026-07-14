@@ -183,8 +183,6 @@ body {
 .add-toggle:hover { border-color: var(--brand); background: var(--brand-50); }
 .add-toggle.on { background: var(--brand); color: #fff; border-color: var(--brand); }
 
-@keyframes breathe { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-
 /* ---------- Board toolbar (task + story composers) ---------- */
 .board-toolbar {
   display: flex;
@@ -259,52 +257,40 @@ body {
   padding: 1px 7px;
 }
 
-/* A story rendered as a full-width colored swimlane band that spans every status
-   column and sits above that story's row of cells (it replaces the old dedicated
-   left-hand row-header column). The band is filled with the story's own tint (set
-   inline via --story-tint) so each story reads as one horizontal colored
-   rectangle — name + rollup pill + progress laid out in a row — with the (white)
-   task cards in the tinted cells beneath. */
+/* A story is now just a slim, light caption label spanning every status column,
+   directly above that story's row of tinted cells. It carries the story's own
+   tint (set inline via --story-tint) and the same left accent as the cells, so
+   the label + the cells beneath read as one continuous light colored rectangle
+   labelled with the story name — instead of a tall band with a pill + progress
+   bar that spent a whole row of vertical space. */
 .swimlane {
   grid-column: 1 / -1;
   display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  padding: 7px var(--s-3);
-  background: var(--col);
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 3px var(--s-3);
+  background: var(--story-tint, var(--col));
   border: 1px solid var(--hair);
-  border-left: 4px solid var(--faint);
-  border-radius: var(--r-md);
+  border-left: 3px solid var(--faint);
+  border-radius: var(--r-sm);
 }
-.swimlane.new,
-.swimlane.pending { border-left-color: var(--todo); }
-.swimlane.in_progress { border-left-color: var(--progress); }
-.swimlane.resolved { border-left-color: var(--done); }
-.swimlane.failed { border-left-color: var(--failed); }
-.swimlane.standalone { border-left-color: var(--hair); }
-/* The story color wins the fill + accent (placed after the status rules above). */
+.swimlane.standalone { background: var(--col); border-left-color: var(--hair); }
+/* The story color wins the fill + accent (placed after the standalone rule). */
 .swimlane.storied {
-  background: var(--story-tint);
   border-color: var(--story-edge);
-  border-left: 4px solid var(--story-edge);
+  border-left-color: var(--story-edge);
 }
 .swimlane-name {
   font-family: var(--font-head);
-  font-size: var(--f-base); font-weight: 700;
-  max-width: 40%;
+  font-size: var(--f-sm); font-weight: 700;
+  max-width: 70%;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .swimlane.storied .swimlane-name { color: var(--story-ink); }
 .swimlane-sub {
   font-size: var(--f-xs); font-weight: 600; color: var(--muted);
-  font-variant-numeric: tabular-nums; white-space: nowrap;
+  white-space: nowrap;
 }
-/* Progress bar grows to fill the band between the status pill and the count. */
-.swimlane-progress {
-  flex: 1; min-width: 0; max-width: 360px;
-  display: flex; align-items: center; gap: var(--s-2);
-}
-.swimlane-progress .story-progress-track { flex: 1; margin-bottom: 0; }
 
 /* A cell = one row's tasks in one status. */
 .matrix-cell {
@@ -455,12 +441,6 @@ body {
 .card-tag.planner { color: var(--brand-ink); background: var(--brand-100); border: 1px solid var(--brand-200); }
 .card.new .card-tag.planner { display: none; }
 
-/* "Planning…" pill on a story row whose steps the worker is still generating. */
-.story-status-pill.planning {
-  color: var(--brand-ink); background: var(--brand-100); border-color: var(--brand-200);
-  animation: breathe 1.6s ease-in-out infinite;
-}
-
 /* ---------- Story badge (on cards + drawer) ---------- */
 .story-badge {
   display: inline-flex; align-items: center; gap: var(--s-1);
@@ -491,24 +471,6 @@ body {
 }
 .drawer-story { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-2); }
 .drawer-story-note { font-size: var(--f-sm); color: var(--muted); }
-
-/* Story rollup pill (matrix rowhead) + progress bar. */
-.story-status-pill {
-  flex: none;
-  font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
-  padding: 2px 7px; border-radius: var(--r-pill);
-  color: var(--muted); background: var(--col); border: 1px solid var(--board-line);
-}
-.story-status-pill.in_progress { color: var(--warn-ink); background: var(--warn-bg); border-color: var(--warn-border); }
-.story-status-pill.resolved { color: var(--done-ink); background: var(--done-bg); border-color: var(--done-border); }
-.story-status-pill.failed { color: var(--failed); background: var(--fail-bg); border-color: var(--fail-border); }
-.story-progress-track {
-  height: 5px; border-radius: var(--r-pill); background: var(--hair); overflow: hidden; margin-bottom: var(--s-2);
-}
-.story-progress-fill {
-  height: 100%; border-radius: var(--r-pill); background: var(--done);
-  transition: width 0.3s ease;
-}
 
 /* ---------- Buttons ---------- */
 .btn {
