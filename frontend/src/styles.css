@@ -302,8 +302,19 @@ body {
 
 /* A cell = one row's tasks in one status. */
 .matrix-cell {
-  display: flex;
-  flex-direction: column;
+  /* Stack cards in a GRID (one auto-sized row track per card) rather than a
+     flex column. This is the structural cure for the "Done column overlap":
+     grid tracks sized by `max-content` take each card's natural height and can
+     never be compressed, so stacked cards physically cannot overlap — no matter
+     how many land in a busy column or how the height cap below squeezes the
+     cell. (A flex column, by contrast, shrinks its children by default; the old
+     overlap bug lived entirely in that shrink. `.card { flex:none }` still
+     guards any residual flex context, but the grid makes overlap impossible on
+     its own.) `align-content:start` keeps the stack top-anchored when it's
+     shorter than the cell. */
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: var(--s-2);
   min-height: 64px;
   /* Cap a cell's height so a busy column (e.g. a story with many Done cards)
@@ -550,12 +561,13 @@ body {
 .card {
   display: block;
   width: 100%;
-  /* A card is a flex child of the column-flex .matrix-cell. Without this it
-     inherits the default flex-shrink:1, so once the stacked cards exceed the
-     cell's capped height the browser can compress each card below its own
-     content height — the cards then visually overlap (the classic "Done column
-     overlap"). Pinning flex-shrink:0 makes every card keep its natural height
-     and forces the cell to scroll instead, so cards can never overlap. */
+  /* Defense-in-depth against the "Done column overlap". The card stacks
+     (.matrix-cell / .mobile-group) are now CSS grids whose max-content row
+     tracks already make overlap structurally impossible. But a card can still
+     end up a *flex* child elsewhere (e.g. wrapped in SwipeToDelete on mobile),
+     where the default flex-shrink:1 would let it be squeezed below its content
+     height and overlap its neighbour. Pinning flex-shrink:0 keeps every card at
+     its natural height in any flex context too. */
   flex: none;
   text-align: left;
   background: var(--card);
@@ -971,7 +983,9 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   gap: var(--s-4);
   padding: var(--s-3) var(--s-3) calc(var(--s-6) + env(safe-area-inset-bottom));
 }
-.mobile-group { display: flex; flex-direction: column; gap: var(--s-2); }
+/* Same grid stack as .matrix-cell: one max-content row per card so phone cards
+   can never compress into each other either. */
+.mobile-group { display: grid; grid-auto-rows: max-content; gap: var(--s-2); }
 .mobile-group-head { display: flex; align-items: center; gap: var(--s-2); padding: 0 2px; }
 .mobile-group-name {
   font-family: var(--font-head);
