@@ -212,14 +212,34 @@ body {
      natural height of its tallest cell, so busy columns grow and the board
      scrolls instead of overlapping. */
   grid-auto-rows: min-content;
-  /* Stretch every cell in a row to the height of its tallest sibling, so all
-     four status columns of one story are the SAME height and the story's tinted
-     background reads as one clean rectangle with a level bottom edge (rather
-     than a ragged one where an empty New cell is short and a busy Done cell is
-     tall). The tallest cell is bounded by its own `max-height` cap + internal
-     scroll (see .matrix-cell), so a very busy column can't inflate the whole
-     row unbounded. */
+}
+
+/* One story = ONE light background rectangle. The story's name label and its
+   four status cells are wrapped in a `.story-block` that spans every status
+   column and carries a single continuous tint + rounded border. `subgrid` makes
+   the block adopt the matrix's own column tracks, so each status cell still
+   lines up under its column header; the block's own (transparent-gap) fill shows
+   through between the cells, so the whole thing reads as one rectangle rather
+   than four separate boxes. The name sits at the top-left; the cards sit on the
+   tint beneath it. */
+.story-block {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  /* Column gap inherits the matrix's gap so cells stay aligned under the headers;
+     the tint fills that gap. A tight row gap tucks the label just above the cells. */
+  row-gap: 2px;
+  /* All four status cells share this single row, so they are automatically the
+     SAME height (a level bottom edge) — each is bounded by its own max-height cap
+     + internal scroll, so a busy Done column can't inflate the rectangle. */
   align-items: stretch;
+  background: var(--story-tint, var(--col));
+  border: 1px solid var(--story-edge, var(--hair));
+  border-radius: var(--r-md);
+}
+.story-block.standalone {
+  background: var(--col);
+  border-color: var(--hair);
 }
 
 /* Column headers (sticky to the top so they survive vertical scroll). */
@@ -259,28 +279,18 @@ body {
   padding: 1px 7px;
 }
 
-/* A story is now just a slim, light caption label spanning every status column,
-   directly above that story's row of tinted cells. It carries the story's own
-   tint (set inline via --story-tint) and the same left accent as the cells, so
-   the label + the cells beneath read as one continuous light colored rectangle
-   labelled with the story name — instead of a tall band with a pill + progress
-   bar that spent a whole row of vertical space. */
+/* The story's name, sitting flush at the top-left of its rectangle. It spans
+   every status column as the block's first row; the block itself carries the
+   tint + border, so the label is transparent and borderless and just labels the
+   rectangle it sits on. */
 .swimlane {
   grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
   padding: 3px var(--s-3);
-  background: var(--story-tint, var(--col));
-  border: 1px solid var(--hair);
-  border-left: 3px solid var(--faint);
-  border-radius: var(--r-sm);
-}
-.swimlane.standalone { background: var(--col); border-left-color: var(--hair); }
-/* The story color wins the fill + accent (placed after the standalone rule). */
-.swimlane.storied {
-  border-color: var(--story-edge);
-  border-left-color: var(--story-edge);
+  background: transparent;
+  border: none;
 }
 .swimlane-name {
   font-family: var(--font-head);
@@ -331,18 +341,23 @@ body {
   border-radius: var(--r-pill);
 }
 .matrix-cell::-webkit-scrollbar-track { background: transparent; }
-/* Cells of a story row carry the same story tint as its header, so the whole
-   row reads as one continuous colored rectangle behind the (white) task cards.
-   A solid, slightly stronger edge ties it to the header. */
+/* Inside a story-block the tint + border already belong to the block, so each
+   status cell is transparent and borderless — the single continuous rectangle
+   shows through the gaps between cells, and the (white) task cards sit on it. */
 .matrix-cell.storied {
-  background: var(--story-tint);
-  border-color: var(--story-edge);
-  border-style: solid;
+  background: transparent;
+  border: none;
 }
+/* Drag-over affordance survives the borderless storied cell via an inset ring. */
 .matrix-cell.drag-over {
   border-color: var(--brand);
   border-style: solid;
   background: var(--brand-100);
+}
+.matrix-cell.storied.drag-over {
+  background: var(--brand-100);
+  box-shadow: inset 0 0 0 2px var(--brand);
+  border-radius: var(--r-sm);
 }
 .matrix-empty {
   color: var(--faint);
