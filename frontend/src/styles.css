@@ -287,6 +287,18 @@ body {
 .matrix-rowhead.resolved { border-left-color: var(--done); }
 .matrix-rowhead.failed { border-left-color: var(--failed); }
 .matrix-rowhead.standalone { border-left-color: var(--hair); justify-content: center; }
+
+/* A story row is shown as a colored background rectangle, not a card: the row
+   header is filled with the story's own tint (set inline via --story-tint), so
+   each story reads as a distinct colored zone rather than another white card.
+   Placed after the status rules above so the story color wins the left accent. */
+.matrix-rowhead.storied {
+  background: var(--story-tint);
+  border-color: var(--story-edge);
+  border-left: 4px solid var(--story-edge);
+  box-shadow: none;
+}
+.matrix-rowhead.storied .rowhead-name { color: var(--story-ink); }
 .rowhead-top { display: flex; align-items: center; gap: var(--s-2); }
 .rowhead-name {
   font-family: var(--font-head);
@@ -337,6 +349,14 @@ body {
   border-radius: var(--r-pill);
 }
 .matrix-cell::-webkit-scrollbar-track { background: transparent; }
+/* Cells of a story row carry the same story tint as its header, so the whole
+   row reads as one continuous colored rectangle behind the (white) task cards.
+   A solid, slightly stronger edge ties it to the header. */
+.matrix-cell.storied {
+  background: var(--story-tint);
+  border-color: var(--story-edge);
+  border-style: solid;
+}
 .matrix-cell.drag-over {
   border-color: var(--brand);
   border-style: solid;
