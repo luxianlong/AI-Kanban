@@ -820,6 +820,12 @@ function StoryComposer({ onCreateStory }) {
 function Card({ todo, tail, story, onOpen, onPromote }) {
   const running = todo.status === 'IN_PROGRESS'
   const isNew = todo.status === 'NEW'
+  const resolved = todo.status === 'RESOLVED'
+  // Done cards are historical: the *result* is what matters, and full context is
+  // one click away in the drawer. Dropping the description keeps them compact so
+  // the Done column stays tidy instead of crowding (and overlapping) when a story
+  // accumulates many completed tasks.
+  const showDesc = todo.description && !running && !resolved
   function onKeyDown(e) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
@@ -828,7 +834,7 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
   }
   return (
     <div
-      className={`card ${todo.status.toLowerCase()} ${isNew ? 'draggable' : ''}`}
+      className={`card ${todo.status.toLowerCase()} ${isNew ? 'draggable' : ''} ${resolved ? 'compact' : ''}`}
       role="button"
       tabIndex={0}
       onClick={onOpen}
@@ -855,7 +861,7 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
         </span>
       )}
       <div className="card-title">{todo.title}</div>
-      {todo.description && !running && <div className="card-desc">{todo.description}</div>}
+      {showDesc && <div className="card-desc">{todo.description}</div>}
 
       {running && (
         <div className="ticker">
