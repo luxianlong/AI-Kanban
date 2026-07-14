@@ -20,6 +20,13 @@ reaches the Spring backend through Vite's `/api` proxy.
     { "user": "...", "pass": "..." }
 
 - **Editing this file takes effect live** (it's re-read on mtime change — no restart).
+- **You only type the password once.** On the first valid Basic-Auth login the gate
+  hands back a `dash_auth` session cookie (`HttpOnly`, `SameSite=Lax`, `Secure` over the
+  HTTPS tunnel, 30-day `Max-Age`), and later requests carrying it skip the browser
+  password prompt — across new tabs and restarts. The cookie value is a hash of the
+  current credentials, so **changing the password auto-invalidates every old cookie**
+  (the next request re-challenges for the new one). Note: a config (`vite.config.js`)
+  change needs the Vite dev server restarted to take effect — HMR won't apply it.
 - **If the file is absent, the gate is OFF** — frictionless local dev. So *only expose
   a tunnel when this file exists.*
 - `vite.config.js` also sets `allowedHosts: ['.trycloudflare.com']` because Vite 5.4+
