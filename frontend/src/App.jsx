@@ -832,9 +832,38 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
       onOpen()
     }
   }
+
+  // Done tasks render as a slim single-line "completed" row instead of a full
+  // card. Each row is a fixed, uniform height (title on one line + a check + tiny
+  // meta), so a story that accumulates many finished tasks stays a tidy, scannable
+  // list rather than a stack of tall cards that crowds — and used to overlap — the
+  // Done column. Full detail is one click away in the drawer.
+  if (resolved) {
+    return (
+      <div
+        className="card resolved done-row"
+        role="button"
+        tabIndex={0}
+        onClick={onOpen}
+        onKeyDown={onKeyDown}
+        title={todo.title}
+      >
+        <span className="done-check" aria-hidden="true">
+          <Icon name="check" size={13} />
+        </span>
+        <span className="done-title">{todo.title}</span>
+        <span className="done-meta">
+          <span className="card-id">#{todo.id}</span>
+          {costMeta(todo) && <span className="card-cost">{costMeta(todo)}</span>}
+          <span className="card-time">{relTime(todo.updatedAt)}</span>
+        </span>
+      </div>
+    )
+  }
+
   return (
     <div
-      className={`card ${todo.status.toLowerCase()} ${isNew ? 'draggable' : ''} ${resolved ? 'compact' : ''}`}
+      className={`card ${todo.status.toLowerCase()} ${isNew ? 'draggable' : ''}`}
       role="button"
       tabIndex={0}
       onClick={onOpen}
@@ -870,9 +899,6 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
         </div>
       )}
 
-      {todo.status === 'RESOLVED' && todo.result && (
-        <div className="card-result">{firstLines(todo.result, 2)}</div>
-      )}
       {todo.status === 'FAILED' && (
         <div className="card-fail">{firstLines(todo.result, 2) || 'Failed'}</div>
       )}

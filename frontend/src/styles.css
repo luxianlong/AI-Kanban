@@ -592,19 +592,40 @@ body {
 .card.draggable { cursor: grab; }
 .card.draggable:active { cursor: grabbing; }
 
-/* Compact Done cards: historical tasks show just title + one-line result, so the
-   Done column stays tidy and fits many more cards before it ever needs to scroll —
-   the description is dropped (full detail lives in the drawer on click). */
-.card.compact { padding: var(--s-2) var(--s-3); }
-.card.compact .card-title {
-  font-size: var(--f-sm);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Done rows: a finished task collapses to a single slim, uniform-height line
+   (check + one-line title + tiny meta) instead of a full card. This is the design
+   cure for Done-column crowding — many completed tasks read as a compact, scannable
+   list, so a busy story never stacks tall cards that overflow (and used to overlap)
+   the column. Full detail is one click away in the drawer. */
+.card.done-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 7px var(--s-3);
+  box-shadow: none;
+  background: var(--done-bg);
+  border-color: var(--done-border);
 }
-.card.compact .card-result { margin-top: 6px; }
-.card.compact .card-foot { margin-top: 6px; }
+.card.done-row:hover { transform: none; box-shadow: var(--shadow-sm); }
+.done-check {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  background: var(--done);
+  color: #fff;
+}
+.done-title {
+  flex: 1; min-width: 0;
+  font-size: var(--f-sm); font-weight: 600; line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.done-meta {
+  flex: none;
+  display: flex; align-items: center; gap: var(--s-2);
+  font-size: var(--f-xs); color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
 
 /* "→ To Do" promote action, shown only on NEW cards. */
 .card-promote {
