@@ -254,23 +254,34 @@ export default function App() {
           </div>
         )}
 
-        {rows.map((row) => (
-          <Fragment key={row.key}>
-            <StoryRowHeader row={row} />
-            {columns.map((col) => (
-              <MatrixCell
-                key={col.status}
-                col={col}
-                todos={row.items.filter((t) => t.status === col.status)}
-                logs={logs}
-                storyMeta={storyMeta}
-                onOpen={setSelectedId}
-                onPromote={promoteToDo}
-                onDropTask={moveTask}
-              />
-            ))}
-          </Fragment>
-        ))}
+        {rows.map((row) => {
+          // Each real story gets its own stable color; the whole row is tinted
+          // with it so the story reads as a colored background rectangle behind
+          // its task cards, rather than looking like a card itself. The synthetic
+          // "No story" row stays neutral so loose tasks are visibly not a story.
+          const color = row.isStandalone ? null : storyColor(row.storyId)
+          const tint = color
+            ? { '--story-tint': color.tint, '--story-edge': color.edge, '--story-ink': color.ink }
+            : undefined
+          return (
+            <Fragment key={row.key}>
+              <StoryRowHeader row={row} tint={tint} />
+              {columns.map((col) => (
+                <MatrixCell
+                  key={col.status}
+                  col={col}
+                  todos={row.items.filter((t) => t.status === col.status)}
+                  logs={logs}
+                  storyMeta={storyMeta}
+                  tint={tint}
+                  onOpen={setSelectedId}
+                  onPromote={promoteToDo}
+                  onDropTask={moveTask}
+                />
+              ))}
+            </Fragment>
+          )
+        })}
       </div>
       )}
 
@@ -363,7 +374,7 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
 // name, a rolled-up status pill and a done/total progress bar, so the whole row
 // reads as one unit. The synthetic "No story" row (standalone tasks) gets a
 // plainer header with just a task count.
-function StoryRowHeader({ row }) {
+function StoryRowHeader({ row, tint }) {
   if (row.isStandalone) {
     return (
       <div className="matrix-rowhead standalone">
@@ -381,7 +392,7 @@ function StoryRowHeader({ row }) {
   const planFailed = plannerActive && row.planner.status === 'FAILED'
   const pct = row.total ? Math.round((row.done / row.total) * 100) : 0
   return (
-    <div className={`matrix-rowhead ${row.status.toLowerCase()}`}>
+    <div className={`matrix-rowhead storied ${row.status.toLowerCase()}`} style={tint}>
       <div className="rowhead-top">
         <span className="rowhead-name" title={row.name}>{row.name}</span>
         {planning ? (
@@ -413,7 +424,7 @@ function StoryRowHeader({ row }) {
 // One cell of the matrix: the tasks of a given row that are currently in this
 // column's status. The To Do (PENDING) cell is a drop target so a NEW card can
 // be dragged in to promote it; other columns are worker-driven and inert to drops.
-function MatrixCell({ col, todos, logs, storyMeta, onOpen, onPromote, onDropTask }) {
+function MatrixCell({ col, todos, logs, storyMeta, tint, onOpen, onPromote, onDropTask }) {
   const [over, setOver] = useState(false)
   const isDropTarget = col.status === 'PENDING'
   const dropProps = isDropTarget
@@ -433,7 +444,11 @@ function MatrixCell({ col, todos, logs, storyMeta, onOpen, onPromote, onDropTask
       }
     : {}
   return (
-    <div className={`matrix-cell ${col.status.toLowerCase()} ${over ? 'drag-over' : ''}`} {...dropProps}>
+    <div
+      className={`matrix-cell ${col.status.toLowerCase()} ${tint ? 'storied' : ''} ${over ? 'drag-over' : ''}`}
+      style={tint}
+      {...dropProps}
+    >
       {todos.map((t) => (
         <Card
           key={t.id}
@@ -1184,6 +1199,32 @@ function storyRollup(steps, planner) {
 }
 
 // --- helpers ---
+
+// A stable, distinct color per story. On the desktop board each story's whole row
+// is tinted with its color so the story reads as a colored background rectangle
+// behind its task cards (task cards stay white) — visually a story is a *zone*,
+// not another card. Soft, calm hues so the fill sits quietly under the cards.
+// `tint` = row fill, `edge` = border/accent, `ink` = the story name text.
+const STORY_COLORS = [
+  { tint: '#dce9fe', edge: '#93b8f7', ink: '#2f5bb7' }, // blue
+  { tint: '#ebe0fc', edge: '#c1a5f0', ink: '#6a45c0' }, // violet
+  { tint: '#d8f2e3', edge: '#91d6b3', ink: '#1c8a52' }, // green
+  { tint: '#fde3ce', edge: '#f5bd8a', ink: '#b5641c' }, // orange
+  { tint: '#fcdbe8', edge: '#f2a9c6', ink: '#b23a6b' }, // pink
+  { tint: '#d6eef5', edge: '#92d1e0', ink: '#1c7d94' }, // teal
+  { tint: '#f6e7c4', edge: '#e0c073', ink: '#8a6a1c' }, // gold
+  { tint: '#dfe3ee', edge: '#b3bcd0', ink: '#4a5670' }, // slate
+]
+
+// Hash the storyId to a stable palette index so a story keeps the same color
+// across renders and reloads (no per-session randomness).
+function storyColor(storyId) {
+  if (!storyId) return null
+  const s = String(storyId)
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return STORY_COLORS[h % STORY_COLORS.length]
+}
 
 // Notification preference persists across reloads in localStorage. Wrapped in
 // try/catch because storage can throw (private mode, disabled cookies).
