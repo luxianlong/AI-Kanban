@@ -25,16 +25,44 @@ export default function App() {
   const [toasts, setToasts] = useState([]) // in-app notifications (always shown)
   const [showComposer, setShowComposer] = useState(false) // mobile: the "+" toggles the composers
 
+  // Optimistic status moves the server may not have caught up to yet. Maps
+  // task id -> { from, to, at }. When the user promotes/drags a card we flip it
+  // locally at once, but a background poll that was already in flight (issued
+  // before our PATCH committed) still reports the *old* status. Without this,
+  // that stale snapshot overwrites the optimistic move — the card flickers back
+  // to its old column, then jumps forward again on the next poll. We keep
+  // showing `to` for as long as a poll still reports `from`, and let go the
+  // moment the server reflects the move (or anything past it), so the server
+  // stays authoritative. `at` bounds a stuck override so it always self-heals.
+  const pendingMovesRef = useRef(new Map())
+  const reconcile = useCallback((list) => {
+    const pending = pendingMovesRef.current
+    if (pending.size === 0) return list
+    const now = Date.now()
+    return list.map((t) => {
+      const mv = pending.get(t.id)
+      if (!mv) return t
+      // Server caught up (status moved off `from`), or the override went stale:
+      // trust the server from here on.
+      if (t.status !== mv.from || now - mv.at > 15000) {
+        pending.delete(t.id)
+        return t
+      }
+      // Poll is still reporting the pre-move status — keep the optimistic one.
+      return { ...t, status: mv.to }
+    })
+  }, [])
+
   const refresh = useCallback(async () => {
     try {
       const [list, status] = await Promise.all([api.listTodos(), api.workerStatus()])
-      setTodos(list)
+      setTodos(reconcile(list))
       setWorker(status)
       setError(null)
     } catch (e) {
       setError(e.message)
     }
-  }, [])
+  }, [reconcile])
 
   useEffect(() => {
     refresh()
@@ -178,11 +206,18 @@ export default function App() {
 
   // Move a task to a new status. Optimistically flip it locally first so the card
   // jumps columns immediately (no 4s poll lag), then reconcile from the server.
+  // We register the move in pendingMovesRef so an in-flight stale poll can't yank
+  // the card back to its old column before the server catches up (see reconcile).
   async function moveTask(id, status) {
+    const from = todos.find((t) => t.id === id)?.status
+    if (from !== undefined && from !== status) {
+      pendingMovesRef.current.set(id, { from, to: status, at: Date.now() })
+    }
     setTodos((cur) => cur.map((t) => (t.id === id ? { ...t, status } : t)))
     try {
       await api.updateStatus(id, status)
     } catch (e) {
+      pendingMovesRef.current.delete(id) // move failed — stop protecting it, show server truth
       setError(e.message)
     }
     await refresh()
