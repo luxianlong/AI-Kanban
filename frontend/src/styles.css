@@ -212,12 +212,14 @@ body {
      natural height of its tallest cell, so busy columns grow and the board
      scrolls instead of overlapping. */
   grid-auto-rows: min-content;
-  /* Top-align cells within a row instead of stretching them. Without this a
-     busy Done cell (capped at 60vh, see .matrix-cell) forces every empty
-     sibling cell in the same row to that height, leaving a tall "sea of empty
-     space" beside it. Top-aligning lets each empty cell size to its own
-     content (min 64px) while the busy cell still grows/scrolls to the cap. */
-  align-items: start;
+  /* Stretch every cell in a row to the height of its tallest sibling, so all
+     four status columns of one story are the SAME height and the story's tinted
+     background reads as one clean rectangle with a level bottom edge (rather
+     than a ragged one where an empty New cell is short and a busy Done cell is
+     tall). The tallest cell is bounded by its own `max-height` cap + internal
+     scroll (see .matrix-cell), so a very busy column can't inflate the whole
+     row unbounded. */
+  align-items: stretch;
 }
 
 /* Column headers (sticky to the top so they survive vertical scroll). */
