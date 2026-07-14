@@ -235,9 +235,8 @@ export default function App() {
       ) : (
       <div
         className="matrix"
-        style={{ gridTemplateColumns: `220px repeat(${columns.length}, minmax(220px, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(220px, 1fr))` }}
       >
-        <div className="matrix-corner" />
         {columns.map((col) => (
           <div key={col.status} className={`matrix-colhead ${col.status.toLowerCase()}`}>
             <span className="col-accent" />
@@ -265,7 +264,7 @@ export default function App() {
             : undefined
           return (
             <Fragment key={row.key}>
-              <StoryRowHeader row={row} tint={tint} />
+              <StorySwimlane row={row} tint={tint} />
               {columns.map((col) => (
                 <MatrixCell
                   key={col.status}
@@ -370,53 +369,59 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
   )
 }
 
-// The sticky left-column header for one matrix row. For a story it shows the
-// name, a rolled-up status pill and a done/total progress bar, so the whole row
-// reads as one unit. The synthetic "No story" row (standalone tasks) gets a
-// plainer header with just a task count.
-function StoryRowHeader({ row, tint }) {
+// A story rendered as a full-width colored swimlane band spanning every status
+// column, above that story's row of cells. Replaces the old dedicated left-hand
+// row-header column (removed per "the first column is useless"): the story is
+// now a horizontal colored rectangle — its own tint (set inline via
+// --story-tint) plus name, rolled-up status pill and a done/total progress bar
+// — with its task cards in the tinted cells beneath. The synthetic "No story"
+// band stays neutral so loose tasks are visibly not a story.
+function StorySwimlane({ row, tint }) {
   if (row.isStandalone) {
     return (
-      <div className="matrix-rowhead standalone">
-        <span className="rowhead-name">No story</span>
-        <span className="rowhead-sub">
+      <div className="swimlane standalone" style={{ gridColumn: '1 / -1' }}>
+        <span className="swimlane-name">No story</span>
+        <span className="swimlane-sub">
           {row.steps.length} {row.steps.length === 1 ? 'task' : 'tasks'}
         </span>
       </div>
     )
   }
-  // Before the worker has produced any steps, the row reflects its planner: it's
+  // Before the worker has produced any steps, the band reflects its planner: it's
   // either planning (queued/running) or the planning failed.
   const plannerActive = row.steps.length === 0 && row.planner
   const planning = plannerActive && (row.planner.status === 'PENDING' || row.planner.status === 'IN_PROGRESS')
   const planFailed = plannerActive && row.planner.status === 'FAILED'
   const pct = row.total ? Math.round((row.done / row.total) * 100) : 0
   return (
-    <div className={`matrix-rowhead storied ${row.status.toLowerCase()}`} style={tint}>
-      <div className="rowhead-top">
-        <span className="rowhead-name" title={row.name}>{row.name}</span>
-        {planning ? (
-          <span className="story-status-pill planning">Planning…</span>
-        ) : planFailed ? (
-          <span className="story-status-pill failed">Plan failed</span>
-        ) : (
-          <span className={`story-status-pill ${row.status.toLowerCase()}`}>{label(row.status)}</span>
-        )}
-      </div>
-      {row.steps.length > 0 && (
-        <div className="story-progress-track">
-          <div className="story-progress-fill" style={{ width: `${pct}%` }} />
-        </div>
+    <div
+      className={`swimlane storied ${row.status.toLowerCase()}`}
+      style={{ ...tint, gridColumn: '1 / -1' }}
+    >
+      <span className="swimlane-name" title={row.name}>{row.name}</span>
+      {planning ? (
+        <span className="story-status-pill planning">Planning…</span>
+      ) : planFailed ? (
+        <span className="story-status-pill failed">Plan failed</span>
+      ) : (
+        <span className={`story-status-pill ${row.status.toLowerCase()}`}>{label(row.status)}</span>
       )}
-      <span className="rowhead-sub">
-        {planning
-          ? 'Breaking the goal into tasks…'
-          : planFailed
-            ? 'Planning failed — open the card'
-            : row.steps.length
-              ? `${row.done}/${row.total} done`
+      {row.steps.length > 0 ? (
+        <div className="swimlane-progress">
+          <div className="story-progress-track">
+            <div className="story-progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <span className="swimlane-sub">{row.done}/{row.total} done</span>
+        </div>
+      ) : (
+        <span className="swimlane-sub">
+          {planning
+            ? 'Breaking the goal into tasks…'
+            : planFailed
+              ? 'Planning failed — open the card'
               : 'No steps yet'}
-      </span>
+        </span>
+      )}
     </div>
   )
 }
@@ -849,10 +854,11 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
   }
 
   // Done tasks render as a slim single-line "completed" row instead of a full
-  // card. Each row is a fixed, uniform height (title on one line + a check + tiny
-  // meta), so a story that accumulates many finished tasks stays a tidy, scannable
-  // list rather than a stack of tall cards that crowds — and used to overlap — the
-  // Done column. Full detail is one click away in the drawer.
+  // card: just a check + the one-line title. The id / runtime / cost that used to
+  // trail the row were noise on the board (per "#193, 322.9s, $xx is useless") —
+  // they live in the detail drawer now. Each row is a fixed, uniform height, so a
+  // story that accumulates many finished tasks stays a tidy, scannable list rather
+  // than a stack of tall cards that crowds — and used to overlap — the Done column.
   if (resolved) {
     return (
       <div
@@ -867,11 +873,6 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
           <Icon name="check" size={13} />
         </span>
         <span className="done-title">{todo.title}</span>
-        <span className="done-meta">
-          <span className="card-id">#{todo.id}</span>
-          {costMeta(todo) && <span className="card-cost">{costMeta(todo)}</span>}
-          <span className="card-time">{relTime(todo.updatedAt)}</span>
-        </span>
       </div>
     )
   }

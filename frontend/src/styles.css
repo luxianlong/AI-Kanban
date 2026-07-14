@@ -223,13 +223,6 @@ body {
 }
 
 /* Column headers (sticky to the top so they survive vertical scroll). */
-.matrix-corner {
-  position: sticky;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  background: #fff;
-}
 .matrix-colhead {
   position: sticky;
   top: 0;
@@ -266,51 +259,52 @@ body {
   padding: 1px 7px;
 }
 
-/* Row header (sticky to the left so the story name stays visible when scrolling
-   the columns horizontally). */
-.matrix-rowhead {
-  position: sticky;
-  left: 0;
-  z-index: 1;
+/* A story rendered as a full-width colored swimlane band that spans every status
+   column and sits above that story's row of cells (it replaces the old dedicated
+   left-hand row-header column). The band is filled with the story's own tint (set
+   inline via --story-tint) so each story reads as one horizontal colored
+   rectangle — name + rollup pill + progress laid out in a row — with the (white)
+   task cards in the tinted cells beneath. */
+.swimlane {
+  grid-column: 1 / -1;
   display: flex;
-  flex-direction: column;
-  gap: var(--s-1);
-  padding: var(--s-3);
+  align-items: center;
+  gap: var(--s-3);
+  padding: 7px var(--s-3);
   background: var(--col);
   border: 1px solid var(--hair);
-  border-left: 3px solid var(--faint);
+  border-left: 4px solid var(--faint);
   border-radius: var(--r-md);
 }
-.matrix-rowhead.new { border-left-color: var(--todo); }
-.matrix-rowhead.pending { border-left-color: var(--todo); }
-.matrix-rowhead.in_progress { border-left-color: var(--progress); }
-.matrix-rowhead.resolved { border-left-color: var(--done); }
-.matrix-rowhead.failed { border-left-color: var(--failed); }
-.matrix-rowhead.standalone { border-left-color: var(--hair); justify-content: center; }
-
-/* A story row is shown as a colored background rectangle, not a card: the row
-   header is filled with the story's own tint (set inline via --story-tint), so
-   each story reads as a distinct colored zone rather than another white card.
-   Placed after the status rules above so the story color wins the left accent. */
-.matrix-rowhead.storied {
+.swimlane.new,
+.swimlane.pending { border-left-color: var(--todo); }
+.swimlane.in_progress { border-left-color: var(--progress); }
+.swimlane.resolved { border-left-color: var(--done); }
+.swimlane.failed { border-left-color: var(--failed); }
+.swimlane.standalone { border-left-color: var(--hair); }
+/* The story color wins the fill + accent (placed after the status rules above). */
+.swimlane.storied {
   background: var(--story-tint);
   border-color: var(--story-edge);
   border-left: 4px solid var(--story-edge);
-  box-shadow: none;
 }
-.matrix-rowhead.storied .rowhead-name { color: var(--story-ink); }
-.rowhead-top { display: flex; align-items: center; gap: var(--s-2); }
-.rowhead-name {
+.swimlane-name {
   font-family: var(--font-head);
   font-size: var(--f-base); font-weight: 700;
-  flex: 1; min-width: 0;
+  max-width: 40%;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.rowhead-sub {
+.swimlane.storied .swimlane-name { color: var(--story-ink); }
+.swimlane-sub {
   font-size: var(--f-xs); font-weight: 600; color: var(--muted);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.matrix-rowhead .story-progress-track { margin-bottom: 0; }
+/* Progress bar grows to fill the band between the status pill and the count. */
+.swimlane-progress {
+  flex: 1; min-width: 0; max-width: 360px;
+  display: flex; align-items: center; gap: var(--s-2);
+}
+.swimlane-progress .story-progress-track { flex: 1; margin-bottom: 0; }
 
 /* A cell = one row's tasks in one status. */
 .matrix-cell {
@@ -639,12 +633,6 @@ body {
   flex: 1; min-width: 0;
   font-size: var(--f-sm); font-weight: 600; line-height: 1.3;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.done-meta {
-  flex: none;
-  display: flex; align-items: center; gap: var(--s-2);
-  font-size: var(--f-xs); color: var(--faint);
-  font-variant-numeric: tabular-nums;
 }
 
 /* "→ To Do" promote action, shown only on NEW cards. */
