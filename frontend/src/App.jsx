@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, Fragment } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { api } from './api.js'
 import Markdown from './Markdown.jsx'
 import Icon from './Icon.jsx'
@@ -297,23 +297,34 @@ export default function App() {
           const tint = color
             ? { '--story-tint': color.tint, '--story-edge': color.edge, '--story-ink': color.ink }
             : undefined
+          // The story's name label + its status cells are wrapped in ONE subgrid
+          // block that carries a single continuous tint + rounded border, so the
+          // whole story reads as one light background rectangle with its title at
+          // the top-left and every task card sitting on that rectangle (rather than
+          // a caption plus four separate boxes). `subgrid` keeps each cell aligned
+          // under its status header, and the shared row keeps the cells equal-height.
+          const cells = columns.map((col) => (
+            <MatrixCell
+              key={col.status}
+              col={col}
+              todos={row.items.filter((t) => t.status === col.status)}
+              logs={logs}
+              storyMeta={storyMeta}
+              tint={tint}
+              onOpen={setSelectedId}
+              onPromote={promoteToDo}
+              onDropTask={moveTask}
+            />
+          ))
           return (
-            <Fragment key={row.key}>
+            <div
+              key={row.key}
+              className={`story-block ${row.isStandalone ? 'standalone' : 'storied'}`}
+              style={tint}
+            >
               <StorySwimlane row={row} tint={tint} />
-              {columns.map((col) => (
-                <MatrixCell
-                  key={col.status}
-                  col={col}
-                  todos={row.items.filter((t) => t.status === col.status)}
-                  logs={logs}
-                  storyMeta={storyMeta}
-                  tint={tint}
-                  onOpen={setSelectedId}
-                  onPromote={promoteToDo}
-                  onDropTask={moveTask}
-                />
-              ))}
-            </Fragment>
+              {cells}
+            </div>
           )
         })}
       </div>
