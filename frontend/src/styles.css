@@ -214,6 +214,12 @@ body {
      natural height of its tallest cell, so busy columns grow and the board
      scrolls instead of overlapping. */
   grid-auto-rows: min-content;
+  /* Top-align cells within a row instead of stretching them. Without this a
+     busy Done cell (capped at 60vh, see .matrix-cell) forces every empty
+     sibling cell in the same row to that height, leaving a tall "sea of empty
+     space" beside it. Top-aligning lets each empty cell size to its own
+     content (min 64px) while the busy cell still grows/scrolls to the cap. */
+  align-items: start;
 }
 
 /* Column headers (sticky to the top so they survive vertical scroll). */
