@@ -181,6 +181,7 @@ body {
 /* "Docs" link — opens the generated docs/results site (/docs.html). Shares the
    pill styling of the notify toggle so the header reads as one control group. */
 .docs-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
@@ -196,7 +197,23 @@ body {
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .docs-link:hover { color: var(--ink); border-color: var(--faint); text-decoration: none; }
+.docs-link.has-new { color: var(--ink); border-color: var(--faint); }
 .docs-link .icon { flex: none; }
+/* Red round badge on the Docs link: count of unopened docs. Anchored to the
+   link's top-right corner, mirroring the notification bell's unread badge. */
+.docs-badge {
+  position: absolute;
+  top: -6px; right: -6px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--failed, #e5484d);
+  color: #fff;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  border: 2px solid #fff;
+  box-shadow: var(--shadow-sm);
+}
 
 /* "+" create button (mobile topbar) — toggles the task/story composers. */
 .add-toggle {

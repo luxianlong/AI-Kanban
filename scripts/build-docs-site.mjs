@@ -24,13 +24,42 @@ import { renderMarkdown, esc, slugify } from './lib/md-to-html.mjs'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
 const DOCS_DIR = path.join(ROOT, 'docs')
+const RESEARCH_DIR = path.join(ROOT, 'research')
 const OUT_DIR = path.join(ROOT, 'frontend', 'public', 'docs')
 const INDEX_OUT = path.join(ROOT, 'frontend', 'public', 'docs.html')
+// A flat manifest of every doc card, read by the board's frontend so it can show
+// a "new docs" badge on the Docs link (a doc the user hasn't opened yet).
+const MANIFEST_OUT = path.join(ROOT, 'frontend', 'public', 'docs-manifest.json')
 
 // Docs that already have a hand-tuned bespoke page — link to that instead of
 // generating a generic one. Keyed by markdown filename -> the served URL.
 const BESPOKE = {
   'singapore-travel-guide.md': '/singapore.html',
+}
+
+// Multi-part research reports: a story's deliverable often lands as several
+// numbered Markdown files in research/<dir>/ (one per step) rather than a single
+// docs/*.md. Each listed here is stitched into ONE browsable page at
+// /docs/<dir>.html — its parts concatenated in filename order, every heading
+// demoted a level so each part title sits as an H2 section under the report
+// title — and gets a card in the docs index. This is how e.g. the six-part
+// 美伊战争 analysis becomes reachable from the board (task #267).
+const REPORTS = [
+  {
+    dir: 'us-iran-war',
+    title: '美伊战争 · 分析总览 (2026)',
+    summary:
+      '六部分深度研究：背景与结构性根源、当前局势快照、军力对比与升级情景、地缘影响、市场与能源冲击、情景推演与前景研判。',
+    featured: true,
+  },
+]
+
+// Demote every ATX heading by one level (# -> ##, ## -> ### …, capped at ######)
+// so a report part's H1 becomes an H2 section under the page's report title (and
+// so lands in the h2/h3 TOC). Safe here because these report files contain no
+// fenced code blocks whose "#" lines could be mistaken for headings.
+function demoteHeadings(md) {
+  return md.replace(/^(#{1,5})(\s+)/gm, '#$1$2')
 }
 
 // Turn a filename like "ai-supply-chain" into "Ai supply chain" for a fallback
@@ -337,13 +366,47 @@ function build() {
 
     if (BESPOKE[file]) {
       // Don't regenerate — link the index to the hand-tuned page.
-      cards.push({ title, href: BESPOKE[file], excerpt: ex, featured: true })
+      cards.push({ id: slug, title, href: BESPOKE[file], excerpt: ex, featured: true })
       continue
     }
 
     const outPath = path.join(OUT_DIR, `${slug}.html`)
     fs.writeFileSync(outPath, renderDocPage({ title, body, toc, hasMermaid }), 'utf8')
-    cards.push({ title, href: `/docs/${slug}.html`, excerpt: ex, featured: false })
+    cards.push({ id: slug, title, href: `/docs/${slug}.html`, excerpt: ex, featured: false })
+    generated++
+  }
+
+  // Multi-part research reports -> one stitched page + card each.
+  for (const report of REPORTS) {
+    const dir = path.join(RESEARCH_DIR, report.dir)
+    if (!fs.existsSync(dir)) continue
+    const parts = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith('.md'))
+      .sort()
+    if (!parts.length) continue
+
+    const md = parts
+      .map((p) => demoteHeadings(fs.readFileSync(path.join(dir, p), 'utf8')))
+      .join('\n\n---\n\n')
+    // stripH1: false — after demotion there is no H1 anyway; the page title comes
+    // from the report config, not from the Markdown.
+    const { body, toc, hasMermaid } = renderMarkdown(md, { stripH1: false })
+    const slug = slugify(report.dir)
+
+    const outPath = path.join(OUT_DIR, `${slug}.html`)
+    fs.writeFileSync(
+      outPath,
+      renderDocPage({ title: report.title, body, toc, hasMermaid }),
+      'utf8'
+    )
+    cards.push({
+      id: slug,
+      title: report.title,
+      href: `/docs/${slug}.html`,
+      excerpt: report.summary || excerpt(md),
+      featured: !!report.featured,
+    })
     generated++
   }
 
@@ -351,8 +414,12 @@ function build() {
   cards.sort((a, b) => (b.featured - a.featured) || a.title.localeCompare(b.title))
 
   fs.writeFileSync(INDEX_OUT, renderIndex(cards), 'utf8')
+  // The manifest mirrors the index (same order) but carries only what the board
+  // needs to flag unseen docs: a stable id, the title, and the URL.
+  const manifest = cards.map((c) => ({ id: c.id, title: c.title, href: c.href }))
+  fs.writeFileSync(MANIFEST_OUT, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
   console.log(
-    `✔ docs site generated: ${generated} page(s) -> ${path.relative(ROOT, OUT_DIR)}/, index (${cards.length} card(s)) -> ${path.relative(ROOT, INDEX_OUT)}`
+    `✔ docs site generated: ${generated} page(s) -> ${path.relative(ROOT, OUT_DIR)}/, index (${cards.length} card(s)) -> ${path.relative(ROOT, INDEX_OUT)}, manifest -> ${path.relative(ROOT, MANIFEST_OUT)}`
   )
 }
 

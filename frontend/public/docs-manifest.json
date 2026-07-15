@@ -1,0 +1,27 @@
+[
+  {
+    "id": "singapore-travel-guide",
+    "title": "新加坡旅游攻略",
+    "href": "/singapore.html"
+  },
+  {
+    "id": "us-iran-war",
+    "title": "美伊战争 · 分析总览 (2026)",
+    "href": "/docs/us-iran-war.html"
+  },
+  {
+    "id": "ai-supply-chain",
+    "title": "AI supply chain — topology",
+    "href": "/docs/ai-supply-chain.html"
+  },
+  {
+    "id": "public-tunnel",
+    "title": "Exposing the dashboard as a public website",
+    "href": "/docs/public-tunnel.html"
+  },
+  {
+    "id": "architecture",
+    "title": "Kanban architecture — topology",
+    "href": "/docs/architecture.html"
+  }
+]
