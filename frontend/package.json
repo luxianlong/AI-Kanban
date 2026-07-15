@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "gen:singapore": "node ../scripts/build-singapore-page.mjs",
-    "prebuild": "npm run gen:singapore",
+    "gen:docs": "node ../scripts/build-docs-site.mjs",
+    "gen:pages": "npm run gen:singapore && npm run gen:docs",
+    "prebuild": "npm run gen:pages",
     "build": "vite build",
     "preview": "vite preview"
   },

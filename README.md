@@ -33,6 +33,16 @@ and the guarded deploy — rendered as Mermaid diagrams.
 > (generated from the Markdown by [`scripts/build-singapore-page.mjs`](scripts/build-singapore-page.mjs)
 > on every frontend build).
 
+> 📄 **Result format — every doc is a web page.** When a task produces a
+> substantial result, we commit it as Markdown under [`docs/`](docs/) and the build
+> renders it into a browsable page so the end web user can read it without a Markdown
+> viewer. Open **`/docs.html`** (also reachable from the **Docs** button in the board
+> header) for an index of every document; each `docs/<name>.md` is served at
+> `/docs/<name>.html`, with tables, nested lists and even Mermaid diagrams rendered.
+> The renderer ([`scripts/build-docs-site.mjs`](scripts/build-docs-site.mjs), sharing the
+> converter in [`scripts/lib/md-to-html.mjs`](scripts/lib/md-to-html.mjs)) runs on every
+> frontend build, so the pages can never drift from the source Markdown.
+
 ---
 
 ## Prerequisites

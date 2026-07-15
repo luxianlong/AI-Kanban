@@ -170,6 +170,26 @@ body {
 .notify-toggle.on { color: var(--brand); border-color: var(--brand-200); background: var(--brand-100); }
 .notify-toggle .icon { flex: none; }
 
+/* "Docs" link — opens the generated docs/results site (/docs.html). Shares the
+   pill styling of the notify toggle so the header reads as one control group. */
+.docs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--f-sm);
+  font-weight: 600;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hair);
+  background: #fff;
+  color: var(--muted);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.docs-link:hover { color: var(--ink); border-color: var(--faint); text-decoration: none; }
+.docs-link .icon { flex: none; }
+
 /* "+" create button (mobile topbar) — toggles the task/story composers. */
 .add-toggle {
   display: inline-flex; align-items: center; justify-content: center;
@@ -1023,9 +1043,9 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   .tagline { display: none; }
   .status { gap: var(--s-2); }
 
-  /* Notify collapses to an icon-only circle matching the "+" button. */
-  .notify-toggle { padding: 0; width: var(--tap); height: var(--tap); justify-content: center; gap: 0; }
-  .notify-toggle .label { display: none; }
+  /* Notify + Docs collapse to icon-only circles matching the "+" button. */
+  .notify-toggle, .docs-link { padding: 0; width: var(--tap); height: var(--tap); justify-content: center; gap: 0; }
+  .notify-toggle .label, .docs-link .label { display: none; }
 
   .board-toolbar { padding: var(--s-3) var(--s-4) var(--s-1); gap: var(--s-2); }
   .board-toolbar .composer { flex-basis: 100%; min-width: 0; }
