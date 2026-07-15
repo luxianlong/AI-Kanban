@@ -40,19 +40,6 @@ export const api = {
       body: JSON.stringify({ goal }),
     }).then(json),
 
-  // Existing stories that `text` looks related to, most relevant first. Used to
-  // offer attaching a new task to a story instead of starting a fresh chain.
-  relatedStories: (text) =>
-    fetch(`${BASE}/stories/related?text=${encodeURIComponent(text)}`).then(json),
-
-  // Append a task as the next step of an existing story.
-  addStoryStep: (storyId, title, description = '') =>
-    fetch(`${BASE}/stories/${storyId}/steps`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description }),
-    }).then(json),
-
   // Move a task to a given status. Used to promote a NEW task to the To Do queue
   // (status='PENDING') via the card button or a drag into the To Do column.
   updateStatus: (id, status) =>
