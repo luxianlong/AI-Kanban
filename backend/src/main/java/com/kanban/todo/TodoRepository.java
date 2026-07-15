@@ -16,4 +16,8 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     /** Every task that belongs to some story, newest chains first. */
     List<Todo> findByStoryIdIsNotNullOrderByCreatedAtDesc();
+
+    /** Tasks still held by the async story classifier — used to clear stale holds
+     * on startup, since the async classification pass doesn't survive a restart. */
+    List<Todo> findByClassifyingTrue();
 }

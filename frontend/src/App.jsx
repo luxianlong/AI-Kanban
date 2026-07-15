@@ -4,11 +4,10 @@ import Markdown from './Markdown.jsx'
 import Icon from './Icon.jsx'
 
 // The board's status columns, in flow order (left→right). This is the HORIZONTAL
-// axis of the matrix; the vertical axis is one row per story. A task starts in
-// NEW (staged), the user promotes it to To Do, then the worker moves it right by
-// updating its status, mirroring the task's real lifecycle.
+// axis of the matrix; the vertical axis is one row per story. A task starts queued
+// in To Do (there's no separate "New"/staging step), then the worker moves it
+// right by updating its status, mirroring the task's real lifecycle.
 const COLUMNS = [
-  { status: 'NEW', title: 'New', hint: 'Staged — promote to To Do when ready' },
   { status: 'PENDING', title: 'To Do', hint: 'No tasks queued' },
   { status: 'IN_PROGRESS', title: 'In Progress', hint: 'Nothing running right now' },
   { status: 'RESOLVED', title: 'Done', hint: 'Completed tasks land here' },
@@ -31,44 +30,16 @@ export default function App() {
   const [unread, setUnread] = useState(() => loadUnread())
   const [showComposer, setShowComposer] = useState(false) // mobile: the "+" toggles the composers
 
-  // Optimistic status moves the server may not have caught up to yet. Maps
-  // task id -> { from, to, at }. When the user promotes/drags a card we flip it
-  // locally at once, but a background poll that was already in flight (issued
-  // before our PATCH committed) still reports the *old* status. Without this,
-  // that stale snapshot overwrites the optimistic move — the card flickers back
-  // to its old column, then jumps forward again on the next poll. We keep
-  // showing `to` for as long as a poll still reports `from`, and let go the
-  // moment the server reflects the move (or anything past it), so the server
-  // stays authoritative. `at` bounds a stuck override so it always self-heals.
-  const pendingMovesRef = useRef(new Map())
-  const reconcile = useCallback((list) => {
-    const pending = pendingMovesRef.current
-    if (pending.size === 0) return list
-    const now = Date.now()
-    return list.map((t) => {
-      const mv = pending.get(t.id)
-      if (!mv) return t
-      // Server caught up (status moved off `from`), or the override went stale:
-      // trust the server from here on.
-      if (t.status !== mv.from || now - mv.at > 15000) {
-        pending.delete(t.id)
-        return t
-      }
-      // Poll is still reporting the pre-move status — keep the optimistic one.
-      return { ...t, status: mv.to }
-    })
-  }, [])
-
   const refresh = useCallback(async () => {
     try {
       const [list, status] = await Promise.all([api.listTodos(), api.workerStatus()])
-      setTodos(reconcile(list))
+      setTodos(list)
       setWorker(status)
       setError(null)
     } catch (e) {
       setError(e.message)
     }
-  }, [reconcile])
+  }, [])
 
   useEffect(() => {
     refresh()
@@ -278,28 +249,6 @@ export default function App() {
     }
   }
 
-  // Move a task to a new status. Optimistically flip it locally first so the card
-  // jumps columns immediately (no 4s poll lag), then reconcile from the server.
-  // We register the move in pendingMovesRef so an in-flight stale poll can't yank
-  // the card back to its old column before the server catches up (see reconcile).
-  async function moveTask(id, status) {
-    const from = todos.find((t) => t.id === id)?.status
-    if (from !== undefined && from !== status) {
-      pendingMovesRef.current.set(id, { from, to: status, at: Date.now() })
-    }
-    setTodos((cur) => cur.map((t) => (t.id === id ? { ...t, status } : t)))
-    try {
-      await api.updateStatus(id, status)
-    } catch (e) {
-      pendingMovesRef.current.delete(id) // move failed — stop protecting it, show server truth
-      setError(e.message)
-    }
-    await refresh()
-    broadcastMutation() // sync other open board tabs to this status change at once
-  }
-  // Promote a NEW (staged) task into the To Do queue so the worker can pick it up.
-  const promoteToDo = (id) => moveTask(id, 'PENDING')
-
   const selected = todos.find((t) => t.id === selectedId) || null
   const storyMeta = computeStoryMeta(todos)
   // Existing stories (id + name), for the drawer's manual story picker.
@@ -342,7 +291,6 @@ export default function App() {
           logs={logs}
           storyMeta={storyMeta}
           onOpen={setSelectedId}
-          onPromote={promoteToDo}
           onDelete={removeTodo}
         />
       ) : (
@@ -390,8 +338,6 @@ export default function App() {
               storyMeta={storyMeta}
               tint={tint}
               onOpen={setSelectedId}
-              onPromote={promoteToDo}
-              onDropTask={moveTask}
             />
           ))
           return (
@@ -629,32 +575,13 @@ function StorySwimlane({ row, tint }) {
 }
 
 // One cell of the matrix: the tasks of a given row that are currently in this
-// column's status. The To Do (PENDING) cell is a drop target so a NEW card can
-// be dragged in to promote it; other columns are worker-driven and inert to drops.
-function MatrixCell({ col, todos, logs, storyMeta, tint, onOpen, onPromote, onDropTask }) {
-  const [over, setOver] = useState(false)
-  const isDropTarget = col.status === 'PENDING'
-  const dropProps = isDropTarget
-    ? {
-        onDragOver: (e) => {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'move'
-          setOver(true)
-        },
-        onDragLeave: () => setOver(false),
-        onDrop: (e) => {
-          e.preventDefault()
-          setOver(false)
-          const id = Number(e.dataTransfer.getData('text/todo-id'))
-          if (id) onDropTask(id, 'PENDING')
-        },
-      }
-    : {}
+// column's status. All columns are worker-driven — the board reflects each task's
+// lifecycle rather than being reordered by hand.
+function MatrixCell({ col, todos, logs, storyMeta, tint, onOpen }) {
   return (
     <div
-      className={`matrix-cell ${col.status.toLowerCase()} ${tint ? 'storied' : ''} ${over ? 'drag-over' : ''}`}
+      className={`matrix-cell ${col.status.toLowerCase()} ${tint ? 'storied' : ''}`}
       style={tint}
-      {...dropProps}
     >
       {todos.map((t) => (
         <Card
@@ -663,7 +590,6 @@ function MatrixCell({ col, todos, logs, storyMeta, tint, onOpen, onPromote, onDr
           tail={tailLine(logs[t.id])}
           story={storyMeta[t.id]}
           onOpen={() => onOpen(t.id)}
-          onPromote={onPromote}
         />
       ))}
     </div>
@@ -675,7 +601,7 @@ function MatrixCell({ col, todos, logs, storyMeta, tint, onOpen, onPromote, onDr
 // so on narrow screens App renders this instead: a scrollable status-tab bar
 // picks ONE status, and that status's cards are listed vertically, grouped under
 // their story. Reuses the same Card component and the same rows/columns data.
-function MobileBoard({ rows, columns, logs, storyMeta, onOpen, onPromote, onDelete }) {
+function MobileBoard({ rows, columns, logs, storyMeta, onOpen, onDelete }) {
   const countFor = (status) =>
     rows.reduce((n, r) => n + r.items.filter((t) => t.status === status).length, 0)
 
@@ -735,7 +661,6 @@ function MobileBoard({ rows, columns, logs, storyMeta, onOpen, onPromote, onDele
                       tail={tailLine(logs[t.id])}
                       story={storyMeta[t.id]}
                       onOpen={() => onOpen(t.id)}
-                      onPromote={onPromote}
                     />
                   </SwipeToDelete>
                 ))}
@@ -918,8 +843,8 @@ function Composer({ onCreate }) {
 
 // Declare a story from a single one-line goal. No steps are entered here — after
 // it's created, the worker picks up the story and breaks the goal into concrete
-// step tasks (staged as New for you to promote). Mirrors the task composer: a
-// single input that expands to reveal an optional details field.
+// step tasks (queued and run in order). Mirrors the task composer: a single input
+// that expands to reveal an optional details field.
 function StoryComposer({ onCreateStory }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
@@ -986,11 +911,9 @@ function StoryComposer({ onCreateStory }) {
 
 // A task card. The body opens the detail drawer (click, or Enter/Space for
 // keyboard). It's a <div role="button"> rather than a <button> so it can legally
-// contain the inner "→ To Do" button (nested buttons are invalid HTML). NEW cards
-// are draggable (drag into the To Do column to promote) and carry the promote button.
-function Card({ todo, tail, story, onOpen, onPromote }) {
+// contain nested interactive content.
+function Card({ todo, tail, story, onOpen }) {
   const running = todo.status === 'IN_PROGRESS'
-  const isNew = todo.status === 'NEW'
   const resolved = todo.status === 'RESOLVED'
   // Done cards are historical: the *result* is what matters, and full context is
   // one click away in the drawer. Dropping the description keeps them compact so
@@ -1030,20 +953,11 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
 
   return (
     <div
-      className={`card ${todo.status.toLowerCase()} ${isNew ? 'draggable' : ''}`}
+      className={`card ${todo.status.toLowerCase()}`}
       role="button"
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={onKeyDown}
-      draggable={isNew}
-      onDragStart={
-        isNew
-          ? (e) => {
-              e.dataTransfer.setData('text/todo-id', String(todo.id))
-              e.dataTransfer.effectAllowed = 'move'
-            }
-          : undefined
-      }
     >
       {story && <StoryBadge story={story} showName={false} />}
       {todo.storyPlanner && (
@@ -1068,20 +982,6 @@ function Card({ todo, tail, story, onOpen, onPromote }) {
 
       {todo.status === 'FAILED' && (
         <div className="card-fail">{firstLines(todo.result, 2) || 'Failed'}</div>
-      )}
-
-      {isNew && onPromote && (
-        <button
-          type="button"
-          className="card-promote"
-          title="Move this task to the To Do queue so the agent can pick it up"
-          onClick={(e) => {
-            e.stopPropagation()
-            onPromote(todo.id)
-          }}
-        >
-          → To Do
-        </button>
       )}
 
       <div className="card-foot">
@@ -1327,13 +1227,12 @@ function computeRows(todos) {
 }
 
 // Roll a story's steps up to one status for its pill: anything failed needs
-// attention; all resolved is done; anything running is in progress; all-staged
-// is still New; otherwise it's queued (To Do).
+// attention; all resolved is done; anything running is in progress; otherwise
+// it's queued (To Do).
 function rollupStatus(steps) {
   if (steps.some((s) => s.status === 'FAILED')) return 'FAILED'
   if (steps.every((s) => s.status === 'RESOLVED')) return 'RESOLVED'
   if (steps.some((s) => s.status === 'IN_PROGRESS')) return 'IN_PROGRESS'
-  if (steps.every((s) => s.status === 'NEW')) return 'NEW'
   return 'PENDING'
 }
 
@@ -1508,7 +1407,6 @@ function costMeta(todo) {
 function label(status) {
   return (
     {
-      NEW: 'New',
       PENDING: 'To Do',
       IN_PROGRESS: 'In Progress',
       RESOLVED: 'Done',

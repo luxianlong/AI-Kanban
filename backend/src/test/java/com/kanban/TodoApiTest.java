@@ -2,6 +2,7 @@ package com.kanban;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kanban.todo.LegacyStatusMigration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,6 +31,9 @@ class TodoApiTest {
 
     @Autowired
     MockMvc mvc;
+
+    @Autowired
+    LegacyStatusMigration migration;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -271,7 +275,7 @@ class TodoApiTest {
     @Test
     void addStepAppendsToStoryChain() throws Exception {
         // A fresh story has only its planner (null order), so the first appended
-        // step lands at order 0, staged NEW.
+        // step lands at order 0, queued (PENDING) to run in chain order.
         String storyId = createStory("Ship search feature");
 
         mvc.perform(post("/api/stories/" + storyId + "/steps")
@@ -282,7 +286,7 @@ class TodoApiTest {
                 .andExpect(jsonPath("$.storyId", is(storyId)))
                 .andExpect(jsonPath("$.storyName", is("Ship search feature")))
                 .andExpect(jsonPath("$.storyOrder", is(0)))
-                .andExpect(jsonPath("$.status", is("NEW")));
+                .andExpect(jsonPath("$.status", is("PENDING")));
 
         // The story now lists its planner plus the appended step.
         mvc.perform(get("/api/stories"))
@@ -297,8 +301,8 @@ class TodoApiTest {
         String storyId = createStory("Build kayak rental checkout");
 
         // ...means a newly created task whose words clearly overlap it (kayak,
-        // checkout) is auto-filed onto that story as a step, not orphaned. Joining a
-        // story stages it as NEW (like any story step), not straight to the queue.
+        // checkout) is auto-filed onto that story as a step, not orphaned. It queues
+        // (PENDING) like every task and runs in its story's chain order.
         mvc.perform(post("/api/todos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Refine the kayak checkout flow\"}"))
@@ -306,7 +310,7 @@ class TodoApiTest {
                 .andExpect(jsonPath("$.storyId", is(storyId)))
                 .andExpect(jsonPath("$.storyName", is("Build kayak rental checkout")))
                 .andExpect(jsonPath("$.storyOrder", is(0)))
-                .andExpect(jsonPath("$.status", is("NEW")))
+                .andExpect(jsonPath("$.status", is("PENDING")))
                 .andExpect(jsonPath("$.storyPlanner", is(false)));
 
         // The classified task now lives on the story (planner + this step).
@@ -354,24 +358,16 @@ class TodoApiTest {
     }
 
     @Test
-    void promoteStoryStepFromNewToPendingQueuesIt() throws Exception {
-        // A worker-generated story step is staged NEW; promoting it (the UI's
-        // "→ To Do" / drag action) flips it to PENDING — the status the worker polls.
+    void storyStepIsQueuedNotStaged() throws Exception {
+        // There's no separate staging step anymore: a worker-generated story step is
+        // queued (PENDING) as soon as it's created and runs automatically in chain
+        // order — no manual promotion needed.
         String storyId = createStory("Ship export feature");
-        String stepBody = mvc.perform(post("/api/stories/" + storyId + "/steps")
+        mvc.perform(post("/api/stories/" + storyId + "/steps")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Add export endpoint\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status", is("NEW")))
-                .andReturn().getResponse().getContentAsString();
-        long stepId = mapper.readTree(stepBody).get("id").asLong();
-
-        mvc.perform(patch("/api/todos/" + stepId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"status\":\"PENDING\"}"))
-                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("PENDING")))
-                // Promotion doesn't disturb the task's place in its story chain.
                 .andExpect(jsonPath("$.storyOrder", is(0)));
     }
 
@@ -389,15 +385,32 @@ class TodoApiTest {
     }
 
     @Test
-    void patchAcceptsNewStatus() throws Exception {
-        // NEW is a valid PATCH target too (e.g. moving a task back to staging).
-        long id = createTodo("Stage me");
+    void patchRejectsRemovedNewStatus() throws Exception {
+        // The NEW ("staged") status was removed — every task queues straight to To
+        // Do — so PATCHing a task to "new" is now an unknown status (400).
+        long id = createTodo("No staging");
 
         mvc.perform(patch("/api/todos/" + id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"new\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void legacyNewMigrationRunsCleanlyAndKeepsBoardReadable() throws Exception {
+        // A task left over from before the NEW status was removed would be persisted
+        // as status='NEW'. The startup migration rewrites any such row to PENDING
+        // with raw SQL so the removed enum value never reaches JPA. On a schema that
+        // no longer permits NEW at all (like this fresh test DB) there is nothing to
+        // migrate and the pass is a clean, swallowed no-op — it must never throw or
+        // disturb valid rows.
+        long id = createTodo("Legacy staged task");
+
+        migration.migrate();
+
+        mvc.perform(get("/api/todos/" + id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status", is("NEW")));
+                .andExpect(jsonPath("$.status", is("PENDING")));
     }
 
     @Test

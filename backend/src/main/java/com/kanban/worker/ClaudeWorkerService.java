@@ -70,6 +70,18 @@ public class ClaudeWorkerService {
         if (!orphans.isEmpty()) {
             log.info("Requeued {} orphaned in-progress todo(s) after restart.", orphans.size());
         }
+        // The async story classifier's hold doesn't survive a restart (the pass is
+        // gone), so any task still flagged `classifying` would be stranded — the
+        // worker skips it forever. Clear the flag so those tasks (already PENDING)
+        // run on the next poll.
+        List<Todo> held = repository.findByClassifyingTrue();
+        for (Todo t : held) {
+            t.setClassifying(false);
+            repository.save(t);
+        }
+        if (!held.isEmpty()) {
+            log.info("Cleared {} stale classify hold(s) after restart.", held.size());
+        }
     }
 
     @Scheduled(fixedDelayString = "${worker.poll-interval-ms:15000}",
@@ -86,8 +98,11 @@ public class ClaudeWorkerService {
             List<Todo> pending = repository.findByStatusOrderByCreatedAtAsc(TodoStatus.PENDING);
             // Story steps run in order: a step is skipped until every earlier step
             // in its chain has RESOLVED, so a story never runs two tasks at once
-            // and halts if one of its steps fails.
-            List<Todo> eligible = pending.stream().filter(t -> !isBlockedByStory(t)).toList();
+            // and halts if one of its steps fails. A task still held by the async
+            // story classifier is skipped until that pass clears the hold.
+            List<Todo> eligible = pending.stream()
+                    .filter(t -> !t.isClassifying() && !isBlockedByStory(t))
+                    .toList();
             if (eligible.isEmpty()) {
                 return;
             }
@@ -215,8 +230,8 @@ public class ClaudeWorkerService {
     /**
      * Prompt for a story planner (see {@link Todo#isStoryPlanner()}). The agent's
      * job is NOT to do the work but to break the goal into concrete step tasks and
-     * file each one under the story via the steps endpoint. The steps are created
-     * staged (NEW) for the user to promote; the worker later runs them in order.
+     * file each one under the story via the steps endpoint. The steps are queued
+     * (PENDING); the worker runs them one at a time, in order.
      */
     private String buildPlannerPrompt(Todo todo) {
         StringBuilder sb = new StringBuilder();
@@ -234,8 +249,9 @@ public class ClaudeWorkerService {
                 .append("For example:\n")
                 .append("   curl -s -X POST ").append(API_BASE).append("/api/stories/").append(todo.getStoryId())
                 .append("/steps -H 'Content-Type: application/json' -d '{\"title\":\"…\",\"description\":\"…\"}'\n");
-        sb.append("4. The steps are created as NEW (staged); the user promotes them to run. Do not POST to ")
-                .append("/api/todos and do not create the story itself — only add steps to THIS story.\n");
+        sb.append("4. The steps are queued and run automatically in the order you create them (each waits ")
+                .append("for the previous step to finish). Do not POST to /api/todos and do not create the ")
+                .append("story itself — only add steps to THIS story.\n");
         sb.append("5. Reply with a short summary listing the steps you created.\n");
         sb.append("If the goal cannot be decomposed, end your reply with a line containing exactly ")
                 .append(FAIL_SENTINEL).append(" followed by a brief reason.\n\n");

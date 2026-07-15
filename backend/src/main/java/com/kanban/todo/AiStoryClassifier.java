@@ -29,10 +29,10 @@ import java.util.regex.Pattern;
  * any, it belongs to, then re-files it.
  *
  * <p>It runs <em>asynchronously</em> so task creation returns instantly — the
- * task appears standalone and, a few seconds later, hops into a story if Claude
- * finds a home for it (the frontend polls, so it just moves). It only re-files a
- * task still in its original standalone state, so it never yanks one the user
- * promoted or the worker already started.
+ * task is held ({@code classifying}) out of the worker queue and, a few seconds
+ * later, hops into a story if Claude finds a home for it, or is released to run
+ * standalone (the frontend polls, so it just moves). It only acts on a task still
+ * in that held state, so it never yanks one already filed, released, or started.
  */
 @Service
 public class AiStoryClassifier {
@@ -78,21 +78,22 @@ public class AiStoryClassifier {
                 file(todoId, text);
             } catch (Exception e) {
                 log.warn("AI classify failed for todo #{}: {}", todoId, e.toString());
-                releaseStandalone(todoId); // fail open: never strand a task in NEW
+                releaseStandalone(todoId); // fail open: never leave a task held
             }
         });
     }
 
     /**
-     * Fail-safe used when classification errors out: a task we staged as NEW must
-     * still be allowed to run, so release it to PENDING if it's still staged and
-     * unfiled. Best-effort — swallow any secondary failure.
+     * Fail-safe used when classification errors out: a task we're holding for
+     * classification must still be allowed to run, so clear the {@code classifying}
+     * hold if it's still set and unfiled (the task is already PENDING). Best-effort
+     * — swallow any secondary failure.
      */
     private void releaseStandalone(Long todoId) {
         try {
             Todo todo = repository.findById(todoId).orElse(null);
-            if (todo != null && todo.getStatus() == TodoStatus.NEW && todo.getStoryId() == null) {
-                todo.setStatus(TodoStatus.PENDING);
+            if (todo != null && todo.isClassifying() && todo.getStoryId() == null) {
+                todo.setClassifying(false);
                 repository.save(todo);
             }
         } catch (Exception ignore) {
@@ -118,11 +119,12 @@ public class AiStoryClassifier {
             }
         }
 
-        // Finalize under a fresh read. The task was created NEW (staged) so the
-        // worker couldn't run it before we decided; only act if it's still in that
-        // exact state (not promoted/moved by the user, already filed, or deleted).
+        // Finalize under a fresh read. The task was created with the `classifying`
+        // hold set (and PENDING) so the worker couldn't run it before we decided;
+        // only act if it's still in that exact state (not already filed, released,
+        // started, or deleted). Clearing the hold lets the worker pick it up.
         Todo todo = repository.findById(todoId).orElse(null);
-        if (todo == null || todo.getStatus() != TodoStatus.NEW || todo.getStoryId() != null) {
+        if (todo == null || !todo.isClassifying() || todo.getStoryId() != null) {
             return;
         }
         if (chosen != null) {
@@ -130,13 +132,12 @@ public class AiStoryClassifier {
             todo.setStoryName(chosen.name());
             todo.setStoryOrder(classifier.nextOrder(
                     repository.findByStoryIdOrderByStoryOrderAsc(chosen.storyId())));
-            // Stays NEW — a story step awaiting promotion, like any other.
+            // Queued (PENDING) as a story step; the worker runs it in chain order.
             log.info("AI-classified todo #{} into story \"{}\".", todoId, chosen.name());
         } else {
-            // No home found — release it to run standalone.
-            todo.setStatus(TodoStatus.PENDING);
             log.debug("AI classify: todo #{} released to run standalone.", todoId);
         }
+        todo.setClassifying(false);
         repository.save(todo);
     }
 

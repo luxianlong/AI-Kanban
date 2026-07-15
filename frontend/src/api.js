@@ -40,8 +40,8 @@ export const api = {
       body: JSON.stringify({ goal }),
     }).then(json),
 
-  // Move a task to a given status. Used to promote a NEW task to the To Do queue
-  // (status='PENDING') via the card button or a drag into the To Do column.
+  // Move a task to a given status (generic PATCH helper). The worker drives most
+  // transitions; see retryTodo for requeuing a finished task.
   updateStatus: (id, status) =>
     fetch(`${BASE}/todos/${id}`, {
       method: 'PATCH',

@@ -83,6 +83,18 @@ public class Todo {
     @ColumnDefault("false")
     private boolean storyPlanner = false;
 
+    /**
+     * Transient hold used only while the smart (async Claude) story classifier is
+     * deciding which story a freshly-created standalone task belongs to. The worker
+     * skips a {@code classifying} task so it can't start running before the pass
+     * finishes filing it into a story. The classifier clears this the moment it
+     * resolves (into a story, or released to run standalone); a restart clears any
+     * left set, since the async pass doesn't survive the process.
+     */
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean classifying = false;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -146,6 +158,14 @@ public class Todo {
 
     public void setProjectImprovement(boolean projectImprovement) {
         this.projectImprovement = projectImprovement;
+    }
+
+    public boolean isClassifying() {
+        return classifying;
+    }
+
+    public void setClassifying(boolean classifying) {
+        this.classifying = classifying;
     }
 
     public String getResult() {
