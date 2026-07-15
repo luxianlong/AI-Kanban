@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Documents & Results · Kanban</title>
+<meta name="description" content="Reports and documents produced by the Kanban board's agent, rendered as web pages." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --ink: #1f2430;
+  --muted: #5b6472;
+  --line: #e5e8ee;
+  --accent: #4f46e5;
+  --accent-soft: #eef0fe;
+  --link: #1f6feb;
+  --source-bg: #f0f7f4;
+  --source-line: #3f9e78;
+  --maxw: 1120px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 55%, #7c9bf5 100%);
+  color: #fff;
+  padding: 48px 24px 40px;
+  text-align: center;
+}
+.hero .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 0 0 8px;
+}
+.hero h1 {
+  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  font-size: clamp(26px, 4.5vw, 40px);
+  margin: 0 0 10px;
+  letter-spacing: 0.3px;
+}
+.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.95; font-size: 15px; }
+.hero .back { display: inline-block; margin-top: 16px; color: #fff; font-size: 14px; opacity: 0.9; }
+.hero .back:hover { opacity: 1; }
+
+.hero p.sub { margin-top: 4px; }
+
+.wrap { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.doc-card {
+  display: block; background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 20px 22px; color: var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.doc-card:hover { text-decoration: none; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(31,36,48,0.08); border-color: #c9cff5; }
+.doc-card.featured { border-color: #c9cff5; background: linear-gradient(180deg, #fbfbff 0%, #ffffff 100%); }
+.doc-card h2 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 19px; margin: 0 0 8px; }
+.doc-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.doc-card .meta { margin-top: 12px; font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0.3px; }
+.doc-card .badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; vertical-align: middle; }
+.empty { color: var(--muted); text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">Kanban</p>
+<h1>Documents &amp; Results</h1>
+<p class="sub">Reports and guides the board's agent produced, rendered from the repo's Markdown as browsable web pages.</p>
+<a class="back" href="/">← Back to the board</a>
+</header>
+<div class="wrap">
+<div class="grid">
+<a class="doc-card featured" href="/singapore.html">
+  <h2>新加坡旅游攻略<span class="badge">Featured</span></h2>
+  <p>本章覆盖出发前必须搞清楚的六件事：签证、机票、季节、预算、入境、交通。</p>
+  <div class="meta">Read →</div>
+</a>
+<a class="doc-card" href="/docs/ai-supply-chain.html">
+  <h2>AI supply chain — topology</h2>
+  <p>A visual map of the global AI supply chain: everything that has to line up so a prompt you type in a browser can be answered by a large model. Rendered with Mermaid — GitHub…</p>
+  <div class="meta">Read →</div>
+</a>
+<a class="doc-card" href="/docs/public-tunnel.html">
+  <h2>Exposing the dashboard as a public website</h2>
+  <p>How to put this locally-running app on a public URL, gated by a password. Two options: a quick tunnel (zero setup, ephemeral URL — the current default) and a named tunnel…</p>
+  <div class="meta">Read →</div>
+</a>
+<a class="doc-card" href="/docs/architecture.html">
+  <h2>Kanban architecture — topology</h2>
+  <p>A visual map of how the Claude Code Kanban is put together, rendered with Mermaid. GitHub renders these diagrams inline; in an editor use a Mermaid preview extension.</p>
+  <div class="meta">Read →</div>
+</a>
+</div>
+</div>
+</body>
+</html>

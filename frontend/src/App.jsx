@@ -427,6 +427,14 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
         </div>
       </div>
       <div className="status">
+        <a
+          className="docs-link"
+          href="/docs.html"
+          title="Browse reports & documents the agent produced, rendered as web pages"
+        >
+          <Icon name="doc" size={16} />
+          <span className="label">Docs</span>
+        </a>
         {supported && (
           <button
             type="button"
