@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "gen:singapore": "node ../scripts/build-singapore-page.mjs",
+    "prebuild": "npm run gen:singapore",
     "build": "vite build",
     "preview": "vite preview"
   },
