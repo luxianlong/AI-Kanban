@@ -24,11 +24,14 @@ See **[docs/architecture.md](docs/architecture.md)** for a full topology of the
 design — system, components, the todo lifecycle, the worker poll cycle, stories,
 and the guarded deploy — rendered as Mermaid diagrams.
 
-> 📌 **Sample output — [新加坡旅游攻略 (Singapore travel guide)](docs/singapore-travel-guide.md)**:
+> 📌 **Sample output — 新加坡旅游攻略 (Singapore travel guide)**:
 > a complete, publish-ready travel guide the board's agent built end-to-end across a
 > 5-step story (visa/flights/budget → attractions & itineraries → food & shopping →
 > accommodation & practical tips → final proofread). A good example of what a chained
-> story produces.
+> story produces. Read it as the **[source Markdown](docs/singapore-travel-guide.md)**,
+> or as a **styled webpage** at **`/singapore.html`** when the app is running
+> (generated from the Markdown by [`scripts/build-singapore-page.mjs`](scripts/build-singapore-page.mjs)
+> on every frontend build).
 
 ---
 
