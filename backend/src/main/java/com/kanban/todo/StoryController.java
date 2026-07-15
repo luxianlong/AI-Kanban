@@ -72,7 +72,7 @@ public class StoryController {
      * steps, this files ONE planner task: a seed tagged with a fresh storyId and
      * marked {@code storyPlanner}. It's queued (PENDING) immediately, so the worker
      * picks it up on its next poll and decomposes the goal into concrete step tasks
-     * (filed under the same storyId, staged as NEW for the user to promote).
+     * (filed under the same storyId, queued and run in chain order).
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -128,8 +128,9 @@ public class StoryController {
         Todo todo = new Todo();
         todo.setTitle(step.title().trim());
         todo.setDescription(step.description());
-        // Appended steps also stage in NEW, consistent with the rest of the story.
-        todo.setStatus(TodoStatus.NEW);
+        // Appended steps queue (PENDING) like every task; the worker runs them in
+        // chain order (a step waits for every earlier step in its story to RESOLVE).
+        todo.setStatus(TodoStatus.PENDING);
         todo.setStoryId(storyId);
         todo.setStoryName(steps.get(0).getStoryName());
         todo.setStoryOrder(classifier.nextOrder(steps));

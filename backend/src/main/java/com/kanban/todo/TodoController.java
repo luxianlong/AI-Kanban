@@ -76,34 +76,33 @@ public class TodoController {
         Todo todo = new Todo();
         todo.setTitle(req.title().trim());
         todo.setDescription(req.description());
-        // A standalone task queues straight to To Do (PENDING) so the worker can
-        // run it right away. If it joins a story below, it's re-staged as NEW.
+        // Every task queues straight to To Do (PENDING) — there's no separate
+        // staging step. A task that joins a story still runs in chain order: the
+        // worker holds each story step until every earlier step has RESOLVED.
         todo.setStatus(TodoStatus.PENDING);
         // Optional flag; a plain task defaults to a general (non-project) task.
         todo.setProjectImprovement(Boolean.TRUE.equals(req.projectImprovement()));
         // If the user has declared stories, classify this new task against them:
         // file it under the story it most clearly belongs to, or leave it
-        // standalone when nothing fits. Story-tagged tasks run in chain order and
-        // are staged in NEW like any other story step, awaiting promotion.
+        // standalone when nothing fits. A story-tagged task queues (PENDING) and
+        // runs in its story's chain order.
         String text = (todo.getTitle() + " "
                 + (req.description() == null ? "" : req.description())).trim();
         classifier.classify(text).ifPresent(story -> {
-            todo.setStatus(TodoStatus.NEW);
             todo.setStoryId(story.storyId());
             todo.setStoryName(story.name());
             todo.setStoryOrder(classifier.nextOrder(
                     repository.findByStoryIdOrderByStoryOrderAsc(story.storyId())));
         });
         // If the fast keyword pass left it standalone and the smart pass is on,
-        // stage it as NEW first so the worker (which never picks up NEW) can't
-        // start it during the few seconds the background Claude classification
-        // takes. The async pass then either files it into a story (keeps it NEW,
-        // awaiting promotion) or releases it to PENDING to run standalone. Without
-        // this, the fast worker poll routinely beats classification and the task
-        // runs before it can be filed.
+        // mark it `classifying` so the worker skips it during the few seconds the
+        // background Claude classification takes. The async pass then either files
+        // it into a story or releases it to run standalone, clearing the flag
+        // either way. Without this, the fast worker poll routinely beats
+        // classification and the task runs before it can be filed.
         boolean smartPass = todo.getStoryId() == null && aiClassifier.isEnabled();
         if (smartPass) {
-            todo.setStatus(TodoStatus.NEW);
+            todo.setClassifying(true);
         }
         Todo saved = repository.save(todo);
         if (smartPass) {

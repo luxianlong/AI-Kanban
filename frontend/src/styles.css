@@ -460,17 +460,6 @@ body {
   background: transparent;
   border: none;
 }
-/* Drag-over affordance survives the borderless storied cell via an inset ring. */
-.matrix-cell.drag-over {
-  border-color: var(--brand);
-  border-style: solid;
-  background: var(--brand-100);
-}
-.matrix-cell.storied.drag-over {
-  background: var(--brand-100);
-  box-shadow: inset 0 0 0 2px var(--brand);
-  border-radius: var(--r-sm);
-}
 .matrix-empty {
   color: var(--faint);
   font-size: var(--f-md);
@@ -555,7 +544,6 @@ body {
 }
 .card-tag.project { color: var(--project-ink); background: var(--project-bg); border: 1px solid var(--project-border); }
 .card-tag.planner { color: var(--brand-ink); background: var(--brand-100); border: 1px solid var(--brand-200); }
-.card.new .card-tag.planner { display: none; }
 
 /* ---------- Story badge (on cards + drawer) ---------- */
 .story-badge {
@@ -676,13 +664,10 @@ body {
 }
 .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .card:focus-visible { outline: none; border-color: var(--brand); box-shadow: var(--focus-ring); }
-.card.new { border-left-color: var(--faint); }
 .card.pending { border-left-color: var(--todo); }
 .card.in_progress { border-left-color: var(--progress); }
 .card.resolved { border-left-color: var(--done); }
 .card.failed { border-left-color: var(--failed); }
-.card.draggable { cursor: grab; }
-.card.draggable:active { cursor: grabbing; }
 
 /* Done rows: a finished task collapses to a single slim, uniform-height line
    (check + one-line title + tiny meta) instead of a full card. This is the design
@@ -712,22 +697,6 @@ body {
   font-size: var(--f-sm); font-weight: 600; line-height: 1.3;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-/* "→ To Do" promote action, shown only on NEW cards. */
-.card-promote {
-  margin-top: var(--s-2);
-  font: inherit;
-  font-size: var(--f-xs);
-  font-weight: 700;
-  color: var(--brand-ink);
-  background: var(--brand-50);
-  border: 1px solid var(--board-line);
-  border-radius: var(--r-sm);
-  padding: var(--s-1) 10px;
-  cursor: pointer;
-  transition: background 0.14s ease, border-color 0.14s ease;
-}
-.card-promote:hover { border-color: var(--brand); background: var(--brand-100); }
 
 @keyframes cardIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
