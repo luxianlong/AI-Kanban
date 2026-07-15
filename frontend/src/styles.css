@@ -114,6 +114,15 @@ body {
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--hair);
   flex-wrap: wrap;
+  /* `backdrop-filter` makes the topbar its own stacking context, which traps the
+     notification popup's z-index inside it. Without a z-index here that context
+     paints below the board's sticky status column headers (.matrix-colhead,
+     z-index:2 in the root context), so the "Finished tasks" popup dropped down
+     UNDER the To Do / In Progress / Done headers. Lift the whole topbar above
+     those headers — but keep it below the scrim/drawer (20/21) and toasts (50)
+     so an open detail drawer still covers it. */
+  position: relative;
+  z-index: 10;
 }
 
 .brand { display: flex; align-items: center; gap: var(--s-3); }
