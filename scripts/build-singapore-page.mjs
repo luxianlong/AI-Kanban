@@ -156,6 +156,23 @@ a:hover { text-decoration: underline; }
 .content h3 { font-size: 20px; margin: 30px 0 10px; }
 .content h4 { font-size: 17px; margin: 22px 0 8px; color: var(--accent); }
 .content p { margin: 12px 0; }
+.figure {
+  margin: 22px 0;
+  text-align: center;
+}
+.figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 20px rgba(31,36,48,0.10);
+}
+.figure figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.content p img { max-width: 100%; height: auto; border-radius: 10px; }
 .content ul, .content ol { margin: 12px 0; padding-left: 24px; }
 .content li { margin: 5px 0; }
 .content li > ul, .content li > ol { margin: 5px 0; }

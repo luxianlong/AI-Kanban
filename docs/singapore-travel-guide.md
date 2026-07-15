@@ -7,6 +7,8 @@
 > 来源与查询日期。除特别说明外，全文数据采集于 **2026‑07‑15**（最近一次全篇校对亦为此日）。
 > 出行前请务必按各节“来源与时效”块中的链接**复核最新值**——尤其是机票、汇率、门票和签证政策。
 
+![新加坡中央商务区与滨海湾天际线夜景](/img/singapore/skyline.jpg "新加坡中央商务区天际线（滨海湾一带）· 摄影 Basile Morin，CC BY-SA 4.0")
+
 ---
 
 ## 目录
@@ -206,6 +208,8 @@
 
 新加坡的门面，白天看花园、晚上看灯光秀与天际线，景点高度集中、步行即可串联，是**第一天**首选。
 
+![滨海湾金沙与滨海湾夜景](/img/singapore/marina-bay-sands.jpg "滨海湾金沙酒店与滨海湾蓝调时刻 · 摄影 Basile Morin，CC BY-SA 4.0")
+
 **① 滨海湾花园 Gardens by the Bay**（半天，重头戏）
 - **擎天树丛 Supertree Grove & 户外花园**：**免费**。招牌的 **Garden Rhapsody 灯光秀**每天
   **19:45、20:45 各一场**（在擎天树丛，免费），是全新加坡最值得看的免费夜间体验之一。
@@ -214,6 +218,8 @@
 - **OCBC 空中步道 OCBC Skyway**：成人约 **S$14**；每日 9:00–21:00（末入 20:30），约 15 分钟。
 - **提示**：户外花园与灯光秀免费、双馆需购票；擎天树丛灯光约 23:30 熄灯。云雾林、OCBC Skyway
   有**不定期维护闭馆日**，行前务必查官网。
+
+![滨海湾花园云雾林 Cloud Forest 室内瀑布](/img/singapore/gardens-cloud-forest.jpg "滨海湾花园·云雾林 Cloud Forest · 摄影 Basile Morin，CC BY-SA 4.0")
 
 **② 金沙空中花园观景台 Marina Bay Sands SkyPark Observation Deck**（约 1 小时）
 - **门票**：非高峰成人约 **S$35**、高峰约 **S$39**（动态，官网现价为准）。
@@ -224,6 +230,8 @@
 **③ 鱼尾狮公园 Merlion Park**（15–30 分钟）
 - **免费、24 小时开放**。经典打照片地，可与背后的金沙、滨海湾同框。
 - **提示**：清晨人少、或傍晚亮灯后拍夜景最佳；著名的"手接鱼尾狮喷水"错位照在此拍。
+
+![鱼尾狮与滨海湾金沙同框](/img/singapore/merlion.jpg "鱼尾狮公园 Merlion Park，背景为滨海湾金沙 · 摄影 CEphoto / Uwe Aranas，CC BY-SA 3.0")
 
 **④ 艺术科学博物馆 ArtScience Museum**（选看，1–2 小时）
 - 莲花造型建筑，常设 **teamLab Future World** 数字艺术展及各类特展；整馆通票约 **S$32 起**
@@ -236,6 +244,8 @@
 ### 2.2 圣淘沙 Sentosa
 
 一座主题乐园度假岛，适合安排**一整天**，尤其亲子/情侣。景点集中在 Resorts World Sentosa（RWS）一带。
+
+![圣淘沙全景](/img/singapore/sentosa.jpg "圣淘沙 Sentosa 全景 · 摄影 Banej，CC BY-SA 4.0")
 
 **上岛方式（岛内接驳全免费）**
 - **圣淘沙捷运 Sentosa Express**：从怡丰城 VivoCity 3 楼上车，成人 **S$4**（已含上岛费），约 8 分钟。
@@ -287,6 +297,8 @@
 ### 2.4 文化街区：牛车水 / 小印度 / 甘榜格南
 
 三大历史街区**步行免费**、彼此不远，适合半天串成一条"文化+美食+出片"路线，看点是庙宇、老建筑与地道小吃。
+
+![牛车水宝塔街 Pagoda Street 骑楼老店](/img/singapore/chinatown.jpg "牛车水 Chinatown·宝塔街 Pagoda Street · 摄影 Dietmar Rabich，CC BY-SA 4.0")
 
 **① 牛车水 Chinatown**（2–3 小时）
 - **佛牙寺 Buddha Tooth Relic Temple**：唐风五层建筑，**免费**；每日约 **9:00–17:00**（官网为准）。
@@ -386,6 +398,8 @@
 ### 4.1 必吃美食清单
 
 **核心结论：以下 6 样是"到了新加坡不吃会后悔"的国民美食，多数在熟食中心即可低价吃到。**
+
+![海南鸡饭](/img/singapore/chicken-rice.jpg "新加坡海南鸡饭 Hainanese Chicken Rice · 摄影 Pauloleong2002，CC BY-SA 4.0")
 
 - **海南鸡饭 Hainanese Chicken Rice**——新加坡"准国菜"，鸡肉滑嫩配鸡油香饭。人均约 **S$5–8**
   （熟食中心）。名店：麦士威**天天海南鸡饭**、文东记。🌱素食版少见（以鸡为主）。
@@ -683,9 +697,19 @@
 - 法律罚款：[NEA—Litter & Public Cleanliness](https://www.nea.gov.sg/)、[LTA—Public Transport Rules](https://www.lta.gov.sg/)、[新加坡政府 gov.sg](https://www.gov.sg/)
 - 紧急/领保：[新加坡警察部队 SPF（999）](https://www.police.gov.sg/)、[民防部队 SCDF（995）](https://www.scdf.gov.sg/)、[中国驻新加坡使馆—领事保护](https://sg.china-embassy.gov.cn/)
 
+**图片来源与授权**：本页配图均来自 [Wikimedia Commons](https://commons.wikimedia.org/)，按各自的知识共享（Creative Commons）协议使用，版权归原作者所有：
+
+- 天际线夜景 / 滨海湾金沙 / 云雾林：摄影 [Basile Morin](https://commons.wikimedia.org/wiki/User:Basile_Morin)，CC BY-SA 4.0
+- 鱼尾狮公园：摄影 [CEphoto, Uwe Aranas](https://commons.wikimedia.org/wiki/File:Singapore_Merlion-at-Marina-Bay-02.jpg)，CC BY-SA 3.0
+- 圣淘沙全景：摄影 [Banej](https://commons.wikimedia.org/wiki/File:Panorama_of_Sentosa,_Singapore_-_March_2018.jpg)，CC BY-SA 4.0
+- 牛车水宝塔街：摄影 [Dietmar Rabich](https://commons.wikimedia.org/wiki/File:Singapore_(SG),_China_Town,_Pagoda_Street_--_2019_--_4515.jpg)，CC BY-SA 4.0
+- 海南鸡饭：摄影 [Pauloleong2002](https://commons.wikimedia.org/wiki/File:Hainanese_chicken_rice_in_Singapore.jpg)，CC BY-SA 4.0
+
 *本页由 Kanban 任务 #214（攻略地基章节）创建，为“新加坡旅游攻略”故事第 1/5 步；
 第 2 章（景点）与第 3 章（行程）由任务 #215 补写，为该故事第 2/5 步；
 第 4 章（美食与购物）由任务 #216 补写，为该故事第 3/5 步；
 第 5 章（住宿分区）与第 6 章（实用信息与出行贴士）由任务 #217 补写，为该故事第 4/5 步；
 全篇整合校对（统一体例、清理构建期标注、复核目录与内链、更新使用说明）及前端入口链接
-由任务 #218 完成，为该故事第 5/5 步（收尾）。*
+由任务 #218 完成，为该故事第 5/5 步（收尾）；
+配图（景点与美食实景照，均取自 Wikimedia Commons 的 CC 授权图片，见上「图片来源与授权」）
+由任务 #258 补入。*
