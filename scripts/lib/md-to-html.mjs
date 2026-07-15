@@ -18,6 +18,13 @@ export function esc(s) {
 function inline(text) {
   let t = esc(text)
   t = t.replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`)
+  // images: ![alt](src "optional title") — matched before links so the leading
+  // "!" isn't left dangling in front of an <a>. A lone image on its own line is
+  // promoted to a <figure> (with the title as <figcaption>) by parseBlocks.
+  t = t.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g, (_, alt, src, title) => {
+    const cap = title ? ` title="${title.replace(/"/g, '%22')}"` : ''
+    return `<img src="${src.replace(/"/g, '%22')}" alt="${alt}" loading="lazy"${cap} />`
+  })
   t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, txt, url) => {
     const internal = url.startsWith('#')
     const attrs = internal ? '' : ' target="_blank" rel="noopener noreferrer"'
@@ -155,6 +162,22 @@ function parseBlocks(lines, state, tight = false) {
     // horizontal rule
     if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) {
       out.push('<hr />')
+      i++
+      continue
+    }
+
+    // standalone image -> <figure>. A line that is only an image (optionally
+    // with a "title") renders as a centred figure; the title becomes the
+    // caption. Inline images inside a paragraph are handled by inline().
+    const img = /^\s*!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)\s*$/.exec(line)
+    if (img) {
+      const [, alt, src, title] = img
+      const cap = title
+        ? `\n<figcaption>${inline(title)}</figcaption>`
+        : ''
+      out.push(
+        `<figure class="figure"><img src="${src.replace(/"/g, '%22')}" alt="${esc(alt)}" loading="lazy" />${cap}</figure>`,
+      )
       i++
       continue
     }
