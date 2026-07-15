@@ -385,6 +385,14 @@ body {
   position: sticky;
   top: 0;
   z-index: 2;
+  /* `top: 0` parks the header at the scrollport's PADDING edge, not its border
+     edge — so the scroller's own top padding stays uncovered, and scrolled task
+     cards showed through that strip (and through the column gaps between the
+     headers) while the header sat right beside them. That's the "task
+     information overlays the status bar" bug. The band below extends each
+     header's opaque backdrop up over the padding strip and out across both
+     half-gaps, so the header row reads as one continuous bar with content
+     scrolling cleanly underneath. */
   display: flex;
   align-items: center;
   gap: var(--s-2);
@@ -393,6 +401,19 @@ body {
   border: 1px solid var(--hair);
   border-radius: var(--r-md);
 }
+.matrix-colhead::before {
+  content: '';
+  position: absolute;
+  /* Behind the header's own fill but still inside its stacking context, so it
+     covers scrolled cards without hiding the header itself. */
+  z-index: -1;
+  top: calc(var(--s-4) * -1);
+  bottom: 0;
+  left: calc(var(--s-3) / -2);
+  right: calc(var(--s-3) / -2);
+  background: var(--board);
+}
+
 .col-accent { width: 9px; height: 9px; border-radius: var(--r-xs); background: var(--faint); flex: none; }
 .matrix-colhead.pending .col-accent { background: var(--todo); }
 .matrix-colhead.in_progress .col-accent { background: var(--progress); }
