@@ -29,6 +29,10 @@ export default function App() {
   // cleared as the user opens each task. Newest first.
   const [unread, setUnread] = useState(() => loadUnread())
   const [showComposer, setShowComposer] = useState(false) // mobile: the "+" toggles the composers
+  // Count of docs the user hasn't opened yet — drives the red badge on the "Docs"
+  // link so a newly-produced report (e.g. the 美伊战争 analysis) is noticeable.
+  const [docsNew, setDocsNew] = useState(0)
+  const docIdsRef = useRef([])
 
   const refresh = useCallback(async () => {
     try {
@@ -120,6 +124,39 @@ export default function App() {
   const markAllRead = useCallback(() => setUnread([]), [])
   // Persist unread across reloads so the badge doesn't reset every refresh.
   useEffect(() => { saveUnread(unread) }, [unread])
+
+  // Load the docs manifest and flag any doc the user hasn't opened yet. We
+  // re-check when the tab regains focus so returning from the Docs page (which is
+  // a full navigation, not an SPA route) clears the badge. The manifest is a
+  // build artifact (frontend/public/docs-manifest.json) regenerated on every
+  // deploy, so it always mirrors what's actually on /docs.html.
+  useEffect(() => {
+    let cancelled = false
+    const check = async () => {
+      try {
+        const res = await fetch('/docs-manifest.json', { cache: 'no-store' })
+        if (!res.ok) return
+        const docs = await res.json()
+        if (cancelled || !Array.isArray(docs)) return
+        const ids = docs.map((d) => d && d.id).filter(Boolean)
+        docIdsRef.current = ids
+        const seen = loadDocsSeen()
+        setDocsNew(ids.filter((id) => !seen.has(id)).length)
+      } catch {
+        /* no manifest / offline — just show no badge */
+      }
+    }
+    check()
+    const onFocus = () => check()
+    window.addEventListener('focus', onFocus)
+    return () => { cancelled = true; window.removeEventListener('focus', onFocus) }
+  }, [])
+
+  // Opening Docs marks every currently-known doc as seen, clearing the badge.
+  const markDocsSeen = useCallback(() => {
+    saveDocsSeen(docIdsRef.current)
+    setDocsNew(0)
+  }, [])
 
   const prevStatusRef = useRef(null)
   useEffect(() => {
@@ -271,6 +308,8 @@ export default function App() {
         unread={unread}
         onOpenUnread={setSelectedId}
         onMarkAllRead={markAllRead}
+        docsNew={docsNew}
+        onOpenDocs={markDocsSeen}
         onAdd={isMobile ? () => setShowComposer((v) => !v) : null}
         addOpen={showComposer}
       />
@@ -396,7 +435,7 @@ function Toasts({ items, onDismiss }) {
   )
 }
 
-function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, onAdd, addOpen }) {
+function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, docsNew, onOpenDocs, onAdd, addOpen }) {
   const supported = typeof Notification !== 'undefined'
   return (
     <header className="topbar">
@@ -414,12 +453,25 @@ function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, o
           onMarkAllRead={onMarkAllRead}
         />
         <a
-          className="docs-link"
+          className={`docs-link ${docsNew > 0 ? 'has-new' : ''}`}
           href="/docs.html"
-          title="Browse reports & documents the agent produced, rendered as web pages"
+          onClick={onOpenDocs}
+          title={
+            docsNew > 0
+              ? `${docsNew} new document${docsNew > 1 ? 's' : ''} — browse reports the agent produced`
+              : 'Browse reports & documents the agent produced, rendered as web pages'
+          }
         >
           <Icon name="doc" size={16} />
           <span className="label">Docs</span>
+          {docsNew > 0 && (
+            <span
+              className="docs-badge"
+              aria-label={`${docsNew} new document${docsNew > 1 ? 's' : ''}`}
+            >
+              {docsNew > 99 ? '99+' : docsNew}
+            </span>
+          )}
         </a>
         {supported && (
           <button
@@ -1304,6 +1356,29 @@ function loadUnread() {
 function saveUnread(list) {
   try {
     localStorage.setItem(UNREAD_KEY, JSON.stringify(list))
+  } catch {
+    /* ignore — badge just won't persist */
+  }
+}
+
+// Which doc ids the user has already opened. A doc whose id isn't in this set is
+// "new" and counted by the red badge on the Docs link. Stored as a JSON string
+// array; all access is guarded (private mode / disabled storage).
+const DOCS_SEEN_KEY = 'kanban.docsSeen'
+
+function loadDocsSeen() {
+  try {
+    const raw = localStorage.getItem(DOCS_SEEN_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(arr) ? arr.filter((x) => typeof x === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function saveDocsSeen(ids) {
+  try {
+    localStorage.setItem(DOCS_SEEN_KEY, JSON.stringify([...new Set(ids)]))
   } catch {
     /* ignore — badge just won't persist */
   }
