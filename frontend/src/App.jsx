@@ -23,6 +23,12 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [notify, setNotify] = useState(() => notifyPref())
   const [toasts, setToasts] = useState([]) // in-app notifications (always shown)
+  // Unread finished tasks: every task that crossed into a terminal state (Done /
+  // Needs Attention) since the user last checked. Surfaced as a red count badge
+  // in the topbar (the notification center) so a completed task is still findable
+  // after its transient toast fades. Persisted so the badge survives reloads, and
+  // cleared as the user opens each task. Newest first.
+  const [unread, setUnread] = useState(() => loadUnread())
   const [showComposer, setShowComposer] = useState(false) // mobile: the "+" toggles the composers
 
   // Optimistic status moves the server may not have caught up to yet. Maps
@@ -126,6 +132,24 @@ export default function App() {
   const dismissToast = useCallback((key) => {
     setToasts((cur) => cur.filter((x) => x.key !== key))
   }, [])
+
+  // Add a just-finished task to the unread list (newest first, deduped by id so a
+  // task that finishes, is retried, and finishes again only shows once). We store
+  // a small snapshot (id/status/title/at) so the notification center can render
+  // without re-deriving it, and it stays correct even if the task is later moved.
+  const addUnread = useCallback((t) => {
+    setUnread((cur) => {
+      const rest = cur.filter((u) => u.id !== t.id)
+      return [{ id: t.id, status: t.status, title: t.title, at: Date.now() }, ...rest]
+    })
+  }, [])
+  const markRead = useCallback((id) => {
+    setUnread((cur) => cur.filter((u) => u.id !== id))
+  }, [])
+  const markAllRead = useCallback(() => setUnread([]), [])
+  // Persist unread across reloads so the badge doesn't reset every refresh.
+  useEffect(() => { saveUnread(unread) }, [unread])
+
   const prevStatusRef = useRef(null)
   useEffect(() => {
     const prev = prevStatusRef.current
@@ -135,13 +159,30 @@ export default function App() {
         const terminal = t.status === 'RESOLVED' || t.status === 'FAILED'
         if (terminal && before && before !== t.status) {
           pushToast(t)
+          addUnread(t)
           playChime(t.status)
           if (notifyRef.current) notifyTaskDone(t)
         }
       }
     }
     prevStatusRef.current = new Map(todos.map((t) => [t.id, t.status]))
-  }, [todos, pushToast])
+  }, [todos, pushToast, addUnread])
+
+  // Opening a task's detail counts as reading it — clear its unread mark. Covers
+  // both routes into the drawer: clicking the topbar notification list, and
+  // clicking the task's card on the board.
+  useEffect(() => {
+    if (selectedId != null) markRead(selectedId)
+  }, [selectedId, markRead])
+
+  // Drop unread entries whose task no longer exists (deleted), so a stale id can't
+  // keep the badge lit. Guarded on a non-empty board to avoid wiping the persisted
+  // list during the initial empty render before the first fetch lands.
+  useEffect(() => {
+    if (!todos.length) return
+    const live = new Set(todos.map((t) => t.id))
+    setUnread((cur) => (cur.every((u) => live.has(u.id)) ? cur : cur.filter((u) => live.has(u.id))))
+  }, [todos])
 
   async function toggleNotify() {
     if (notify) {
@@ -278,6 +319,9 @@ export default function App() {
       <Topbar
         notify={notify}
         onToggleNotify={toggleNotify}
+        unread={unread}
+        onOpenUnread={setSelectedId}
+        onMarkAllRead={markAllRead}
         onAdd={isMobile ? () => setShowComposer((v) => !v) : null}
         addOpen={showComposer}
       />
@@ -406,7 +450,7 @@ function Toasts({ items, onDismiss }) {
   )
 }
 
-function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
+function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, onAdd, addOpen }) {
   const supported = typeof Notification !== 'undefined'
   return (
     <header className="topbar">
@@ -418,6 +462,11 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
         </div>
       </div>
       <div className="status">
+        <NotificationCenter
+          unread={unread}
+          onOpen={onOpenUnread}
+          onMarkAllRead={onMarkAllRead}
+        />
         <a
           className="docs-link"
           href="/docs.html"
@@ -454,6 +503,95 @@ function Topbar({ notify, onToggleNotify, onAdd, addOpen }) {
         )}
       </div>
     </header>
+  )
+}
+
+// The topbar notification center: a bell carrying a red count badge of unread
+// finished tasks (see App's `unread`). Clicking it opens a dropdown listing those
+// tasks newest-first; clicking one opens its detail (which marks it read), and a
+// "Mark all read" clears the lot. The badge is the persistent counterpart to the
+// transient toast — a completed task stays findable here after its toast fades.
+function NotificationCenter({ unread, onOpen, onMarkAllRead }) {
+  const [open, setOpen] = useState(false)
+  const count = unread.length
+  const rootRef = useRef(null)
+
+  // Close on an outside click or Escape, like a typical menu. Only wired while
+  // open so we're not holding listeners the rest of the time.
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => { if (!rootRef.current?.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const openTask = (id) => {
+    onOpen(id)
+    setOpen(false)
+  }
+
+  return (
+    <div className="notif" ref={rootRef}>
+      <button
+        type="button"
+        className={`notif-btn ${count ? 'has-unread' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-label={count ? `${count} unread finished task${count === 1 ? '' : 's'}` : 'No unread tasks'}
+        title={count ? `${count} unread finished task${count === 1 ? '' : 's'}` : 'Finished tasks show up here'}
+      >
+        <Icon name="bell" size={16} />
+        {count > 0 && <span className="notif-badge">{count > 99 ? '99+' : count}</span>}
+      </button>
+
+      {open && (
+        <div className="notif-panel" role="menu">
+          <div className="notif-head">
+            <span className="notif-title">Finished tasks</span>
+            {count > 0 && (
+              <button type="button" className="notif-clear" onClick={onMarkAllRead}>
+                Mark all read
+              </button>
+            )}
+          </div>
+          {count === 0 ? (
+            <p className="notif-empty">You're all caught up — finished tasks will appear here.</p>
+          ) : (
+            <ul className="notif-list">
+              {unread.map((u) => {
+                const done = u.status === 'RESOLVED'
+                return (
+                  <li key={u.id}>
+                    <button
+                      type="button"
+                      className="notif-item"
+                      role="menuitem"
+                      onClick={() => openTask(u.id)}
+                    >
+                      <span className={`notif-dot ${done ? 'done' : 'fail'}`} aria-hidden="true">
+                        <Icon name={done ? 'check' : 'alert'} size={13} />
+                      </span>
+                      <span className="notif-item-body">
+                        <span className="notif-item-title">{u.title}</span>
+                        <span className="notif-item-sub">
+                          #{u.id} · {done ? 'Done' : 'Needs attention'} · {relTime(new Date(u.at).toISOString())}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -1238,6 +1376,38 @@ function storyColor(storyId) {
   let h = 0
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
   return STORY_COLORS[h % STORY_COLORS.length]
+}
+
+// Unread finished-task list persists across reloads so the topbar badge doesn't
+// reset on every refresh. Stored as a small JSON array of {id,status,title,at}.
+// All storage access is wrapped in try/catch (private mode / disabled storage).
+const UNREAD_KEY = 'kanban.unread'
+
+function loadUnread() {
+  try {
+    const raw = localStorage.getItem(UNREAD_KEY)
+    if (!raw) return []
+    const arr = JSON.parse(raw)
+    // Defend against a corrupt/old shape: keep only well-formed entries.
+    return Array.isArray(arr)
+      ? arr.filter((u) => u && typeof u.id === 'number').map((u) => ({
+          id: u.id,
+          status: u.status === 'FAILED' ? 'FAILED' : 'RESOLVED',
+          title: u.title || `Task #${u.id}`,
+          at: u.at || 0,
+        }))
+      : []
+  } catch {
+    return []
+  }
+}
+
+function saveUnread(list) {
+  try {
+    localStorage.setItem(UNREAD_KEY, JSON.stringify(list))
+  } catch {
+    /* ignore — badge just won't persist */
+  }
 }
 
 // Notification preference persists across reloads in localStorage. Wrapped in

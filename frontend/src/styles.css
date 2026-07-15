@@ -202,6 +202,99 @@ body {
 .add-toggle:hover { border-color: var(--brand); background: var(--brand-50); }
 .add-toggle.on { background: var(--brand); color: #fff; border-color: var(--brand); }
 
+/* ---------- Notification center (topbar bell + unread badge) ---------- */
+/* A bell button carrying a red round count of unread finished tasks; clicking it
+   drops a panel listing them. The persistent counterpart to the transient toast. */
+.notif { position: relative; display: inline-flex; }
+.notif-btn {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hair);
+  background: #fff; color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.notif-btn:hover { color: var(--ink); border-color: var(--faint); }
+.notif-btn.has-unread { color: var(--ink); }
+.notif-btn .icon { flex: none; }
+/* The red round icon: a small pill anchored to the bell's top-right corner. */
+.notif-badge {
+  position: absolute;
+  top: -5px; right: -5px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--failed, #e5484d);
+  color: #fff;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  border: 2px solid #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(60vh, 460px);
+  display: flex; flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  z-index: 60;
+  overflow: hidden;
+  animation: toast-in 0.16s ease-out;
+}
+.notif-head {
+  flex: none;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--hair);
+}
+.notif-title { font-size: var(--f-base); font-weight: 700; color: var(--ink); }
+.notif-clear {
+  border: none; background: none;
+  color: var(--brand); font-size: var(--f-sm); font-weight: 600;
+  cursor: pointer; padding: 2px 4px; border-radius: var(--r-xs);
+}
+.notif-clear:hover { text-decoration: underline; }
+.notif-empty {
+  margin: 0; padding: var(--s-5) var(--s-4);
+  color: var(--muted); font-size: var(--f-sm); text-align: center;
+}
+.notif-list {
+  list-style: none; margin: 0; padding: var(--s-1);
+  overflow-y: auto;
+}
+.notif-item {
+  width: 100%;
+  display: flex; align-items: flex-start; gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border: none; background: none; text-align: left;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.notif-item:hover { background: var(--col); }
+.notif-dot {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; margin-top: 1px;
+  border-radius: var(--r-pill);
+}
+.notif-dot.done { background: var(--done-bg); color: var(--done-ink); }
+.notif-dot.fail { background: var(--fail-bg); color: var(--fail-ink); }
+.notif-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.notif-item-title {
+  font-size: var(--f-sm); font-weight: 600; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.notif-item-sub { margin-top: 1px; font-size: var(--f-xs); color: var(--muted); }
+
 /* ---------- Board toolbar (task + story composers) ---------- */
 .board-toolbar {
   display: flex;
@@ -1029,9 +1122,11 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   .tagline { display: none; }
   .status { gap: var(--s-2); }
 
-  /* Notify + Docs collapse to icon-only circles matching the "+" button. */
+  /* Notify + Docs collapse to icon-only circles matching the "+" button; the
+     notification bell grows to the same comfortable tap target. */
   .notify-toggle, .docs-link { padding: 0; width: var(--tap); height: var(--tap); justify-content: center; gap: 0; }
   .notify-toggle .label, .docs-link .label { display: none; }
+  .notif-btn { width: var(--tap); height: var(--tap); }
 
   .board-toolbar { padding: var(--s-3) var(--s-4) var(--s-1); gap: var(--s-2); }
   .board-toolbar .composer { flex-basis: 100%; min-width: 0; }
