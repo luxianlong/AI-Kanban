@@ -295,7 +295,7 @@ export default function App() {
 
       {(!isMobile || showComposer) && (
         <div className="board-toolbar">
-          <Composer onCreate={createTodo} onAttach={attachToStory} />
+          <Composer onCreate={createTodo} onAttach={attachToStory} stories={storyList} />
           <StoryComposer onCreateStory={createStory} />
         </div>
       )}
@@ -707,7 +707,7 @@ function useIsMobile(query = '(max-width: 720px)') {
   return match
 }
 
-function Composer({ onCreate, onAttach }) {
+function Composer({ onCreate, onAttach, stories = [] }) {
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [open, setOpen] = useState(false)
@@ -718,6 +718,12 @@ function Composer({ onCreate, onAttach }) {
   // Existing stories this task looks related to (top match first), so we can
   // offer to attach it to an existing chain instead of starting a fresh one.
   const [related, setRelated] = useState([])
+  // Which story this task will be filed under, or null to start its own chain.
+  // The "Looks related to" chips are only a *suggestion*: picking one just sets
+  // this, it doesn't commit. The user can freely change the choice — click a
+  // different chip, pick any story from the dropdown, or clear it — right up
+  // until they press the submit button. This is the "change it manually" fix.
+  const [storyId, setStoryId] = useState(null)
 
   // As the user types, ask the server which existing stories the task looks
   // related to. Debounced so we don't fire on every keystroke, and skipped
@@ -743,30 +749,26 @@ function Composer({ onCreate, onAttach }) {
     setTitle('')
     setDesc('')
     setRelated([])
+    setStoryId(null)
     setProjectImprovement(false)
     setOpen(false)
   }
 
+  // One submit path: if a story is chosen (via a suggestion chip or the manual
+  // dropdown) attach the task there as the next step; otherwise file it as a
+  // standalone task. The story choice is decided here, at submit time, so it can
+  // be changed as often as the user likes beforehand.
   async function submit(e) {
     e.preventDefault()
     const t = title.trim()
     if (!t || busy) return
     setBusy(true)
     try {
-      await onCreate(t, desc.trim(), projectImprovement)
-      clear()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  // Attach the drafted task to an existing story as its next step.
-  async function attach(story) {
-    const t = title.trim()
-    if (!t || busy || !onAttach) return
-    setBusy(true)
-    try {
-      await onAttach(story.storyId, t, desc.trim())
+      if (storyId && onAttach) {
+        await onAttach(storyId, t, desc.trim())
+      } else {
+        await onCreate(t, desc.trim(), projectImprovement)
+      }
       clear()
     } finally {
       setBusy(false)
@@ -792,34 +794,60 @@ function Composer({ onCreate, onAttach }) {
             onChange={(e) => setDesc(e.target.value)}
             rows={3}
           />
-          {onAttach && related.length > 0 && (
+          {onAttach && (related.length > 0 || stories.length > 0) && (
             <div className="composer-related">
-              <span className="composer-related-label">Looks related to:</span>
+              <span className="composer-related-label">
+                {related.length > 0 ? 'Looks related to:' : 'Attach to a story:'}
+              </span>
               {related.map((s) => (
                 <button
                   key={s.storyId}
                   type="button"
-                  className="composer-related-chip"
+                  className={`composer-related-chip${storyId === s.storyId ? ' selected' : ''}`}
                   disabled={busy}
-                  onClick={() => attach(s)}
-                  title={`Add this task as the next step of "${s.name}"`}
+                  aria-pressed={storyId === s.storyId}
+                  onClick={() => setStoryId((cur) => (cur === s.storyId ? null : s.storyId))}
+                  title={
+                    storyId === s.storyId
+                      ? `Don't attach to "${s.name}" — click to unpick`
+                      : `Attach this task as the next step of "${s.name}"`
+                  }
                 >
                   <Icon name="story" size={12} /> {s.name}
                 </button>
               ))}
+              {stories.length > 0 && (
+                <select
+                  className="composer-related-select"
+                  value={storyId || ''}
+                  disabled={busy}
+                  onChange={(e) => setStoryId(e.target.value || null)}
+                  aria-label="Attach this task to a story"
+                  title="Manually pick the story to attach this task to"
+                >
+                  <option value="">No story (standalone)</option>
+                  {stories.map((s) => (
+                    <option key={s.storyId} value={s.storyId}>{s.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
-          <label className="composer-flag" title="Mark this task as one that improves the Kanban project itself (its code, docs, tests). Off = a general task.">
-            <input
-              type="checkbox"
-              checked={projectImprovement}
-              onChange={(e) => setProjectImprovement(e.target.checked)}
-            />
-            Improves this Kanban project itself
-          </label>
+          {!storyId && (
+            <label className="composer-flag" title="Mark this task as one that improves the Kanban project itself (its code, docs, tests). Off = a general task.">
+              <input
+                type="checkbox"
+                checked={projectImprovement}
+                onChange={(e) => setProjectImprovement(e.target.checked)}
+              />
+              Improves this Kanban project itself
+            </label>
+          )}
           <div className="composer-actions">
             <button type="submit" className="btn primary" disabled={!title.trim() || busy}>
-              {busy ? 'Adding…' : 'Add task'}
+              {busy
+                ? (storyId ? 'Attaching…' : 'Adding…')
+                : (storyId ? 'Add to story' : 'Add task')}
             </button>
             <button
               type="button"
