@@ -175,7 +175,7 @@ public class ClaudeWorkerService {
         log.warn("Failed todo #{}: {}", todo.getId(), message.lines().findFirst().orElse(""));
     }
 
-    private String buildPrompt(Todo todo) {
+    String buildPrompt(Todo todo) {
         if (todo.isStoryPlanner()) {
             return buildPlannerPrompt(todo);
         }
@@ -186,8 +186,21 @@ public class ClaudeWorkerService {
         sb.append("and any result or answer the user needs.\n");
         sb.append("If the task genuinely cannot be completed, end your reply with a line containing ")
                 .append("exactly ").append(FAIL_SENTINEL).append(" followed by a brief reason.\n");
-        sb.append("If this project has a CLAUDE.md, follow it — it explains how to make changes ")
-                .append("to this project and how to file follow-up tasks.\n\n");
+        if (todo.isProjectImprovement()) {
+            sb.append("If this project has a CLAUDE.md, follow it — it explains how to make changes ")
+                    .append("to this project and how to file follow-up tasks.\n\n");
+        } else {
+            // General task: it is NOT about improving this Kanban app itself, so it must
+            // not touch the repo or restart the running website. Only project-improvement
+            // tasks change code and go through the guarded deploy (which restarts the
+            // backend). Rebuilding/restarting for a general task is needless churn.
+            sb.append("This is a GENERAL task — it is NOT about improving this Kanban project itself. ")
+                    .append("Do NOT modify this repository's code, do NOT run scripts/deploy.sh, and do NOT ")
+                    .append("restart the website or its backend. There is no need to rebuild or redeploy the ")
+                    .append("app for this task. Just do the work the task asks for (using any tools/skills as ")
+                    .append("needed) and reply with the result. You may read files, including CLAUDE.md, for ")
+                    .append("context.\n\n");
+        }
         appendStoryContext(sb, todo);
         sb.append("TODO TITLE: ").append(todo.getTitle()).append('\n');
         if (todo.getDescription() != null && !todo.getDescription().isBlank()) {
