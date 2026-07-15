@@ -22,8 +22,25 @@
   --source-line: #3f9e78;
   --maxw: 1180px;
 }
+html[data-theme="dark"] {
+  --bg: #12151c;
+  --card: #1b1f29;
+  --ink: #e6e9f0;
+  --muted: #9aa4b4;
+  --line: #2b3140;
+  --accent: #ef6b7e;
+  --accent-soft: #2a1e24;
+  --link: #6ea8fe;
+  --source-bg: #17241f;
+  --source-line: #4bb98d;
+}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body, .toc, .content, .backtop, th, td, blockquote.quote { transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
+html[data-theme="dark"] .figure img,
+html[data-theme="dark"] .content p img { filter: brightness(0.88); }
+html[data-theme="dark"] thead th { color: var(--ink); }
 body {
   margin: 0;
   background: var(--bg);
@@ -36,6 +53,7 @@ a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .hero {
+  position: relative;
   background: linear-gradient(135deg, #d1495b 0%, #e07a5f 55%, #f2a65a 100%);
   color: #fff;
   padding: 56px 24px 48px;
@@ -90,6 +108,12 @@ a:hover { text-decoration: underline; }
 .toc li a:hover { background: var(--accent-soft); text-decoration: none; }
 .toc li.lv2 a { font-weight: 600; margin-top: 6px; }
 .toc li.lv3 a { padding-left: 20px; color: var(--muted); font-size: 13px; }
+.toc li a.active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
 
 .content {
   background: var(--card);
@@ -123,7 +147,10 @@ a:hover { text-decoration: underline; }
   border-radius: 12px;
   border: 1px solid var(--line);
   box-shadow: 0 6px 20px rgba(31,36,48,0.10);
+  cursor: zoom-in;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+.figure img:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(31,36,48,0.18); }
 .figure figcaption {
   margin-top: 8px;
   font-size: 13px;
@@ -205,6 +232,82 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 }
 .backtop.show { opacity: 1; pointer-events: auto; }
 
+/* Reading progress bar (fixed at very top) */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #d1495b, #f2a65a);
+  z-index: 60;
+  transition: width 0.05s linear;
+}
+
+/* Dark-mode toggle button (top-right of hero) */
+.theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.28); }
+
+/* Image lightbox overlay */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,12,16,0.86);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 100;
+  padding: 24px;
+  cursor: zoom-out;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.lightbox.open { display: flex; opacity: 1; }
+.lightbox img {
+  max-width: 92vw;
+  max-height: 82vh;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+.lightbox figcaption {
+  color: #e6e9f0;
+  font-size: 14px;
+  margin-top: 14px;
+  max-width: 760px;
+  text-align: center;
+  line-height: 1.6;
+}
+.lightbox .lb-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+.lightbox .lb-close:hover { background: rgba(255,255,255,0.3); }
+
 .mobile-toc-toggle { display: none; }
 
 @media (max-width: 900px) {
@@ -231,7 +334,9 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 </style>
 </head>
 <body>
+<div class="progress-bar" id="progressBar"></div>
 <header class="hero">
+<button class="theme-toggle" id="themeToggle" aria-label="切换深色/浅色模式" title="切换深色/浅色模式">🌙</button>
 <h1>新加坡旅游攻略</h1>
 <p>面向中国大陆公民的一份完整自由行攻略 · 行前基础 · 景点玩乐 · 行程路线 · 美食购物 · 住宿分区 · 实用贴士</p>
 </header>
@@ -408,6 +513,8 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 <blockquote class="quote source"><p>中国领事服务网“签证入境—新加坡”（外交部）；roafly《新加坡<br />机场海关规则 2026》；多篇 SGAC 填写教程（均采集于 2026‑07‑15）。<strong>以新加坡移民局<br />ICA 官网（ica.gov.sg）公布的最新规定为准。</strong></p></blockquote>
 <h3 id="16-当地交通">1.6 当地交通<a class="anchor" href="#16-当地交通" aria-label="链接到本节">#</a></h3>
 <p>新加坡公共交通发达、便宜、准点，绝大多数景点地铁可达。</p>
+<figure class="figure"><img src="/img/singapore/jewel-changi.jpg" alt="星耀樟宜 Jewel 雨漩涡室内瀑布" loading="lazy" />
+<figcaption>星耀樟宜 Jewel·雨漩涡 Rain Vortex——全球最高室内瀑布，就在樟宜机场，落地即可打卡 · 摄影 kallerna，CC BY-SA 4.0</figcaption></figure>
 <p><strong>A. 樟宜机场往返市区</strong></p>
 <div class="table-wrap"><table>
 <thead><tr><th>方式</th><th>参考费用</th><th>时长/说明</th></tr></thead>
@@ -446,6 +553,8 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 <li><strong>OCBC 空中步道 OCBC Skyway</strong>：成人约 <strong>S$14</strong>；每日 9:00–21:00（末入 20:30），约 15 分钟。</li>
 <li><strong>提示</strong>：户外花园与灯光秀免费、双馆需购票；擎天树丛灯光约 23:30 熄灯。云雾林、OCBC Skyway<br />有<strong>不定期维护闭馆日</strong>，行前务必查官网。</li>
 </ul>
+<figure class="figure"><img src="/img/singapore/supertrees.jpg" alt="滨海湾花园擎天树丛夜景" loading="lazy" />
+<figcaption>滨海湾花园·擎天树丛 Supertree Grove 夜景——每晚 19:45 / 20:45 的 Garden Rhapsody 灯光秀在此免费上演 · 摄影 Dietmar Rabich，CC BY-SA 4.0</figcaption></figure>
 <figure class="figure"><img src="/img/singapore/gardens-cloud-forest.jpg" alt="滨海湾花园云雾林 Cloud Forest 室内瀑布" loading="lazy" />
 <figcaption>滨海湾花园·云雾林 Cloud Forest · 摄影 Basile Morin，CC BY-SA 4.0</figcaption></figure>
 <p><strong>② 金沙空中花园观景台 Marina Bay Sands SkyPark Observation Deck</strong>（约 1 小时）</p>
@@ -485,6 +594,8 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 <li><strong>新看点</strong>：<strong>小黄人乐园 Minion Land</strong> 已于 2025 年 2 月开幕，正常运营。</li>
 <li><strong>提示</strong>：官网有"环球影城 + 新加坡海洋馆"两园套票（旺季成人约 S$144），两个都想去更划算。</li>
 </ul>
+<figure class="figure"><img src="/img/singapore/universal-studios.jpg" alt="新加坡环球影城标志性旋转地球" loading="lazy" />
+<figcaption>新加坡环球影城 Universal Studios Singapore 入口的旋转地球标志 · 摄影 Cempaka Source，CC BY-SA 3.0</figcaption></figure>
 <p><strong>② 新加坡海洋馆 Singapore Oceanarium</strong>（2–3 小时）</p>
 <ul>
 <li>⚠ <strong>重要变更</strong>：原 <strong>S.E.A. Aquarium 已重建并更名为「新加坡海洋馆 Singapore Oceanarium」</strong>，<br />面积扩大至约 3 倍、22 个展区、10 万+ 海洋生物。旧攻略里的"S.E.A. 海洋馆 S$44"名称与票价均已过时。</li>
@@ -494,6 +605,8 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 <blockquote class="quote source"><p>Resorts World Sentosa 官网票务页、Sentosa 官网（Singapore Oceanarium 页直接读取、<br />Sentosa Express / getting-to-sentosa 页，均采集于 2026‑07‑15）。USS 一日票与 Express Pass 为<br /><strong>动态定价，仅为区间参考</strong>，请按出行日官网现价购买。</p></blockquote>
 <h3 id="23-mandai-动物园群含夜间动物园">2.3 Mandai 动物园群（含夜间动物园）<a class="anchor" href="#23-mandai-动物园群含夜间动物园" aria-label="链接到本节">#</a></h3>
 <p>新加坡北部的 <strong>Mandai 野生动物保护区</strong>是全球顶级动物园群，四园相邻，<strong>建议半天到一天</strong>，<br />尤其推荐<strong>傍晚接着看夜间动物园</strong>这一独特体验。</p>
+<figure class="figure"><img src="/img/singapore/panda.jpg" alt="河川生态园的大熊猫" loading="lazy" />
+<figcaption>河川生态园 River Wonders 的大熊猫——Mandai 动物园群明星之一 · 摄影 Michael Gwyther-Jones，CC BY 2.0</figcaption></figure>
 <div class="table-wrap"><table>
 <thead><tr><th>园区</th><th>成人票（非居民）</th><th>开放时间</th><th>建议时长</th></tr></thead>
 <tbody>
@@ -527,15 +640,23 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 <li><strong>慕达发中心 Mustafa Centre</strong>：<strong>24 小时</strong>营业的杂货购物城（电子/香料/香水），可作最后一站。</li>
 <li><strong>提示</strong>：傍晚色彩与灯光更佳。</li>
 </ul>
+<figure class="figure"><img src="/img/singapore/little-india.jpg" alt="小印度陈东岭故居彩色别墅" loading="lazy" />
+<figcaption>小印度·陈东岭故居 House of Tan Teng Niah——小印度最出片的彩色别墅 · 摄影 Rosanazareth，CC BY-SA 4.0</figcaption></figure>
 <p><strong>③ 甘榜格南 Kampong Glam</strong>（2–3 小时）</p>
 <ul>
 <li><strong>苏丹回教堂 Sultan Mosque</strong>：金顶地标，<strong>免费</strong>。<strong>非穆斯林参观时间</strong>约：周六–周四<br />10:00–12:00、14:00–16:00；<strong>周五仅 14:30–16:00</strong>（避开礼拜）。入口免费提供长袍，需遮肩盖膝、脱鞋。</li>
 <li><strong>哈芝巷 Haji Lane</strong>：彩色壁画、独立小店与咖啡馆，全区最出片；<strong>阿拉伯街 Arab Street</strong> 卖布料、<br />地毯、香水与中东餐。</li>
 <li><strong>提示</strong>：把清真寺安排在其开放窗口内（尤其周五仅下午）；傍晚 Haji Lane 氛围最好。</li>
 </ul>
+<figure class="figure"><img src="/img/singapore/sultan-mosque.jpg" alt="甘榜格南苏丹回教堂金顶" loading="lazy" />
+<figcaption>甘榜格南·苏丹回教堂 Sultan Mosque 金顶地标 · 摄影 Marcin Konsek，CC BY-SA 4.0</figcaption></figure>
+<figure class="figure"><img src="/img/singapore/haji-lane.jpg" alt="哈芝巷彩色壁画与小店" loading="lazy" />
+<figcaption>甘榜格南·哈芝巷 Haji Lane——彩色壁画、独立小店与咖啡馆，全区最出片 · 摄影 Moheen Reeyad，CC BY-SA 4.0</figcaption></figure>
 <blockquote class="quote source"><p>Chinatown.sg 官方页、VisitSingapore 官方街区页、各庙宇与街区聚合资料<br />（均采集于 2026‑07‑15）。庙宇开放时间<strong>各来源略有出入且遇宗教节日会临时调整</strong>，<br />出行前请以官方/现场公告为准。</p></blockquote>
 <h3 id="25-乌节路购物带-orchard-road">2.5 乌节路购物带 Orchard Road<a class="anchor" href="#25-乌节路购物带-orchard-road" aria-label="链接到本节">#</a></h3>
 <p>新加坡的购物主轴，约 2.2 公里、18+ 家商场，适合<strong>半天</strong>逛街或作为雨天/夜晚的机动安排。</p>
+<figure class="figure"><img src="/img/singapore/orchard-road.jpg" alt="乌节路商场夜景" loading="lazy" />
+<figcaption>乌节路 Orchard Road 入夜后的商场灯火 · 摄影 Karl Baron，CC BY 2.0</figcaption></figure>
 <ul>
 <li><strong>看点</strong>：<strong>ION Orchard</strong>（Orchard 地铁站正上方，56 层有 ION Sky 观景台）、Paragon、<br />Ngee Ann City 高档商场；Lucky Plaza 平价；<strong>翡翠山 Emerald Hill</strong> 老排屋值得一看。</li>
 <li><strong>营业时间</strong>：商场多为每日约 <strong>10:00–22:00</strong>。<strong>建议时长 2–4 小时。</strong></li>
@@ -599,9 +720,13 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 <li><strong>咖椰吐司 Kaya Toast + 半熟蛋 + 南洋咖啡</strong>——经典早餐组合，烤面包夹咖椰酱与牛油。整套约 <strong>S$5–7</strong>。<br />连锁：亚坤 Ya Kun、土司工坊 Toast Box。🌱素食友好（蛋奶素可）。</li>
 <li><strong>其他值得一试</strong>：福建炒虾面 Hokkien Mee、罗惹 Rojak、印度煎饼 <strong>Roti Prata</strong>（✅🌱清真+素食皆有）、<br />椰浆饭 Nasi Lemak（✅）、辣死你妈 / 鱼头咖喱、珍多冰 Chendol（🌱甜品）。</li>
 </ul>
+<figure class="figure"><img src="/img/singapore/chilli-crab.jpg" alt="辣椒螃蟹" loading="lazy" />
+<figcaption>新加坡招牌大菜·辣椒螃蟹 Chilli Crab，酱汁配小馒头蘸食 · 摄影 Dekcuf，CC BY-SA 2.0</figcaption></figure>
 <blockquote class="quote source"><p>菜品与名店参考 VisitSingapore 官方美食页与主流攻略，价位为熟食中心/餐厅<strong>人均参考区间</strong><br />（采集于 2026‑07‑15）。海鲜按时价论斤、餐厅定价浮动较大，<strong>以当日菜单为准</strong>。</p></blockquote>
 <h3 id="42-熟食中心hawker-centre与人均价位">4.2 熟食中心（Hawker Centre）与人均价位<a class="anchor" href="#42-熟食中心hawker-centre与人均价位" aria-label="链接到本节">#</a></h3>
 <p><strong>核心结论：熟食中心是体验本地美食性价比最高的方式，单碟菜约 S$4–8、一餐人均约 S$6–12。</strong><br />新加坡小贩文化已列入 <strong>UNESCO 非物质文化遗产</strong>，卫生分级（A/B/C）张贴在摊位上，可放心就餐。</p>
+<figure class="figure"><img src="/img/singapore/lau-pa-sat.jpg" alt="老巴刹熟食中心" loading="lazy" />
+<figcaption>老巴刹 Lau Pa Sat——1894 年维多利亚铸铁建筑改成的熟食中心，傍晚沙爹街最热闹 · 摄影 GoAheadFan95，CC BY-SA 4.0</figcaption></figure>
 <div class="table-wrap"><table>
 <thead><tr><th>熟食中心</th><th>位置</th><th>招牌</th><th>人均</th><th>备注</th></tr></thead>
 <tbody>
@@ -838,24 +963,131 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 <li>天际线夜景 / 滨海湾金沙 / 云雾林：摄影 <a href="https://commons.wikimedia.org/wiki/User:Basile_Morin" target="_blank" rel="noopener noreferrer">Basile Morin</a>，CC BY-SA 4.0</li>
 <li>鱼尾狮公园：摄影 <a href="https://commons.wikimedia.org/wiki/File:Singapore_Merlion-at-Marina-Bay-02.jpg" target="_blank" rel="noopener noreferrer">CEphoto, Uwe Aranas</a>，CC BY-SA 3.0</li>
 <li>圣淘沙全景：摄影 <a href="https://commons.wikimedia.org/wiki/File:Panorama_of_Sentosa,_Singapore_-_March_2018.jpg" target="_blank" rel="noopener noreferrer">Banej</a>，CC BY-SA 4.0</li>
-<li>牛车水宝塔街：摄影 <a href="https://commons.wikimedia.org/wiki/File:Singapore_(SG" target="_blank" rel="noopener noreferrer">Dietmar Rabich</a>,_China_Town,_Pagoda_Street_--_2019_--_4515.jpg)，CC BY-SA 4.0</li>
+<li>牛车水宝塔街 / 擎天树丛夜景：摄影 <a href="https://commons.wikimedia.org/wiki/User:Dietmar_Rabich" target="_blank" rel="noopener noreferrer">Dietmar Rabich</a>，CC BY-SA 4.0</li>
 <li>海南鸡饭：摄影 <a href="https://commons.wikimedia.org/wiki/File:Hainanese_chicken_rice_in_Singapore.jpg" target="_blank" rel="noopener noreferrer">Pauloleong2002</a>，CC BY-SA 4.0</li>
+<li>星耀樟宜·雨漩涡：摄影 <a href="https://commons.wikimedia.org/wiki/File:Rain_Vortex_Jewel_Changi_Airport.jpg" target="_blank" rel="noopener noreferrer">kallerna</a>，CC BY-SA 4.0</li>
+<li>环球影城地球标志：摄影 <a href="https://commons.wikimedia.org/wiki/File:Universal_Studios_Singapaore.JPG" target="_blank" rel="noopener noreferrer">Cempaka Source</a>，CC BY-SA 3.0</li>
+<li>河川生态园大熊猫：摄影 <a href="https://commons.wikimedia.org/wiki/File:Giant_Panda_at_Singapore_River_Safari.jpg" target="_blank" rel="noopener noreferrer">Michael Gwyther-Jones</a>，CC BY 2.0</li>
+<li>小印度·陈东岭故居：摄影 <a href="https://commons.wikimedia.org/wiki/File:HouseOfTanTengNiah.jpg" target="_blank" rel="noopener noreferrer">Rosanazareth</a>，CC BY-SA 4.0</li>
+<li>甘榜格南·苏丹回教堂：摄影 <a href="https://commons.wikimedia.org/wiki/File:2016_Singapur,_Kampong_Glam,_Meczet_Sułtana_%2809%29.jpg" target="_blank" rel="noopener noreferrer">Marcin Konsek</a>，CC BY-SA 4.0</li>
+<li>甘榜格南·哈芝巷：摄影 <a href="https://commons.wikimedia.org/wiki/File:Haji_Lane,_Kampong_Glam_%2802%29.jpg" target="_blank" rel="noopener noreferrer">Moheen Reeyad</a>，CC BY-SA 4.0</li>
+<li>乌节路夜景：摄影 <a href="https://commons.wikimedia.org/wiki/File:Orchard_Road_at_night,_2011.jpg" target="_blank" rel="noopener noreferrer">Karl Baron</a>，CC BY 2.0</li>
+<li>辣椒螃蟹：摄影 <a href="https://commons.wikimedia.org/wiki/File:Chilli_crab-01.jpg" target="_blank" rel="noopener noreferrer">Dekcuf</a>，CC BY-SA 2.0</li>
+<li>老巴刹熟食中心：摄影 <a href="https://commons.wikimedia.org/wiki/File:Lau_Pa_Sat_%28Former_Telok_Ayer_Market%29,_October_2024.jpg" target="_blank" rel="noopener noreferrer">GoAheadFan95</a>，CC BY-SA 4.0</li>
 </ul>
-<p>*本页由 Kanban 任务 #214（攻略地基章节）创建，为“新加坡旅游攻略”故事第 1/5 步；<br />第 2 章（景点）与第 3 章（行程）由任务 #215 补写，为该故事第 2/5 步；<br />第 4 章（美食与购物）由任务 #216 补写，为该故事第 3/5 步；<br />第 5 章（住宿分区）与第 6 章（实用信息与出行贴士）由任务 #217 补写，为该故事第 4/5 步；<br />全篇整合校对（统一体例、清理构建期标注、复核目录与内链、更新使用说明）及前端入口链接<br />由任务 #218 完成，为该故事第 5/5 步（收尾）；<br />配图（景点与美食实景照，均取自 Wikimedia Commons 的 CC 授权图片，见上「图片来源与授权」）<br />由任务 #258 补入。*</p>
+<p>*本页由 Kanban 任务 #214（攻略地基章节）创建，为“新加坡旅游攻略”故事第 1/5 步；<br />第 2 章（景点）与第 3 章（行程）由任务 #215 补写，为该故事第 2/5 步；<br />第 4 章（美食与购物）由任务 #216 补写，为该故事第 3/5 步；<br />第 5 章（住宿分区）与第 6 章（实用信息与出行贴士）由任务 #217 补写，为该故事第 4/5 步；<br />全篇整合校对（统一体例、清理构建期标注、复核目录与内链、更新使用说明）及前端入口链接<br />由任务 #218 完成，为该故事第 5/5 步（收尾）；<br />配图（景点与美食实景照，均取自 Wikimedia Commons 的 CC 授权图片，见上「图片来源与授权」）<br />由任务 #258 补入；任务 #262 又新增 10 张配图（星耀樟宜、擎天树丛、环球影城、大熊猫、小印度、<br />苏丹回教堂、哈芝巷、乌节路、辣椒螃蟹、老巴刹）并为网页加入图片灯箱、目录滚动高亮、阅读进度条与深色模式等交互，<br />为“新加坡旅游攻略”故事第 8 步。*</p>
 </main>
 </div>
 
 <button class="backtop" aria-label="回到顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lb-close" aria-label="关闭" id="lbClose">×</button>
+  <img id="lbImg" alt="" />
+  <figcaption id="lbCap"></figcaption>
+</div>
+
 <script>
+  // --- Back-to-top button + reading progress bar ---
   var bt = document.querySelector('.backtop');
-  window.addEventListener('scroll', function () {
-    if (window.scrollY > 400) bt.classList.add('show');
-    else bt.classList.remove('show');
-  });
+  var pb = document.getElementById('progressBar');
+  function onScroll() {
+    var y = window.scrollY;
+    if (y > 400) bt.classList.add('show'); else bt.classList.remove('show');
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    pb.style.width = (h > 0 ? (y / h) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
   // On small screens the TOC starts collapsed.
   if (window.matchMedia('(max-width: 900px)').matches) {
     document.querySelector('.toc').classList.add('collapsed');
   }
+
+  // --- Dark mode toggle (persisted, respects OS preference on first visit) ---
+  var root = document.documentElement;
+  var toggle = document.getElementById('themeToggle');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('sg-theme'); } catch (e) {}
+  if (!saved) saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  applyTheme(saved);
+  toggle.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('sg-theme', next); } catch (e) {}
+  });
+
+  // --- TOC scroll-spy: highlight the section currently in view ---
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var linkById = {};
+  tocLinks.forEach(function (a) { linkById[decodeURIComponent(a.hash.slice(1))] = a; });
+  var headings = tocLinks
+    .map(function (a) { return document.getElementById(decodeURIComponent(a.hash.slice(1))); })
+    .filter(Boolean);
+  var current = null;
+  function setActive(id) {
+    if (id === current) return;
+    if (current && linkById[current]) linkById[current].classList.remove('active');
+    current = id;
+    var link = linkById[id];
+    if (link) {
+      link.classList.add('active');
+      // keep the active item visible inside a scrollable sidebar
+      if (link.scrollIntoView) link.scrollIntoView({ block: 'nearest' });
+    }
+  }
+  if ('IntersectionObserver' in window && headings.length) {
+    var visible = new Set();
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) visible.add(en.target); else visible.delete(en.target);
+      });
+      // pick the topmost heading still on screen
+      var best = null, bestTop = Infinity;
+      visible.forEach(function (el) {
+        var top = el.getBoundingClientRect().top;
+        if (top < bestTop) { bestTop = top; best = el; }
+      });
+      if (best) setActive(best.id);
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    headings.forEach(function (h) { spy.observe(h); });
+  }
+
+  // --- Image lightbox: click any figure image to view it enlarged ---
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lbImg');
+  var lbCap = document.getElementById('lbCap');
+  function openLightbox(img) {
+    lbImg.src = img.currentSrc || img.src;
+    lbImg.alt = img.alt || '';
+    var fig = img.closest('figure');
+    var cap = fig ? fig.querySelector('figcaption') : null;
+    lbCap.textContent = cap ? cap.textContent : (img.alt || '');
+    lb.classList.add('open');
+    lb.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    lb.classList.remove('open');
+    lb.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+  document.querySelectorAll('.figure img, .content p img').forEach(function (img) {
+    img.style.cursor = 'zoom-in';
+    img.addEventListener('click', function () { openLightbox(img); });
+  });
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb || e.target.id === 'lbClose') closeLightbox();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lb.classList.contains('open')) closeLightbox();
+  });
 </script>
 </body>
 </html>

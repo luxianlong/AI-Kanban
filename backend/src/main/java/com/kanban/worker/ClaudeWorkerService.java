@@ -205,16 +205,24 @@ public class ClaudeWorkerService {
             sb.append("If this project has a CLAUDE.md, follow it — it explains how to make changes ")
                     .append("to this project and how to file follow-up tasks.\n\n");
         } else {
-            // General task: it is NOT about improving this Kanban app itself, so it must
-            // not touch the repo or restart the running website. Only project-improvement
-            // tasks change code and go through the guarded deploy (which restarts the
-            // backend). Rebuilding/restarting for a general task is needless churn.
+            // General task: it is NOT about improving this Kanban app itself. It MAY
+            // create/change the RESOURCES it produces — result pages, docs, research
+            // artifacts, data files, images (e.g. under docs/, research/,
+            // frontend/public/) — so the work is persisted and reachable. But it must
+            // NOT change the Kanban's OWN CODE (backend, frontend source, build scripts,
+            // config), and it must NOT deploy or restart the running website. Only
+            // project-improvement tasks change app code and go through the guarded
+            // deploy (which restarts the backend); doing so for a general task is
+            // needless churn.
             sb.append("This is a GENERAL task — it is NOT about improving this Kanban project itself. ")
-                    .append("Do NOT modify this repository's code, do NOT run scripts/deploy.sh, and do NOT ")
-                    .append("restart the website or its backend. There is no need to rebuild or redeploy the ")
-                    .append("app for this task. Just do the work the task asks for (using any tools/skills as ")
-                    .append("needed) and reply with the result. You may read files, including CLAUDE.md, for ")
-                    .append("context.\n\n");
+                    .append("You MAY create or change RESOURCE/output files that this task produces — for ")
+                    .append("example result pages, documents, research artifacts, data files or images (e.g. ")
+                    .append("under docs/, research/ or frontend/public/) — so your work is saved and reachable. ")
+                    .append("But do NOT modify the Kanban application's OWN CODE (its backend, frontend source, ")
+                    .append("build scripts or config), do NOT run scripts/deploy.sh, and do NOT rebuild or ")
+                    .append("restart the website or its backend. There is no need to redeploy the app for this ")
+                    .append("task. Just do the work the task asks for (using any tools/skills as needed) and ")
+                    .append("reply with the result. You may read files, including CLAUDE.md, for context.\n\n");
         }
         appendStoryContext(sb, todo);
         sb.append("TODO TITLE: ").append(todo.getTitle()).append('\n');

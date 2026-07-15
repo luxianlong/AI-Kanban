@@ -36,6 +36,17 @@ class ClaudeWorkerServiceTest {
     }
 
     @Test
+    void generalTaskMayChangeResourcesButNotKanbanCode() {
+        String prompt = service.buildPrompt(task("Write a travel guide page", false));
+
+        // It is explicitly allowed to produce/change its resource/output files...
+        assertThat(prompt).contains("RESOURCE");
+        assertThat(prompt).contains("You MAY create or change");
+        // ...but not the Kanban application's own code.
+        assertThat(prompt).contains("OWN CODE");
+    }
+
+    @Test
     void projectImprovementTaskKeepsTheDeployGuidance() {
         String prompt = service.buildPrompt(task("Fix the board layout", true));
 

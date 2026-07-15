@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>美伊战争 · 分析总览 (2026)</title>
+<style>
+:root{
+  --bg:#0e1116; --bg2:#151a22; --panel:#171d27; --panel2:#1d2532;
+  --ink:#e7ecf3; --muted:#9aa7b8; --faint:#6b7688;
+  --line:#242d3a; --line2:#2e3a4c;
+  --accent:#e5533d; --accent2:#f0a020; --iran:#3aa76d; --us:#4a83d4;
+  --maxw:900px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* layout */
+.wrap{display:flex;min-height:100vh}
+.sidebar{width:300px;flex:0 0 300px;background:var(--bg2);border-right:1px solid var(--line);
+  position:sticky;top:0;height:100vh;overflow-y:auto;padding:0}
+.main{flex:1;min-width:0}
+
+/* sidebar */
+.brand{padding:22px 22px 16px;border-bottom:1px solid var(--line)}
+.brand .kicker{font-size:11px;letter-spacing:.22em;color:var(--accent);text-transform:uppercase;font-weight:700}
+.brand h1{font-size:21px;margin:8px 0 4px;line-height:1.3;font-weight:800;letter-spacing:.02em}
+.brand .date{font-size:12px;color:var(--faint)}
+.nav{padding:12px 12px 30px}
+.nav-link{display:flex;gap:12px;align-items:flex-start;padding:11px 12px;border-radius:10px;
+  color:var(--muted);margin-bottom:3px;border:1px solid transparent;transition:.15s}
+.nav-link:hover{background:var(--panel);color:var(--ink);text-decoration:none}
+.nav-link.active{background:var(--panel2);border-color:var(--line2);color:var(--ink)}
+.nav-num{font-size:12px;font-weight:800;color:var(--faint);background:var(--bg);border:1px solid var(--line);
+  border-radius:7px;width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;margin-top:1px}
+.nav-link.active .nav-num{color:var(--accent);border-color:var(--accent)}
+.nav-text{display:flex;flex-direction:column;min-width:0}
+.nav-title{font-size:14.5px;font-weight:700;color:inherit}
+.nav-sub{font-size:11.5px;color:var(--faint);line-height:1.45;margin-top:2px}
+
+/* hero */
+.hero{padding:52px 40px 30px;background:
+   radial-gradient(1200px 300px at 80% -10%, rgba(229,83,61,.16), transparent 60%),
+   radial-gradient(900px 260px at 10% 0%, rgba(74,131,212,.13), transparent 55%),
+   var(--bg);border-bottom:1px solid var(--line)}
+.hero .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.hero h2{font-size:38px;line-height:1.15;margin:14px 0 10px;font-weight:800;letter-spacing:.01em;max-width:var(--maxw)}
+.hero p.lede{font-size:16.5px;color:var(--muted);max-width:760px;margin:0}
+.status{display:inline-flex;align-items:center;gap:9px;margin-top:20px;padding:8px 15px;border-radius:999px;
+  background:rgba(229,83,61,.12);border:1px solid rgba(229,83,61,.4);color:#ffb3a5;font-size:13.5px;font-weight:600}
+.status .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 0 rgba(229,83,61,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,83,61,.55)}70%{box-shadow:0 0 0 9px rgba(229,83,61,0)}100%{box-shadow:0 0 0 0 rgba(229,83,61,0)}}
+
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:26px 40px 8px;max-width:1100px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px 17px}
+.stat .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.stat .v{font-size:26px;font-weight:800;margin:6px 0 2px;letter-spacing:.01em}
+.stat .d{font-size:12px;color:var(--muted);line-height:1.5}
+.stat.iran .v{color:var(--iran)} .stat.us .v{color:var(--us)}
+.stat.oil .v{color:var(--accent2)} .stat.war .v{color:var(--accent)}
+
+.scenarios{padding:22px 40px 6px;max-width:1100px}
+.scenarios h3, .content-head{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+  font-weight:700;margin:0 0 14px}
+.sbars{display:flex;flex-direction:column;gap:11px}
+.sbar{display:grid;grid-template-columns:150px 1fr 92px;gap:14px;align-items:center;font-size:13.5px}
+.sbar .lbl{color:var(--muted);font-weight:600}
+.sbar .track{background:var(--bg2);border:1px solid var(--line);border-radius:7px;height:22px;overflow:hidden}
+.sbar .fill{height:100%;border-radius:6px 0 0 6px}
+.sbar .pct{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.sbar.base .lbl{color:var(--ink)}
+
+/* documents */
+.content{padding:14px 40px 90px;max-width:var(--maxw)}
+.doc{display:none}
+.doc.visible{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.doc h1{font-size:29px;font-weight:800;line-height:1.28;margin:20px 0 6px;letter-spacing:.01em}
+.doc h2{font-size:22px;font-weight:800;margin:40px 0 12px;padding-top:14px;border-top:1px solid var(--line);letter-spacing:.01em}
+.doc h2:first-of-type{border-top:none}
+.doc h3{font-size:17.5px;font-weight:700;margin:26px 0 8px;color:#cfd8e6}
+.doc h4{font-size:15px;font-weight:700;margin:18px 0 6px;color:var(--muted)}
+.doc p{margin:12px 0}
+.doc strong{color:#fff;font-weight:700}
+.doc em{color:var(--accent2);font-style:normal;font-weight:600}
+.doc code{background:var(--bg2);border:1px solid var(--line);border-radius:5px;padding:2px 6px;font-size:13.5px;
+  font-family:"SF Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;color:#f0b8ad;white-space:pre-wrap;word-break:break-word}
+.doc ul,.doc ol{margin:12px 0;padding-left:24px}
+.doc li{margin:6px 0}
+.doc li>ul,.doc li>ol{margin:6px 0}
+.doc hr{border:none;border-top:1px solid var(--line);margin:30px 0}
+.doc blockquote{margin:16px 0;padding:12px 18px;background:var(--bg2);border-left:3px solid var(--accent2);
+  border-radius:0 9px 9px 0;color:var(--muted);font-size:14.5px}
+.doc blockquote a{word-break:break-all}
+.table-wrap{overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:11px}
+.doc table{border-collapse:collapse;width:100%;font-size:13.8px;min-width:520px}
+.doc th{background:var(--panel2);text-align:left;padding:11px 14px;font-weight:700;color:#dbe4f0;
+  border-bottom:1px solid var(--line2);white-space:nowrap}
+.doc td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink)}
+.doc tbody tr:last-child td{border-bottom:none}
+.doc tbody tr:nth-child(even){background:rgba(255,255,255,.017)}
+
+/* doc header bar with sub-nav */
+.dochead{padding:26px 40px 4px;max-width:var(--maxw)}
+.dochead .crumb{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700}
+
+/* footer nav (prev/next) */
+.pager{display:flex;justify-content:space-between;gap:14px;margin:50px 0 0;max-width:var(--maxw)}
+.pager a{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 18px;
+  color:var(--muted);transition:.15s}
+.pager a:hover{border-color:var(--line2);color:var(--ink);text-decoration:none;background:var(--panel2)}
+.pager .dir{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.pager .ttl{font-size:15px;font-weight:700;margin-top:3px;display:block}
+.pager .next{text-align:right}
+.pager a.disabled{opacity:.35;pointer-events:none}
+
+.tofoot{padding:30px 40px 60px;max-width:var(--maxw);color:var(--faint);font-size:12.5px;border-top:1px solid var(--line);margin-top:20px}
+
+.tabbar{display:none}
+#toTop{position:fixed;right:26px;bottom:26px;width:44px;height:44px;border-radius:50%;background:var(--panel2);
+  border:1px solid var(--line2);color:var(--ink);font-size:20px;cursor:pointer;display:none;place-items:center;z-index:50}
+#toTop.show{display:grid}
+
+@media(max-width:980px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .sbar{grid-template-columns:110px 1fr 70px}
+}
+@media(max-width:760px){
+  .wrap{flex-direction:column}
+  .sidebar{position:static;width:100%;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+  .nav{display:flex;overflow-x:auto;gap:8px;padding:12px}
+  .nav-link{flex:0 0 auto;margin:0}
+  .nav-sub{display:none}
+  .hero,.stats,.scenarios,.content,.dochead,.tofoot{padding-left:18px;padding-right:18px}
+  .hero h2{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="kicker">Situation Report</div>
+      <h1>美伊战争<br>分析总览</h1>
+      <div class="date">六步研究综合 · 截至 2026-07-14</div>
+    </div>
+    <nav class="nav" id="nav">
+      <a class="nav-link" data-target="home" href="#home">
+        <span class="nav-num">◎</span>
+        <span class="nav-text"><span class="nav-title">总览仪表盘</span>
+        <span class="nav-sub">执行摘要、关键数字与情景概率</span></span></a>
+      <a class="nav-link" data-target="sec-01" href="#sec-01"><span class="nav-num">01</span><span class="nav-text"><span class="nav-title">背景与根源</span><span class="nav-sub">冲突的四条结构性断层与带时间线的历史脉络（1953–2026）</span></span></a>
+<a class="nav-link" data-target="sec-02" href="#sec-02"><span class="nav-num">02</span><span class="nav-text"><span class="nav-title">当前局势</span><span class="nav-sub">截至 2026-07-14 的现状快照：停火瓦解、霍尔木兹海峡成唯一引爆点</span></span></a>
+<a class="nav-link" data-target="sec-03" href="#sec-03"><span class="nav-num">03</span><span class="nav-text"><span class="nav-title">军力对比</span><span class="nav-sub">极不对称的力量结构与趋于「技术性僵局」的战场态势</span></span></a>
+<a class="nav-link" data-target="sec-04" href="#sec-04"><span class="nav-num">04</span><span class="nav-text"><span class="nav-title">地缘影响</span><span class="nav-sub">悖论式扩散：战术惩罚伊朗，战略重创美国主导秩序</span></span></a>
+<a class="nav-link" data-target="sec-05" href="#sec-05"><span class="nav-num">05</span><span class="nav-text"><span class="nav-title">市场与能源</span><span class="nav-sub">分裂式冲击：油市剧烈、股汇冷静，供给过剩当减震器</span></span></a>
+<a class="nav-link" data-target="sec-06" href="#sec-06"><span class="nav-num">06</span><span class="nav-text"><span class="nav-title">情景推演</span><span class="nav-sub">四情景概率、tripwire 仪表盘与前景研判（最终综述）</span></span></a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <!-- HOME / dashboard -->
+    <section id="home" class="doc visible" data-idx="-1">
+      <div class="hero">
+        <div class="eyebrow">US–Iran War · Analytical Overview</div>
+        <h2>一场已经进行时的战争，如何被解剖为六层分析</h2>
+        <p class="lede">本页整合「美伊战争」研究故事的全部六步产出——从历史根源、当前战况、军力对比，到地缘、市场与情景推演。所有事实锚点均来自 chrome-devtools 实读的真实来源（维基/AP/半岛/CSIS/IISS/OilPrice/Kitco/CNBC 等），日期与数字不凭记忆编造。</p>
+        <div class="status"><span class="dot"></span>战争进行中 · 2026-02-28 爆发 · 6 月停火已于 7 月初瓦解，连日互袭</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat war"><div class="k">冲突状态</div><div class="v">Day 137</div><div class="d">自 2026-02-28 开战；6/17 临时协议已事实瓦解</div></div>
+        <div class="stat oil"><div class="k">布伦特油价</div><div class="v">$84.78</div><div class="d">周一 +8%；战时区间 $70→$139→$84，均值回归</div></div>
+        <div class="stat iran"><div class="k">核心引爆点</div><div class="v">霍尔木兹</div><div class="d">海峡控制/通行权已收敛为唯一核心争点</div></div>
+        <div class="stat us"><div class="k">战略研判</div><div class="v">伊胜美败</div><div class="d">主流智库具名判定：战术惩罚伊朗，战略挫美</div></div>
+      </div>
+
+      <div class="scenarios">
+        <h3>未来 3–6 个月 · 四情景概率（分析判断，第 6 步）</h3>
+        <div class="sbars">
+          <div class="sbar"><div class="lbl">外交降级</div><div class="track"><div class="fill" style="width:27%;background:linear-gradient(90deg,#3aa76d,#2c8557)"></div></div><div class="pct">24–30%</div></div>
+          <div class="sbar"><div class="lbl">有限打击</div><div class="track"><div class="fill" style="width:18%;background:linear-gradient(90deg,#4a83d4,#3a68ab)"></div></div><div class="pct">15–20%</div></div>
+          <div class="sbar base"><div class="lbl">长期消耗 · 基准</div><div class="track"><div class="fill" style="width:44%;background:linear-gradient(90deg,#f0a020,#d4851a)"></div></div><div class="pct">40–48%</div></div>
+          <div class="sbar"><div class="lbl">全面战争 · 尾部</div><div class="track"><div class="fill" style="width:11%;background:linear-gradient(90deg,#e5533d,#c23a26)"></div></div><div class="pct">8–14%</div></div>
+        </div>
+      </div>
+
+      <div class="scenarios" style="padding-top:30px">
+        <h3>六步研究 · 逐层导览</h3>
+        <div class="sbars" id="home-cards"></div>
+      </div>
+
+      <div class="tofoot">
+        方法学：本页为研究综述的可视化呈现，非新闻实时源。事实锚点可回溯至各步骤记录的实读来源；概率、时间窗、情景路径均为分析判断而非既定事实。争议信息（伤亡、领导人生死、海峡开闭）在原文中均标注单方归属。<br>
+        构建：由第 7/7 步任务离线生成的自包含 HTML（无外部依赖、无网络请求）。数据截止 2026-07-14。
+      </div>
+    </section>
+
+    <section id="sec-01" class="doc" data-idx="0"><h1 id="美伊冲突-背景与结构性根源简报">美伊冲突：背景与结构性根源简报</h1>
+<blockquote>故事「美伊战争」第 1/6 步（任务 #193）的产出。为后续步骤（当前局势核查、军力对比、地缘影响、能源经济冲击、情景推演）奠定事实基础。<br>所有日期均取自通过 chrome-devtools 阅读的真实来源，未凭记忆编造。<br>撰写日期：2026-07-14。</blockquote>
+<h2 id="来源-chrome-devtools-实读">来源（chrome-devtools 实读）</h2>
+<ul>
+<li>维基百科 <em>Iran–United States relations</em>（含各届美国政府章节，更新至 2026 年 7 月）</li>
+</ul>
+<p>https://en.wikipedia.org/wiki/Iran%E2%80%93United_States_relations</p>
+<ul>
+<li>维基百科 <em>Joint Comprehensive Plan of Action</em>（JCPOA / 伊朗核协议，含关键日期表）</li>
+</ul>
+<p>https://en.wikipedia.org/wiki/Joint_Comprehensive_Plan_of_Action</p>
+<ul>
+<li>维基百科 <em>Axis of Resistance</em>（伊朗代理人网络 / 抵抗之弧）</li>
+</ul>
+<p>https://en.wikipedia.org/wiki/Axis_of_Resistance</p>
+<blockquote>说明：本轮以维基作为带引用的一手时间线来源；CFR、路透/BBC 时间线可在后续步骤用于交叉校验个别争议日期。</blockquote>
+<hr>
+<h2 id="一-总体判断-四条结构性断层">一、总体判断：四条结构性断层</h2>
+<p>美伊敌对不是单一事件的结果，而是四条相互叠加的结构性断层长期作用：</p>
+<ol>
+<li><strong>政权合法性叙事对立</strong> —— 1953 年 CIA/MI6 政变推翻民选首相摩萨台、扶植巴列维国王，成为伊朗「美国是压迫元凶」叙事的历史起点；1979 革命把「反美」写入政权立国基因（霍梅尼称美国为「大撒旦」）。</li>
+<li><strong>核问题</strong> —— 从「和平原子」合作（1957–1979）到浓缩铀争端、JCPOA 签署与美国退约，核计划是过去二十年最核心的冲突轴。</li>
+<li><strong>代理人网络（抵抗之弧）</strong> —— 伊朗通过 IRGC 圣城旅在黎巴嫩、伊拉克、也门、叙利亚、巴勒斯坦扶植武装，实行「前沿防御」，把对美对以的对抗推离本土。</li>
+<li><strong>地区霸权与能源命脉</strong> —— 波斯湾、霍尔木兹海峡的石油通道，使双方对抗天然带有全球能源与地缘外溢效应。</li>
+</ol>
+<hr>
+<h2 id="二-带时间线的关键节点">二、带时间线的关键节点</h2>
+<h3 id="a-冷战与君主时代的伏笔-1953-1979">A. 冷战与君主时代的伏笔（1953–1979）</h3>
+<ul>
+<li><strong>1951-04-28</strong> 摩萨台经议会选举出任首相，随后推动石油国有化，冲击英伊石油公司（AIOC）。</li>
+<li><strong>1953</strong> 美英策划政变（CIA「Ajax 行动」、MI6），第二次尝试成功，推翻摩萨台、复位巴列维国王；美国随后协助建立秘密警察 SAVAK。此政变被视为 1979 革命「深刻反美底色」的根源。</li>
+<li><strong>1957 / 1967</strong> 美国在「和平原子」框架下启动伊朗核计划；1967 年提供德黑兰研究反应堆及约 5.58 公斤浓缩铀（伊朗核能力的美制起点）。</li>
+<li><strong>1968-07-01</strong> 伊朗成为《不扩散核武器条约》(NPT) 原始签署国之一（1970 年 2 月议会批准）。</li>
+<li><strong>1970s</strong> 尼克松—巴列维「支柱」关系，伊朗大量采购美制武器（如 F-14），约 25,000 名美国技术人员驻伊。</li>
+<li><strong>1976–1977</strong> 美国暗中支持沙特压低油价，伊朗油收骤降引发财政危机与社会动荡，客观上削弱国王政权，为革命铺路。</li>
+</ul>
+<h3 id="b-革命-人质危机与两伊战争-1979-1989">B. 革命、人质危机与两伊战争（1979–1989）</h3>
+<ul>
+<li><strong>1978–1979</strong> 伊斯兰革命推翻巴列维，霍梅尼上台，建立反美神权政权；美国情报界事前严重误判（革命前半年 CIA 仍称伊朗「非革命亦非前革命状态」）。</li>
+<li><strong>1979-11-04</strong> 学生占领德黑兰美国大使馆，扣押 <strong>52 名美国外交人员达 444 天</strong>（起因是美国接纳患癌流亡的国王就医）。卡特随即禁伊石油进口、冻结约 120 亿美元伊朗资产（首批对伊制裁）。</li>
+<li><strong>1981-01（阿尔及尔协议）</strong> 人质获释；美伊自此断交，利益由瑞士（美方）与巴基斯坦（伊方）代管，延续至今。</li>
+<li><strong>1980–1988 两伊战争</strong> 美国向伊拉克提供情报与后勤，1984 年将伊拉克移出「支恐国家」名单并建交；参议院银行委员会记录美方批准向伊拉克出售包括炭疽、鼠疫在内的两用生化物项。伍德沃德称美方向两边都提供情报，意图制造「僵局」。</li>
+<li><strong>1982（约）</strong> 伊朗支持下 <strong>真主党（Hezbollah）在黎巴嫩成立</strong>——代理人网络的开端。</li>
+<li><strong>1983-04-18</strong> 贝鲁特美国大使馆爆炸（63 死，含 17 名美国人）。</li>
+<li><strong>1983-10-23</strong> 贝鲁特军营爆炸（<strong>241 名美国海军陆战队员</strong>死亡）。美国法院后判定伊朗对系列袭击负责。</li>
+<li><strong>1980s 中期 伊朗门（Iran-Contra）</strong> 里根政府绕过军售禁令向伊朗售武，所得转资助尼加拉瓜反政府武装，酿成重大政治丑闻。</li>
+<li><strong>1988-04 「祈祷螳螂」行动</strong> 报复伊朗在波斯湾布雷，美军二战后最大规模海战，重创伊朗海军。</li>
+<li><strong>1988-07-03</strong> 美舰 USS Vincennes <strong>误击落伊朗航空 655 号民航客机，290 人罹难</strong>——伊朗长期的对美怨恨符号。</li>
+<li><strong>1988</strong> 两伊停火。<strong>1989</strong> 霍梅尼去世，哈梅内伊继任最高领袖。</li>
+</ul>
+<h3 id="c-制裁-核标签与代理人扩张-1989-2013">C. 制裁、核标签与代理人扩张（1989–2013）</h3>
+<ul>
+<li><strong>1995-04</strong> 克林顿对伊全面石油与贸易禁运。<strong>1996</strong> 《伊朗-利比亚制裁法》；同年霍巴塔楼爆炸（美法院后判伊朗/哈梅内伊授权）。</li>
+<li><strong>2002</strong> 小布什国情咨文将伊朗列入 <strong>「邪恶轴心」</strong>；「抵抗之弧（Axis of Resistance）」一词即在此背景下由外部媒体反向提出并被伊朗采用。核争端公开化。</li>
+<li><strong>2006-02</strong> 伊朗停止执行《附加议定书》、在纳坦兹恢复浓缩，IAEA 将伊朗提交安理会。</li>
+<li><strong>2006–2010</strong> 安理会连续通过 1696、1737、1747、1803、1835、1929 等决议，要求停止浓缩并施加制裁。</li>
+<li><strong>2000s</strong> 伊朗被指在伊拉克武装并训练什叶派民兵（含与真主党相关团体），美伊在伊拉克战场间接对抗。</li>
+</ul>
+<h3 id="d-核协议-jcpoa-的签署与美国退约-2013-2018">D. 核协议（JCPOA）的签署与美国退约（2013–2018）</h3>
+<ul>
+<li><strong>2013-03</strong> 美伊在阿曼（马斯喀特）开启秘密接触（美方 Burns、Sullivan）。<strong>2013 年 6 月</strong> 温和派鲁哈尼当选伊朗总统，与奥巴马通话破冰。</li>
+<li><strong>2013-11-24</strong> 达成临时协议 <strong>《联合行动计划》(JPOA，日内瓦)</strong>。</li>
+<li><strong>2015-04</strong> 洛桑框架协议。</li>
+<li><strong>2015-07-14</strong> <strong>JCPOA 在维也纳最终敲定</strong>，由伊朗与 P5+1（中、法、俄、英、美 + 德）及欧盟达成：伊朗限制核计划以换取解除制裁。</li>
+<li><strong>2015-10-18</strong> 「通过日」(Adoption Day)。</li>
+<li><strong>2016-01-16</strong> 「执行日」(Implementation Day)，协议正式生效（约 1 月 20 日落地）。</li>
+<li><strong>2018-05-08</strong> <strong>特朗普（第一任期）宣布美国退出 JCPOA</strong>，重启「极限施压」，累计对伊制裁逾 1,500 项，切断伊朗与国际金融体系联系。伊朗议会象征性焚烧协议文本。</li>
+</ul>
+<h3 id="e-极限施压-苏莱曼尼与升级-2018-2021">E. 极限施压、苏莱曼尼与升级（2018–2021）</h3>
+<ul>
+<li><strong>2019</strong> 油轮遇袭、伊朗击落美军无人机、沙特石油设施（阿布盖格）遭袭；特朗普一度叫停报复性打击，改以网络战与制裁回应。</li>
+<li><strong>2019-04-22</strong> 美国要求各国停止购买伊朗石油，取消对中、印、日、韩、土的六个月豁免。</li>
+<li><strong>2019-12</strong> 伊拉克 K-1 空军基地火箭弹袭击 → 美空袭伊朗支持的民兵（真主党旅）→ 美驻巴格达使馆遭冲击。</li>
+<li><strong>2020-01-03</strong> <strong>美军无人机在巴格达刺杀伊朗圣城旅指挥官卡西姆·苏莱曼尼</strong>——冲突史上最危险的升级点之一。伊朗以弹道导弹袭击驻伊拉克美军基地报复；数日后误击落乌克兰客机（PS752）。</li>
+<li><strong>2020</strong> 后续：伊朗被指干预美国大选、发射军用卫星、代理人袭击持续。</li>
+</ul>
+<h3 id="f-拜登时期的僵局与新一轮战争-2021-2026">F. 拜登时期的僵局与新一轮战争（2021–2026）</h3>
+<ul>
+<li><strong>2021–2022</strong> 拜登政府试图重返 JCPOA，维也纳谈判最终停滞；伊朗提高浓缩丰度，美方新增导弹/石油/人权制裁。</li>
+<li><strong>2023-10-07</strong> 哈马斯袭击以色列引爆加沙战争，代理人对美军基地袭击激增。加沙战争、以色列-真主党冲突、2024 年叙利亚阿萨德政权垮台，重创「抵抗之弧」。</li>
+<li><strong>2023</strong> 美伊换囚 + 解冻部分伊朗资金，间接外交一度突破但脆弱。</li>
+<li><strong>2025-06（「十二日战争」）</strong> 以色列-伊朗直接交战；<strong>2025-06-21 美国轰炸福尔多、纳坦兹、伊斯法罕三处核设施</strong>，短暂加入对伊战争，伊朗随即无限期中止核谈。</li>
+<li><strong>2025-10-18</strong> 伊朗在「十二日战争」后正式宣布终止 JCPOA（协议满 10 年）。</li>
+<li><strong>2026-01</strong> 伊朗全国抗议与镇压升级，特朗普（第二任期）威胁「强硬选项」；美军向该地区大规模集结（自 2003 年伊拉克战争以来最大规模）。</li>
+<li><strong>2026-02（马斯喀特谈判）</strong> 阿曼斡旋下美伊新一轮核谈，未达成协议。</li>
+<li><strong>2026-02-28</strong> <strong>美以联合发动大规模对伊军事行动</strong>（美「史诗之怒 Epic Fury」/以「咆哮雄狮 Roaring Lion」），目标为摧毁伊朗弹道导弹与核计划、乃至政权更替；据报最高领袖哈梅内伊在首日空袭中身亡；伊朗以导弹/无人机反击五个海湾国家美军基地并宣布封锁霍尔木兹海峡。</li>
+<li><strong>2026-06-14</strong> 巴基斯坦、卡塔尔斡旋下达成谅解备忘录（MoU），作为 60 天停火延长（非最终和约），拟谈判伊朗核限制、高浓缩铀处置、制裁解除与资产解冻。</li>
+<li><strong>2026-07-09</strong> 据美联社，双方恢复袭击，6 月停火协议出现瓦解迹象（截至本简报撰写时的最新态势）。</li>
+</ul>
+<hr>
+<h2 id="三-代理人网络-抵抗之弧-axis-of-resistance-结构">三、代理人网络（抵抗之弧 / Axis of Resistance）结构</h2>
+<ul>
+<li><strong>性质</strong>：伊朗主导的非正式军事联盟，横跨西亚，核心目标是抗衡美国、以色列、沙特、阿联酋在地区的影响；由 <strong>IRGC 圣城旅（Quds Force）</strong> 统筹，苏莱曼尼曾为其标志性指挥官。伊朗一度每年投入约 <strong>7 亿美元</strong> 军事与后勤支持（2019 年后因制裁下降）。</li>
+<ul>
+<li>黎巴嫩 <strong>真主党（Hezbollah）</strong>（约 1982 成立，网络最成熟一环）</li>
+<li>伊拉克 <strong>「伊斯兰抵抗」与人民动员力量（PMF/民兵）</strong>（如真主党旅 Kataib Hezbollah）</li>
+<li>也门 <strong>胡塞武装（Houthis）</strong></li>
+<li>叙利亚（曾提供伊朗驻军与盟军通道，2024 阿萨德垮台后终止）</li>
+</ul>
+<li><strong>核心成员</strong>：</li>
+<li><strong>间歇成员</strong>：巴勒斯坦的哈马斯、伊斯兰圣战组织（多为逊尼派伊斯兰主义组织）。</li>
+<li><strong>战略逻辑</strong>：「前沿防御」——把与美/以的对抗推离伊朗本土，通过消耗以色列、抬高美国在中东的成本来实现威慑。</li>
+<li><strong>术语溯源</strong>：「抵抗之弧」一词源于 2002 年一家利比亚报纸，针对小布什「邪恶轴心」的反向表述，后被伊朗采纳。</li>
+<li><strong>当前状态</strong>：自 2023-10-07 以来，经加沙战争、以-真主党冲突、十二日战争与 2024 年叙利亚政权更替，网络遭受重大且反复的削弱。</li>
+</ul>
+<hr>
+<h2 id="四-给后续步骤的抓手-承上启下">四、给后续步骤的抓手（承上启下）</h2>
+<ul>
+<li><strong>#194 当前局势与触发点核查</strong>：重点核实 2026-02-28 开战后至今（7 月）的停火/复战时间线、霍尔木兹海峡封锁与重开状态、哈梅内伊生死与伊朗指挥层现状——这些在维基条目中仍在快速更新，务必用路透/BBC/AP 交叉校验。</li>
+<li><strong>#195 军力对比</strong>：注意伊朗弹道导弹是核心不对称手段（据早期情报评估，伊朗已重获 33 个霍尔木兹海峡沿线导弹阵地中的 30 个）；代理人网络已被显著削弱，需重估其战力权重。</li>
+<li><strong>#196 地缘影响</strong>：抵抗之弧收缩、叙利亚变局、海湾国家（卡塔尔/阿联酋/巴林/科威特/约旦）被卷入、俄罗斯与中国立场是关键变量。</li>
+<li><strong>#197 能源经济冲击</strong>：霍尔木兹海峡封锁/重开是油价核心开关；据布朗大学追踪，截至 2026-05-12 战争已让美国消费者多付逾 373 亿美元能源成本。</li>
+<li><strong>#198 情景推演</strong>：核心不确定性是 6 月 MoU（60 天停火）能否转为最终和约，还是滑向长期消耗战——7 月初已现瓦解迹象。</li>
+</ul>
+<hr>
+<p><em>方法学备注：本简报刻意区分「已核实日期」与「仍在演变的战时事件」。1953–2020 段落日期确定性高；2025–2026 段落取自持续更新的维基条目，后续步骤应以路透/BBC/AP/CFR 时间线交叉校验，尤其是伤亡数字与领导人生死等争议信息。</em></p></section>
+<section id="sec-02" class="doc" data-idx="1"><h1 id="美伊战争-当前局势与触发点核查-现状快照">美伊战争：当前局势与触发点核查（现状快照）</h1>
+<blockquote>故事「美伊战争」第 2/6 步（任务 #194）的产出。承接第 1 步的历史背景简报，聚焦<strong>截至 2026-07-14 的实时战况</strong>：近期军事行动、以伊/美伊交火、美军部署、核设施、外交斡旋。<br>所有事实均通过 chrome-devtools <strong>实读真实新闻页面</strong>核对，逐条标注<strong>来源 + 日期</strong>，并明确区分「已多源确认」与「单方声明/存争议」。<br>核查日期：2026-07-14（美联社最新稿更新至当日 12:10 GMT+8）。</blockquote>
+<h2 id="一-来源-chrome-devtools-实读-均为一手新闻页">一、来源（chrome-devtools 实读，均为一手新闻页）</h2>
+<ol>
+<li><strong>AP（美联社）时间线</strong>：《A timeline of the Iran war and talks aimed at ending it》，Cara Anna，更新于 <strong>2026-07-12</strong>。</li>
+</ol>
+<p>https://apnews.com/article/iran-us-timeline-trump-hormuz-war-ceasefire-04da58cbae991183f8b52ef5bf615963</p>
+<ol>
+<li><strong>AP 最新战报</strong>：《US attacks Iran as Tehran fires at tankers in strait》，Gambrell/Boak/Toropin/Weissert，更新于 <strong>2026-07-14 12:10 GMT+8</strong>（当日稿）。</li>
+</ol>
+<p>https://apnews.com/article/iran-us-hormuz-strait-war-july-13-2026-6c2c44cfdd089d6393d18fa5930ed620</p>
+<ol>
+<li><strong>Al Jazeera（半岛，德黑兰实地稿）</strong>：《Concern for renewed war in Iran as US attacks military, civilian targets》，Maziar Motamedi，发布于 <strong>2026-07-12</strong>（德黑兰 dateline）。</li>
+</ol>
+<p>https://www.aljazeera.com/news/2026/7/12/concern-for-renewed-war-in-iran-as-us-attacks-military-civilian-targets</p>
+<ol>
+<li><strong>Google News 聚合</strong>（<code>Iran United States war</code>，近 7 天）：交叉核对 Reuters、NYT、BBC、CNN、NPR、PBS、UN News、DW、CFR、ISW（战争研究所）、Britannica 等数十条同期标题与相对时间，用于确认多源一致性（见文末附录）。</li>
+</ol>
+<blockquote>说明：本轮以 AP + Al Jazeera 为主干双源（一美一半岛，覆盖华盛顿与德黑兰两侧口径），Google News 聚合作三源以上交叉。争议信息（海峡开/闭、伤亡、核设施）均单独标注归属。</blockquote>
+<hr>
+<h2 id="二-核心判断-一句话">二、核心判断（一句话）</h2>
+<p><strong>「美伊战争」是进行时，不是推演。</strong> 2026-06 停火（60 天临时协议）已在 <strong>7 月上旬事实性瓦解</strong>：7/8 特朗普宣布停火「结束」，7/8–7/14 美伊连日互袭并再度外溢至海湾阿拉伯国家。当前冲突的<strong>唯一核心引爆点已高度收敛为「霍尔木兹海峡的控制权与通行权」</strong>，而非核计划本身。</p>
+<hr>
+<h2 id="三-已多源确认的时间线-ap-权威时间线-2-28-起战至今">三、已多源确认的时间线（AP 权威时间线，2/28 起战至今）</h2>
+<blockquote>下列日期取自 AP 官方时间线稿（来源 1），与半岛、聚合标题一致，确定性高。</blockquote>
+<div class="table-wrap"><table><thead><tr><th>日期(2026)</th><th>事件</th><th>备注</th></tr></thead><tbody><tr><td><strong>2月28日</strong></td><td><strong>以色列 + 美国空袭伊朗，击毙最高领袖哈梅内伊及多名高官，战争爆发</strong></td><td>伊朗随即反击以色列与海湾、并宣布控制霍尔木兹海峡</td></tr><tr><td>3月2日</td><td>黎巴嫩真主党入战，向以色列发射火箭；以反击并<strong>入侵占领黎南部大片地区</strong></td><td>黎巴嫩战线开启</td></tr><tr><td><strong>3月8日</strong></td><td>伊朗指定哈梅内伊之子 <strong>穆杰塔巴·哈梅内伊（Mojtaba）为新最高领袖</strong></td><td><strong>至今未公开露面，据报开战首日受伤后藏匿</strong></td></tr><tr><td>4月7日</td><td>达成为期两周的脆弱停火（<strong>未含以色列</strong>）</td><td></td></tr><tr><td>4月12日</td><td>美伊在巴基斯坦首都举行数小时<strong>历史性面对面谈判，无果</strong></td><td></td></tr><tr><td>4月13日</td><td>特朗普宣布<strong>封锁伊朗港口</strong>，逼其放弃海峡控制</td><td></td></tr><tr><td>4月14日</td><td>黎巴嫩与以色列数十年来首次在华盛顿直接外交接触</td><td></td></tr><tr><td>4月17日</td><td>伊朗称重开海峡通航——<strong>未能持续</strong></td><td></td></tr><tr><td>4月21日</td><td>特朗普宣布<strong>无限期延长停火</strong></td><td></td></tr><tr><td>5月3日</td><td>美国启动「护航引导」船只过海峡——<strong>亦未持续</strong></td><td></td></tr><tr><td>5月31日</td><td>以色列对黎地面入侵达 25 年来最深</td><td></td></tr><tr><td>6月3日</td><td>以黎同意重启停火、设排除真主党的安全区；旋即再交火</td><td></td></tr><tr><td>6月7日</td><td>伊朗自 4 月停火以来<strong>首次</strong>炮击以色列，以反击</td><td></td></tr><tr><td><strong>6月14日</strong></td><td>特朗普称与伊朗达成<strong>临时协议</strong>，将于数日内签署</td><td>伊朗坚持协议须同时终止黎巴嫩战事</td></tr><tr><td><strong>6月17日</strong></td><td><strong>特朗普签署协议</strong>：伊朗<strong>稀释高浓缩铀库存</strong>、美方豁免制裁、<strong>立即允许伊朗自由售油</strong>（60 天临时期由此起算）</td><td>旨在永久结束战争的过渡框架</td></tr><tr><td>6月22日</td><td>副总统万斯称在瑞士与伊高官新谈判为「最终协议奠定良好基础」</td><td></td></tr><tr><td>6月26日</td><td>以黎宣布美方支持的框架协议，称迈向和平第一步</td><td></td></tr><tr><td>7月1日</td><td>卡塔尔主持，美伊分别与卡塔尔/巴基斯坦斡旋人会谈，「有积极进展」</td><td></td></tr><tr><td>7月2日</td><td>伊朗联合军事指挥部警告：过海峡油轮须走其指定航线，否则遭「强力回应」</td><td>触发点铺垫</td></tr><tr><td>7月4日</td><td>伊朗为哈梅内伊举行数日国葬</td><td></td></tr><tr><td><strong>7月7日</strong></td><td><strong>伊朗被指一天内击中海峡 3 艘船</strong> → 美<strong>空袭伊朗数十个目标并恢复对伊石油制裁</strong></td><td>停火瓦解的直接导火索</td></tr><tr><td><strong>7月8日</strong></td><td><strong>特朗普宣布停火「结束」</strong>（但称谈判可继续）；连日互袭随之而来，伊朗并攻击海湾阿拉伯国家</td><td></td></tr><tr><td>7月10日</td><td>特朗普威胁加大打击，称是回应哈梅内伊葬礼上「要他命」的呼喊</td><td></td></tr><tr><td>7月12日</td><td>美军称一天内在伊朗打击 <strong>140+ 个目标</strong>（回应伊方击中一艘集装箱船致一船员失踪）</td><td>见来源 1/3</td></tr><tr><td><strong>7月14日（当日）</strong></td><td>美军再空袭伊朗多地；伊朗以巡航导弹击中海峡两艘 UAE 关联油轮、并打击巴林与约旦</td><td>见来源 2</td></tr></tbody></table></div>
+<hr>
+<h2 id="四-当前现状快照-截至-2026-07-14-来源-2-3">四、当前现状快照（截至 2026-07-14，来源 2 + 3）</h2>
+<h3 id="1-最新一轮军事行动-7-14-当日-ap">1. 最新一轮军事行动（7/14 当日，AP）</h3>
+<ul>
+<li>美军<strong>当日凌晨空袭伊朗</strong>：CENTCOM 称打击了 <strong>Abu Musa、Bandar Abbas（阿巴斯港）、Bushehr（布什尔）、Chabahar、Jask、Konarak</strong> 周边的「海岸防御系统、导弹与无人机阵地、海上作战能力」。伊朗承认相关地区遭袭，但<strong>未即时公布伤亡/损毁评估</strong>。</li>
+<li>特朗普称这是「又一次重大打击」，「我们正敲掉他们全部进攻能力、控制海峡、重新实施封锁」。</li>
+<li><strong>美军称将于迪拜当地时间周三午夜恢复对伊朗港口的封锁。</strong></li>
+</ul>
+<h3 id="2-伊朗的反击与外溢-7-14-ap-半岛">2. 伊朗的反击与外溢（7/14，AP + 半岛）</h3>
+<ul>
+<ul>
+<li><strong>伤亡（UAE 国防部口径）</strong>：<strong>1 名印度籍船员死亡，6 名印度人 + 2 名乌克兰人受伤</strong>。</li>
+<li>IRGC（伊朗革命卫队）<strong>认领</strong>袭击，称船只「无视多次警告，选择穿越雷区」而被瘫痪。</li>
+</ul>
+<li>伊朗以<strong>两枚巡航导弹</strong>击中海峡内两艘 UAE 关联油轮 <strong>Mombasa</strong> 与 <strong>Al Bahiyah</strong>，起火后扑灭。</li>
+<li><strong>巴林</strong>再遭袭，两次拉响导弹警报促民众避难（暂无伤亡通报）。</li>
+<li><strong>约旦</strong>军方称拦截了<strong>来自伊朗的 4 枚导弹</strong>（约旦驻有美军，近日屡遭伊朗打击）。</li>
+<li>半岛（7/12，德黑兰稿）：伊朗称已在<strong>巴林、科威特、约旦、卡塔尔、阿曼</strong>打击美方目标。</li>
+<li><strong>UAE 威胁报复</strong>（「保留全面回应权利」），迪拜上空周二晨可闻战机——有把阿布扎比/迪拜重新拖入战争之虞。美驻阿布扎比使馆、驻迪拜领馆已取消至周三的领事预约。</li>
+</ul>
+<h3 id="3-累计规模-半岛-7-12">3. 累计规模（半岛 7/12）</h3>
+<ul>
+<li>美军近一周三波打击<strong>逾 300 个军事目标</strong>（另 AP 记 7/12 单日 140+），伊方称<strong>至少 10 个省</strong>受袭，集中在南部近海峡地带（<strong>霍尔木兹甘省、阿巴斯港、Siri、Qeshm、Jask</strong>）。</li>
+<li>半岛：为「MoU 以来最密集轰炸」；德黑兰本身近期未遭袭，逾千万人生活「大体如常」但经济低迷、前景不确定（开战已逾 4 个月）。</li>
+</ul>
+<h3 id="4-核设施现状-半岛-7-12-重要">4. 核设施现状（半岛 7/12）—— 重要</h3>
+<ul>
+<li>美方弹药<strong>击中布什尔（Bushehr）多处，一次命中伊朗唯一核电站的外围但未损及核电站本体</strong>（伊朗省级当局口径）。</li>
+<li><strong>注</strong>：本轮再度打击与 2025-06-21 美炸福尔多/纳坦兹/伊斯法罕的<strong>核设施摧毁行动</strong>性质不同——当前打击核心是<strong>海峡军事目标（海防、导弹、无人机、海军），而非浓缩设施</strong>；核议题此刻退居谈判桌（协议要求伊朗稀释 HEU），未见新一轮针对浓缩链的定点打击。</li>
+</ul>
+<h3 id="5-经济-能源即时读数-ap-7-14">5. 经济/能源即时读数（AP 7/14）</h3>
+<ul>
+<li><strong>布伦特原油</strong>升至<strong>一个月高点 $84+</strong>；仍<strong>远低于战争高峰期的近 $120</strong>。</li>
+<li>战前约<strong>全球五分之一的海运原油与天然气</strong>经霍尔木兹海峡；当前海峡近乎停摆。</li>
+</ul>
+<hr>
+<h2 id="五-事实-vs-争议-传闻-务必区分">五、事实 vs. 争议 / 传闻（务必区分）</h2>
+<div class="table-wrap"><table><thead><tr><th>议题</th><th>已确认（多源）</th><th>存争议 / 单方声明</th></tr></thead><tbody><tr><td><strong>海峡是否开放</strong></td><td>双方在军事上激烈争夺海峡控制权（AP+半岛+聚合一致）</td><td><strong>直接矛盾</strong>：伊朗/IRGC 称海峡「已关闭，直到恢复平静」；<strong>美方坚称海峡仍开放</strong>（AP 7/14）。这是最核心的口径对立。</td></tr><tr><td><strong>通行收费</strong></td><td>特朗普 7/14 明确表态将对过海峡船只<strong>按货值 20% 收费</strong>「以补偿保护成本」，并称「重新实施对伊封锁」（AP 直引）</td><td>伊朗亦主张<strong>按临时协议有权管理并可能对海峡通行收费</strong>；美方否认伊朗有此权利。双方各自主张收费权——<strong>均违背航行自由国际惯例</strong>（AP 分析）。</td></tr><tr><td><strong>油轮袭击伤亡</strong></td><td>1 死（印度籍）+ 8 伤（6 印度、2 乌克兰）——UAE 国防部口径，IRGC 认领</td><td>具体归因细节（是否「雷区」致损）为 IRGC 单方说法</td></tr><tr><td><strong>最高领袖状况</strong></td><td>哈梅内伊 2/28 阵亡、7 月国葬（多源，含 DW《Iran buries former Supreme Leader》）</td><td>继任者<strong>穆杰塔巴·哈梅内伊</strong>自 3/8 至今<strong>从未公开露面</strong>，据报受伤藏匿——健康与实际掌权情况<strong>不明</strong>（AP）</td></tr><tr><td><strong>谁在实施最新空袭</strong></td><td>美军 CENTCOM 明确认领 7/14 打击</td><td>早前存在 PBS《Who launched the latest airstrikes against Iran? Right now it's a mystery》一类<strong>归属模糊</strong>报道——提示战时存在<strong>未认领打击</strong>的迷雾，下一步交叉核对时须留意</td></tr><tr><td><strong>核电站是否受损</strong></td><td>布什尔周边被击中（AP+半岛一致）</td><td>「命中核电站外围但未损本体」为<strong>伊朗省级当局单方</strong>表述，未见独立核实（IAEA 未在本轮稿件中出现表态）</td></tr></tbody></table></div>
+<hr>
+<h2 id="六-外交与升级管控现状">六、外交与升级管控现状</h2>
+<ul>
+<li><strong>停火状态</strong>：6/17 签署的 60 天临时协议<strong>名存实亡</strong>——7/8 特朗普宣布「结束」，但<strong>留了口子</strong>称「谈判可继续」；当前处于「打谈并行、边打边谈」的高危区间。</li>
+<li><strong>斡旋方</strong>：卡塔尔、巴基斯坦、阿曼、瑞士（谈判地）、UN。UN 秘书长<strong>敦促美伊「紧急恢复谈判」</strong>（UN News，聚合确认）。</li>
+<li><strong>美方立场硬化</strong>：特朗普称原协议是「用来测试伊朗」的，「伊朗没通过测试」；并威胁若被暗杀则对伊有「预设报复令」（AP 聚合：由副总统万斯定夺）。</li>
+<li><strong>民意</strong>：Reuters/Ipsos 民调显示<strong>多数美国人预期美伊战争将长期化</strong>（Reuters，6 小时前）。</li>
+<li><strong>国内政治插曲</strong>：AP「最多阅读」栏显示参议员 <strong>Lindsey Graham 已身故</strong>（主动脉撕裂），其参议席由其姐妹 Darline Graham Nordone 递补——与战事无直接因果，但属同期美国政治背景，下一步（#196）如涉国会授权/战争权力法可留意。</li>
+</ul>
+<hr>
+<h2 id="七-对第-1-步简报的校正与补充-供后续步骤采用">七、对第 1 步简报的校正与补充（供后续步骤采用）</h2>
+<p>第 1 步（#193）基于维基，个别战时日期需按本轮 AP 权威时间线<strong>校正/细化</strong>：</p>
+<ol>
+<li><strong>停火性质</strong>：第 1 步记「6/14 达成 MoU（60 天停火延长）」——AP 更精确：<strong>6/14 宣布临时协议 → 6/17 正式签署</strong>，60 天期自签署起算；协议实质是<strong>伊朗稀释 HEU + 美方豁免制裁 + 允许伊朗自由售油</strong>。</li>
+<li><strong>瓦解时点</strong>：第 1 步记「7/9 恢复袭击」——AP 更精确：<strong>7/7 伊袭 3 船 → 美报复 + 复征油税 → 7/8 特朗普宣布停火『结束』</strong>。</li>
+<li><strong>领导层</strong>：新增确认——<strong>哈梅内伊 2/28 阵亡</strong>；<strong>穆杰塔巴·哈梅内伊 3/8 继任但从未露面/藏匿</strong>（对 #196 领导层分析关键）。</li>
+<li><strong>战线</strong>：黎巴嫩-真主党已是<strong>平行热战线</strong>（3/2 入战，以军占黎南部），非仅「代理人骚扰」——对 #195 军力权重与 #196 地缘评估重要。</li>
+</ol>
+<hr>
+<h2 id="八-给后续步骤的抓手-承上启下">八、给后续步骤的抓手（承上启下）</h2>
+<ul>
+<li><strong>#195 军力对比</strong>：当前伊朗的<strong>有效手段已收敛为海峡不对称打击</strong>——反舰/巡航导弹（Mombasa、Al Bahiyah 案）、水雷、无人机、海防；美军以 CENTCOM 空/海优势打「海防-导弹-无人机」目标。真主党仍有黎巴嫩战线牵制力，其余代理人本轮存在感低。军力评估应以<strong>海峡拒止 vs 制海/制空</strong>为主轴。</li>
+<li><strong>#196 地缘影响</strong>：外溢已实锤——<strong>巴林、科威特、约旦、卡塔尔、阿曼、UAE</strong> 均被卷入或威胁反击；UAE 最可能二次入战。海湾 GCC 国家的「被迫选边」是关键变量。</li>
+<li><strong>#197 能源经济冲击</strong>：海峡开/闭是油价总开关；当前布伦特 $84（战时峰值近 $120）。<strong>特朗普 20% 过路费</strong>与<strong>恢复港口封锁</strong>是新增的政策性冲击源，可量化其对运价/保险/油价的传导。</li>
+<li><strong>#198 情景推演</strong>：核心分岔仍是<strong>「打谈并行」能否收敛为最终和约，还是滑向长期海峡消耗战</strong>。7/8 停火「结束」但「谈判可继续」的措辞，是推演三分支（复停火 / 有限战 / 全面战）的锚点。</li>
+</ul>
+<hr>
+<p><em>方法学备注：本快照坚持「逐条标源 + 区分确认与争议」。凡属单方军方/政府声明（IRGC、UAE 国防部、约旦军方、伊朗省级当局、特朗普社媒/口头表态）均已注明归属，不作为客观既成事实并列。海峡「开/闭」、通行收费权、核电站受损程度、继任领袖状况为当前最主要的四组争议信息，下一步如需引用应再以 Reuters/BBC/IAEA/IMO 原始声明二次核实。</em></p></section>
+<section id="sec-03" class="doc" data-idx="2"><h1 id="美伊战争-军事力量与战场态势对比-升级情景">美伊战争：军事力量与战场态势对比 + 升级情景</h1>
+<blockquote>故事「美伊战争」第 3/6 步（任务 #195）的产出。承接第 1 步（背景与根源）与第 2 步（7/14 现状快照），聚焦<strong>美伊双方军事能力对比、当前战场态势、军事介入门槛与升级路径</strong>。<br>所有力量数据均通过 chrome-devtools <strong>实读真实来源</strong>（CSIS、IISS 转载、维基条目组），逐条标注<strong>来源</strong>，并区分「已多源确认」「单方战报/存争议」。<br>撰写日期：2026-07-14。</blockquote>
+<h2 id="一-来源-chrome-devtools-实读">一、来源（chrome-devtools 实读）</h2>
+<ol>
+<li><strong>CSIS 导弹威胁项目（Missile Threat）</strong>《Missiles of Iran》，最后更新 <strong>2026-06-17</strong>。伊朗导弹全清单与射程/状态；含 CSIS 事件页《Is the U.S. Running Out of Munitions?》（2026-03-11）与《Epic Fury: The Campaign Against Iran's Missile &amp; Nuclear Infrastructure》（2026-03-06）。</li>
+</ol>
+<p>https://missilethreat.csis.org/country/iran/</p>
+<ol>
+<li><strong>维基《Islamic Republic of Iran Armed Forces》</strong>（伊朗武装力量总览，引 IISS《Military Balance》数据）。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/Islamic_Republic_of_Iran_Armed_Forces</p>
+<ol>
+<li><strong>维基《Islamic Revolutionary Guard Corps Navy》</strong>（IRGC 海军「游击海军」结构、快艇/水雷/反舰导弹）。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/Islamic_Revolutionary_Guard_Corps_Navy</p>
+<ol>
+<li><strong>维基《2026 Iran war》</strong>（主条目：belligerents、双方伤亡与损失、美军集结、各战线战报）。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/2026_Iran_war</p>
+<ol>
+<li><strong>维基《Analysis of the 2026 Iran war》</strong>（伊朗/美国军事战略有效性、霍尔木兹海峡评估——引 International Crisis Group、BBC 等分析）。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/Analysis_of_the_2026_Iran_war</p>
+<ol>
+<li><strong>维基《2026 United States naval blockade of Iran》</strong>（两轮封锁的指挥链与时间线）。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/2026_United_States_naval_blockade_of_Iran</p>
+<blockquote>说明：CSIS/IISS 为权威能力基线（结构性、战前）；维基战争条目组提供战时动态与双方战报，凡属单方军方口径（IRGC、伊朗、美以战报）均单独标注归属，不作既成事实并列。</blockquote>
+<hr>
+<h2 id="二-核心判断-一句话">二、核心判断（一句话）</h2>
+<p><strong>这是一场"力量极不对称、但结果趋于僵持"的战争。</strong> 美军在<strong>制空、制海、水下、ISR、精确打击</strong>上具压倒性优势，已重创伊朗常规军力（据美以战报，伊朗损失 190+ 弹道导弹发射架、155 艘舰艇、6000+ 军人）；但伊朗凭<strong>弹道/巡航导弹 + 无人机 + IRGC"游击海军"（快艇/水雷/反舰导弹）+ 关闭霍尔木兹海峡</strong>这套<strong>不对称拒止组合</strong>，把冲突拖入"技术性僵局"。国际危机组织一语中的：美国为阻止伊朗造"大规模杀伤武器"，反而把<strong>"大规模扰乱武器"（霍尔木兹控制权）</strong> 递到了伊朗手中（来源 5）。</p>
+<hr>
+<h2 id="三-总体军力对比-结构性基线">三、总体军力对比（结构性基线）</h2>
+<div class="table-wrap"><table><thead><tr><th>维度</th><th>美国（中东/CENTCOM 方向）</th><th>伊朗</th><th>力量性质</th></tr></thead><tbody><tr><td><strong>总兵力</strong></td><td>全球第一军力；本战区为<strong>2003 年伊拉克战争以来最大规模集结</strong>（来源 4）</td><td>现役约 <strong>57 万</strong> + 预备/受训 <strong>35 万</strong>（合计约 <strong>92 万</strong>，IISS 自 2023 未变，来源 2；不含 Basij）</td><td>伊朗人力庞大但装备代差大</td></tr><tr><td><strong>军费</strong></td><td>约 8000+ 亿美元/年（全球最高）</td><td>约 <strong>246 亿美元</strong>（2021，占 GDP 2.8%，来源 2）</td><td>约 30–40 倍差距</td></tr><tr><td><strong>制空</strong></td><td><strong>两个航母打击群 + 数百架战机</strong>驻区域基地（来源 4）；五代机、隐身轰炸机、空中加油</td><td>空军<strong>老旧</strong>（F-14/F-4/米格及少量苏制），无法争夺制空权</td><td><strong>美绝对优势</strong></td></tr><tr><td><strong>制海（蓝水）</strong></td><td>第五舰队（巴林 HQ）、航母、驱护舰、攻击潜艇</td><td>常规海军（Artesh Navy）弱：<strong>IRIS Dena 护卫舰</strong>在斯里兰卡外海被 <strong>USS Charlotte 潜艇击沉，104 人亡</strong>（自福克兰战争以来首次潜艇实战击沉，来源 4）</td><td><strong>美绝对优势</strong></td></tr><tr><td><strong>近海拒止（绿水）</strong></td><td>需在狭窄海峡内应对饱和/群狼攻击，暴露度高</td><td><strong>IRGC 海军=「游击海军」</strong>：约 2 万人、<strong>约 126 艘水面战舰、3000–5000 艘快艇、58–78 架直升机</strong>，专精<strong>快艇群狼战术 + 反舰导弹 + 水雷 + 打了就跑</strong>（来源 3）；另有 Basij 海军 5.5 万人、3.3 万艘船</td><td><strong>伊朗有效拒止</strong></td></tr><tr><td><strong>导弹力量</strong></td><td>精确打击 + 一体化反导（THAAD/爱国者/宙斯盾）</td><td><strong>中东最大、最多样的导弹库</strong>：数千枚弹道与巡航导弹，部分可及以色列/东欧（来源 1）</td><td>伊朗为核心不对称手段</td></tr><tr><td><strong>无人机</strong></td><td>高端 ISR/察打一体</td><td>大量 <strong>Shahed-131/136/238</strong> 等自杀式无人机（1000–2500 km，还外供俄罗斯，来源 1）</td><td>伊朗高性价比消耗手段</td></tr><tr><td><strong>代理人</strong></td><td>——</td><td>抵抗之弧（真主党仍在黎巴嫩热战，胡塞、PMF/伊拉克民兵；其余 2023 后被削弱，见第 1 步）</td><td>伊朗纵深威慑</td></tr></tbody></table></div>
+<hr>
+<h2 id="四-伊朗的不对称-拒止组合-本战真正的胜负手">四、伊朗的不对称"拒止组合"（本战真正的胜负手）</h2>
+<p>第 2 步已判定：伊朗有效手段<strong>已收敛为海峡不对称打击</strong>。分四层：</p>
+<h3 id="1-弹道-巡航导弹-csis-权威清单-来源-1">1. 弹道 / 巡航导弹（CSIS 权威清单，来源 1）</h3>
+<p>CSIS 定性伊朗拥有<strong>"中东最大、最多样的导弹库，数千枚弹道与巡航导弹"</strong>。关键型号（射程/状态）：</p>
+<ul>
+<li><strong>SRBM（近程）</strong>：Fateh-110（200–300km）、Fateh-313（500km）、Zolfaghar（700km）、Qiam-1（700–800km）、Shahab-1/2 —— <strong>均 Operational</strong>，覆盖海湾对岸美军基地。</li>
+<li><strong>MRBM（中程）</strong>：Shahab-3（1300km，Op）、Sejjil（2000km，Op）；Emad/Ghadr/Khorramshahr（1700–2000km，在研）—— 可及以色列。</li>
+<li><strong>巡航/反舰</strong>：<strong>Ra'ad 反舰巡航导弹（350km，Op）</strong>、Ya-Ali 对地巡航（700km）、Soumar（2000–3000km，推定 Op）。→ 7/14 击中 Mombasa、Al Bahiyah 两艘油轮即此类（第 2 步）。</li>
+<li><strong>战例背书</strong>：2019 无人机+巡航导弹精确瘫痪沙特 Abqaiq 炼油厂（占全球日供 5–7%）；2020 以多达 22 枚弹道导弹袭 Al-Asad 基地致 100+ 美军脑损伤（来源 1）。→ 证明伊朗<strong>具备精确打击固定大目标</strong>的实战能力。</li>
+</ul>
+<h3 id="2-irgc-游击海军-霍尔木兹拒止的执行者-来源-3">2. IRGC「游击海军」——霍尔木兹拒止的执行者（来源 3）</h3>
+<ul>
+<li>编制：约 <strong>2 万人</strong>、<strong>约 126 艘水面战舰、3000–5000 艘快艇、58–78 架直升机</strong>；另 Basij 海军 <strong>5.5 万人 / 3.3 万艘船</strong>。</li>
+<li>教条：<strong>放弃传统海战，主打小型快攻艇 + 反舰导弹 + 水雷 + 群狼/打了就跑</strong>——维基直接称其为<strong>"游击海军"（guerrilla navy）</strong>。</li>
+<li>战术价值：在<strong>仅约 33km 宽、主航道更窄</strong>的霍尔木兹海峡内，<strong>快艇群 + 岸基反舰导弹 + 水雷</strong>可对大型水面舰艇与油轮形成饱和威胁，正是美航母/驱护舰最难受的环境。</li>
+</ul>
+<h3 id="3-关闭霍尔木兹海峡-大规模扰乱武器-来源-5-分析权威">3. 关闭霍尔木兹海峡——"大规模扰乱武器"（来源 5，分析权威）</h3>
+<ul>
+<li>ICG 伊朗项目主任 Ali Vaez：美国想阻止伊朗造 WMD，"反而把一件<strong>大规模扰乱武器</strong>（武器化的海峡控制权）交给了伊朗"；BBC 的 Frank Gardner 称伊朗已<strong>"冲出牢笼"</strong>。</li>
+<li>UAE 总统顾问 Gargash 判断：伊朗打击海湾国家的战略意图有二——<strong>逼海湾国家更靠拢美国的安全绑定</strong>，以及<strong>推高全球油价、对美施加全球压力</strong>（来源 5）。</li>
+<li>战前约<strong>全球 1/5 海运油气</strong>过此海峡；当前近乎停摆（第 2 步：布伦特 $84，峰值曾近 $120）。</li>
+</ul>
+<h3 id="4-代理人纵深-第-1-2-步已建立">4. 代理人纵深（第 1/2 步已建立）</h3>
+<ul>
+<li><strong>真主党</strong>：仍是<strong>平行热战线</strong>（3/2 入战、以军占黎南部；内部消息称已损 1000–2500 名战斗员，来源 4）。</li>
+<li>胡塞：警告任何重开海峡的行动，点名威胁参战的巴林、UAE（来源 4）。</li>
+<li>PMF/伊拉克民兵：损 80 人（来源 4），本轮存在感低。</li>
+<li>判断：抵抗之弧经 2023 后连番削弱，<strong>导弹/海峡拒止已取代代理人成为伊朗第一威慑支柱</strong>（对第 1 步权重的再校正）。</li>
+</ul>
+<hr>
+<h2 id="五-美国的优势与其-阿喀琉斯之踵">五、美国的优势与其"阿喀琉斯之踵"</h2>
+<p><strong>压倒性优势</strong>（来源 4）：</p>
+<ul>
+<li><strong>制空</strong>：两个航母打击群 + 数百架战机 + 隐身/远程打击；开战首日美以联手，以军 24 小时投 1200+ 枚炸弹，斩首哈梅内伊及大批 IRGC 高官。</li>
+<li><strong>水下</strong>：USS Charlotte 击沉 IRIS Dena，展示伊朗常规海军在近海之外<strong>毫无生存性</strong>。</li>
+<li><strong>精确打击 + 战果</strong>：据美以战报，已毁伤伊朗 <strong>190+ 弹道导弹发射架、155 艘舰艇</strong>，击毙 <strong>6000+ 伊军</strong>（来源 4，美以口径）。</li>
+</ul>
+<p><strong>结构性弱点（这解释了"僵局"）</strong>：</p>
+<ol>
+<li><strong>拦截弹消耗</strong>（CSIS 2026-03-11 专题）：高强度反导正在<strong>掏空 THAAD/爱国者拦截弹与工业基础存量</strong>——"美国是否弹药告罄"已是 CSIS 公开议题（来源 1）。伊朗则可用<strong>廉价 Shahed 无人机 + 饱和弹道</strong>打消耗战，成本曲线对伊有利。</li>
+<li><strong>反导雷达被点名摧毁</strong>：3/1–3/2 伊朗打击约旦、UAE、沙特的 <strong>THAAD 雷达阵地</strong>，据报<strong>至少毁伤 1 部</strong>；伊方战报更宣称毁伤 <strong>AN/TPY-2、THAAD 雷达、爱国者 AN/MPQ-65 雷达</strong>等 12+ 部雷达/卫星系统（来源 4，伊方口径待核）。→ 反导是"眼睛先挨打"。</li>
+<li><strong>前沿基地高暴露</strong>：第五舰队 HQ（巴林）、Al Udeid（卡塔尔）、Al Dhafra（UAE）、约旦/科威特/伊拉克驻军<strong>全在伊朗 SRBM 射程内</strong>，且拖累海湾东道国被动卷入。</li>
+<li><strong>情报/指挥受限</strong>（来源 5）：分析指战前对美情报能力的削减造成"结构性局限"，F-15E 机组被击落的搜救暴露了"制度性侵蚀"；伊朗响应速度较"十二日战争"更快，暗示其指挥结构已调整/更抗打击。</li>
+<li><strong>政治-联盟摩擦</strong>：未事先知会 NATO 即开战、对盟友加压，削弱多国参战意愿（来源 5）——把技术优势转化为决定性胜利的<strong>政治杠杆缺失</strong>（《卫报》讥"coward-in-chief"、弗里德曼讥"commander-in-thief"）。</li>
+</ol>
+<blockquote>净评估：<strong>美军能持续压制、却难"清盘"；伊朗军力被大幅削弱、却保留了关海峡这张决定性牌。</strong> 这正是分析所称的<strong>"技术性僵局（technical stalemate）"</strong>（来源 5）。</blockquote>
+<hr>
+<h2 id="六-当前战场态势-截至-2026-07-14-多战线">六、当前战场态势（截至 2026-07-14，多战线）</h2>
+<div class="table-wrap"><table><thead><tr><th>战线</th><th>态势</th><th>主导方</th></tr></thead><tbody><tr><td><strong>霍尔木兹海峡 / 波斯湾</strong>（主战场）</td><td>美军空袭伊朗海防/导弹/无人机/海军目标；伊朗以反舰巡航导弹击油轮、布雷、快艇袭扰；<strong>海峡近乎停摆</strong>，7/14 美重启封锁 + 拟按货值 20% 收过路费</td><td><strong>拉锯</strong>（美制海/空 vs 伊拒止）</td></tr><tr><td><strong>海湾阿拉伯国家</strong>（外溢）</td><td>巴林、约旦（近日拦 4 弹）、科威特、卡塔尔、UAE 遭伊朗导弹/无人机；UAE 威胁报复、最可能二次入战</td><td>伊朗施压、GCC 被动</td></tr><tr><td><strong>黎巴嫩 / 真主党</strong></td><td>平行热战线：真主党 3/2 入战，以军占黎南部（5/31 达 25 年最深）；真主党损 1000–2500 人</td><td>以色列压制</td></tr><tr><td><strong>印度洋 / 远海</strong></td><td>USS Charlotte 击沉 IRIS Dena；英属迪戈加西亚为轰炸跳板；伊称导弹逼近（未证实）</td><td><strong>美绝对优势</strong></td></tr><tr><td><strong>本土（伊朗）</strong></td><td>首日斩首 + 60 小时断网；南部近海峡 10+ 省被反复空袭；德黑兰近期未直接挨炸、维持"大体如常"</td><td>美打击、伊承压</td></tr></tbody></table></div>
+<p><strong>双方伤亡/损失记分卡</strong>（来源 4；★=多源确认，○=单方战报）：</p>
+<ul>
+<li>美方：★17 军人 +1 承包商亡、548 伤；○伊称毁伤美 12+ 雷达/卫星系统。</li>
+<li>以方：★40 军人亡、9240 伤（含 1461 军人）。</li>
+<li>海湾：UAE 2 军+11 民亡/227 伤；科威特 4 军+7 民亡；沙特 3 民亡（各国口径）。</li>
+<li>伊方：伊称★3482 亡/26500 伤；HRANA（独立）3636 亡（含 1221 军人）；○美以称伊 <strong>6000+ 军人亡、~15000 伤、190+ 导弹发射架毁、155 舰毁伤</strong>；真主党 1000–2500 亡。</li>
+</ul>
+<blockquote>争议：伊军死亡"3482（伊）vs 6000+（美以）"差近一倍；发射架/舰艇损失全为美以单方战报，<strong>须以 IAEA/IMO/独立卫星影像二次核实</strong>（延续第 2 步的"事实 vs 争议"纪律）。</blockquote>
+<hr>
+<h2 id="七-军事介入门槛与升级路径-升级阶梯">七、军事介入门槛与升级路径（升级阶梯）</h2>
+<p>把当前冲突放到一条<strong>升级阶梯</strong>上，标出各级门槛（谁按、代价、可逆性）：</p>
+<div class="table-wrap"><table><thead><tr><th>级别</th><th>军事形态</th><th>触发门槛</th><th>现状位置</th></tr></thead><tbody><tr><td><strong>0 制裁/封锁</strong></td><td>经济绞杀、港口封锁、20% 过路费</td><td>单边可为，低门槛</td><td>7/14 已重启（第二轮）</td></tr><tr><td><strong>1 有限精确打击</strong></td><td>点名打海防/导弹/无人机/海军目标，避开人口与核浓缩链</td><td>现行主模式，"打谈并行"</td><td><strong>← 当前在此</strong></td></tr><tr><td><strong>2 海峡全面拒止 vs 强开</strong></td><td>伊全面布雷/群狼封峡；美强行护航/扫雷/两栖夺岛（Abu Musa 等）</td><td>伊宣布关峡、美宣布强开——<strong>双方口径已对立</strong>（第 2 步）</td><td>一步之遥</td></tr><tr><td><strong>3 战略/纵深打击</strong></td><td>美打伊能源/电网/政权目标或<strong>重启核浓缩链定点打击</strong>；伊打沙特/UAE 油田（复刻 Abqaiq）</td><td>油轮/基地重大伤亡、或斩首未遂</td><td>局部苗头（布什尔外围被击中）</td></tr><tr><td><strong>4 地面/政权更替</strong></td><td>大规模地面介入或强推政权崩解</td><td>政治意愿+联盟支持（当前缺失，来源 5）</td><td>门槛高、意愿低</td></tr><tr><td><strong>5 核门槛</strong></td><td>伊冲刺武器化 / 涉核报复</td><td>JCPOA 已于 2025-10 终止；HEU 稀释是协议核心</td><td>谈判桌议题，未见军事迹象</td></tr></tbody></table></div>
+<p><strong>升级"油门"与"刹车"</strong>：</p>
+<ul>
+<li><strong>油门</strong>：海峡开/闭的口径对立（结构性对撞）；拦截弹消耗使美倾向"先发降体系"；UAE 若报复→海湾多国连锁参战；斩首/大规模平民伤亡的报复螺旋（特朗普称有"预设报复令"，第 2 步）。</li>
+<li><strong>刹车</strong>：美缺乏把技术优势变决定性胜利的政治/联盟杠杆（来源 5）；伊常规军力已被重创、承受不起全面战；卡塔尔/阿曼/巴基斯坦斡旋在场；双方均留"谈判可继续"的口子（7/8）。</li>
+<li><strong>最可能路径</strong>：在<strong>级别 1↔2 之间长期高危拉锯（海峡消耗战）</strong>，间歇触及级别 3；级别 4/5 门槛显著更高。这为第 6 步（#198 情景推演）的三分支（复停火 / 有限战长期化 / 全面战）提供了military 侧锚点。</li>
+</ul>
+<hr>
+<h2 id="八-对前序步骤的校正与补充">八、对前序步骤的校正与补充</h2>
+<ol>
+<li><strong>伊朗威慑支柱重排序</strong>：第 1 步以"代理人网络"为核心不对称手段；据本轮实读，<strong>导弹 + 海峡拒止已上升为第一支柱</strong>，代理人（除真主党）因 2023 后削弱退居次要。</li>
+<li><strong>常规海军 vs 游击海军须分开评估</strong>：伊朗<strong>常规海军（Artesh Navy）在远海毫无生存性</strong>（IRIS Dena 被潜艇秒杀），但<strong>IRGC"游击海军"在近海（海峡）具有效拒止</strong>——二者战力天差地别，不可混谈。</li>
+<li><strong>美方弱点是"消耗"不是"能力"</strong>：僵局根源不在美军打不动，而在<strong>拦截弹/工业存量消耗 + 政治联盟杠杆缺失 + 前沿基地高暴露</strong>（来源 1、5）。</li>
+</ol>
+<hr>
+<h2 id="九-给后续步骤的抓手-承上启下">九、给后续步骤的抓手（承上启下）</h2>
+<ul>
+<li><strong>#196 地缘影响</strong>：军力层面已实锤——<strong>GCC 前沿基地高暴露 + UAE 最可能二次入战 + 真主党平行战线</strong>是地缘外溢的军事底座；中/俄立场（来源 5 提及）可从"是否补给伊朗导弹/无人机产能"切入。</li>
+<li><strong>#197 能源经济冲击</strong>：<strong>拦截弹成本曲线（廉价 Shahed vs 昂贵 THAAD/爱国者）</strong> 是一条可量化的新线；叠加海峡停摆、20% 过路费、封锁，构成"军事—能源"传导链。</li>
+<li><strong>#198 情景推演</strong>：直接接用<strong>第七节升级阶梯</strong>——三分支对应"回落级别 0–1（复停火）/ 稳定在级别 1–2（长期海峡消耗战）/ 跃升级别 3–4（全面战）"，触发门槛与油门/刹车已列明。</li>
+</ul>
+<hr>
+<p><em>方法学备注：本篇力量基线取自 CSIS/IISS 等权威能力来源（结构性、可核验）；战时损失凡属美以或伊朗单方战报（★/○ 已标）一律注明归属，不与独立确认数据并列。伊军死亡数（伊 3482 vs 美以 6000+）、发射架/舰艇损失、被摧毁反导雷达数为当前最主要争议项，若后续引用应以 IAEA/IMO/独立卫星影像二次核实。</em></p></section>
+<section id="sec-04" class="doc" data-idx="3"><h1 id="美伊战争-地区与全球地缘影响评估">美伊战争：地区与全球地缘影响评估</h1>
+<blockquote>故事「美伊战争」第 4/6 步（任务 #196）的产出。承接第 1 步（背景根源）、第 2 步（7/14 现状快照）、第 3 步（军力对比与升级阶梯），聚焦<strong>冲突对地区与全球格局的连锁影响</strong>：地区行为体立场、大国角色与利益、对全球能源/航运/不扩散体系的冲击。<br>所有事实均通过 chrome-devtools <strong>实读真实来源</strong>（维基战争条目组的国际反应/经济影响/分析子条目 + 联合国决议条目，这些条目转载 CSIS/ICG/CFR/Brookings/IEA/IAEA/NYT/BBC 等智库与新闻分析），逐条标注<strong>来源</strong>，并延续前序步骤「事实 vs 争议」纪律。<br>撰写日期：2026-07-14。</blockquote>
+<h2 id="一-来源-chrome-devtools-实读">一、来源（chrome-devtools 实读）</h2>
+<ol>
+<li><strong>维基《2026 Iran war》</strong>——主条目 Economic impacts / Reactions / Analysis / Diplomatic efforts 各节（转载 IEA、NYT、Brookings-Kagan、CFR-Haass、Foreign Policy、The Atlantic、BBC、The Independent 等分析）。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/2026_Iran_war</p>
+<ol>
+<li><strong>维基《Reactions to the 2026 Iran war》</strong>——逐国政府立场（以色列、沙特/海湾、伊拉克、叙利亚、土耳其、俄、中、EU、NATO、SCO、Arab League、GCC、IAEA、UNHRC、ICRC）。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/Reactions_to_the_2026_Iran_war</p>
+<ol>
+<li><strong>维基《United Nations Security Council Resolution 2817》</strong>——2026-03-11 通过，谴责伊朗对海湾与海峡航运的打击；投票/弃权细节。</li>
+</ol>
+<p>https://en.wikipedia.org/wiki/United_Nations_Security_Council_Resolution_2817</p>
+<blockquote>说明：维基战争条目组是本轮唯一能覆盖「全景多方立场」的实读来源（与第 1、3 步一致），其正文均带一手引用（政府声明、IEA/IAEA 官员、智库学者具名）。凡属单方政府/军方口径或存争议数字，均单独标注归属，不作既成事实并列。</blockquote>
+<hr>
+<h2 id="二-核心判断-一句话">二、核心判断（一句话）</h2>
+<p><strong>这场战争的地缘冲击是「战术上惩罚伊朗、战略上重创美国主导秩序」的悖论式扩散。</strong> 联合国以史上最多联署（135 国）通过决议<strong>只谴责伊朗的报复、回避美以的首轮进攻</strong>（UNSC 2817），显示规范性叙事仍偏向美方阵营；但在<strong>实质权力层面</strong>——海湾安全绑定松动、俄中坐收渔利、能源/航运/不扩散三大全球公共品同时受冲击、盟友（尤以以色列）信任受损——多位主流智库学者（Brookings 的 Kagan、CFR 的 Haass）直接判定这是「伊朗的重大胜利、美国的重大失败」（来源 1 Analysis / Diplomatic efforts 节）。</p>
+<hr>
+<h2 id="三-地区行为体的立场与利害-谁站哪-图什么">三、地区行为体的立场与利害（谁站哪、图什么）</h2>
+<h3 id="1-以色列-首日盟友-停火后-被出卖-的一方">1. 以色列——首日盟友，停火后「被出卖」的一方</h3>
+<ul>
+<li><strong>开战立场</strong>：内塔尼亚胡称打击旨在「消除伊朗恐怖政权的存在性威胁」，为哈梅内伊之死庆祝；外长 Sa'ar 称「再拖延将令伊朗核计划获得免疫、并量产远程弹道导弹」（来源 2 Israel 节）。以色列民意 3 月一度 <strong>82% 支持军事行动</strong>（IDI 民调）。</li>
+<li><strong>战后逆转（关键）</strong>：6/17《伊斯兰堡谅解备忘录》签署后，以色列舆论转为「愤怒与被背叛」——《Israel Hayom》头版「你本可成为史上最伟大总统，却失败了」，指特朗普签了「投降协议」（来源 1 Media coverage in Israel 节）。<strong>6 月希伯来大学/Agam 民调：93.1% 以色列人认为伊朗赢了这场战争、82.9% 认为削弱了以色列长期安全、86% 对 6 月和约持负面看法</strong>（来源 2）。CFR 的 Haass 判断美以关系「严重受损」、以色列「行动自由被大幅收窄」（来源 1）。</li>
+<li><strong>地缘含义</strong>：美以同盟出现自建国以来罕见的公开裂痕，是本战最大的<strong>盟友信任成本</strong>。</li>
+</ul>
+<h3 id="2-沙特与海湾-gcc-被迫上前线-多国私下比公开更鹰">2. 沙特与海湾 GCC——「被迫上前线」，多国私下比公开更鹰</h3>
+<ul>
+<li><strong>沙特</strong>：谴责伊朗对利雅得/东部省的「怯懦攻击」，王储 MbS 敦促特朗普「继续狠打伊朗」；5 月路透报道<strong>沙特已对伊朗及伊拉克境内亲伊民兵动手</strong>（来源 2 Saudi Arabia 节）——即沙特已从「被打」滑向「参战」。</li>
+<li><strong>UAE（最鹰）</strong>：据外交人士，UAE 是<strong>海湾最鹰派、曾推动特朗普对伊发动地面入侵</strong>；驻美大使 al-Otaiba 拒绝停火、要求「决定性结果」，涵盖伊朗「核、导弹、无人机、代理人、封锁海道」全谱威胁（来源 2 UAE 节）。</li>
+<li><strong>私下更鹰的一批</strong>：据外交人士，<strong>巴林、科威特均私下支持美国对伊地面入侵</strong>；科威特 5 月被曝已打击伊拉克境内亲伊民兵、并在 Bubiyan 岛与伊朗交火（来源 2 Bahrain/Kuwait 节）。</li>
+<li><strong>相对克制的一极——阿曼</strong>：外长 Badr Albusaidi 罕见公开劝美「别越陷越深，这不是你的战争」，称美国「已失去对自身外交政策的控制」、指以色列把美国拖入「灾难性误判」，并要求召开安理会（来源 2 Oman 节）。→ 与第 2 步 7/14「美威胁若阿曼不『守规矩』就轰炸它」的插曲相印证，说明<strong>连海湾内部对战争路线都已分裂</strong>。</li>
+<li><strong>巴基斯坦入局</strong>：沙特援引 2025-09 与巴基斯坦的《战略共同防御协定》，<strong>巴方部署约 8000 兵力 + 1 个中队 16 架战机 + 2 个无人机中队</strong>（来源 1 Gulf Arab states 节）——把南亚核国家拉进海湾安全框架，是本战一个被低估的结构性外溢。</li>
+<li><strong>地缘含义</strong>：海湾国家从美国「安全庇护」的受益者变成<strong>伊朗报复的首当其冲者</strong>；GCC 紧急开会命令伊朗停火。UAE 顾问 Gargash（第 3 步引 ICG 分析）判断伊朗打海湾的双重意图正是「逼海湾更绑美 + 推高油价对美施压」——即伊朗在<strong>主动利用海湾的地理人质地位</strong>。</li>
+</ul>
+<h3 id="3-伊拉克-领土被两头挤压-竭力不被拖入">3. 伊拉克——领土被两头挤压、竭力不被拖入</h3>
+<ul>
+<li>伊总理 al-Sudani 谴责美以打击 PMF（伊拉克民兵）为「系统性侵略」；为哈梅内伊之死宣布<strong>三天全国哀悼</strong>（来源 2 Iraq 节）。</li>
+<li><strong>关键中立动作</strong>：面对「库尔德武装拟从伊拉克境内攻入伊朗」的计划，国安顾问 al-Araji 声明<strong>伊拉克不允许借其领土入侵伊朗</strong>，并按伊朗请求把伊军调往伊-库边境设阻（来源 2）。</li>
+<li><strong>地缘含义</strong>：伊拉克是<strong>战线外溢的缓冲垫</strong>——既被美以打（PMF）、又被沙特/科威特跨境打（境内亲伊民兵），却拼命不让本土成为地面入侵伊朗的跳板。是评估「战争会否地面化」的关键地形阀门。</li>
+</ul>
+<h3 id="4-叙利亚-后阿萨德新政府-与黎巴嫩战线">4. 叙利亚（后阿萨德新政府）与黎巴嫩战线</h3>
+<ul>
+<li><strong>叙利亚</strong>：新政府外交部<strong>「强烈谴责伊朗」</strong>对沙特/UAE/巴林/卡塔尔/科威特/约旦的打击，并联署 UNSC 2817（来源 2 Syria 节）——印证第 1 步「抵抗之弧经 2023 后被削弱」：叙利亚已<strong>从伊朗盟友翻转为谴责伊朗一方</strong>，是伊朗地区纵深崩解的最直观证据。</li>
+<li><strong>黎巴嫩/真主党</strong>：仍是<strong>平行热战线</strong>（第 2、3 步已确立：真主党 3/2 入战、以军占黎南部、真主党损 1000–2500 人）。真主党是伊朗抵抗之弧中<strong>唯一仍在为其热战</strong>的支柱。</li>
+</ul>
+<h3 id="5-土耳其-埃及-约旦-也门">5. 土耳其、埃及、约旦、也门</h3>
+<ul>
+<li><strong>土耳其</strong>：埃尔多安<strong>两头谴责</strong>——既谴责美以打击「非法、明显违反国际法」，也谴责伊朗对邻国的报复，并为哈梅内伊之死致哀（来源 2 Turkey 节）。典型的地区平衡手。</li>
+<li><strong>埃及</strong>：塞西<strong>全力支持海湾</strong>、警告勿再升级（来源 2 Egypt 节）。</li>
+<li><strong>约旦</strong>：驻有美军、屡遭伊朗导弹（第 2 步：7/14 拦 4 弹），是 UNSC 2817 明列的受害方之一。</li>
+<li><strong>也门</strong>：内部撕裂——胡塞 3/28 入战替伊朗打，但<strong>国际承认的也门政府谴责伊朗「一再企图把也门拖入战争」</strong>（来源 2 Yemen 节）。</li>
+</ul>
+<hr>
+<h2 id="四-大国角色与利益-俄-中-欧-及美国自身">四、大国角色与利益（俄、中、欧、及美国自身）</h2>
+<h3 id="1-俄罗斯-口头挺伊-行动中立-经济净赢家">1. 俄罗斯——口头挺伊、行动中立、经济净赢家</h3>
+<ul>
+<li><strong>姿态</strong>：外长拉夫罗夫斥美以为「蓄谋已久、无端的武装侵略」，警告地区滑向「人道、经济乃至放射性灾难」；普京 3/6 对哈梅内伊之死致哀、表态支持伊朗<strong>但强调「立即停火、政治外交解决」并重申俄的中立</strong>，同时与海湾各国领导人保持接触（来源 2 Russia 节）。</li>
+<li><strong>实利（关键）</strong>：据 NYT 对开战至 5/8 石油贸易量价的分析，<strong>俄罗斯是仅次于美国的最大受益者——出口稳定而收入增加逾 150 亿美元</strong>（来源 1 Economic impacts 节）。俄以「有节制的挺伊 + 稳定油气出口」两头得利。</li>
+</ul>
+<h3 id="2-中国-谴责美以-强调主权-能源命门承压">2. 中国——谴责美以、强调主权、能源命门承压</h3>
+<ul>
+<li><strong>姿态</strong>：外交部对美以打击表关切、要求立即停火并尊重伊朗主权；外长王毅谴责打击；3/1 称杀害哈梅内伊「严重侵犯伊朗主权与安全，践踏《联合国宪章》宗旨」（来源 2 China 节）。</li>
+<li><strong>多边动作</strong>：中俄在安理会<strong>对 UNSC 2817 双双弃权</strong>，批评决议文本「只字不提触发冲突的美以打击」（来源 3）。上合组织（SCO）亦表严重关切、称使用武力「不可接受」（来源 2 IGO 节）。</li>
+<li><strong>利害</strong>：中国是霍尔木兹海峡石油的最大终端买家之一，海峡停摆直接冲击其能源安全（详见第五节）；但在规范层面，中国借「主权 + 反干涉」话语<strong>占据道义高地、凸显美方行动的非法性</strong>，与俄配合把美以塑造为破坏国际法的一方。</li>
+</ul>
+<h3 id="3-欧盟与-nato-立场分裂-被能源与难民反噬">3. 欧盟与 NATO——立场分裂、被能源与难民反噬</h3>
+<ul>
+<li><strong>欧盟</strong>：委员会主席冯德莱恩与理事会主席科斯塔称冲突「极为担忧」、呼吁克制；但冯德莱恩 3/1 表态<strong>支持伊朗「可信的政权过渡」</strong>（来源 2 EU 节）——即口头克制、倾向却偏美以。EU 正牵头协调海湾/非洲/印太的降级外交，并处理<strong>向欧洲的紧急撤侨</strong>（来源 1 Economic impacts 节配图）。</li>
+<li><strong>NATO</strong>：秘书长 Rutte 称欧洲「支持」美国对伊打击、称伊朗是「威胁」，特朗普致谢；但 NATO 官方强调<strong>北约是防御性组织、不等于加入某成员国发动的侵略</strong>，仅提高导弹防御戒备以自保（来源 2 NATO 节）。→ 联盟对「是否为美国的进攻背书」存在<strong>明确的措辞切割</strong>。</li>
+<li><strong>反噬</strong>：欧洲承受能源价格上涨、航空成本上升、以及经地中海的撤侨/难民压力（第五节）。塞浦路斯出现<strong>反对英国基地</strong>的抗议，塞英关系恶化，怕被拖入战争（来源 2 Europe 节）。</li>
+</ul>
+<h3 id="4-美国自身-赢了战术-输了战略与联盟">4. 美国自身——赢了战术、输了战略与联盟</h3>
+<ul>
+<ul>
+<li><strong>Brookings 的 Robert Kagan</strong>：MoU 是「伊朗的完胜、美国的完败」，伊朗对海峡控制的增强是「对美国地区地位、也对以色列未来安全的重大打击」。</li>
+<li><strong>CFR 的 Richard Haass</strong>：「伊朗的巨大胜利」——美国没能颠覆伊朗政府、伊朗保住导弹/无人机库、核问题被拖延、代理人网络续存、拿到制裁豁免与重建基金、还换来美国「不干涉伊朗内政」的承诺；美以关系严重受损。</li>
+<li><strong>BBC 国际编辑 Jeremy Brown</strong>：「美以空军赢得一连串战术胜利，却不足以避免战略失败」；《The Independent》称美国输掉了战争，把伊朗关闭海峡的能力称为「独特威力的大规模经济毁灭武器」。</li>
+<li>Robert Pape：战争「开启了把伊朗转变为一个地区大国的进程」，并<strong>巩固了 IRGC 在伊朗政治社会中的权力</strong>（来源 1）。</li>
+</ul>
+<li>主流智库判定（来源 1 Diplomatic efforts 节，均具名）：</li>
+<li><strong>国内政治层面</strong>：美众议院（3/3，215-208）与参议院（6/23，50-48）<strong>先后通过法案，要求美国停止战争或取得国会授权</strong>（来源 1 US government reactions 节）——战争权力之争已在国会实体化（呼应第 2 步注意到的国会/战争权力线索）。</li>
+</ul>
+<hr>
+<h2 id="五-对全球能源安全与航运的冲击-三大公共品之一">五、对全球能源安全与航运的冲击（三大公共品之一）</h2>
+<p><strong>IEA 署长 Fatih Birol 定性：这是「史上最严峻的全球能源安全挑战」</strong>（来源 1 Economic impacts 节）。要点：</p>
+<ul>
+<li><strong>油价过山车</strong>：战前<strong>低于 $70</strong> → 3/7 峰值 <strong>$139</strong>；布伦特 3/8 四年来首破 $100、峰值 <strong>$126</strong>（来源 1）。当前（第 2 步 7/14）回落至一个月高点 <strong>$84</strong>，随停火瓦解再度上行。壳牌、道达尔、BP 等一季度利润大增。</li>
+<li><strong>海峡与航运</strong>：战前<strong>约全球 25% 海运石油、20% LNG</strong> 过霍尔木兹（来源 1 Strait 节）。伊朗自 2/28 起以警告、登临、袭船、布雷封锁海峡；IMO 4/21 报告<strong>约 2 万名海员、2000 艘船滞留波斯湾</strong>。第 3 步已记美方 4/13–5/29 反向封锁伊朗港口。</li>
+<li><strong>粮食/化肥连锁</strong>：海峡封锁威胁全球粮食生产——<strong>近 50% 的全球尿素与硫磺出口经此海峡</strong>，叠加天然气（氮肥关键原料）短缺；WFP 与分析师警告战争正推高长期全球粮价（来源 1 Commodities 节）。</li>
+<li><strong>航空</strong>：伊朗领空清空，巴林/伊拉克/以色列/科威特/卡塔尔/叙利亚/UAE 关闭领空；燃油涨价推高全球票价；<strong>美廉航 Spirit Airlines 于 5/2 停运</strong>（战争燃油成本压垮）（来源 1 Air travel 节）。</li>
+<li><strong>东南亚燃料短缺</strong>：3 月下旬东南亚出现成品油储备耗尽的显著短缺（来源 1 Energy 节）；另见维基《2026 Philippine energy crisis》。</li>
+<ul>
+<li><strong>净赢家</strong>：美国（出口增、收入增约 <strong>$500 亿</strong>）、俄罗斯（出口稳、收入增 <strong>$150 亿+</strong>）等非海湾出口国。</li>
+<li><strong>能绕开海峡者受益</strong>：沙特（经红海管线）、阿曼（地理优势）收入反增。</li>
+<li><strong>绕不开海峡者受损</strong>：伊拉克、科威特、卡塔尔、UAE 收入下降。</li>
+<li><strong>伊朗</strong>：因掌握海峡通行，收入反而增加。→ 印证第 3 步「大规模扰乱武器」判断：<strong>伊朗把海峡从软肋变成了收租的杠杆</strong>（Ghalibaf 称将在美军撤离 60 天后单边对过峡船只永久收费，来源 1）。</li>
+</ul>
+<li><strong>赢家/输家的能源地理（NYT 分析，来源 1）</strong>：</li>
+</ul>
+<hr>
+<h2 id="六-对不扩散体系与国际秩序的冲击-三大公共品之二-之三">六、对不扩散体系与国际秩序的冲击（三大公共品之二、之三）</h2>
+<h3 id="1-不扩散-iaea-核规范">1. 不扩散（IAEA / 核规范）</h3>
+<ul>
+<li><strong>IAEA 的关键裁定</strong>：署长 Grossi 3 月报告——伊朗虽保有<strong>大量近武器级铀库存</strong>，但<strong>无证据显示存在建造核弹的结构化计划</strong>（来源 2 IAEA 节）。3/17 确认一枚弹丸击中布什尔核电站厂区<strong>但设施无损、无人员伤亡</strong>（校正第 2 步「伊朗省级当局单方口径」为 IAEA 独立确认）。</li>
+<li><strong>规范倒退</strong>：JCPOA 已于 <strong>2025-10-18 被伊朗终止</strong>（第 1 步）；6/17 MoU 的核心是伊朗<strong>稀释高浓缩铀 + 换取制裁豁免与重建基金</strong>，但 CFR 的 Haass 指核问题实为<strong>「被拖延」而非解决</strong>，伊朗保留了浓缩能力与导弹库。<strong>净效应：以军事打击「解决」核扩散的模式，反而证明了拥有近武器级库存 + 生存能力 = 谈判筹码</strong>——对全球不扩散激励是负面示范。</li>
+</ul>
+<h3 id="2-国际法与秩序-un-宪章-侵略罪">2. 国际法与秩序（UN 宪章 / 侵略罪）</h3>
+<ul>
+<li><strong>UNSC 2817（2026-03-11，来源 3）</strong>：巴林提案、13 票赞成、<strong>135 国联署（安理会史上最多）</strong>，谴责伊朗对海湾六国 + 约旦的打击及对海峡航运的袭击。<strong>中俄弃权</strong>，批评文本回避美以的首轮打击。→ 规范层面的<strong>不对称</strong>：国际社会正式谴责了伊朗的报复，却未同等谴责触发战争的美以进攻。</li>
+<li><strong>对美以行动的法律定性（来源 1 Analysis 节）</strong>：多位专家认定美方开战<strong>未经国会授权（违美国法）</strong>、<strong>违反《联合国宪章》禁止使用武力条款</strong>（不符合自卫要件、无安理会授权），在国际刑法上构成<strong>侵略罪 / 侵略战争</strong>；并<strong>违反 1981《阿尔及尔协议》</strong>（美曾承诺不干涉伊朗内政）。批评者将其定性为特朗普政府对<strong>扩张主义/帝国主义的公开拥抱、偏离自由主义国际秩序规范</strong>。</li>
+<li><strong>地缘含义</strong>：一边是「135 国联署谴责伊朗」的规范动员力，一边是「主要智库与国际法学界判定美方发动侵略战争」——<strong>规范权威被撕成两半</strong>，中俄借此扩大「美国破坏规则」的叙事空间（SCO/安理会弃权即抓手）。</li>
+</ul>
+<hr>
+<h2 id="七-赢家-输家总账-地缘视角-标注归属">七、赢家 / 输家总账（地缘视角，标注归属）</h2>
+<div class="table-wrap"><table><thead><tr><th>行为体</th><th>净评估</th><th>依据（来源）</th></tr></thead><tbody><tr><td><strong>伊朗</strong></td><td>战术惨败（领袖亡、6000+ 军人亡、军力重创）<strong>但战略获益</strong>：证明能扛住美国全面打击、握有海峡「经济毁灭武器」、IRGC 权力巩固、拿到制裁豁免+重建基金</td><td>Kagan/Haass/Pape/The Independent（来源1）</td></tr><tr><td><strong>美国</strong></td><td>战术优势压倒<strong>但战略受挫</strong>：未颠覆伊朗、盟友信任受损、国际法合法性受质、国会掣肘、被判「战略失败」</td><td>Kagan/Haass/Brown（来源1）；众参两院法案（来源1）</td></tr><tr><td><strong>以色列</strong></td><td><strong>最大盟友信任输家</strong>：93% 本国民众认为伊朗赢、86% 反对和约、行动自由被收窄、美以关系受损</td><td>希大/Agam 民调、Haass（来源1/2）</td></tr><tr><td><strong>俄罗斯</strong></td><td><strong>净赢家</strong>：口头挺伊、行动中立、油收入增 $150亿+、道义上占「反侵略」位</td><td>NYT、Lavrov/Putin（来源1/2）</td></tr><tr><td><strong>中国</strong></td><td><strong>规范赢家/能源输家</strong>：借主权话语占道义高地、与俄配合弃权；但海峡停摆冲击其能源命门</td><td>Wang Yi、UNSC 弃权（来源2/3）</td></tr><tr><td><strong>海湾 GCC</strong></td><td><strong>被迫上前线的输家</strong>：本土挨打、被迫选边、内部分裂（UAE 鹰↔阿曼劝和）；绕峡者（沙特/阿曼）油收入反增</td><td>各国声明、NYT（来源1/2）</td></tr><tr><td><strong>全球南方/进口国</strong></td><td>输家：油/气/粮/化肥价格与航运中断的普遍承受者（东南亚、菲律宾能源危机、欧洲撤侨）</td><td>IEA、WFP、NYT（来源1）</td></tr></tbody></table></div>
+<hr>
+<h2 id="八-对前序步骤的校正与补充">八、对前序步骤的校正与补充</h2>
+<ol>
+<li><strong>布什尔核电站受损</strong>：第 2 步记为「伊朗省级当局单方口径」——本轮由 <strong>IAEA（Grossi）独立确认</strong>「弹丸击中厂区但设施无损」（来源 2），可提升确定性等级。</li>
+<li><strong>抵抗之弧崩解的实证</strong>：第 1、3 步判断「抵抗之弧 2023 后被削弱」——本轮新增<strong>叙利亚新政府反过来谴责伊朗、也门合法政府谴责伊朗</strong>两项直接证据，伊朗地区纵深已从「盟友网络」缩水至「仅真主党仍热战」。</li>
+<li><strong>海湾非铁板一块</strong>：第 2 步以「GCC 被迫选边」概括——本轮细化为<strong>UAE/巴林/科威特（私下推地面入侵，最鹰）↔ 阿曼（公开劝美收手）↔ 沙特（已参战打伊拉克民兵）</strong> 的内部光谱，对第 6 步推演海湾连锁反应重要。</li>
+<li><strong>「谁赢了」已有主流学界定论</strong>：不再是开放问题——Brookings/CFR/BBC/Foreign Policy/The Atlantic 主流判定为<strong>伊朗战略胜、美国战略败</strong>，第 6 步情景推演应以此为基准现实、而非中性起点。</li>
+</ol>
+<hr>
+<h2 id="九-给后续步骤的抓手-承上启下">九、给后续步骤的抓手（承上启下）</h2>
+<ul>
+<li><strong>#197 能源经济冲击</strong>：本篇第五节已给出可量化的骨架——<strong>油价 $70→$139→$84 曲线、25%海运油/20%LNG/50%尿素硫磺过峡、2万海员2千船滞留、NYT 赢家账（美+$500亿/俄+$150亿）、Spirit 停运、东南亚/菲律宾能源危机、20% 过路费</strong>。可深挖运价/保险/CPI 传导与「拦截弹成本曲线」（第 3 步）叠加效应。</li>
+<li><strong>#198 情景推演</strong>：本篇给出的<strong>结构性变量</strong>是三分支推演的地缘输入——(a) 海湾内部鹰↔鸽分裂（UAE 推地面 vs 阿曼劝和）会否触发 GCC 连锁参战；(b) 俄中「弃权+挺伊经济」会否升级为实质军援（第 3 步「是否补给伊朗导弹/无人机产能」抓手）；(c) 美以同盟裂痕（93% 以民认为伊朗赢）会否催生以色列单边行动；(d) UNSC 规范分裂（中俄弃权）会否使冲突长期缺乏多边收束机制。这些接第 3 步升级阶梯，构成「复停火 / 长期海峡消耗战 / 全面战」三分支的地缘门槛。</li>
+</ul>
+<hr>
+<p><em>方法学备注：本篇全部立场取自各方政府一手声明与具名智库/学者分析（经维基国际反应/分析/经济影响子条目实读，均带引用）。凡属单方政府/军方口径（各国谴责声明、IRGC 认领、美以战报）或存争议数字（伊军死亡数、发射架/舰艇损失——见第 3 步）均已标注归属，不与独立确认数据（IAEA 核设施裁定、NYT 贸易量价分析、UNSC 投票记录）并列。若后续引用争议项，应再以 IAEA/IMO/独立卫星影像/一手政府公报二次核实。</em></p></section>
+<section id="sec-05" class="doc" data-idx="4"><h1 id="美伊战争-第-5-6-步-市场与能源经济冲击评估">美伊战争 · 第 5/6 步：市场与能源经济冲击评估</h1>
+<blockquote>任务 #197｜故事「美伊战争」第 5 步。承接第 1–4 步（背景、当前局势、军力对比、地缘影响），本篇聚焦<strong>金融市场与能源经济</strong>：油价（布伦特/WTI）、天然气、黄金、美元与避险资产、航运保险与运费、受冲击的板块与个股；辅以<strong>历史类比</strong>（2019 阿美遇袭、2020 苏莱曼尼、2022 俄乌）与<strong>情景化价格区间</strong>。<br><br><strong>方法学纪律</strong>：所有价格数字均通过 chrome-devtools <strong>实读真实行情/新闻页</strong>取得，逐条标注<strong>来源 + 时点</strong>，不凭记忆报数。延续前序「<strong>事实 vs 争议 / 单方口径</strong>」分层：实时报价与 NYT/OPEC 官方报告为「已核实事实」；20% 过路费合法性、战险保费具体幅度、前瞻价格区间为「争议/单方/本篇分析判断」，均已单列标注。<br><br><strong>快照时点</strong>：美股为 <strong>2026-07-13（周一）收盘 + 隔夜</strong>；大宗商品/黄金/美元为 <strong>2026-07-14（周二）凌晨</strong> 实时盘。当日大背景（承第 2 步）：<strong>7/7 伊袭商船 → 美报复 → 7/8 特朗普宣布 6 月停火"结束" + 重启封锁 → 7/13 特朗普正式重申封锁 + 对受美护航船只按货值 20% 收费</strong>，海峡消耗战进行时。</blockquote>
+<hr>
+<h2 id="零-一页速览-截至-2026-07-14-凌晨-全部实读">零、一页速览（截至 2026-07-14 凌晨，全部实读）</h2>
+<div class="table-wrap"><table><thead><tr><th>资产</th><th>最新价</th><th>变动</th><th>来源/时点</th><th>一句话解读</th></tr></thead><tbody><tr><td><strong>布伦特原油</strong></td><td><strong>$84.78</strong></td><td>+1.48 (+1.78%)</td><td>OilPrice.com 实时盘，7/14</td><td>周一因重启封锁<strong>暴涨 &gt;8%</strong>（Brent 破 $82、WTI 破 $77），周二续涨</td></tr><tr><td><strong>WTI 原油</strong></td><td><strong>$79.70</strong></td><td>+1.56 (+2.00%)</td><td>OilPrice.com，7/14</td><td>收复 6 月停火后的大部分跌幅</td></tr><tr><td><strong>Murban 原油</strong>（UAE 基准）</td><td><strong>$80.27</strong></td><td>+2.13 (+2.73%)</td><td>OilPrice.com，7/14</td><td>海湾轻质基准涨幅最大</td></tr><tr><td><strong>美国天然气</strong>（Henry Hub）</td><td><strong>$2.883</strong></td><td>-0.014 (-0.48%)</td><td>OilPrice.com，7/14</td><td>美本土气与海峡脱钩、基本持平</td></tr><tr><td><strong>欧洲天然气</strong>（荷兰 TTF 8月合约）</td><td><strong>$59.51 / €50.43</strong> /MWh</td><td>+3.35%</td><td>OilPrice.com（Windward/Tsvetana Paraskova 稿），7/13</td><td>卡塔尔停航 → 欧气<strong>跳涨、重回 €50 上方</strong></td></tr><tr><td><strong>黄金</strong>（现货 XAU）</td><td><strong>$4,020.10</strong></td><td>+19.60 (+0.49%)</td><td>Kitco 实时，7/14 0:45 NY，日内 $3,985–4,024</td><td>站上 $4,000、贴近历史高位</td></tr><tr><td><strong>美元指数 DXY</strong></td><td><strong>101.191</strong></td><td>-0.044 (-0.04%)</td><td>CNBC，7/14 0:45 EDT，52周 95.55–101.80</td><td>逼近一年高位但不飙升</td></tr><tr><td><strong>美10年期国债收益率</strong></td><td><strong>4.62%</strong></td><td>+0.01</td><td>CNBC，7/14 0:46 EDT</td><td>油价通胀风险压住避险买盘、收益率不跌反微升</td></tr><tr><td><strong>VIX 恐慌指数</strong></td><td><strong>17.16</strong></td><td>+2.13 (+14.17%)</td><td>CNBC，7/13 收，52周 13.38–<strong>35.30</strong></td><td>当日跳 14% 但<strong>绝对值仅 17</strong>；战时峰值曾达 35</td></tr><tr><td><strong>标普 500</strong></td><td><strong>7,515.34</strong></td><td>-60.05 (-0.79%)</td><td>CNBC，7/13 收，52周 6,201–<strong>7,620</strong></td><td>逼近历史高位，仅小幅避险回落</td></tr></tbody></table></div>
+<p><strong>一句话总判断</strong>：这是一场<strong>「油市剧烈、股市淡定」的分裂式冲击</strong>。能源商品端在剧烈重定价（油周涨 8%、欧气跳涨、成品油裂解价差创纪录、航运走暗），但股/汇/波动率端异常冷静（标普贴近历史高、VIX 仅 17、美元微跌）——市场已把美伊冲突学习为<strong>「区间震荡、均值回归」的重复性事件</strong>，而非单向灾难。<strong>关键变量只有一个：霍尔木兹海峡是否从"消耗式扰动"升级为"实质性持续封锁"。</strong></p>
+<hr>
+<h2 id="一-原油-一条-70-139-84-的过山车曲线">一、原油：一条「$70 → $139 → $84」的过山车曲线</h2>
+<h3 id="1-已核实的价格路径-来源-维基-2026-iran-war-economic-impacts-节-均带引用-934-937">1. 已核实的价格路径（来源：维基《2026 Iran war》Economic impacts 节，均带引用 [934]-[937]）</h3>
+<ul>
+<li><strong>战前基线</strong>：<strong>低于 $70</strong>。</li>
+<li><strong>2026-03-07 峰值</strong>：<strong>$139</strong>（开战初期恐慌顶，与 2022 俄乌开战顶几乎同级）。</li>
+<li><strong>6 月停火后</strong>：一度回落（停火"利好"兑现，见下文 Urals 崩至 $42 的旁证）。</li>
+<li><strong>7/7–7/8 停火瓦解 → 7/13 重启封锁</strong>：<strong>周一单日 +8%</strong>，Brent 破 $82、WTI 破 $77，"抹去停火后的大部分跌幅"（来源：OilPrice.com《Oil Prices Surge 8% After Trump Reimposes Iran Blockade》，Charles Kennedy，2026-07-13 13:30 CDT）。</li>
+<li><strong>7/14 现价</strong>：<strong>Brent $84.78 / WTI $79.70</strong>（实时）。</li>
+</ul>
+<p>→ <strong>结构判断</strong>：油价并非单向冲高，而是<strong>跟随"停火签署↔瓦解"在 $70s–$139 间来回震荡</strong>。每一轮停火抹去风险溢价（趋近 $70），每一轮瓦解重建溢价（冲向 $100+，极端 $139）。<strong>当前 $85 = 战时基线（有溢价但未失控）</strong>。</p>
+<h3 id="2-为什么现价-只有-85-而非重回-139-供给过剩当缓冲垫-关键洞见">2. 为什么现价「只有 $85」而非重回 $139？——供给过剩当缓冲垫（关键洞见）</h3>
+<p>（来源：OilPrice.com《OPEC Cuts Demand Forecast Again as the Oil Market Starts Looking Past Hormuz》，OPEC 月报，2026-07-13）</p>
+<ul>
+<li><strong>OPEC 连续第 3 个月下调 2026 需求增长预期至 78 万桶/日</strong>（再砍 19 万）；市场"<strong>担心找不到买家、而非找不到油</strong>"。</li>
+<li><strong>OPEC+ 6 月产量环比 +300 万桶/日 至 3,628 万桶/日</strong>——海峡重开释放此前滞留在储罐/油轮/瓶颈后的库存。</li>
+<li><strong>美国产量近 1,400 万桶/日</strong>（历史高）；<strong>UAE 6 月创纪录 410 万桶/日</strong>（已退出 OPEC，经<strong>富查伊拉 Fujairah 绕过海峡出口</strong>）；沙特经<strong>红海管线</strong>绕峡。</li>
+<li>→ <strong>绕峡/闲置产能远超 2019/2020</strong>：这层"供给过剩 + 绕峡通道"是<strong>压制战争溢价的减震器</strong>，解释了油价为何"该炸却涨不动"。<strong>除非海峡被实质性、持续性封锁</strong>，否则过剩背景会不断把价格拉回 $80s。</li>
+</ul>
+<h3 id="3-成品油裂解价差-被忽视的真实痛点-来源-oilprice-com-oil-refiners-are-cashing-in-on-a-market-that-won-t-stay-broken-封锁稿">3. 成品油裂解价差：被忽视的真实痛点（来源：OilPrice.com《Oil Refiners Are Cashing In on a Market That Won't Stay Broken》+ 封锁稿）</h3>
+<ul>
+<li><strong>原油跌、成品油紧</strong>：柴油、航空煤油、汽油因运输成本与中东出货延迟预期而走强，<strong>炼厂裂解利润率创历史新高</strong>。</li>
+<li>→ <strong>传导给消费者的不是原油价，而是成品油价</strong>：美国 CPI 与零售汽油价在战争爆发时同步上行（维基 [931][932]）。<strong>炼厂（下游）是这场结构性错位的最大赢家之一</strong>。</li>
+</ul>
+<hr>
+<h2 id="二-天然气与-lng-美本土脱钩-欧洲最脆弱">二、天然气与 LNG：美本土脱钩、欧洲最脆弱</h2>
+<ul>
+<li><strong>美国 Henry Hub $2.883（-0.48%）</strong>：与海峡基本脱钩——美国是净出口国、气源本土化，本土气价对海峡不敏感。</li>
+<ul>
+<li><strong>导火索</strong>：<strong>卡塔尔交通部发布紧急通告，暂停一切海上活动</strong>——"<strong>冲突爆发以来海湾国家首次全面停航</strong>"，直接冲击 <strong>Ras Laffan 的 LNG 出口</strong>。</li>
+<li><strong>时间叠加最坏</strong>：欧洲正值<strong>冬前补库季</strong>，而亚洲现货 LNG 吸走大部分供应——补库将"更难、更贵"。</li>
+</ul>
+<li><strong>欧洲荷兰 TTF 8月合约 $59.51 / €50.43 MWh（+3.35%）</strong>，重回 €50 上方（来源：OilPrice.com，Windward 情报 + 记者 Tsvetana Paraskova，7/13）。</li>
+<li><strong>二阶冲击（化肥→粮食）</strong>：<strong>全球约 50% 的尿素与硫磺出口经海峡</strong>，叠加天然气（氮肥关键原料）短缺 → 威胁多国粮食生产（维基 [935][945]）；WFP 警告战争正推动<strong>长期全球粮价上涨</strong>（[942][943]）。</li>
+</ul>
+<p>→ <strong>判断</strong>：天然气冲击是<strong>高度区域化</strong>的——<strong>美国免疫、欧洲/亚洲/化肥进口国承压</strong>。这与第 4 步"全球南方是普遍承受者"一致，且给出了可量化传导链：<strong>海峡停航 → 卡塔尔 LNG 断供 → 欧洲补库溢价 + 化肥/粮食二阶危机</strong>。</p>
+<hr>
+<h2 id="三-避险资产-一场-不干净的-risk-off">三、避险资产：一场「不干净的 Risk-off」</h2>
+<p>传统地缘危机应是"股跌、金涨、美债涨（收益率跌）、美元涨"。这一次却是<strong>残缺版避险</strong>——因为油价冲击自带<strong>通胀属性</strong>，压制了债券避险功能：</p>
+<div class="table-wrap"><table><thead><tr><th>避险资产</th><th>表现</th><th>异常点</th></tr></thead><tbody><tr><td><strong>黄金 $4,020（+0.49%）</strong></td><td>✅ 正常避险，站上 $4,000、贴近历史高</td><td>但涨幅<strong>温和</strong>（+0.49%），因金价高位已部分反映<strong>多年结构性因素</strong>（去美元化/央行购金），非纯战争驱动</td></tr><tr><td><strong>美元 DXY 101.19（-0.04%）</strong></td><td>~ 逼近 52 周高（101.80）但当日微跌</td><td><strong>不飙升</strong>——呼应第 4 步"美国战略受挫、美元主导叙事受质"；美元仅靠"油进口国货币更弱"获得相对支撑</td></tr><tr><td><strong>美10年期国债 4.62%（+0.01）</strong></td><td>❌ <strong>收益率不跌反微升</strong></td><td><strong>反常</strong>：油价通胀风险压住了避险买盘——这是<strong>类滞胀式</strong>风险规避，而非教科书式"抢购国债"</td></tr><tr><td><strong>VIX 17.16（+14.17%）</strong></td><td>~ 当日跳 14% 但绝对值极低</td><td>战时峰值曾达 <strong>35</strong>（52 周高）；如今仅 17 = 市场<strong>已脱敏</strong>，把冲突当区间事件定价</td></tr></tbody></table></div>
+<p>→ <strong>核心洞见</strong>：<strong>避险需求主要涌向黄金，而非美债</strong>——因为油价上行让美债的"抗通胀"功能失灵。这是一个<strong>「黄金强、美债弱、美元温和、波动率低」的滞胀味 risk-off</strong>，区别于 2008/2020 式的通缩型避险。</p>
+<hr>
+<h2 id="四-航运保险与运费-真实的物理瓶颈">四、航运保险与运费：真实的物理瓶颈</h2>
+<p>（来源：OilPrice.com《Oil and LNG Tankers Go Dark Again》Kpler/Bloomberg 数据 + 封锁稿 + 经济影响维基条目）</p>
+<ul>
+<li><strong>油轮"走暗"</strong>：周日仅 <strong>6 艘油轮清关海峡、全部关闭 AIS 应答器（dark mode）</strong>规避侦测；周一 AIS 上"<strong>无一船过峡</strong>"。海峡油轮流量降至<strong>五周低点</strong>。</li>
+<li><strong>两条航道分化</strong>：美护航的<strong>阿曼沿岸走廊</strong>自上周三起无可见过峡；伊朗指定的北部航道有船过峡至周六。</li>
+<li><strong>卡塔尔全面停航</strong>（见上），Ras Laffan LNG 承压。</li>
+<li><strong>战险保费（war-risk premium）</strong>：油轮船东已在<strong>计入更高战险保费、更长绕航、额外安保</strong>才肯承运海湾货（封锁稿）。维基经济影响条目多处记载海湾及内陆/进口国（中亚、埃塞俄比亚）"<strong>风险溢价与海运保险成本飙升，直接推高进口价</strong>"，且"<strong>更高风险溢价将直接体现在运价上、由中小承运人与内陆经济体先承担</strong>"。</li>
+<li><strong>过路费争议（单方/争议）</strong>：特朗普称受美护航船只须按<strong>货值 20%</strong> 向华盛顿"报销"（Reuters）；<strong>IMO 明确反对</strong>——国际法不允许对用于国际航行的海峡强制征收通行费；能源公司此前已拒绝德黑兰类似提议。→ 此为<strong>单方政策主张 + 国际组织反对</strong>，非既成规则，标注争议。</li>
+</ul>
+<p>→ <strong>判断</strong>：与油价的"金融性重定价"不同，航运端是<strong>真实物理瓶颈</strong>：船少、走暗、绕航、保费飙、卡塔尔停航。<strong>运费与保费的上行是最"实"的通胀传导管道</strong>，且对<strong>中小承运人与内陆/贫穷进口国最不友好</strong>（分配上的累退效应）。</p>
+<hr>
+<h2 id="五-受冲击的板块与个股-实读报价-7-13-收-盘后">五、受冲击的板块与个股（实读报价，7/13 收/盘后）</h2>
+<div class="table-wrap"><table><thead><tr><th>板块</th><th>代表标的</th><th>最新</th><th>当日</th><th>方向逻辑</th></tr></thead><tbody><tr><td><strong>能源（综合）</strong></td><td>XLE（能源 ETF）</td><td>56.98</td><td>+0.42%</td><td>✅ 受益于油价上行</td></tr><tr><td><strong>油轮/航运</strong></td><td>FRO（Frontline）</td><td>37.20</td><td>+0.76%</td><td>✅ <strong>战险保费 + 绕航 = 运价上行 = 油轮盈利↑</strong></td></tr><tr><td><strong>炼厂（下游）</strong></td><td>—（裂解价差创纪录，见一.3）</td><td>—</td><td>—</td><td>✅✅ <strong>最大结构性赢家</strong>：原油跌 + 成品油紧</td></tr><tr><td><strong>国际油企</strong></td><td>Shell/TotalEnergies/BP</td><td>—</td><td>—</td><td>✅ Q1 利润集体上升（维基 [938]）；"战争相关利润引发多国政府不满"</td></tr><tr><td><strong>航空</strong></td><td>JETS（航空 ETF）</td><td>31.09</td><td>-0.42%</td><td>❌ <strong>航油涨 + 空域关闭 = 成本↑、票价↑、运力削减</strong></td></tr><tr><td><strong>国防军工</strong></td><td>ITA（航空国防 ETF）</td><td>234.66</td><td>-0.17%</td><td>~ 当日微跌，但<strong>结构性受益</strong>于地区军备与拦截弹消耗（接第 3 步"拦截弹成本曲线"）</td></tr><tr><td><strong>大盘基准</strong></td><td>标普 500 / 道指</td><td>7,515.34</td><td>-0.79%</td><td>~ 逼近历史高；开战日道指曾跌 400 点（1%），<strong>4 月中已回到历史新高</strong>（维基 [940][941]）</td></tr></tbody></table></div>
+<p><strong>赢家/输家账（承第 4 步 NYT 分析，起战至 5/8 贸易量价对比）</strong>：</p>
+<ul>
+<li><strong>国家层面</strong>：<strong>美国 +约 $500 亿</strong>（出口与收入增）、<strong>俄罗斯 +$150 亿以上</strong>（出口稳、价升）为最大受益者；沙特（红海管线）、阿曼（地理）绕峡增收；伊拉克/科威特/卡塔尔/UAE 因困于海峡而减收；伊朗因掌握海峡通行反而增收。</li>
+<li><strong>行业层面</strong>：<strong>炼厂 &gt; 油轮/航运 &gt; 上游油企 &gt; 国防</strong>（受益）；<strong>航空 &lt; 化肥/农业进口 &lt; 全球南方进口国</strong>（受损）。</li>
+</ul>
+<hr>
+<h2 id="六-历史类比-三种-地缘油市冲击-的原型">六、历史类比：三种「地缘油市冲击」的原型</h2>
+<div class="table-wrap"><table><thead><tr><th>事件</th><th>冲击类型</th><th>油价反应</th><th>回归速度</th><th>教训</th></tr></thead><tbody><tr><td><strong>2019-09 阿美 Abqaiq 遇袭</strong></td><td><strong>物理设施损毁</strong>（一次性去掉 570 万桶/日 ≈ 全球 5%）</td><td>Brent <strong>周一 +约15%（盘中近 20%）</strong>，<strong>1990 海湾战争以来最大单日</strong>（来源：维基《Abqaiq–Khurais attack》，Reuters/CNBC 引用）</td><td><strong>极快（约1–2周）</strong>：沙特宣布快速修复后，9/17 即回落</td><td><strong>设施可修复 → 溢价短命</strong>。产能是"点"、可恢复</td></tr><tr><td><strong>2020-01 苏莱曼尼被刺</strong></td><td><strong>纯地缘风险溢价</strong>（无实际供给损失）</td><td>油价<strong>温和上行至3个月高</strong>，黄金冲多年高；<strong>伊朗零伤亡报复后，油价反而跌破袭击前水平</strong>（来源：维基《Assassination of Qasem Soleimani》[210]-[213]）</td><td><strong>最快（数日全部回吐）</strong></td><td><strong>"买预期、卖事实"</strong>：纯风险溢价最易均值回归</td></tr><tr><td><strong>2022-02 俄乌开战</strong></td><td><strong>结构性、持续性供给移位</strong>（制裁/改道）</td><td>Brent 冲 <strong>约 $139</strong>（2022-03），并<strong>在高位维持数月</strong></td><td><strong>慢（持续数季度）</strong></td><td><strong>供给被结构性移除 → 溢价黏性</strong></td></tr><tr><td><strong>2026 美伊战争（当前）</strong></td><td><strong>混合型</strong>：海峡"扼喉"风险（尚未全面物理封锁）+ <strong>供给过剩背景</strong></td><td><strong>$70 → $139（3/7）→ $84</strong>，随停火"签署↔瓦解"反复往返</td><td><strong>中等、分段</strong>：每轮停火趋近 $70、每轮瓦解冲 $100+</td><td><strong>形态更像"重复的苏莱曼尼"而非"持续的俄乌"</strong>——因过剩 + 绕峡产能压制黏性</td></tr></tbody></table></div>
+<p>→ <strong>类比结论</strong>：<strong>当前冲突的市场行为 = 反复发作的"苏莱曼尼式"脉冲（可回归），而非"俄乌式"高位平台（黏性）</strong>——<strong>前提是海峡未被实质封闭</strong>。一旦海峡从"扰动"升级为"持续物理封锁"，冲击原型将瞬间从"苏莱曼尼"切换为"俄乌 +（因 20% 全球油气过峡，量级更大）"，$139 峰值只是下限。<strong>这个"原型切换开关"就是海峡的实际通行率。</strong></p>
+<hr>
+<h2 id="七-情景化价格区间判断-本篇分析-非既成事实-标注为判断">七、情景化价格区间判断（本篇分析，非既成事实，标注为判断）</h2>
+<blockquote>明确标注：以下为<strong>基于已核实数据的条件性推演</strong>，非行情预测的"事实"。区间锚定于已核实的历史路径（$70 底、$139 顶）与结构缓冲（供给过剩 + 绕峡产能）。三分支对应第 3 步升级阶梯与第 4 步地缘变量。</blockquote>
+<div class="table-wrap"><table><thead><tr><th>情景（承第3步升级阶梯 + 第4步地缘变量）</th><th>Brent 区间（判断）</th><th>触发/前提</th><th>伴随资产</th></tr></thead><tbody><tr><td><strong>A. 再停火 / 海峡重新通航</strong>（阶梯降级）</td><td><strong>$68–$80</strong></td><td>复制 6 月 MoU：伊朗以海峡通行换制裁豁免；供给过剩 + OPEC 需求下修把价格拉回战前基线 + 薄溢价</td><td>金回落但守高位、VIX 回 13–15、航运保费回落、成品油裂解收窄</td></tr><tr><td><strong>B. 当前海峡消耗拉锯（基准，现状）</strong></td><td><strong>$80–$105</strong></td><td>停火名存实亡、互袭持续但海峡未被实质封闭；绕峡产能 + 过剩封顶上行</td><td>现状延续：金 ~$4,000、VIX ~17、成品油裂解维持高位、油轮走暗/保费高</td></tr><tr><td><strong>C. 海峡实质性/持续封锁</strong>（阶梯升级至"级别3+"，接第3步"游击海军 + 水雷 + 反舰导弹"拒止）</td><td><strong>$120–$150+</strong>（重演并可能超越 $139 峰值）</td><td>卡塔尔式停航常态化 + 大规模布雷/击沉 → 20% 全球油气过峡量被切断，绕峡产能不足以补</td><td>金冲历史新高、VIX 重回 30+、股市显著回调、欧气/TTF 暴涨、化肥-粮食二阶危机、全球衰退风险（IEA"史上最严峻能源安全挑战"）</td></tr></tbody></table></div>
+<p><strong>基准判断</strong>：<strong>情景 B（$80–$105）为当前最可能状态</strong>，因供给过剩 + 绕峡产能 + 市场脱敏三重缓冲；<strong>情景 C 是主要尾部风险</strong>，其概率取决于伊朗是否愿意/有能力将海峡从"收租杠杆"（第 4 步：伊朗把海峡从软肋变收租工具，更倾向"控制通行 + 收费"而非"彻底封死"）升级为"彻底封死"——<strong>而彻底封死会同时切断伊朗自己的收入，构成其自我威慑</strong>。这一"伊朗不愿杀死会下金蛋的鹅"的激励结构，是情景 C 概率被压低的关键（交给第 6 步深化博弈）。</p>
+<hr>
+<h2 id="八-对前序步骤的校正与补充">八、对前序步骤的校正与补充</h2>
+<ol>
+<li><strong>油价曲线精确化</strong>：第 4 步记为"$70→$139→$84"。本篇实读补充<strong>关键节点日期与机制</strong>——$139 为 <strong>3/7 峰值</strong>、$84 为 <strong>7/14 现价</strong>，且<strong>周一单日 +8%</strong>（重启封锁），并识别出"<strong>停火签署↔瓦解</strong>"是价格往返的驱动引擎。</li>
+<li><strong>新增"供给过剩减震器"变量</strong>（前序未覆盖）：OPEC 连降需求预期、美 14M/UAE 4.1M（富查伊拉绕峡）、OPEC+ 6 月 +300 万桶/日——<strong>这是压制战争溢价、解释"油价该炸却涨不动"的核心结构，第 6 步推演油价必须纳入此背景</strong>。</li>
+<li><strong>避险资产的"不干净 risk-off"</strong>（前序未覆盖）：油价通胀属性使<strong>美债避险功能失灵</strong>（10Y 4.62% 不跌反升），避险主要流向黄金——纠正"战争=股跌债涨"的默认直觉。</li>
+<li><strong>成品油裂解 + 卡塔尔停航 + 油轮走暗</strong>为前序"航运中断/2 万海员滞留"提供了<strong>可量化的实时物理证据</strong>（周日 6 船全走暗、周一 0 过峡、TTF +3.35%）。</li>
+<li><strong>市场脱敏</strong>：VIX 仅 17、标普贴近历史高——市场已把美伊冲突学习为"区间事件"，<strong>第 6 步不应假设"战争必然导致市场崩溃"，而应以"分裂式冲击 + 脉冲式回归"为基准现实</strong>。</li>
+</ol>
+<hr>
+<h2 id="九-给第-6-步-198-情景推演-的抓手-承上启下">九、给第 6 步（#198 情景推演）的抓手（承上启下）</h2>
+<ul>
+<li><strong>把"海峡实际通行率"作为主推演开关</strong>：本篇第六节证明——<strong>通行率决定冲击原型</strong>（苏莱曼尼式可回归 vs 俄乌式黏性）。第 6 步三分支（复停火 / 长期消耗 / 全面战）可<strong>直接映射本篇第七节油价区间 A/B/C（$68–80 / $80–105 / $120–150+）</strong>，并叠加第 3 步升级阶梯的军事门槛。</li>
+<li><strong>纳入"伊朗收租激励"这一自我威慑</strong>：第 4 步已指出伊朗把海峡从软肋变收租杠杆——本篇据此判断<strong>伊朗更可能"控制+收费"而非"彻底封死"</strong>（封死等于杀死自己的收入），这压低了情景 C 概率，是第 6 步博弈论推演的关键内生约束。</li>
+<li><strong>供给过剩 = 时间站在消费国一边</strong>：OPEC 需求下修 + 绕峡产能扩张意味着<strong>拖得越久、战争溢价越被稀释</strong>（除非海峡实质封闭）——第 6 步"长期消耗战"分支的经济含义是<strong>对伊朗谈判筹码的缓慢侵蚀</strong>。</li>
+<li><strong>二阶传导链待深化</strong>：海峡停航 → 卡塔尔 LNG → 欧洲补库溢价 → 化肥（50% 尿素/硫磺过峡）→ 粮食 → 全球南方衰退。第 6 步若推演"全面战"分支，此链是全球经济衰退的主传导路径（IEA"史上最严峻能源安全挑战" + WFP 粮价警告）。</li>
+<li><strong>可量化监测指标（供第 6 步/后续跟踪）</strong>：① 海峡日过峡油轮数（走暗 vs AIS）；② Brent 与 WTI 价差、成品油裂解价差；③ TTF 欧气价；④ VIX（脱敏程度）；⑤ 战险保费/运价指数；⑥ 黄金-美债背离（滞胀信号强度）。</li>
+</ul>
+<hr>
+<p><em>方法学备注：本篇油价、天然气、黄金、美元、国债、VIX、标普及个股/ETF 报价均通过 chrome-devtools 实读 OilPrice.com（实时盘 + 具名记者稿）、Kitco（黄金实时）、CNBC（DXY/VIX/US10Y/SPX/XLE/ITA/JETS/FRO 报价页）取得，标注时点。战争路径经济数据（$70/$139 曲线、NYT 赢家账、Shell/BP 利润、50% 化肥过峡、IEA/WFP 警告）取自维基《2026 Iran war》及《Economic impact of the 2026 Iran war》条目（均带引用）。历史类比（2019 阿美、2020 苏莱曼尼、2022 俄乌）取自对应维基条目并引 Reuters/CNBC。凡属单方政策主张（20% 过路费——IMO 反对）、争议幅度（战险保费具体数值仅有定性描述）、或本篇条件性推演（第七节价格区间）均已明确标注为"争议/单方/分析判断"，不与实时报价等既成事实并列。若第 6 步引用价格区间，应重新以当日实时盘校准。</em></p></section>
+<section id="sec-06" class="doc" data-idx="5"><h1 id="美伊战争-第-6-6-步-情景推演与前景研判综述-整合执行摘要">美伊战争 · 第 6/6 步：情景推演与前景研判综述（整合执行摘要）</h1>
+<blockquote>任务 #198｜故事「美伊战争」第 6 步，<strong>整个 story 的最终交付物</strong>。综合第 1–5 步（背景与根源 / 当前局势核查 / 军力对比与升级阶梯 / 地缘影响 / 市场与能源冲击）的全部已核实成果，构建四情景（外交降级 / 有限打击 / 长期消耗 / 全面战争），给出各情景的<strong>触发条件、概率区间、时间窗口、关键观察指标（tripwires）</strong>，并产出一份整合性的<strong>执行摘要与前景研判</strong>。<br><br><strong>方法学纪律（承前五步）</strong>：本篇是<strong>整合推演</strong>，不引入未经前序核实的新"事实"；所有事实锚点均来自第 1–5 步的 chrome-devtools 实读来源（AP / Al Jazeera / CSIS / IISS / IAEA / IEA / NYT / OilPrice / Kitco / CNBC / 维基战争条目组 / UNSC 决议）。概率区间、时间窗口、情景路径为<strong>明确标注的分析判断</strong>，非既成事实；凡涉单方口径（IRGC / 美以战报 / 特朗普表态 / 各国政府声明）沿用前序"★多源确认 / ○单方"分层。<br><br><strong>推演基准时点</strong>：2026-07-14。当前态势：6/17 签署的 60 天停火已于 <strong>7/7–7/8 事实瓦解</strong>，处于"打谈并行、边打边谈"的<strong>海峡消耗战进行时</strong>。</blockquote>
+<hr>
+<h2 id="一-执行摘要-tl-dr-一页看懂">一、执行摘要（TL;DR — 一页看懂）</h2>
+<p><strong>1. 这不是推演，是进行时。</strong> 「美伊战争」于 <strong>2026-02-28</strong> 由美以联合空袭爆发（首日击毙最高领袖哈梅内伊），已持续逾 4 个月；6 月停火（60 天临时协议）已于 7 月上旬瓦解。截至 7/14 双方在霍尔木兹海峡连日互袭并外溢至海湾阿拉伯国家。</p>
+<p><strong>2. 战争已收敛为一个开关：霍尔木兹海峡的实际通行率。</strong> 核浓缩议题退居谈判桌（协议要求伊朗稀释 HEU），核心引爆点高度收敛为<strong>海峡的控制权与通行权</strong>。海峡是贯穿全 6 步的<strong>主推演变量</strong>——它同时决定军事升级级别（第 3 步阶梯）、地缘连锁（第 4 步 GCC 卷入）、油价原型（第 5 步"苏莱曼尼式可回归 vs 俄乌式黏性"）。</p>
+<p><strong>3. 力量极不对称，结果却是"技术性僵局"。</strong> 美军在制空/制海/水下/ISR/精确打击上压倒性（据美以战报已毁伤伊 190+ 发射架、155 舰、6000+ 军人）；但伊朗凭<strong>导弹 + 无人机 + IRGC 游击海军 + 关海峡</strong>这套不对称拒止拖住战局。美方"阿喀琉斯之踵"不是能力、而是<strong>消耗</strong>（拦截弹/工业存量）+ <strong>政治联盟杠杆缺失</strong> + <strong>前沿基地高暴露</strong>——所以"能压制、难清盘"。</p>
+<p><strong>4. 主流学界已有定论：伊朗战略胜、美国战略败。</strong> Brookings（Kagan）、CFR（Haass）、BBC（Brown）具名判定这是"伊朗的重大胜利、美国的重大失败"——美未颠覆伊政权、伊保住导弹库、核问题被拖延、IRGC 权力巩固、拿到制裁豁免；美以同盟出现建国以来罕见公开裂痕（93% 以民认为伊朗赢）。<strong>第 6 步据此以"伊朗战略占优"为基准现实，而非中性起点。</strong></p>
+<p><strong>5. 市场已"脱敏"为分裂式冲击。</strong> 油市剧烈（Brent $84.78、周一 +8%、欧气跳涨、油轮走暗、裂解价差创纪录），但股/汇/波动率异常冷静（标普贴近历史高、VIX 仅 17）。谜底＝<strong>供给过剩减震器</strong>（OPEC 连降需求、美 14M/UAE 4.1M 绕峡、OPEC+ 6 月 +300 万桶/日）不断把油价拉回 $80s。<strong>除非海峡被实质持续封锁</strong>，否则"该炸涨不动"。</p>
+<p><strong>6. 前景研判（基准情景）：长期消耗（海峡冻结冲突 / 新常态）——概率 40–48%。</strong> 结构性理由：① 伊朗把海峡从软肋变<strong>收租杠杆</strong>，"彻底封死＝杀死自己收入"构成<strong>自我威慑</strong>，压低全面封锁概率；② 供给过剩令<strong>时间站在消费国一边</strong>，缓慢侵蚀伊朗筹码；③ 美缺乏把技术优势变决定性胜利的政治杠杆；④ 双方均留"谈判可继续"的口子。<strong>最可能：在升级阶梯"级别 1↔2"之间长期高危拉锯，油价 $80–$105，间歇触及级别 3。</strong></p>
+<p><strong>7. 最大尾部风险：全面战争（海峡实质封锁 / 地面 / 涉核）——概率 8–14%，但可由单一触发点在数日内无预警引爆。</strong> 引信包括：大规模布雷 / 击沉大型舰船致重大伤亡、UAE 正式参战、斩首未遂的报复螺旋、俄中实质军援。一旦海峡从"扰动"升级为"持续物理封锁"，油价原型瞬间切换为"俄乌式 +"，<strong>$139 峰值只是下限</strong>（$120–$150+），全球衰退风险上升（IEA 称"史上最严峻能源安全挑战"）。</p>
+<p><strong>一句话研判</strong>：<strong>这是一场"打不赢也停不下"的海峡消耗战——最可能长期冻结（时间侵蚀伊朗筹码、却也巩固其战略地位），而非收敛为和约或升级为全面战争；真正的风险不在渐进升级，而在单点触发的无预警跃迁。</strong></p>
+<hr>
+<h2 id="二-基准现实-推演的五个事实锚点-不可动摇的起点">二、基准现实：推演的五个事实锚点（不可动摇的起点）</h2>
+<p>推演前先钉死第 1–5 步确立的<strong>既成现实</strong>——任何情景都在此之上展开，而非从零假设：</p>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>锚点</th><th>来源步骤</th><th>对推演的约束</th></tr></thead><tbody><tr><td>A</td><td><strong>战争是进行时</strong>（2/28 爆发、哈梅内伊首日阵亡、6 月停火 7 月瓦解）</td><td>1、2</td><td>不推演"会否开战"，只推演"如何收束/升级/固化"</td></tr><tr><td>B</td><td><strong>引爆点已收敛为霍尔木兹海峡通行权</strong>（核议题退居谈判桌）</td><td>2</td><td>海峡通行率＝主推演开关</td></tr><tr><td>C</td><td><strong>技术性僵局</strong>：美压制力压倒但难清盘；伊军力重创但握"关海峡"决定性牌</td><td>3</td><td>排除"美速胜清盘"与"伊常规军事翻盘"两个极端</td></tr><tr><td>D</td><td><strong>伊朗战略占优已成学界定论</strong>（Kagan/Haass/Brown/Pape）</td><td>4</td><td>以"伊朗战略占优"为基准，而非中性</td></tr><tr><td>E</td><td><strong>市场分裂式冲击 + 供给过剩减震器</strong>（油烈股稳、$80s 均值回归）</td><td>5</td><td>不假设"战争必致市场崩溃"；油价黏性取决于海峡是否实质封锁</td></tr></tbody></table></div>
+<p><strong>两个贯穿全局的内生约束（博弈论核心）</strong>：</p>
+<ul>
+<li><strong>伊朗的自我威慑</strong>：伊朗掌握海峡后<strong>收入反增</strong>（第 4 步 NYT 账），彻底封死＝切断自己收入 → 更倾向"控制通行 + 收费"而非"彻底封死"。这是压低"全面战争"概率的关键内生约束（"不愿杀死会下金蛋的鹅"）。</li>
+<li><strong>时间的非对称</strong>：供给过剩 + 绕峡产能扩张（第 5 步）意味着<strong>拖得越久、战争溢价越被稀释</strong>，经济上<strong>时间站在消费国/美国一边</strong>；但战略上（IRGC 权力巩固、证明可扛美国全面打击）<strong>时间站在伊朗一边</strong>。这条"经济 vs 战略"的时间剪刀差，是"长期消耗"何以成为基准的深层原因。</li>
+</ul>
+<hr>
+<h2 id="三-四情景推演-触发条件-概率-时间窗口-tripwires">三、四情景推演（触发条件 / 概率 / 时间窗口 / tripwires）</h2>
+<blockquote><strong>概率区间为未来 3–6 个月主导态势的分析判断，合计≈100%</strong>。映射：第 3 步升级阶梯（级别 0–5）× 第 5 步油价区间（A/B/C）× 第 4 步地缘变量。四情景以<strong>烈度与持续性</strong>两轴区分：有限打击＝高烈度·短周期（现状急性态）；长期消耗＝低烈度·长周期（慢性新常态）。</blockquote>
+<h3 id="情景一-外交降级-再停火-走向框架和约-概率-24-30">情景一：外交降级（再停火 → 走向框架和约）｜概率 24–30%</h3>
+<ul>
+<li><strong>对应</strong>：升级阶梯<strong>降至级别 0–1</strong>；油价情景 <strong>A（Brent $68–$80）</strong>。</li>
+<li><strong>触发条件</strong>：斡旋方（卡塔尔 / 巴基斯坦 / 阿曼 / 瑞士 / UN）促成新一轮停火并<strong>守住 30–60 天</strong>；伊朗恢复 HEU 稀释履约、美恢复制裁豁免与"允许自由售油"；海峡恢复常态通航。复制 6/17 MoU 模式但这次不瓦解。</li>
+<li><strong>时间窗口</strong>：触发窗口在<strong>未来 2–8 周</strong>（斡旋密集期，双方均留"谈判可继续"口子）；固化需再 30–60 天无重大破坏。</li>
+<li><strong>概率理由</strong>：↑ 支撑——斡旋机制在场、双方留谈判口子、供给过剩缓慢侵蚀伊朗筹码使其有动机落袋；↓ 阻力——<strong>6 月停火已瓦解一次</strong>（4/7、4/21、6/17 三轮停火均破裂），信任赤字极高；海峡收费权 vs 航行自由是结构性对撞。</li>
+<ul>
+<li>✅ 斡旋方宣布"实质进展"且<strong>伴随海峡实际通航恢复</strong>（不只是口头）</li>
+<li>✅ 伊朗<strong>可核查地</strong>恢复 HEU 稀释（IAEA 确认）</li>
+<li>✅ 美<strong>暂停</strong> 20% 过路费 / 港口封锁；油轮 AIS 重新点亮、日过峡油轮数回升</li>
+<li>✅ 市场信号：Brent 回落至 $80 下方、VIX 回 13–15、战险保费回落、成品油裂解收窄</li>
+</ul>
+<li><strong>tripwires（正向前兆，预示进入本情景）</strong>：</li>
+<li><strong>各方得失</strong>：伊朗以海峡通行换制裁解除（继续"收租"+ 战略占优落袋）；美止损但战略失败已定；以色列最不满（86% 反和约）；油价回战前基线，全球经济松一口气。</li>
+</ul>
+<h3 id="情景二-有限打击-现状延续-高烈度脉冲-概率-15-20">情景二：有限打击（现状延续·高烈度脉冲）｜概率 15–20%</h3>
+<ul>
+<li><strong>对应</strong>：升级阶梯<strong>级别 1↔2 之间</strong>（当前位置）；油价情景 <strong>B 上沿（Brent $90–$105）</strong>。</li>
+<li><strong>触发条件</strong>：既不降级也不固化冷却——<strong>维持当前"打谈并行"的高烈度互袭</strong>：美持续空袭海防/导弹/无人机/海军目标（7/12 单日 140+、一周 300+），伊持续以反舰巡航导弹击油轮（Mombasa/Al Bahiyah 式）+ 布雷 + 快艇袭扰 + 打击海湾美军基地。</li>
+<li><strong>时间窗口</strong>：<strong>现在–未来数周</strong>（已在其中）。本情景本质是"未收敛的过渡态"，会向下（外交降级）、横向（长期消耗冷却）或向上（全面战争）演化——很难作为 3–6 个月<strong>稳态</strong>长期停留，故中期概率低于其近端存在感。</li>
+<li><strong>概率理由</strong>：近端（4–8 周）几乎必然延续；但作为 3–6 个月主导态势，多会滑入"长期消耗"（冷却固化）或被单点触发推向"全面战争"，纯高烈度不收敛的稳态难持久。</li>
+<ul>
+<li>🔶 海峡日过峡油轮维持<strong>五周低点 / 走暗</strong>，但<strong>无大规模布雷或大型舰船被击沉</strong>（未跨向情景四）</li>
+<li>🔶 互袭规模维持"数十–上百目标/日"量级，未出现斩首未遂 / 千人级平民伤亡</li>
+<li>🔶 "谈判可继续"措辞仍在，但无实质通航恢复（未跨向情景一）</li>
+<li>🔶 市场：Brent $85–$105 区间震荡、VIX 15–20、金 ~$4,000</li>
+</ul>
+<li><strong>tripwires（维持本情景的标志）</strong>：</li>
+<li><strong>各方得失</strong>：消耗对<strong>成本曲线对伊有利</strong>（廉价 Shahed vs 昂贵 THAAD/爱国者），但对伊经济与民生持续放血；美拦截弹/工业存量持续消耗；GCC 持续承压。</li>
+</ul>
+<h3 id="情景三-长期消耗-海峡冻结冲突-新常态-概率-40-48-基准">情景三：长期消耗（海峡冻结冲突 / 新常态）｜概率 40–48%（<strong>基准</strong>）</h3>
+<ul>
+<li><strong>对应</strong>：升级阶梯<strong>级别 1–2 低烈度化并长期固化</strong>；油价情景 <strong>B（Brent $80–$105）</strong>。</li>
+<li><strong>触发条件</strong>：高烈度互袭逐渐<strong>降温为低强度、可预期的慢性对峙</strong>——间歇袭船 / 有限空袭 / 断续护航，海峡"半通半堵"（伊朗指定航道 + 收费 vs 美护航走廊并存），谁都无法清盘、谁都不愿彻底摊牌；停火"名存实亡"成为<strong>制度化的新常态</strong>，跨季度乃至跨年。</li>
+<li><strong>时间窗口</strong>：<strong>未来 3–6 个月以上</strong>，可延续至 2026 年底乃至 2027 年（类比也门/加沙式的"冻结热战"）。</li>
+<li><strong>概率理由（为何是基准）</strong>：① 伊朗自我威慑（收租激励）→ 不彻底封死；② 供给过剩 → 溢价被稀释、无一方有经济动机豪赌；③ 美政治联盟杠杆缺失 → 无法升级到清盘；④ 双方均无退出的政治台阶（美以同盟裂痕 + 伊 IRGC 权力巩固都反对示弱）。<strong>四条结构力同时指向"冻结"而非"收束"或"爆发"。</strong></li>
+<ul>
+<li>🔷 互袭频率<strong>下降但不归零</strong>、烈度回落到"每周数起袭扰"量级</li>
+<li>🔷 海峡形成<strong>双轨通行事实</strong>（伊朗北部航道收费 + 美护航南部走廊并行运转）</li>
+<li>🔷 油价<strong>稳定在 $80–$105 中枢</strong>、VIX 长期 15–18、市场"脱敏"深化（新事件价格反应递减）</li>
+<li>🔷 斡旋转为"管理冲突"而非"结束冲突"；UNSC 无收束机制（中俄弃权持续）</li>
+<li>🔷 供给过剩数据持续（OPEC 需求下修、绕峡产能扩张）——量化伊朗筹码被侵蚀</li>
+</ul>
+<li><strong>tripwires（预示固化为本情景）</strong>：</li>
+<li><strong>各方得失</strong>：<strong>时间剪刀差充分展开</strong>——伊朗战略地位巩固但经济被慢性放血 + 筹码被过剩稀释；美经济可承受（油 $80s）但战略失败被固化、国会掣肘加深；全球南方长期承受能源/化肥/粮价与航运累退成本；俄（+$150 亿）持续渔利。</li>
+</ul>
+<h3 id="情景四-全面战争-海峡实质封锁-地面-涉核-概率-8-14-主要尾部风险">情景四：全面战争（海峡实质封锁 / 地面 / 涉核）｜概率 8–14%（<strong>主要尾部风险</strong>）</h3>
+<ul>
+<li><strong>对应</strong>：升级阶梯<strong>跃升至级别 3–5</strong>；油价情景 <strong>C（Brent $120–$150+，重演并可能超越 $139 峰值）</strong>。</li>
+<ul>
+<li>伊朗<strong>大规模布雷 + 群狼/反舰导弹饱和攻击</strong>，将海峡从"扰动"升级为<strong>持续物理封锁</strong>（卡塔尔式停航常态化）；</li>
+<li><strong>击沉大型舰船 / 油轮致重大伤亡</strong>（美航母护卫舰或多艘油轮），触发报复螺旋；</li>
+<li><strong>UAE 正式参战报复</strong>（第 2/4 步：UAE 最鹰、最可能二次入战）→ GCC 连锁（巴林/科威特地面）；</li>
+<li><strong>斩首未遂</strong>（特朗普称有"预设报复令"）或千人级平民伤亡；</li>
+<li>美<strong>重启核浓缩链定点打击</strong>（复刻 2025-06-21 福尔多/纳坦兹）或伊冲刺武器化；</li>
+<li><strong>俄中实质军援</strong>（补给伊朗导弹/无人机产能）改变消耗平衡。</li>
+</ul>
+<li><strong>触发条件（任一单点即可引爆，无需渐进）</strong>：</li>
+<li><strong>时间窗口</strong>：<strong>可在数日内无预警引爆</strong>（单点触发），不遵循渐进节奏——这是本情景最危险之处。</li>
+<li><strong>概率理由（为何仍是低概率尾部）</strong>：伊朗自我威慑（封死＝断自己收入）+ 美政治联盟杠杆缺失 + 双方常规军力/意愿约束（伊承受不起全面战、美国会掣肘 + 缺盟友背书）共同压低概率；但<strong>结构性对撞（海峡开/闭口径已直接对立）+ 多个一触即发引信</strong>使其无法忽略。</li>
+<ul>
+<li>🔴 <strong>海峡出现大规模布雷 / 水雷战</strong>（IMO / 卫星影像确认）</li>
+<li>🔴 <strong>大型舰船或多艘油轮被击沉致重大伤亡</strong>（★多源确认，非单方战报）</li>
+<li>🔴 <strong>UAE / 巴林 / 科威特宣布正式参战或地面行动</strong></li>
+<li>🔴 美<strong>重启对核浓缩设施的定点打击</strong>，或 IAEA 报告伊朗<strong>冲刺武器化结构化计划</strong></li>
+<li>🔴 <strong>俄中被证实实质军援</strong>伊朗导弹/无人机产能</li>
+<li>🔴 市场：Brent 突破 <strong>$105→$120</strong>、VIX 突破 <strong>30</strong>、TTF 欧气暴涨、黄金冲历史新高、股市显著回调</li>
+</ul>
+<li><strong>tripwires（预警跃迁的红线，最高优先级监测）</strong>：</li>
+<li><strong>各方得失</strong>：全球衰退风险（IEA"史上最严峻能源安全挑战"）；20% 全球油气过峡量被切断、绕峡产能不足以补；化肥-粮食二阶危机冲击全球南方；伊朗经济与政权承压骤增但也可能"玉石俱焚"式抬高对美全球压力——<strong>双输、且外溢最广</strong>。</li>
+</ul>
+<hr>
+<h2 id="四-tripwire-整合仪表盘-跨情景-按预警优先级排序">四、tripwire 整合仪表盘（跨情景，按预警优先级排序）</h2>
+<blockquote>单一主开关是<strong>海峡实际通行率</strong>；以下六组指标是它的可观测代理。<strong>上行红线</strong>（→ 情景四）优先级最高，<strong>下行绿线</strong>（→ 情景一）次之，<strong>中枢维持</strong>（→ 情景二/三）为基准。承第 5 步"六项可量化监测指标"并按情景推演扩展。</blockquote>
+<div class="table-wrap"><table><thead><tr><th>维度</th><th>下行绿线（→外交降级）</th><th>中枢维持（→有限打击/长期消耗）</th><th>上行红线（→全面战争，最高优先级）</th></tr></thead><tbody><tr><td><strong>① 海峡通行</strong></td><td>日过峡油轮回升、AIS 点亮、双轨常态化</td><td>五周低点 / 走暗但未封死</td><td><strong>大规模布雷、水雷战、持续物理封锁</strong></td></tr><tr><td><strong>② 军事烈度</strong></td><td>互袭归零、护航停止</td><td>数十–上百目标/日的脉冲</td><td><strong>击沉大型舰船致重大伤亡、斩首未遂</strong></td></tr><tr><td><strong>③ 地缘外溢</strong></td><td>GCC 降调、UAE 收手</td><td>海湾持续承压但未正式参战</td><td><strong>UAE/巴林/科威特正式参战、GCC 连锁</strong></td></tr><tr><td><strong>④ 核 / 大国</strong></td><td>IAEA 确认 HEU 稀释履约</td><td>核议题停留谈判桌</td><td><strong>重启核浓缩链打击、俄中实质军援</strong></td></tr><tr><td><strong>⑤ 外交</strong></td><td>实质通航恢复 + 制裁豁免落地</td><td>"谈判可继续"但无实质进展</td><td>斡旋全面破裂、UNSC 僵死</td></tr><tr><td><strong>⑥ 市场（快读代理）</strong></td><td>Brent&lt;$80、VIX 13–15、保费回落</td><td>Brent $80–$105、VIX 15–20、金 ~$4,000</td><td><strong>Brent&gt;$105→$120、VIX&gt;30、TTF 暴涨、金创新高</strong></td></tr></tbody></table></div>
+<p><strong>市场是最快的实时代理</strong>：由于金融市场对海峡消息的反应速度快于战报核实，<strong>⑥ 市场指标可作为①–⑤ 的先行/确认信号</strong>——尤其 Brent 突破 $105、VIX 突破 30 往往先于官方确认海峡封锁。</p>
+<hr>
+<h2 id="五-前景研判-整合判断">五、前景研判（整合判断）</h2>
+<p><strong>1. 基准路径：长期消耗（海峡冻结冲突）。</strong> 四条结构力（伊朗自我威慑、供给过剩、美政治杠杆缺失、双方无退出台阶）同时指向"冻结"而非"收束"或"爆发"。最可能的未来是：<strong>升级阶梯级别 1↔2 之间的长期高危拉锯，油价 $80–$105 中枢震荡，市场持续脱敏，间歇触及级别 3 后回落。</strong> 这是一场"打不赢也停不下"的战争。</p>
+<p><strong>2. 核心张力：经济与战略的时间剪刀差。</strong> 时间在<strong>经济上</strong>站在消费国/美国一边（供给过剩稀释战争溢价、慢性侵蚀伊朗筹码），却在<strong>战略上</strong>站在伊朗一边（IRGC 权力巩固、证明可扛美国全面打击、海峡"收租"落袋）。这解释了为何双方都不急于收束——各自都相信时间对自己有利。</p>
+<p><strong>3. 真正的风险不在渐进升级，而在单点触发的无预警跃迁。</strong> 基准是"冻结"，但四情景中<strong>唯有全面战争可在数日内由单一引信引爆</strong>（大规模布雷 / 击沉重大伤亡 / UAE 参战 / 斩首未遂 / 俄中军援）。风险管理的重心应放在<strong>红线 tripwires 的实时监测</strong>，而非线性外推当前烈度。</p>
+<p><strong>4. 两个被低估的不确定性放大器</strong>：</p>
+<ul>
+<li><strong>继任领袖迷雾</strong>：穆杰塔巴·哈梅内伊 3/8 继任后<strong>从未公开露面</strong>（据报受伤藏匿），伊朗决策中枢的实际掌控与理性程度<strong>不明</strong>——削弱了"伊朗理性自我威慑"这一压低情景四概率的核心假设。</li>
+<li><strong>美以同盟裂痕</strong>：93% 以民认为伊朗赢、86% 反和约、行动自由被收窄——<strong>以色列单边行动</strong>（绕过美国再打伊朗）是一条不完全受美方控制的独立升级路径。</li>
+</ul>
+<p><strong>5. 对各类观察者的操作含义</strong>：</p>
+<ul>
+<li><strong>政策 / 风险</strong>：紧盯第四节红线仪表盘，尤其①海峡布雷 + ③UAE 参战 + ④俄中军援三条最可能触发跃迁。</li>
+<li><strong>市场 / 投资</strong>：基准 $80–$105 区间震荡，结构性赢家＝<strong>炼厂 &gt; 油轮/航运 &gt; 上游油企</strong>，输家＝<strong>航空 &lt; 化肥/农业进口 &lt; 全球南方</strong>；避险认"金"不认"债"（滞胀味 risk-off）。<strong>别把"战争"简单等同于"崩盘"</strong>——除非红线被触发。</li>
+<li><strong>人道 / 发展</strong>：长期消耗情景下，<strong>全球南方</strong>（能源/化肥/粮价 + 航运累退成本）是最沉默、最持久的承受者，需前置援助与航运保险机制。</li>
+</ul>
+<p><strong>6. 何时重估本推演</strong>：任一红线 tripwire 触发（尤其海峡大规模布雷、大型舰船被击沉、UAE 正式参战）即须立即重估——届时基准从"长期消耗"切向"全面战争"，油价原型从"苏莱曼尼式可回归"切向"俄乌式 +"，$139 只是下限。</p>
+<hr>
+<h2 id="六-可量化监测清单-供后续跟踪-承第-5-步扩展">六、可量化监测清单（供后续跟踪，承第 5 步扩展）</h2>
+<ol>
+<li><strong>海峡日过峡油轮数</strong>（AIS 点亮 vs 走暗）、伊朗北部航道 vs 美护航南部走廊分流</li>
+<li><strong>布雷 / 水雷战迹象</strong>（IMO 通告、卫星影像）——情景四最高优先级红线</li>
+<li><strong>互袭烈度</strong>（目标数/日、有无大型舰船击沉、有无斩首未遂 / 千人级平民伤亡）</li>
+<li><strong>Brent / WTI 价位与价差、成品油裂解价差</strong>（$80 / $105 / $120 三档阈值）</li>
+<li><strong>TTF 欧洲气价、卡塔尔 Ras Laffan LNG 出货</strong>（区域二阶冲击）</li>
+<li><strong>VIX（脱敏程度）、黄金-美债背离</strong>（滞胀信号强度）、战险保费 / 运价指数</li>
+<li><strong>GCC 参战状态</strong>（UAE / 巴林 / 科威特是否正式参战或地面行动）</li>
+<li><strong>俄中实质军援迹象</strong>（伊朗导弹/无人机产能补给）</li>
+<li><strong>IAEA 履约核查</strong>（HEU 稀释是否可核查地推进）</li>
+<li><strong>穆杰塔巴·哈梅内伊是否公开露面</strong>（决策中枢理性/掌控度的关键未知）</li>
+</ol>
+<hr>
+<h2 id="七-故事-美伊战争-六步交付总览-收尾">七、故事「美伊战争」六步交付总览（收尾）</h2>
+<div class="table-wrap"><table><thead><tr><th>步</th><th>任务</th><th>交付</th><th>核心结论</th></tr></thead><tbody><tr><td>1</td><td>背景与冲突根源</td><td><code>01-background-and-roots.md</code></td><td>四条结构性断层 + 带时间线的关键节点（1953→2026-07）</td></tr><tr><td>2</td><td>当前局势与触发点核查</td><td><code>02-current-situation-snapshot.md</code></td><td>战争进行时；引爆点收敛为海峡通行权</td></tr><tr><td>3</td><td>军力对比与升级阶梯</td><td><code>03-military-balance-and-scenarios.md</code></td><td>力量不对称但技术性僵局；升级阶梯级别 0–5</td></tr><tr><td>4</td><td>地区与全球地缘影响</td><td><code>04-geopolitical-impact.md</code></td><td>战术罚伊、战略重创美秩序；伊朗战略胜已成学界定论</td></tr><tr><td>5</td><td>市场与能源冲击</td><td><code>05-market-and-energy-impact.md</code></td><td>分裂式冲击 + 供给过剩减震器；油价原型开关＝海峡通行率</td></tr><tr><td><strong>6</strong></td><td><strong>情景推演与前景研判</strong></td><td><strong><code>06-scenarios-and-outlook.md</code>（本篇）</strong></td><td><strong>四情景 + 概率 + tripwires；基准＝长期消耗（40–48%），尾部＝全面战争（8–14%，可无预警引爆）</strong></td></tr></tbody></table></div>
+<hr>
+<p><em>方法学备注：本篇为第 1–5 步已核实成果的整合推演，未引入未经前序 chrome-devtools 核实的新事实。所有事实锚点均可回溯至前五步标注的一手来源；概率区间（外交降级 24–30% / 有限打击 15–20% / 长期消耗 40–48% / 全面战争 8–14%）、时间窗口与情景路径为明确标注的<strong>分析判断</strong>，非行情预测或既成事实，应随 tripwire 触发（尤其海峡通行状态突变）而实时重估。凡涉单方口径（IRGC/美以战报/特朗普表态/各国政府声明/伤亡数字）沿用前序"★多源/○单方"分层，不与独立确认数据（IAEA 裁定、NYT 贸易量价、UNSC 投票、实时行情）并列。撰写日期 2026-07-14。</em> &lt;/content&gt; &lt;/invoke&gt;</p></section>
+
+    <button id="toTop" title="回到顶部">↑</button>
+  </main>
+</div>
+
+<script>
+var order = ["home","sec-01","sec-02","sec-03","sec-04","sec-05","sec-06"];
+var meta = {"home":{"title":"总览仪表盘","num":"◎","sub":"执行摘要"},"sec-01":{"title":"背景与根源","num":"01","sub":"冲突的四条结构性断层与带时间线的历史脉络（1953–2026）"},"sec-02":{"title":"当前局势","num":"02","sub":"截至 2026-07-14 的现状快照：停火瓦解、霍尔木兹海峡成唯一引爆点"},"sec-03":{"title":"军力对比","num":"03","sub":"极不对称的力量结构与趋于「技术性僵局」的战场态势"},"sec-04":{"title":"地缘影响","num":"04","sub":"悖论式扩散：战术惩罚伊朗，战略重创美国主导秩序"},"sec-05":{"title":"市场与能源","num":"05","sub":"分裂式冲击：油市剧烈、股汇冷静，供给过剩当减震器"},"sec-06":{"title":"情景推演","num":"06","sub":"四情景概率、tripwire 仪表盘与前景研判（最终综述）"}};
+var links = document.querySelectorAll('.nav-link');
+var docs  = document.querySelectorAll('.doc');
+
+function show(id){
+  docs.forEach(function(d){ d.classList.toggle('visible', d.id===id); });
+  links.forEach(function(l){ l.classList.toggle('active', l.getAttribute('data-target')===id); });
+  // build pager for doc sections
+  var cur = docs.namedItem ? null : null;
+  window.scrollTo({top:0,behavior:'auto'});
+  history.replaceState(null,'','#'+id);
+  buildPager(id);
+}
+function buildPager(id){
+  var sec = document.getElementById(id);
+  if(!sec || id==='home') return;
+  if(sec.querySelector('.pager')) return;
+  var i = order.indexOf(id);
+  var prev = order[i-1], next = order[i+1];
+  var p = document.createElement('div'); p.className='pager';
+  function cell(tid,dir,cls){
+    if(!tid) return '<a class="disabled '+cls+'"></a>';
+    var m = meta[tid];
+    return '<a class="'+cls+'" data-go="'+tid+'"><span class="dir">'+dir+'</span>'
+      +'<span class="ttl">'+m.title+'</span></a>';
+  }
+  p.innerHTML = cell(prev,'← 上一部分','prev') + cell(next,'下一部分 →','next');
+  sec.appendChild(p);
+  p.querySelectorAll('a[data-go]').forEach(function(a){
+    a.addEventListener('click',function(e){e.preventDefault();show(a.getAttribute('data-go'));});
+  });
+}
+
+links.forEach(function(l){
+  l.addEventListener('click',function(e){
+    var t=l.getAttribute('data-target');
+    if(t){e.preventDefault();show(t);}
+  });
+});
+
+// home cards
+var cardWrap = document.getElementById('home-cards');
+order.slice(1).forEach(function(id){
+  var m = meta[id];
+  var a = document.createElement('a');
+  a.href='#'+id; a.setAttribute('data-go',id);
+  a.style.cssText='display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:center;'+
+    'background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--muted)';
+  a.innerHTML='<span style="font-size:15px;font-weight:800;color:var(--faint);background:var(--bg);'+
+    'border:1px solid var(--line);border-radius:8px;width:44px;height:44px;display:grid;place-items:center">'+m.num+'</span>'+
+    '<span><span style="display:block;font-size:15.5px;font-weight:700;color:var(--ink)">'+m.title+'</span>'+
+    '<span style="display:block;font-size:12.5px;color:var(--faint);margin-top:2px">'+m.sub+'</span></span>';
+  a.addEventListener('mouseenter',function(){a.style.borderColor='var(--line2)';});
+  a.addEventListener('mouseleave',function(){a.style.borderColor='var(--line)';});
+  a.addEventListener('click',function(e){e.preventDefault();show(id);});
+  cardWrap.appendChild(a);
+});
+
+// back to top
+var toTop=document.getElementById('toTop');
+window.addEventListener('scroll',function(){
+  toTop.classList.toggle('show', window.scrollY>500);
+});
+toTop.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+
+// deep-link on load
+var h=(location.hash||'').replace('#','');
+if(order.indexOf(h)>=0) show(h); else show('home');
+</script>
+</body>
+</html>
