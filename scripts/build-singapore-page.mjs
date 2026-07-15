@@ -65,8 +65,25 @@ function build() {
   --source-line: #3f9e78;
   --maxw: 1180px;
 }
+html[data-theme="dark"] {
+  --bg: #12151c;
+  --card: #1b1f29;
+  --ink: #e6e9f0;
+  --muted: #9aa4b4;
+  --line: #2b3140;
+  --accent: #ef6b7e;
+  --accent-soft: #2a1e24;
+  --link: #6ea8fe;
+  --source-bg: #17241f;
+  --source-line: #4bb98d;
+}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body, .toc, .content, .backtop, th, td, blockquote.quote { transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
+html[data-theme="dark"] .figure img,
+html[data-theme="dark"] .content p img { filter: brightness(0.88); }
+html[data-theme="dark"] thead th { color: var(--ink); }
 body {
   margin: 0;
   background: var(--bg);
@@ -79,6 +96,7 @@ a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .hero {
+  position: relative;
   background: linear-gradient(135deg, #d1495b 0%, #e07a5f 55%, #f2a65a 100%);
   color: #fff;
   padding: 56px 24px 48px;
@@ -133,6 +151,12 @@ a:hover { text-decoration: underline; }
 .toc li a:hover { background: var(--accent-soft); text-decoration: none; }
 .toc li.lv2 a { font-weight: 600; margin-top: 6px; }
 .toc li.lv3 a { padding-left: 20px; color: var(--muted); font-size: 13px; }
+.toc li a.active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
 
 .content {
   background: var(--card);
@@ -166,7 +190,10 @@ a:hover { text-decoration: underline; }
   border-radius: 12px;
   border: 1px solid var(--line);
   box-shadow: 0 6px 20px rgba(31,36,48,0.10);
+  cursor: zoom-in;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+.figure img:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(31,36,48,0.18); }
 .figure figcaption {
   margin-top: 8px;
   font-size: 13px;
@@ -248,6 +275,82 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 }
 .backtop.show { opacity: 1; pointer-events: auto; }
 
+/* Reading progress bar (fixed at very top) */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #d1495b, #f2a65a);
+  z-index: 60;
+  transition: width 0.05s linear;
+}
+
+/* Dark-mode toggle button (top-right of hero) */
+.theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.28); }
+
+/* Image lightbox overlay */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,12,16,0.86);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 100;
+  padding: 24px;
+  cursor: zoom-out;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.lightbox.open { display: flex; opacity: 1; }
+.lightbox img {
+  max-width: 92vw;
+  max-height: 82vh;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+.lightbox figcaption {
+  color: #e6e9f0;
+  font-size: 14px;
+  margin-top: 14px;
+  max-width: 760px;
+  text-align: center;
+  line-height: 1.6;
+}
+.lightbox .lb-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+.lightbox .lb-close:hover { background: rgba(255,255,255,0.3); }
+
 .mobile-toc-toggle { display: none; }
 
 @media (max-width: 900px) {
@@ -274,7 +377,9 @@ hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
 </style>
 </head>
 <body>
+<div class="progress-bar" id="progressBar"></div>
 <header class="hero">
+<button class="theme-toggle" id="themeToggle" aria-label="切换深色/浅色模式" title="切换深色/浅色模式">🌙</button>
 <h1>${esc(title)}</h1>
 <p>面向中国大陆公民的一份完整自由行攻略 · 行前基础 · 景点玩乐 · 行程路线 · 美食购物 · 住宿分区 · 实用贴士</p>
 </header>
@@ -288,16 +393,114 @@ ${body}
 </div>
 
 <button class="backtop" aria-label="回到顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lb-close" aria-label="关闭" id="lbClose">×</button>
+  <img id="lbImg" alt="" />
+  <figcaption id="lbCap"></figcaption>
+</div>
+
 <script>
+  // --- Back-to-top button + reading progress bar ---
   var bt = document.querySelector('.backtop');
-  window.addEventListener('scroll', function () {
-    if (window.scrollY > 400) bt.classList.add('show');
-    else bt.classList.remove('show');
-  });
+  var pb = document.getElementById('progressBar');
+  function onScroll() {
+    var y = window.scrollY;
+    if (y > 400) bt.classList.add('show'); else bt.classList.remove('show');
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    pb.style.width = (h > 0 ? (y / h) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
   // On small screens the TOC starts collapsed.
   if (window.matchMedia('(max-width: 900px)').matches) {
     document.querySelector('.toc').classList.add('collapsed');
   }
+
+  // --- Dark mode toggle (persisted, respects OS preference on first visit) ---
+  var root = document.documentElement;
+  var toggle = document.getElementById('themeToggle');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('sg-theme'); } catch (e) {}
+  if (!saved) saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  applyTheme(saved);
+  toggle.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('sg-theme', next); } catch (e) {}
+  });
+
+  // --- TOC scroll-spy: highlight the section currently in view ---
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var linkById = {};
+  tocLinks.forEach(function (a) { linkById[decodeURIComponent(a.hash.slice(1))] = a; });
+  var headings = tocLinks
+    .map(function (a) { return document.getElementById(decodeURIComponent(a.hash.slice(1))); })
+    .filter(Boolean);
+  var current = null;
+  function setActive(id) {
+    if (id === current) return;
+    if (current && linkById[current]) linkById[current].classList.remove('active');
+    current = id;
+    var link = linkById[id];
+    if (link) {
+      link.classList.add('active');
+      // keep the active item visible inside a scrollable sidebar
+      if (link.scrollIntoView) link.scrollIntoView({ block: 'nearest' });
+    }
+  }
+  if ('IntersectionObserver' in window && headings.length) {
+    var visible = new Set();
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) visible.add(en.target); else visible.delete(en.target);
+      });
+      // pick the topmost heading still on screen
+      var best = null, bestTop = Infinity;
+      visible.forEach(function (el) {
+        var top = el.getBoundingClientRect().top;
+        if (top < bestTop) { bestTop = top; best = el; }
+      });
+      if (best) setActive(best.id);
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    headings.forEach(function (h) { spy.observe(h); });
+  }
+
+  // --- Image lightbox: click any figure image to view it enlarged ---
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lbImg');
+  var lbCap = document.getElementById('lbCap');
+  function openLightbox(img) {
+    lbImg.src = img.currentSrc || img.src;
+    lbImg.alt = img.alt || '';
+    var fig = img.closest('figure');
+    var cap = fig ? fig.querySelector('figcaption') : null;
+    lbCap.textContent = cap ? cap.textContent : (img.alt || '');
+    lb.classList.add('open');
+    lb.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    lb.classList.remove('open');
+    lb.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+  document.querySelectorAll('.figure img, .content p img').forEach(function (img) {
+    img.style.cursor = 'zoom-in';
+    img.addEventListener('click', function () { openLightbox(img); });
+  });
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb || e.target.id === 'lbClose') closeLightbox();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lb.classList.contains('open')) closeLightbox();
+  });
 </script>
 </body>
 </html>

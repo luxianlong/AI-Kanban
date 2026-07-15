@@ -162,6 +162,8 @@
 
 新加坡公共交通发达、便宜、准点，绝大多数景点地铁可达。
 
+![星耀樟宜 Jewel 雨漩涡室内瀑布](/img/singapore/jewel-changi.jpg "星耀樟宜 Jewel·雨漩涡 Rain Vortex——全球最高室内瀑布，就在樟宜机场，落地即可打卡 · 摄影 kallerna，CC BY-SA 4.0")
+
 **A. 樟宜机场往返市区**
 
 | 方式 | 参考费用 | 时长/说明 |
@@ -219,6 +221,8 @@
 - **提示**：户外花园与灯光秀免费、双馆需购票；擎天树丛灯光约 23:30 熄灯。云雾林、OCBC Skyway
   有**不定期维护闭馆日**，行前务必查官网。
 
+![滨海湾花园擎天树丛夜景](/img/singapore/supertrees.jpg "滨海湾花园·擎天树丛 Supertree Grove 夜景——每晚 19:45 / 20:45 的 Garden Rhapsody 灯光秀在此免费上演 · 摄影 Dietmar Rabich，CC BY-SA 4.0")
+
 ![滨海湾花园云雾林 Cloud Forest 室内瀑布](/img/singapore/gardens-cloud-forest.jpg "滨海湾花园·云雾林 Cloud Forest · 摄影 Basile Morin，CC BY-SA 4.0")
 
 **② 金沙空中花园观景台 Marina Bay Sands SkyPark Observation Deck**（约 1 小时）
@@ -261,6 +265,8 @@
 - **新看点**：**小黄人乐园 Minion Land** 已于 2025 年 2 月开幕，正常运营。
 - **提示**：官网有"环球影城 + 新加坡海洋馆"两园套票（旺季成人约 S$144），两个都想去更划算。
 
+![新加坡环球影城标志性旋转地球](/img/singapore/universal-studios.jpg "新加坡环球影城 Universal Studios Singapore 入口的旋转地球标志 · 摄影 Cempaka Source，CC BY-SA 3.0")
+
 **② 新加坡海洋馆 Singapore Oceanarium**（2–3 小时）
 - ⚠ **重要变更**：原 **S.E.A. Aquarium 已重建并更名为「新加坡海洋馆 Singapore Oceanarium」**，
   面积扩大至约 3 倍、22 个展区、10 万+ 海洋生物。旧攻略里的"S.E.A. 海洋馆 S$44"名称与票价均已过时。
@@ -275,6 +281,8 @@
 
 新加坡北部的 **Mandai 野生动物保护区**是全球顶级动物园群，四园相邻，**建议半天到一天**，
 尤其推荐**傍晚接着看夜间动物园**这一独特体验。
+
+![河川生态园的大熊猫](/img/singapore/panda.jpg "河川生态园 River Wonders 的大熊猫——Mandai 动物园群明星之一 · 摄影 Michael Gwyther-Jones，CC BY 2.0")
 
 | 园区 | 成人票（非居民） | 开放时间 | 建议时长 |
 | --- | --- | --- | --- |
@@ -314,12 +322,18 @@
 - **慕达发中心 Mustafa Centre**：**24 小时**营业的杂货购物城（电子/香料/香水），可作最后一站。
 - **提示**：傍晚色彩与灯光更佳。
 
+![小印度陈东岭故居彩色别墅](/img/singapore/little-india.jpg "小印度·陈东岭故居 House of Tan Teng Niah——小印度最出片的彩色别墅 · 摄影 Rosanazareth，CC BY-SA 4.0")
+
 **③ 甘榜格南 Kampong Glam**（2–3 小时）
 - **苏丹回教堂 Sultan Mosque**：金顶地标，**免费**。**非穆斯林参观时间**约：周六–周四
   10:00–12:00、14:00–16:00；**周五仅 14:30–16:00**（避开礼拜）。入口免费提供长袍，需遮肩盖膝、脱鞋。
 - **哈芝巷 Haji Lane**：彩色壁画、独立小店与咖啡馆，全区最出片；**阿拉伯街 Arab Street** 卖布料、
   地毯、香水与中东餐。
 - **提示**：把清真寺安排在其开放窗口内（尤其周五仅下午）；傍晚 Haji Lane 氛围最好。
+
+![甘榜格南苏丹回教堂金顶](/img/singapore/sultan-mosque.jpg "甘榜格南·苏丹回教堂 Sultan Mosque 金顶地标 · 摄影 Marcin Konsek，CC BY-SA 4.0")
+
+![哈芝巷彩色壁画与小店](/img/singapore/haji-lane.jpg "甘榜格南·哈芝巷 Haji Lane——彩色壁画、独立小店与咖啡馆，全区最出片 · 摄影 Moheen Reeyad，CC BY-SA 4.0")
 
 > **来源与时效**：Chinatown.sg 官方页、VisitSingapore 官方街区页、各庙宇与街区聚合资料
 > （均采集于 2026‑07‑15）。庙宇开放时间**各来源略有出入且遇宗教节日会临时调整**，
@@ -328,6 +342,9 @@
 ### 2.5 乌节路购物带 Orchard Road
 
 新加坡的购物主轴，约 2.2 公里、18+ 家商场，适合**半天**逛街或作为雨天/夜晚的机动安排。
+
+![乌节路商场夜景](/img/singapore/orchard-road.jpg "乌节路 Orchard Road 入夜后的商场灯火 · 摄影 Karl Baron，CC BY 2.0")
+
 - **看点**：**ION Orchard**（Orchard 地铁站正上方，56 层有 ION Sky 观景台）、Paragon、
   Ngee Ann City 高档商场；Lucky Plaza 平价；**翡翠山 Emerald Hill** 老排屋值得一看。
 - **营业时间**：商场多为每日约 **10:00–22:00**。**建议时长 2–4 小时。**
@@ -415,6 +432,8 @@
 - **其他值得一试**：福建炒虾面 Hokkien Mee、罗惹 Rojak、印度煎饼 **Roti Prata**（✅🌱清真+素食皆有）、
   椰浆饭 Nasi Lemak（✅）、辣死你妈 / 鱼头咖喱、珍多冰 Chendol（🌱甜品）。
 
+![辣椒螃蟹](/img/singapore/chilli-crab.jpg "新加坡招牌大菜·辣椒螃蟹 Chilli Crab，酱汁配小馒头蘸食 · 摄影 Dekcuf，CC BY-SA 2.0")
+
 > **来源与时效**：菜品与名店参考 VisitSingapore 官方美食页与主流攻略，价位为熟食中心/餐厅**人均参考区间**
 > （采集于 2026‑07‑15）。海鲜按时价论斤、餐厅定价浮动较大，**以当日菜单为准**。
 
@@ -422,6 +441,8 @@
 
 **核心结论：熟食中心是体验本地美食性价比最高的方式，单碟菜约 S$4–8、一餐人均约 S$6–12。**
 新加坡小贩文化已列入 **UNESCO 非物质文化遗产**，卫生分级（A/B/C）张贴在摊位上，可放心就餐。
+
+![老巴刹熟食中心](/img/singapore/lau-pa-sat.jpg "老巴刹 Lau Pa Sat——1894 年维多利亚铸铁建筑改成的熟食中心，傍晚沙爹街最热闹 · 摄影 GoAheadFan95，CC BY-SA 4.0")
 
 | 熟食中心 | 位置 | 招牌 | 人均 | 备注 |
 | --- | --- | --- | --- | --- |
@@ -702,8 +723,17 @@
 - 天际线夜景 / 滨海湾金沙 / 云雾林：摄影 [Basile Morin](https://commons.wikimedia.org/wiki/User:Basile_Morin)，CC BY-SA 4.0
 - 鱼尾狮公园：摄影 [CEphoto, Uwe Aranas](https://commons.wikimedia.org/wiki/File:Singapore_Merlion-at-Marina-Bay-02.jpg)，CC BY-SA 3.0
 - 圣淘沙全景：摄影 [Banej](https://commons.wikimedia.org/wiki/File:Panorama_of_Sentosa,_Singapore_-_March_2018.jpg)，CC BY-SA 4.0
-- 牛车水宝塔街：摄影 [Dietmar Rabich](https://commons.wikimedia.org/wiki/File:Singapore_(SG),_China_Town,_Pagoda_Street_--_2019_--_4515.jpg)，CC BY-SA 4.0
+- 牛车水宝塔街 / 擎天树丛夜景：摄影 [Dietmar Rabich](https://commons.wikimedia.org/wiki/User:Dietmar_Rabich)，CC BY-SA 4.0
 - 海南鸡饭：摄影 [Pauloleong2002](https://commons.wikimedia.org/wiki/File:Hainanese_chicken_rice_in_Singapore.jpg)，CC BY-SA 4.0
+- 星耀樟宜·雨漩涡：摄影 [kallerna](https://commons.wikimedia.org/wiki/File:Rain_Vortex_Jewel_Changi_Airport.jpg)，CC BY-SA 4.0
+- 环球影城地球标志：摄影 [Cempaka Source](https://commons.wikimedia.org/wiki/File:Universal_Studios_Singapaore.JPG)，CC BY-SA 3.0
+- 河川生态园大熊猫：摄影 [Michael Gwyther-Jones](https://commons.wikimedia.org/wiki/File:Giant_Panda_at_Singapore_River_Safari.jpg)，CC BY 2.0
+- 小印度·陈东岭故居：摄影 [Rosanazareth](https://commons.wikimedia.org/wiki/File:HouseOfTanTengNiah.jpg)，CC BY-SA 4.0
+- 甘榜格南·苏丹回教堂：摄影 [Marcin Konsek](https://commons.wikimedia.org/wiki/File:2016_Singapur,_Kampong_Glam,_Meczet_Sułtana_%2809%29.jpg)，CC BY-SA 4.0
+- 甘榜格南·哈芝巷：摄影 [Moheen Reeyad](https://commons.wikimedia.org/wiki/File:Haji_Lane,_Kampong_Glam_%2802%29.jpg)，CC BY-SA 4.0
+- 乌节路夜景：摄影 [Karl Baron](https://commons.wikimedia.org/wiki/File:Orchard_Road_at_night,_2011.jpg)，CC BY 2.0
+- 辣椒螃蟹：摄影 [Dekcuf](https://commons.wikimedia.org/wiki/File:Chilli_crab-01.jpg)，CC BY-SA 2.0
+- 老巴刹熟食中心：摄影 [GoAheadFan95](https://commons.wikimedia.org/wiki/File:Lau_Pa_Sat_%28Former_Telok_Ayer_Market%29,_October_2024.jpg)，CC BY-SA 4.0
 
 *本页由 Kanban 任务 #214（攻略地基章节）创建，为“新加坡旅游攻略”故事第 1/5 步；
 第 2 章（景点）与第 3 章（行程）由任务 #215 补写，为该故事第 2/5 步；
@@ -712,4 +742,6 @@
 全篇整合校对（统一体例、清理构建期标注、复核目录与内链、更新使用说明）及前端入口链接
 由任务 #218 完成，为该故事第 5/5 步（收尾）；
 配图（景点与美食实景照，均取自 Wikimedia Commons 的 CC 授权图片，见上「图片来源与授权」）
-由任务 #258 补入。*
+由任务 #258 补入；任务 #262 又新增 10 张配图（星耀樟宜、擎天树丛、环球影城、大熊猫、小印度、
+苏丹回教堂、哈芝巷、乌节路、辣椒螃蟹、老巴刹）并为网页加入图片灯箱、目录滚动高亮、阅读进度条与深色模式等交互，
+为“新加坡旅游攻略”故事第 8 步。*
