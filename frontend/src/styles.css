@@ -97,6 +97,7 @@ body {
 .card-promote:focus-visible,
 .story-add:focus-visible,
 .composer-related-chip:focus-visible,
+.composer-related-select:focus-visible,
 .toast-close:focus-visible,
 .story-select:focus-visible {
   outline: none;
@@ -436,6 +437,19 @@ body {
 }
 .composer-related-chip:hover:not(:disabled) { border-color: var(--brand); background: var(--brand-100); }
 .composer-related-chip:disabled { opacity: 0.5; cursor: default; }
+/* The picked story: filled so it reads as the current choice, not just a hover. */
+.composer-related-chip.selected {
+  color: #fff; background: var(--brand); border-color: var(--brand);
+}
+.composer-related-chip.selected:hover:not(:disabled) { background: var(--brand); filter: brightness(0.95); }
+/* Manual override: pick any story, not just the auto-suggested ones. */
+.composer-related-select {
+  font: inherit; font-size: var(--f-xs);
+  color: var(--ink); background: var(--card);
+  border: 1px solid var(--board-line); border-radius: var(--r-pill);
+  padding: 3px 8px; cursor: pointer; max-width: 12rem;
+}
+.composer-related-select:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- Story composer ---------- */
 .story-add {
