@@ -28,7 +28,12 @@
    - [3.1 三天精华行程](#31-三天精华行程)
    - [3.2 五天深度行程](#32-五天深度行程)
    - [3.3 行程通用提示](#33-行程通用提示)
-4. 美食与购物 *（待后续章节补充）*
+4. [美食与购物](#4-美食与购物) ← 本步骤已填写
+   - [4.1 必吃美食清单](#41-必吃美食清单)
+   - [4.2 熟食中心（Hawker Centre）与人均价位](#42-熟食中心hawker-centre与人均价位)
+   - [4.3 购物商圈](#43-购物商圈)
+   - [4.4 手信与伴手礼](#44-手信与伴手礼)
+   - [4.5 退税（GST Refund / eTRS）](#45-退税gst-refund--etrs)
 5. 实用信息与出行贴士 *（待后续章节补充）*
 
 > 后续步骤请在对应二级标题下补写内容，保持“先给结论、再列来源与时效”的写法，
@@ -359,6 +364,107 @@
 
 ---
 
+## 4. 美食与购物
+
+新加坡是**华人、马来、印度、娘惹（Peranakan）四大风味交汇**的美食之城，且"吃"与"买"是游客
+高频需求，本章单独成章便于查阅：先列**必吃清单**与**熟食中心**，再讲**购物商圈、伴手礼与退税**。
+> **饮食友好提示**：新加坡清真（Halal）与素食选择丰富——马来/印度餐多为清真，认准 **MUIS Halal
+> 认证**绿色标识；素食者可在小印度找到大量印度素食（纯素/蛋奶素），熟食中心也常有"**素食 Vegetarian**"
+> 摊位。下文在各条目标注 ✅清真友好 / 🌱素食友好。
+
+### 4.1 必吃美食清单
+
+**核心结论：以下 6 样是"到了新加坡不吃会后悔"的国民美食，多数在熟食中心即可低价吃到。**
+
+- **海南鸡饭 Hainanese Chicken Rice**——新加坡"准国菜"，鸡肉滑嫩配鸡油香饭。人均约 **S$5–8**
+  （熟食中心）。名店：麦士威**天天海南鸡饭**、文东记。🌱素食版少见（以鸡为主）。
+- **辣椒螃蟹 Chilli Crab / 黑胡椒螃蟹 Black Pepper Crab**——招牌大菜，酱汁配小馒头蘸食。
+  按时价论斤，**两人份连蟹约 S$60–100+**（海鲜餐厅）。名店：珍宝海鲜 Jumbo、无招牌 No Signboard。
+- **叻沙 Laksa**——椰浆咖喱米粉，加拉沙勃拉煎虾酱，浓香微辣。人均约 **S$5–8**。加东叻沙（Katong Laksa）最出名。✅多为清真友好（认证摊位）。
+- **肉骨茶 Bak Kut Teh**——胡椒猪骨汤（新加坡为**白胡椒清汤**派，区别于马来西亚药材黑汤），配油条、白饭。
+  人均约 **S$8–12**。名店：松发肉骨茶、黄亚细。（含猪肉，非清真。）
+- **沙爹 Satay**——炭烤肉串蘸花生酱，配黄瓜洋葱。约 **S$0.7–1/串**，一餐 10–15 串约 S$10–15。
+  **老巴刹沙爹街**傍晚开市最有气氛。✅清真友好（多为马来摊）。
+- **咖椰吐司 Kaya Toast + 半熟蛋 + 南洋咖啡**——经典早餐组合，烤面包夹咖椰酱与牛油。整套约 **S$5–7**。
+  连锁：亚坤 Ya Kun、土司工坊 Toast Box。🌱素食友好（蛋奶素可）。
+- **其他值得一试**：福建炒虾面 Hokkien Mee、罗惹 Rojak、印度煎饼 **Roti Prata**（✅🌱清真+素食皆有）、
+  椰浆饭 Nasi Lemak（✅）、辣死你妈 / 鱼头咖喱、珍多冰 Chendol（🌱甜品）。
+
+> **来源与时效**：菜品与名店参考 VisitSingapore 官方美食页与主流攻略，价位为熟食中心/餐厅**人均参考区间**
+> （采集于 2026‑07‑15）。海鲜按时价论斤、餐厅定价浮动较大，**以当日菜单为准**。
+
+### 4.2 熟食中心（Hawker Centre）与人均价位
+
+**核心结论：熟食中心是体验本地美食性价比最高的方式，单碟菜约 S$4–8、一餐人均约 S$6–12。**
+新加坡小贩文化已列入 **UNESCO 非物质文化遗产**，卫生分级（A/B/C）张贴在摊位上，可放心就餐。
+
+| 熟食中心 | 位置 | 招牌 | 人均 | 备注 |
+| --- | --- | --- | --- | --- |
+| **麦士威 Maxwell** | 牛车水（近佛牙寺） | 天天海南鸡饭、福建炒虾面 | S$6–10 | 游客最方便，午市排队 |
+| **老巴刹 Lau Pa Sat** | CBD/莱佛士坊 | **沙爹街**（傍晚露天开市）、各国小吃 | S$8–15 | 维多利亚铁艺建筑，夜晚气氛佳 |
+| **纽顿 Newton** | 纽顿地铁站旁 | 海鲜（辣椒蟹、烤魟鱼、炒粿条） | S$12–20 | 《摘金奇缘》取景地，偏夜宵/海鲜 |
+| 牛车水大厦 Chinatown Complex | 牛车水 | 米其林一星"了凡油鸡饭" | S$5–10 | 本地人多、摊位最全 |
+| 老机场路 Old Airport Road | Dakota 站 | 蚝煎、酿豆腐、沙爹米粉 | S$5–10 | 本地美食老饕首选 |
+
+- **点餐贴士**：多为现金/**电子支付（PayNow/刷卡）**，部分摊位仅收现金，备好小额纸币；
+  用纸巾包"占座（chope）"是本地习惯；**自助归还餐盘**已立法要求，用餐后请自行收拾。
+- ✅**清真友好**：认准摊位 **MUIS Halal 认证**绿标；马来/印度摊（沙爹、椰浆饭、Roti Prata、印度餐）通常清真。
+- 🌱**素食友好**：多数熟食中心有"**素食 Vegetarian**"华人摊；**小印度**印度素食（Thali、Dosa）选择最多。
+
+> **来源与时效**：熟食中心信息参考 VisitSingapore 与本地美食指南，人均为**大众消费参考区间**
+> （采集于 2026‑07‑15）。摊位营业时间/休市日各异，热门店常午间或傍晚售罄。
+
+### 4.3 购物商圈
+
+**核心结论：高端奢侈品去乌节路 / 金沙 The Shoppes，一站式娱乐购物去圣淘沙名胜世界，平价淘货去武吉士。**
+
+- **乌节路 Orchard Road**——新加坡购物主轴，详见 [2.5 乌节路购物带](#25-乌节路购物带)。ION Orchard、
+  Paragon、Ngee Ann City（高岛屋）为高端，Lucky Plaza 平价，营业约 10:00–22:00。
+- **圣淘沙名胜世界 Resorts World Sentosa**——集**环球影城、新加坡海洋馆、赌场、名牌折扣与餐饮**于一体，
+  适合结合 [2.2 圣淘沙](#22-圣淘沙-sentosa)行程半天到一天购物娱乐；岛上另有 **VivoCity**（进岛前的全国最大购物中心）。
+- **滨海湾金沙 The Shoppes at Marina Bay Sands**——奢侈品旗舰、室内运河与"雨眼"艺术装置，紧邻 [2.1 滨海湾](#21-滨海湾-marina-bay)。
+- **平价 / 特色**：**武吉士街 Bugis Street**（平价服饰小物）、**哈芝巷 Haji Lane**（甘榜格南文艺小店）、
+  **小印度 Mustafa Centre**（24 小时百货、金饰电子）、**牛车水**手信与纪念品、**星耀樟宜 Jewel**（离境前顺逛）。
+
+> **来源与时效**：商圈信息参考 VisitSingapore 官方购物页与各商场官网（采集于 2026‑07‑15）。
+> 品牌进驻与营业时间时有调整，出发前可查商场官网。
+
+### 4.4 手信与伴手礼
+
+**核心结论：好带、好吃、有辨识度的三大热门——斑斓蛋糕、TWG 茶、美禄；再加肉干、咖椰酱等经典。**
+
+- **斑斓蛋糕 Pandan Cake**——翠绿松软的国民蛋糕，**Bengawan Solo（文头雪）**为最知名连锁，
+  机场与各大商场有店；**当日现买、保质期短**，建议离境前购买。🌱素食友好。
+- **TWG Tea**——新加坡高端茶叶品牌，礼盒装茶叶/茶包精美耐放，ION、金沙、机场均有专柜，适合送礼。🌱🥗
+- **美禄 Milo**——本地"国民"麦芽饮，超市（FairPrice/Cold Storage）盒装便宜量足；
+  可顺带买"**Milo 恐龙粉**"版；同类还有 **Kaya 咖椰酱**（Ya Kun/超市瓶装）。🌱素食友好。
+- **肉干 Bak Kwa（肉脯）**——**美珍香 Bee Cheng Hiang**、**林志源 Lim Chee Guan**最出名；
+  注意**猪肉制品不可携带入境中国大陆**，仅适合当地食用或送本地友人（非清真）。
+- **其他好选**：**Irvins 咸蛋鱼皮/薯片**、**Prima Taste** 叻沙/海南鸡饭料理包（还原度高、好携带）、
+  鱼尾狮造型巧克力/纪念品、TWG 以外的 **黄金旅人 / Gryphon** 茶。
+
+> **来源与时效**：伴手礼品牌与购买点参考各品牌官网与主流攻略（采集于 2026‑07‑15）。
+> **携带入境提示**：肉类（含肉干）、部分乳制品有出入境限制，购买前确认目的地海关规定。
+
+### 4.5 退税（GST Refund / eTRS）
+
+**核心结论：游客在参与 eTRS 的商店同日单店消费满 S$100，可在樟宜机场自助 kiosk 申请退还 9% 消费税（GST）。**
+新加坡 **GST 税率为 9%**（2024 年起），退税通过**电子游客退税计划 eTRS** 办理。
+
+- **谁能退**：购物当日**年满 16 岁**、**非新加坡公民/永久居民**、非离境航班机组，且非持工作/学生/家属准证等"指定人员"。
+- **消费门槛**：在**参与 eTRS 的零售商**消费、**单店同日满 S$100（含 GST）**；可累计**同一 GST 注册号、同店名的最多 3 张同日发票**凑满。
+- **购物时**：向店员出示**护照原件**（不接受复印件/照片）登记 eTRS 交易，务必拿到**原始收据 + eTRS 交易记录**。
+- **离境时**：在 **樟宜机场 / 实里达机场**的 **eTRS 自助 kiosk** 扫护照→申报→（如提示）到海关查验柜台出示实物、收据与登机牌。
+- **退款方式**：**信用卡**（约 10 天内到账）、**支付宝 Alipay**（即时到账）或**现金**（仅樟宜，离境转机厅现金退税柜台）。
+- **重要时限与限制**：须在**购买后 2 个月内携货离境**、退税批准后 **12 小时内离境**；
+  会**扣除代理手续费**（实退略少于 9%）；**已在境内消费的货品、服务、酒店住宿、随货运出口的商品不可退**。
+- **工具**：可下载 **eTRS App** 或登录 [touristrefund.sg](https://touristrefund.sg) 查询交易；**提前到机场**预留查验与排队时间。
+
+> **来源与时效**：以上依据 **新加坡税务局 IRAS《Tourist Refund Scheme》官方页**（页面最后更新
+> 2026‑03‑31，采集于 2026‑07‑15）。门槛、税率与手续费以离境当时官网/机场公告为准。
+
+---
+
 ## 附：数据来源汇总
 
 - 签证：[外交部—中新互免签证协定](https://www.mfa.gov.cn/wjbxw_new/202401/t20240125_11233114.shtml)、[中国日报—2 月 9 日起互免签证](https://china.chinadaily.com.cn/a/202401/25/WS65b20de7a310af3247ffd524.html)、[驻新使馆—入境注意事项](https://sg.china-embassy.gov.cn/lsfw_0/zytz/202408/t20240815_11474255.htm)
@@ -371,6 +477,11 @@
 - 景点（圣淘沙）：[Resorts World Sentosa](https://www.rwsentosa.com/)、[Sentosa 官网](https://www.sentosa.com.sg/)、[新加坡海洋馆 Singapore Oceanarium（Sentosa 页）](https://www.sentosa.com.sg/en/things-to-do/attractions/singapore-oceanarium/)
 - 景点（动物园群）：[Mandai 野生动物保护区—门票](https://www.mandai.com/en/tickets-and-passes.html)、[多园联票](https://www.mandai.com/en/tickets-and-passes/multi-park-admission.html)、[前往 Mandai 交通](https://www.mandai.com/en/plan-your-visit/getting-to-and-around.html)
 - 景点（文化街区/购物）：[VisitSingapore 街区](https://www.visitsingapore.com/zh_cn/see-do-singapore/culture-heritage/)、[Chinatown.sg—佛牙寺](https://chinatown.sg/visit/buddha-tooth-relic-temple/)、[VisitSingapore—苏丹回教堂](https://www.visitsingapore.com/see-do-singapore/places-to-see/kampong-gelam/sultan-mosque/)、[VisitSingapore—乌节路](https://www.visitsingapore.com/see-do-singapore/places-to-see/orchard-road/)
+- 美食：[VisitSingapore—Food & Drinks](https://www.visitsingapore.com/dining-drinks-singapore/)、[VisitSingapore—小贩文化 Hawker Culture](https://www.visitsingapore.com/see-do-singapore/culture-heritage/heritage-food/)、[UNESCO—新加坡小贩文化](https://ich.unesco.org/en/RL/hawker-culture-in-singapore-01568)
+- 购物商圈：[VisitSingapore—Shopping](https://www.visitsingapore.com/shopping-singapore/)、[金沙 The Shoppes](https://www.marinabaysands.com/shopping.html)、[Resorts World Sentosa](https://www.rwsentosa.com/)
+- 伴手礼：[Bengawan Solo（斑斓蛋糕）](https://www.bengawansolo.com.sg/)、[TWG Tea](https://twgtea.com/)、[美珍香 Bee Cheng Hiang](https://www.beechenghiang.com.sg/)
+- 退税/GST：[新加坡税务局 IRAS—Tourist Refund Scheme](https://www.iras.gov.sg/taxes/goods-services-tax-(gst)/consumers/tourist-refund-scheme)（页面最后更新 2026‑03‑31）、[eTRS touristrefund.sg](https://touristrefund.sg/)
 
 *本页由 Kanban 任务 #214（攻略地基章节）创建，为“新加坡旅游攻略”故事第 1/5 步；
-第 2 章（景点）与第 3 章（行程）由任务 #215 补写，为该故事第 2/5 步。*
+第 2 章（景点）与第 3 章（行程）由任务 #215 补写，为该故事第 2/5 步；
+第 4 章（美食与购物）由任务 #216 补写，为该故事第 3/5 步。*
