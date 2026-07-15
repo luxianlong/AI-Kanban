@@ -70,6 +70,42 @@ export default function App() {
     return () => clearInterval(t)
   }, [refresh])
 
+  // The 4-second poll is only a fallback. A status change made outside this tab —
+  // in another open board tab, or by the worker on the server — would otherwise
+  // take up to a full poll interval to show up here. Refresh at once instead:
+  //   • when this tab regains focus / becomes visible, so worker/server-side
+  //     changes are current the moment you look at the board;
+  //   • when a sibling tab signals it just mutated a task, so promoting/moving a
+  //     card in one tab updates every other open board immediately (instant
+  //     cross-tab sync via BroadcastChannel) rather than on its next poll.
+  const channelRef = useRef(null)
+  useEffect(() => {
+    const onFocus = () => refresh()
+    const onVisible = () => { if (!document.hidden) refresh() }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisible)
+    let ch = null
+    if (typeof BroadcastChannel !== 'undefined') {
+      ch = new BroadcastChannel('kanban')
+      // Peers only ever post 'mutated'; this handler just re-fetches (it never
+      // re-broadcasts), so there's no echo loop between tabs.
+      ch.onmessage = (e) => { if (e.data === 'mutated') refresh() }
+      channelRef.current = ch
+    }
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisible)
+      if (ch) ch.close()
+      channelRef.current = null
+    }
+  }, [refresh])
+
+  // Tell other open board tabs a task just changed here so they refresh at once
+  // (see the BroadcastChannel effect above). No-op where the API is unavailable.
+  const broadcastMutation = useCallback(() => {
+    channelRef.current?.postMessage('mutated')
+  }, [])
+
   // Notify whenever a task crosses into a terminal state (Done / Needs
   // Attention). We remember each task's last-seen status; the very first poll
   // only seeds that map (so we never notify for tasks that were already
@@ -158,12 +194,14 @@ export default function App() {
   async function createTodo(title, description, projectImprovement) {
     await api.createTodo(title, description, projectImprovement)
     await refresh()
+    broadcastMutation()
     setShowComposer(false)
   }
 
   async function createStory(name, description) {
     await api.createStory(name, description)
     await refresh()
+    broadcastMutation()
     setShowComposer(false)
   }
 
@@ -172,6 +210,7 @@ export default function App() {
   async function attachToStory(storyId, title, description) {
     await api.addStoryStep(storyId, title, description)
     await refresh()
+    broadcastMutation()
     setShowComposer(false)
   }
 
@@ -180,6 +219,7 @@ export default function App() {
       await api.deleteTodo(id)
       if (selectedId === id) setSelectedId(null)
       await refresh()
+      broadcastMutation()
     } catch (e) {
       setError(e.message)
     }
@@ -189,6 +229,7 @@ export default function App() {
     try {
       await api.retryTodo(id)
       await refresh()
+      broadcastMutation()
     } catch (e) {
       setError(e.message)
     }
@@ -199,6 +240,7 @@ export default function App() {
     try {
       await api.setStory(id, storyId)
       await refresh()
+      broadcastMutation()
     } catch (e) {
       setError(e.message)
     }
@@ -221,6 +263,7 @@ export default function App() {
       setError(e.message)
     }
     await refresh()
+    broadcastMutation() // sync other open board tabs to this status change at once
   }
   // Promote a NEW (staged) task into the To Do queue so the worker can pick it up.
   const promoteToDo = (id) => moveTask(id, 'PENDING')
