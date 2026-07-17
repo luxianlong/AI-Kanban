@@ -354,13 +354,28 @@ function build() {
 
   fs.mkdirSync(OUT_DIR, { recursive: true })
 
+  // Map every publishable doc to its served URL so cross-document links written
+  // as sibling ".md" paths (e.g. [x](./architecture.md)) get repointed at the
+  // real page (/docs/architecture.html) instead of dead-ending on markdown the
+  // web user can't open — the exact failure this docs site exists to prevent.
+  const docUrlByFile = {}
+  for (const f of files) {
+    docUrlByFile[f] = BESPOKE[f] || `/docs/${slugify(f.replace(/\.md$/, ''))}.html`
+  }
+  const resolveLink = (url) => {
+    const m = /^(?:\.\/)?([^/#?]+\.md)(#.*)?$/.exec(url)
+    if (!m) return url
+    const target = docUrlByFile[m[1]]
+    return target ? target + (m[2] || '') : url
+  }
+
   const cards = []
   let generated = 0
 
   for (const file of files) {
     const md = fs.readFileSync(path.join(DOCS_DIR, file), 'utf8')
     const slug = slugify(file.replace(/\.md$/, ''))
-    const { title: parsed, body, toc, hasMermaid } = renderMarkdown(md)
+    const { title: parsed, body, toc, hasMermaid } = renderMarkdown(md, { resolveLink })
     const title = parsed || humanize(file.replace(/\.md$/, ''))
     const ex = excerpt(md)
 
@@ -391,7 +406,7 @@ function build() {
       .join('\n\n---\n\n')
     // stripH1: false — after demotion there is no H1 anyway; the page title comes
     // from the report config, not from the Markdown.
-    const { body, toc, hasMermaid } = renderMarkdown(md, { stripH1: false })
+    const { body, toc, hasMermaid } = renderMarkdown(md, { stripH1: false, resolveLink })
     const slug = slugify(report.dir)
 
     const outPath = path.join(OUT_DIR, `${slug}.html`)

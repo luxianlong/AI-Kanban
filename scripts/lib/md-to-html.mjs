@@ -15,7 +15,11 @@ export function esc(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-function inline(text) {
+// `resolveLink`, when supplied, gets each link's raw URL and may return a
+// rewritten one — used by the docs-site generator to turn a sibling ".md" link
+// (e.g. ./architecture.md) into its published webpage (/docs/architecture.html)
+// so cross-document links never dead-end on markdown the web user can't open.
+function inline(text, resolveLink) {
   let t = esc(text)
   t = t.replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`)
   // images: ![alt](src "optional title") — matched before links so the leading
@@ -26,9 +30,10 @@ function inline(text) {
     return `<img src="${src.replace(/"/g, '%22')}" alt="${alt}" loading="lazy"${cap} />`
   })
   t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, txt, url) => {
-    const internal = url.startsWith('#')
+    const resolved = resolveLink ? resolveLink(url) : url
+    const internal = resolved.startsWith('#')
     const attrs = internal ? '' : ' target="_blank" rel="noopener noreferrer"'
-    return `<a href="${url.replace(/"/g, '%22')}"${attrs}>${txt}</a>`
+    return `<a href="${resolved.replace(/"/g, '%22')}"${attrs}>${txt}</a>`
   })
   t = t.replace(/\*\*([^*]+)\*\*/g, (_, c) => `<strong>${c}</strong>`)
   t = t.replace(/\*([^*\n]+)\*/g, (_, c) => `<em>${c}</em>`)
@@ -51,7 +56,7 @@ const isTableRow = (l) => /^\s*\|/.test(l)
 const isTableSep = (l) => /^\s*\|?[\s:|-]*-[\s:|-]*$/.test(l) && l.includes('|')
 const listRe = /^(\s*)([-*+]|\d+[.)])(\s+)(.*)$/
 
-function renderTable(rows) {
+function renderTable(rows, resolveLink) {
   const cells = (row) =>
     row
       .trim()
@@ -61,9 +66,9 @@ function renderTable(rows) {
       .map((c) => c.trim())
   const head = cells(rows[0])
   const body = rows.slice(2).map(cells)
-  const th = head.map((c) => `<th>${inline(c)}</th>`).join('')
+  const th = head.map((c) => `<th>${inline(c, resolveLink)}</th>`).join('')
   const trs = body
-    .map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`)
+    .map((r) => `<tr>${r.map((c) => `<td>${inline(c, resolveLink)}</td>`).join('')}</tr>`)
     .join('\n')
   return `<div class="table-wrap"><table>\n<thead><tr>${th}</tr></thead>\n<tbody>\n${trs}\n</tbody>\n</table></div>`
 }
@@ -173,7 +178,7 @@ function parseBlocks(lines, state, tight = false) {
     if (img) {
       const [, alt, src, title] = img
       const cap = title
-        ? `\n<figcaption>${inline(title)}</figcaption>`
+        ? `\n<figcaption>${inline(title, state.resolveLink)}</figcaption>`
         : ''
       out.push(
         `<figure class="figure"><img src="${src.replace(/"/g, '%22')}" alt="${esc(alt)}" loading="lazy" />${cap}</figure>`,
@@ -191,7 +196,7 @@ function parseBlocks(lines, state, tight = false) {
       if (level === 2 || level === 3) {
         if (text !== '目录') toc.push({ level, id, text })
       }
-      out.push(`<h${level} id="${id}">${inline(text)}<a class="anchor" href="#${id}" aria-label="链接到本节">#</a></h${level}>`)
+      out.push(`<h${level} id="${id}">${inline(text, state.resolveLink)}<a class="anchor" href="#${id}" aria-label="链接到本节">#</a></h${level}>`)
       i++
       continue
     }
@@ -200,7 +205,7 @@ function parseBlocks(lines, state, tight = false) {
     if (isTableRow(line) && i + 1 < lines.length && isTableSep(lines[i + 1])) {
       const rows = []
       while (i < lines.length && isTableRow(lines[i])) rows.push(lines[i++])
-      out.push(renderTable(rows))
+      out.push(renderTable(rows, state.resolveLink))
       continue
     }
 
@@ -244,7 +249,7 @@ function parseBlocks(lines, state, tight = false) {
     ) {
       buf.push(lines[i++])
     }
-    const innerHtml = inline(buf.join('\n')).replace(/\n/g, '<br />')
+    const innerHtml = inline(buf.join('\n'), state.resolveLink).replace(/\n/g, '<br />')
     if (tight && firstText) {
       out.push(innerHtml) // bare text so list markers stay tight
     } else {
@@ -263,7 +268,11 @@ function parseBlocks(lines, state, tight = false) {
 //   - toc:   [{ level, id, text }] for every h2/h3 (minus a "目录" heading).
 //   - hasMermaid: true if the doc contains at least one ```mermaid block, so
 //     the caller knows to load the Mermaid runtime.
-export function renderMarkdown(md, { stripH1 = true } = {}) {
+//
+// `resolveLink` (optional): a function mapping a link's raw URL to a rewritten
+// one. Passed straight through to inline(); used by the docs-site generator to
+// repoint sibling ".md" links at their published ".html" pages.
+export function renderMarkdown(md, { stripH1 = true, resolveLink = null } = {}) {
   const lines = md.replace(/\r\n/g, '\n').split('\n')
   let title = null
   const firstH1 = lines.findIndex((l) => /^#\s+/.test(l))
@@ -271,7 +280,7 @@ export function renderMarkdown(md, { stripH1 = true } = {}) {
     title = lines[firstH1].replace(/^#\s+/, '').trim()
     if (stripH1) lines[firstH1] = ''
   }
-  const state = { toc: [], hasMermaid: false }
+  const state = { toc: [], hasMermaid: false, resolveLink }
   const body = parseBlocks(lines, state)
   return { title, body, toc: state.toc, hasMermaid: state.hasMermaid }
 }

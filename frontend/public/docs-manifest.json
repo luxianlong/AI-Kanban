@@ -23,5 +23,20 @@
     "id": "architecture",
     "title": "Kanban architecture — topology",
     "href": "/docs/architecture.html"
+  },
+  {
+    "id": "kechuang-investment-guide",
+    "title": "科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）",
+    "href": "/docs/kechuang-investment-guide.html"
+  },
+  {
+    "id": "kechuang-forecast-2026-07-16",
+    "title": "预测今天科创板走势（2026-07-16）",
+    "href": "/docs/kechuang-forecast-2026-07-16.html"
+  },
+  {
+    "id": "kechuang-forecast-2026-07-16-review",
+    "title": "预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）",
+    "href": "/docs/kechuang-forecast-2026-07-16-review.html"
   }
 ]
