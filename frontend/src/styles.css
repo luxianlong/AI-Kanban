@@ -462,6 +462,29 @@ body {
   font-size: var(--f-xs); font-weight: 600; color: var(--muted);
   white-space: nowrap;
 }
+/* Delete-story button on a story lane. Tucked to the far right and kept faint so
+   it doesn't compete with the story name; it warms to a danger red on hover. It
+   only appears on real stories (never the synthetic "No story" lane). */
+.swimlane-delete {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: var(--story-ink, var(--muted));
+  opacity: 0.5;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.swimlane-delete:hover,
+.swimlane-delete:focus-visible {
+  opacity: 1;
+  color: var(--danger, #c0392b);
+  background: rgba(192, 57, 43, 0.12);
+}
 
 /* A cell = one row's tasks in one status. */
 .matrix-cell {
