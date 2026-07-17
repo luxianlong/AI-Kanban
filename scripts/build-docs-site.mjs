@@ -323,9 +323,73 @@ const INDEX_CSS = `
   opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
 .card-wrap:hover .doc-del { opacity: 1; }
+.card-wrap:focus-within .doc-del { opacity: 1; }
 .doc-del:hover { background: #fdecec; color: #d63939; border-color: #f3c0c0; }
+.doc-del:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
 .doc-del:disabled { cursor: default; opacity: 0.5; }
 @media (hover: none) { .doc-del { opacity: 1; } }
+/* Card removal animation: collapse smoothly instead of vanishing abruptly. */
+.card-wrap { transition: opacity 0.25s ease, transform 0.25s ease; }
+.card-wrap.removing { opacity: 0; transform: scale(0.94); pointer-events: none; }
+
+/* Confirmation modal — replaces the native window.confirm() with a styled,
+   accessible dialog (backdrop, focus trap, Esc to cancel). */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(31,36,48,0.45);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 0.18s ease; z-index: 50;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: auto; }
+.modal {
+  background: var(--card); border-radius: 16px; max-width: 420px; width: 100%;
+  padding: 26px 26px 22px; box-shadow: 0 24px 60px rgba(31,36,48,0.28);
+  transform: translateY(12px) scale(0.98); transition: transform 0.18s ease;
+}
+.modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+.modal .modal-icon {
+  width: 44px; height: 44px; border-radius: 50%; background: #fdecec; color: #d63939;
+  display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px;
+}
+.modal h3 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 19px; margin: 0 0 8px; }
+.modal p { margin: 0 0 6px; color: var(--muted); font-size: 14.5px; }
+.modal .doc-name { color: var(--ink); font-weight: 600; word-break: break-word; }
+.modal .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+.btn {
+  font: inherit; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 10px;
+  cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+.btn:hover { background: #f3f4f8; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-danger { background: #d63939; border-color: #d63939; color: #fff; }
+.btn-danger:hover { background: #c02c2c; border-color: #c02c2c; }
+.btn-danger:disabled { opacity: 0.6; cursor: default; }
+.btn .spinner {
+  display: inline-block; width: 13px; height: 13px; margin-right: 7px; vertical-align: -1px;
+  border: 2px solid rgba(255,255,255,0.5); border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast notifications — replace native alert() for success/error feedback. */
+.toast-host {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 10px; z-index: 60; width: max-content; max-width: 92vw;
+}
+.toast {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px;
+  background: var(--ink); color: #fff; font-size: 14px; font-weight: 500;
+  box-shadow: 0 10px 30px rgba(31,36,48,0.3);
+  opacity: 0; transform: translateY(10px); transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: #b02525; }
+.toast .toast-icon { font-size: 16px; line-height: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .card-wrap, .modal-backdrop, .modal, .toast { transition: none; }
+  .btn .spinner { animation: none; }
+}
 `
 
 function renderIndex(cards) {
@@ -366,33 +430,137 @@ ${INDEX_CSS}</style>
 <div class="wrap">
 ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">No documents yet.</p>'}
 </div>
+
+<div class="modal-backdrop" id="del-modal" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" aria-describedby="del-modal-desc" hidden>
+  <div class="modal">
+    <div class="modal-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6"/><path d="M10 11v6M14 11v6"/></svg></div>
+    <h3 id="del-modal-title">Delete this document?</h3>
+    <p id="del-modal-desc">You're about to remove <span class="doc-name"></span>.</p>
+    <p class="note">This deletes the document and its published page. It can't be undone from here.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-act="cancel">Cancel</button>
+      <button type="button" class="btn btn-danger" data-act="confirm">Delete</button>
+    </div>
+  </div>
+</div>
+<div class="toast-host" id="toast-host" aria-live="polite" aria-atomic="true"></div>
+
 <script>
   // Delete a document: ask the backend to remove its source Markdown + generated
   // page, then drop the card. The board proxies /api to the Spring backend, so a
   // same-origin fetch works whether we're on :80 (dev/tunnel) or a build preview.
+  //
+  // UX (task #278): the raw window.confirm()/alert() are replaced with an
+  // accessible styled modal (focus trap, Esc to cancel, restores focus), a
+  // smooth card-collapse animation, and toast feedback for success and errors.
   var grid = document.querySelector('.grid');
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest && e.target.closest('.doc-del');
-    if (!btn) return;
-    e.preventDefault();
+  var wrapEl = document.querySelector('.wrap');
+  var modal = document.getElementById('del-modal');
+  var modalName = modal.querySelector('.doc-name');
+  var confirmBtn = modal.querySelector('[data-act="confirm"]');
+  var cancelBtn = modal.querySelector('[data-act="cancel"]');
+  var toastHost = document.getElementById('toast-host');
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pending = null; // the .doc-del button whose card we're about to delete
+  var lastFocus = null;
+
+  function toast(message, isError) {
+    var el = document.createElement('div');
+    el.className = 'toast' + (isError ? ' error' : '');
+    el.setAttribute('role', isError ? 'alert' : 'status');
+    var icon = document.createElement('span');
+    icon.className = 'toast-icon';
+    icon.textContent = isError ? '!' : '✓';
+    el.appendChild(icon);
+    el.appendChild(document.createTextNode(message));
+    toastHost.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('show'); });
+    setTimeout(function () {
+      el.classList.remove('show');
+      setTimeout(function () { el.remove(); }, 250);
+    }, isError ? 5000 : 3200);
+  }
+
+  function openModal(btn) {
+    pending = btn;
+    lastFocus = btn;
+    modalName.textContent = '“' + (btn.getAttribute('data-title') || 'this document') + '”';
+    modal.hidden = false;
+    requestAnimationFrame(function () { modal.classList.add('open'); });
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Delete';
+    setTimeout(function () { cancelBtn.focus(); }, 0);
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    var t = prefersReduced ? 0 : 180;
+    setTimeout(function () { modal.hidden = true; }, t);
+    pending = null;
+    if (lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
+  }
+
+  function removeCard(wrap) {
+    wrap.classList.add('removing');
+    var finish = function () {
+      wrap.remove();
+      if (grid && !grid.querySelector('.card-wrap') && wrapEl) {
+        wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
+      }
+    };
+    if (prefersReduced) finish();
+    else setTimeout(finish, 260);
+  }
+
+  function doDelete() {
+    if (!pending) return;
+    var btn = pending;
     var id = btn.getAttribute('data-id');
     var title = btn.getAttribute('data-title') || 'this document';
-    if (!window.confirm('Delete "' + title + '"? This removes the document for good.')) return;
-    btn.disabled = true;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Deleting…';
     fetch('/api/docs/' + encodeURIComponent(id), { method: 'DELETE' })
       .then(function (res) {
         if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
         var wrap = btn.closest('.card-wrap');
-        if (wrap) wrap.remove();
-        if (grid && !grid.querySelector('.card-wrap')) {
-          var wrapEl = document.querySelector('.wrap');
-          if (wrapEl) wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
-        }
+        // Don't restore focus to a button we're about to remove.
+        lastFocus = null;
+        closeModal();
+        if (wrap) removeCard(wrap);
+        toast('Deleted “' + title + '”', false);
       })
       .catch(function (err) {
-        btn.disabled = false;
-        window.alert('Could not delete "' + title + '": ' + err.message);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Delete';
+        closeModal();
+        toast('Couldn’t delete “' + title + '”: ' + err.message, true);
       });
+  }
+
+  // Open the modal from any delete button (delegated so it works after re-render).
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.doc-del');
+    if (!btn) return;
+    e.preventDefault();
+    openModal(btn);
+  });
+
+  confirmBtn.addEventListener('click', doDelete);
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeModal(); // click on backdrop
+  });
+  document.addEventListener('keydown', function (e) {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') { closeModal(); return; }
+    if (e.key === 'Tab') {
+      // Simple focus trap between the two modal buttons.
+      var focusables = [cancelBtn, confirmBtn].filter(function (b) { return !b.disabled; });
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
 </script>
 </body>
