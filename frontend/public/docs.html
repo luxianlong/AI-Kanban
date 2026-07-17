@@ -73,6 +73,19 @@ a:hover { text-decoration: underline; }
 .doc-card .meta { margin-top: 12px; font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0.3px; }
 .doc-card .badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; vertical-align: middle; }
 .empty { color: var(--muted); text-align: center; padding: 40px; }
+.card-wrap { position: relative; display: flex; }
+.card-wrap .doc-card { flex: 1; }
+.doc-del {
+  position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+  color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.card-wrap:hover .doc-del { opacity: 1; }
+.doc-del:hover { background: #fdecec; color: #d63939; border-color: #f3c0c0; }
+.doc-del:disabled { cursor: default; opacity: 0.5; }
+@media (hover: none) { .doc-del { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -84,47 +97,98 @@ a:hover { text-decoration: underline; }
 </header>
 <div class="wrap">
 <div class="grid">
-<a class="doc-card featured" href="/singapore.html">
+<div class="card-wrap" data-id="singapore-travel-guide">
+  <a class="doc-card featured" href="/singapore.html">
   <h2>新加坡旅游攻略<span class="badge">Featured</span></h2>
   <p>!新加坡中央商务区与滨海湾天际线夜景</p>
   <div class="meta">Read →</div>
 </a>
-<a class="doc-card featured" href="/docs/us-iran-war.html">
+</div>
+<div class="card-wrap" data-id="us-iran-war">
+  <a class="doc-card featured" href="/docs/us-iran-war.html">
   <h2>美伊战争 · 分析总览 (2026)<span class="badge">Featured</span></h2>
   <p>六部分深度研究：背景与结构性根源、当前局势快照、军力对比与升级情景、地缘影响、市场与能源冲击、情景推演与前景研判。</p>
   <div class="meta">Read →</div>
 </a>
-<a class="doc-card" href="/docs/ai-supply-chain.html">
+</div>
+<div class="card-wrap" data-id="ai-supply-chain">
+  <a class="doc-card" href="/docs/ai-supply-chain.html">
   <h2>AI supply chain — topology</h2>
   <p>A visual map of the global AI supply chain: everything that has to line up so a prompt you type in a browser can be answered by a large model. Rendered with Mermaid — GitHub…</p>
   <div class="meta">Read →</div>
 </a>
-<a class="doc-card" href="/docs/public-tunnel.html">
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete AI supply chain — topology" data-id="ai-supply-chain" data-title="AI supply chain — topology">✕</button>
+</div>
+<div class="card-wrap" data-id="public-tunnel">
+  <a class="doc-card" href="/docs/public-tunnel.html">
   <h2>Exposing the dashboard as a public website</h2>
   <p>How to put this locally-running app on a public URL, gated by a password. Two options: a quick tunnel (zero setup, ephemeral URL — the current default) and a named tunnel…</p>
   <div class="meta">Read →</div>
 </a>
-<a class="doc-card" href="/docs/architecture.html">
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Exposing the dashboard as a public website" data-id="public-tunnel" data-title="Exposing the dashboard as a public website">✕</button>
+</div>
+<div class="card-wrap" data-id="architecture">
+  <a class="doc-card" href="/docs/architecture.html">
   <h2>Kanban architecture — topology</h2>
   <p>A visual map of how the Claude Code Kanban is put together, rendered with Mermaid. GitHub renders these diagrams inline; in an editor use a Mermaid preview extension.</p>
   <div class="meta">Read →</div>
 </a>
-<a class="doc-card" href="/docs/kechuang-investment-guide.html">
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Kanban architecture — topology" data-id="architecture" data-title="Kanban architecture — topology">✕</button>
+</div>
+<div class="card-wrap" data-id="kechuang-investment-guide">
+  <a class="doc-card" href="/docs/kechuang-investment-guide.html">
   <h2>科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）</h2>
   <p>重灾区是前期涨幅最大、筹码最集中的方向：存储芯片、CPO、光纤、算力硬件、PCB、接口芯片。这些正是 6 月末暴涨的品种，高位获利盘集中止盈。上周涨幅第一的板块，隔周就成跌幅第一——典型的抱团瓦解。</p>
   <div class="meta">Read →</div>
 </a>
-<a class="doc-card" href="/docs/kechuang-forecast-2026-07-16.html">
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）" data-id="kechuang-investment-guide" data-title="科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）">✕</button>
+</div>
+<div class="card-wrap" data-id="kechuang-forecast-2026-07-16">
+  <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16.html">
   <h2>预测今天科创板走势（2026-07-16）</h2>
   <p>步骤 3、4 使用的是盘中/收盘瞬时快照，与最终收盘定格不一致。以日 K 接口为准：</p>
   <div class="meta">Read →</div>
 </a>
-<a class="doc-card" href="/docs/kechuang-forecast-2026-07-16-review.html">
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测今天科创板走势（2026-07-16）" data-id="kechuang-forecast-2026-07-16" data-title="预测今天科创板走势（2026-07-16）">✕</button>
+</div>
+<div class="card-wrap" data-id="kechuang-forecast-2026-07-16-review">
+  <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16-review.html">
   <h2>预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）</h2>
   <p>预测文档同时写了两句话：</p>
   <div class="meta">Read →</div>
 </a>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）" data-id="kechuang-forecast-2026-07-16-review" data-title="预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）">✕</button>
 </div>
 </div>
+</div>
+<script>
+  // Delete a document: ask the backend to remove its source Markdown + generated
+  // page, then drop the card. The board proxies /api to the Spring backend, so a
+  // same-origin fetch works whether we're on :80 (dev/tunnel) or a build preview.
+  var grid = document.querySelector('.grid');
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.doc-del');
+    if (!btn) return;
+    e.preventDefault();
+    var id = btn.getAttribute('data-id');
+    var title = btn.getAttribute('data-title') || 'this document';
+    if (!window.confirm('Delete "' + title + '"? This removes the document for good.')) return;
+    btn.disabled = true;
+    fetch('/api/docs/' + encodeURIComponent(id), { method: 'DELETE' })
+      .then(function (res) {
+        if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
+        var wrap = btn.closest('.card-wrap');
+        if (wrap) wrap.remove();
+        if (grid && !grid.querySelector('.card-wrap')) {
+          var wrapEl = document.querySelector('.wrap');
+          if (wrapEl) wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
+        }
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        window.alert('Could not delete "' + title + '": ' + err.message);
+      });
+  });
+</script>
 </body>
 </html>

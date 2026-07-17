@@ -306,16 +306,35 @@ const INDEX_CSS = `
 .doc-card .meta { margin-top: 12px; font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0.3px; }
 .doc-card .badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; vertical-align: middle; }
 .empty { color: var(--muted); text-align: center; padding: 40px; }
+.card-wrap { position: relative; display: flex; }
+.card-wrap .doc-card { flex: 1; }
+.doc-del {
+  position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+  color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.card-wrap:hover .doc-del { opacity: 1; }
+.doc-del:hover { background: #fdecec; color: #d63939; border-color: #f3c0c0; }
+.doc-del:disabled { cursor: default; opacity: 0.5; }
+@media (hover: none) { .doc-del { opacity: 1; } }
 `
 
 function renderIndex(cards) {
   const cardHtml = cards
     .map(
-      (c) => `<a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
+      (c) => `<div class="card-wrap" data-id="${esc(c.id)}">
+  <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
   <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}</h2>
   <p>${esc(c.excerpt || 'Open to read the full document.')}</p>
   <div class="meta">Read →</div>
-</a>`
+</a>${
+        c.deletable
+          ? `\n  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete ${esc(c.title)}" data-id="${esc(c.id)}" data-title="${esc(c.title)}">✕</button>`
+          : ''
+      }
+</div>`
     )
     .join('\n')
   return `<!doctype html>
@@ -340,6 +359,35 @@ ${INDEX_CSS}</style>
 <div class="wrap">
 ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">No documents yet.</p>'}
 </div>
+<script>
+  // Delete a document: ask the backend to remove its source Markdown + generated
+  // page, then drop the card. The board proxies /api to the Spring backend, so a
+  // same-origin fetch works whether we're on :80 (dev/tunnel) or a build preview.
+  var grid = document.querySelector('.grid');
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.doc-del');
+    if (!btn) return;
+    e.preventDefault();
+    var id = btn.getAttribute('data-id');
+    var title = btn.getAttribute('data-title') || 'this document';
+    if (!window.confirm('Delete "' + title + '"? This removes the document for good.')) return;
+    btn.disabled = true;
+    fetch('/api/docs/' + encodeURIComponent(id), { method: 'DELETE' })
+      .then(function (res) {
+        if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
+        var wrap = btn.closest('.card-wrap');
+        if (wrap) wrap.remove();
+        if (grid && !grid.querySelector('.card-wrap')) {
+          var wrapEl = document.querySelector('.wrap');
+          if (wrapEl) wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
+        }
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        window.alert('Could not delete "' + title + '": ' + err.message);
+      });
+  });
+</script>
 </body>
 </html>
 `
@@ -380,14 +428,24 @@ function build() {
     const ex = excerpt(md)
 
     if (BESPOKE[file]) {
-      // Don't regenerate — link the index to the hand-tuned page.
-      cards.push({ id: slug, title, href: BESPOKE[file], excerpt: ex, featured: true })
+      // Don't regenerate — link the index to the hand-tuned page. Not deletable
+      // from the web UI: it owns a bespoke page that this generator doesn't
+      // manage, so removing it cleanly isn't a simple file delete.
+      cards.push({
+        id: slug, title, href: BESPOKE[file], excerpt: ex, featured: true,
+        file: `docs/${file}`, deletable: false,
+      })
       continue
     }
 
     const outPath = path.join(OUT_DIR, `${slug}.html`)
     fs.writeFileSync(outPath, renderDocPage({ title, body, toc, hasMermaid }), 'utf8')
-    cards.push({ id: slug, title, href: `/docs/${slug}.html`, excerpt: ex, featured: false })
+    // Plain single-file docs are the ones the web user may delete: removing
+    // docs/<file> and the generated page is a clean, reversible-by-git operation.
+    cards.push({
+      id: slug, title, href: `/docs/${slug}.html`, excerpt: ex, featured: false,
+      file: `docs/${file}`, deletable: true,
+    })
     generated++
   }
 
@@ -421,6 +479,10 @@ function build() {
       href: `/docs/${slug}.html`,
       excerpt: report.summary || excerpt(md),
       featured: !!report.featured,
+      // Stitched from several files under research/<dir>/ — not a single-file
+      // delete, so keep it off the web-deletable path.
+      file: null,
+      deletable: false,
     })
     generated++
   }
@@ -429,9 +491,17 @@ function build() {
   cards.sort((a, b) => (b.featured - a.featured) || a.title.localeCompare(b.title))
 
   fs.writeFileSync(INDEX_OUT, renderIndex(cards), 'utf8')
-  // The manifest mirrors the index (same order) but carries only what the board
-  // needs to flag unseen docs: a stable id, the title, and the URL.
-  const manifest = cards.map((c) => ({ id: c.id, title: c.title, href: c.href }))
+  // The manifest mirrors the index (same order). The board reads it to flag
+  // unseen docs (id/title/href); the backend's DELETE /api/docs/{id} reads the
+  // extra `deletable`/`file` fields to know which docs the web user may remove
+  // and which source Markdown to delete.
+  const manifest = cards.map((c) => ({
+    id: c.id,
+    title: c.title,
+    href: c.href,
+    deletable: !!c.deletable,
+    file: c.file || null,
+  }))
   fs.writeFileSync(MANIFEST_OUT, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
   console.log(
     `✔ docs site generated: ${generated} page(s) -> ${path.relative(ROOT, OUT_DIR)}/, index (${cards.length} card(s)) -> ${path.relative(ROOT, INDEX_OUT)}, manifest -> ${path.relative(ROOT, MANIFEST_OUT)}`
