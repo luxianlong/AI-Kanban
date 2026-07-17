@@ -8,9 +8,11 @@ import com.kanban.todo.TodoDtos.SuggestStoryRequest;
 import com.kanban.todo.TodoDtos.SuggestStoryResponse;
 import com.kanban.todo.TodoDtos.TodoResponse;
 import com.kanban.todo.StorySuggestionService.SuggestedStory;
+import com.kanban.worker.LiveLogRegistry;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +23,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,30 +46,104 @@ import java.util.UUID;
 public class StoryController {
 
     private final TodoRepository repository;
+    private final StoryRepository storyRepository;
     private final StorySuggestionService suggestions;
     private final StoryClassifier classifier;
+    private final LiveLogRegistry liveLog;
 
-    public StoryController(TodoRepository repository, StorySuggestionService suggestions,
-            StoryClassifier classifier) {
+    public StoryController(TodoRepository repository, StoryRepository storyRepository,
+            StorySuggestionService suggestions, StoryClassifier classifier, LiveLogRegistry liveLog) {
         this.repository = repository;
+        this.storyRepository = storyRepository;
         this.suggestions = suggestions;
         this.classifier = classifier;
+        this.liveLog = liveLog;
     }
 
-    /** Lists every story with its ordered steps, newest chain first. */
+    /**
+     * Lists every story with its ordered steps, newest chain first. A story with
+     * <em>no</em> tasks is still listed (with an empty {@code steps}) as long as its
+     * {@link Story} row exists — that's what lets an empty chain stay on the board
+     * instead of vanishing when its last task is cleared.
+     */
     @GetMapping
     public List<StoryResponse> list() {
-        // Group the story-tagged todos by storyId, preserving the newest-first
-        // order the query returns, then order each chain by its step index.
-        List<StoryResponse> stories = new ArrayList<>();
-        for (Map.Entry<String, List<Todo>> e : classifier.groupByStory().entrySet()) {
-            List<Todo> steps = e.getValue();
+        // Order each chain by step index up front, keyed by storyId.
+        Map<String, List<Todo>> byStory = classifier.groupByStory();
+        for (List<Todo> steps : byStory.values()) {
             steps.sort((a, b) -> Integer.compare(
                     a.getStoryOrder() == null ? 0 : a.getStoryOrder(),
                     b.getStoryOrder() == null ? 0 : b.getStoryOrder()));
-            stories.add(StoryResponse.from(e.getKey(), steps.get(0).getStoryName(), steps));
         }
+        // Merge persisted stories (which may have no tasks) with any story-tagged
+        // todos. A persisted Story pins name + createdAt; legacy stories created
+        // before the Story table existed have todos but no row, so we still surface
+        // them from their steps.
+        Map<String, StoryAgg> merged = new LinkedHashMap<>();
+        for (Story s : storyRepository.findAll()) {
+            merged.put(s.getId(), new StoryAgg(s.getName(), s.getCreatedAt(), new ArrayList<>()));
+        }
+        for (Map.Entry<String, List<Todo>> e : byStory.entrySet()) {
+            List<Todo> steps = e.getValue();
+            StoryAgg agg = merged.get(e.getKey());
+            if (agg == null) {
+                merged.put(e.getKey(), new StoryAgg(nameOf(steps), createdAtOf(steps), steps));
+            } else {
+                agg.steps = steps;
+                if (agg.name == null) {
+                    agg.name = nameOf(steps);
+                }
+            }
+        }
+        // Newest activity first: a story sorts by the latest of its own createdAt
+        // and its newest step, so a freshly-touched chain floats to the top. An
+        // empty story keeps its own createdAt so it doesn't sink to the bottom.
+        List<StoryResponse> stories = new ArrayList<>();
+        merged.entrySet().stream()
+                .sorted(Comparator.comparing((Map.Entry<String, StoryAgg> e) -> sortKey(e.getValue()))
+                        .reversed())
+                .forEach(e -> {
+                    StoryAgg agg = e.getValue();
+                    stories.add(StoryResponse.from(e.getKey(), agg.name, agg.createdAt, agg.steps));
+                });
         return stories;
+    }
+
+    /** Latest activity on a story: max of its own createdAt and its newest step. */
+    private static Instant sortKey(StoryAgg agg) {
+        Instant key = agg.createdAt == null ? Instant.EPOCH : agg.createdAt;
+        for (Todo step : agg.steps) {
+            if (step.getCreatedAt() != null && step.getCreatedAt().isAfter(key)) {
+                key = step.getCreatedAt();
+            }
+        }
+        return key;
+    }
+
+    private static String nameOf(List<Todo> steps) {
+        for (Todo t : steps) {
+            if (t.getStoryName() != null) {
+                return t.getStoryName();
+            }
+        }
+        return "Story";
+    }
+
+    private static Instant createdAtOf(List<Todo> steps) {
+        return steps.isEmpty() ? Instant.EPOCH : steps.get(0).getCreatedAt();
+    }
+
+    /** Mutable accumulator while merging persisted stories with their steps. */
+    private static final class StoryAgg {
+        private String name;
+        private final Instant createdAt;
+        private List<Todo> steps;
+
+        StoryAgg(String name, Instant createdAt, List<Todo> steps) {
+            this.name = name;
+            this.createdAt = createdAt;
+            this.steps = steps;
+        }
     }
 
     /**
@@ -79,6 +158,9 @@ public class StoryController {
     public TodoResponse create(@Valid @RequestBody CreateStoryRequest req) {
         String storyId = UUID.randomUUID().toString();
         String name = req.name().trim();
+        // Persist the story container first, so the story exists in its own right
+        // (and survives with no tasks) independently of the planner/step todos.
+        storyRepository.save(new Story(storyId, name));
         Todo planner = new Todo();
         planner.setTitle(name);
         planner.setDescription(req.description());
@@ -122,7 +204,9 @@ public class StoryController {
     @ResponseStatus(HttpStatus.CREATED)
     public TodoResponse addStep(@PathVariable String storyId, @Valid @RequestBody StoryStep step) {
         List<Todo> steps = repository.findByStoryIdOrderByStoryOrderAsc(storyId);
-        if (steps.isEmpty()) {
+        // The story must exist — either as a persisted Story row (which may still be
+        // empty) or, for legacy chains, via its existing tagged todos.
+        if (steps.isEmpty() && !storyRepository.existsById(storyId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Story not found: " + storyId);
         }
         Todo todo = new Todo();
@@ -132,8 +216,33 @@ public class StoryController {
         // chain order (a step waits for every earlier step in its story to RESOLVE).
         todo.setStatus(TodoStatus.PENDING);
         todo.setStoryId(storyId);
-        todo.setStoryName(steps.get(0).getStoryName());
+        todo.setStoryName(steps.isEmpty()
+                ? storyRepository.findById(storyId).map(Story::getName).orElse("Story")
+                : steps.get(0).getStoryName());
         todo.setStoryOrder(classifier.nextOrder(steps));
         return TodoResponse.from(repository.save(todo));
+    }
+
+    /**
+     * Delete a story <em>and</em> its tasks. This is the explicit, user-driven way
+     * to remove a story (an empty one won't disappear on its own). Every task tagged
+     * with the story is deleted along with the container, and the story's Story row
+     * is removed. 404 if the story is unknown (no row and no tagged tasks).
+     */
+    @DeleteMapping("/{storyId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String storyId) {
+        List<Todo> steps = repository.findByStoryIdOrderByStoryOrderAsc(storyId);
+        boolean hasRow = storyRepository.existsById(storyId);
+        if (steps.isEmpty() && !hasRow) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Story not found: " + storyId);
+        }
+        for (Todo t : steps) {
+            liveLog.clear(t.getId());
+        }
+        repository.deleteAll(steps);
+        if (hasRow) {
+            storyRepository.deleteById(storyId);
+        }
     }
 }

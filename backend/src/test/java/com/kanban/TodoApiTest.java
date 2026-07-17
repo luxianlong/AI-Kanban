@@ -116,6 +116,98 @@ class TodoApiTest {
                 .andExpect(status().isNotFound());
     }
 
+    /** Creates a story and returns [plannerTodoId, storyId]. */
+    private String[] createStoryReturningIds(String name) throws Exception {
+        String body = mvc.perform(post("/api/stories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"" + name + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        JsonNode planner = mapper.readTree(body);
+        return new String[] { planner.get("id").asText(), planner.get("storyId").asText() };
+    }
+
+    /** The story with the given id from GET /api/stories, or null if absent. */
+    private JsonNode findStory(String storyId) throws Exception {
+        String body = mvc.perform(get("/api/stories"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        for (JsonNode s : mapper.readTree(body)) {
+            if (storyId.equals(s.path("storyId").asText())) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    @Test
+    void emptyStoryStaysListedAfterItsTasksAreDeleted() throws Exception {
+        // A distinctive name keeps this isolated from the shared in-memory DB.
+        String[] ids = createStoryReturningIds("Persistent tangerine story");
+        long plannerId = Long.parseLong(ids[0]);
+        String storyId = ids[1];
+
+        // Remove the story's only task (its planner seed).
+        mvc.perform(delete("/api/todos/" + plannerId))
+                .andExpect(status().isNoContent());
+
+        // The story itself must still exist — now with zero steps — because its
+        // Story row outlives the tasks. This is the core of task #279.
+        JsonNode story = findStory(storyId);
+        org.junit.jupiter.api.Assertions.assertNotNull(story, "empty story should still be listed");
+        org.junit.jupiter.api.Assertions.assertEquals("Persistent tangerine story", story.get("name").asText());
+        org.junit.jupiter.api.Assertions.assertEquals(0, story.get("steps").size());
+    }
+
+    @Test
+    void canFileTaskUnderAnEmptyStory() throws Exception {
+        String[] ids = createStoryReturningIds("Empty walnut story");
+        long plannerId = Long.parseLong(ids[0]);
+        String storyId = ids[1];
+        mvc.perform(delete("/api/todos/" + plannerId)).andExpect(status().isNoContent());
+
+        // Filing a standalone task under the (now empty) story must still work —
+        // the story exists as a Story row even with no tasks.
+        long taskId = createTodo("Some unrelated loose task");
+        mvc.perform(patch("/api/todos/" + taskId + "/story")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"storyId\":\"" + storyId + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.storyId", is(storyId)))
+                .andExpect(jsonPath("$.storyName", is("Empty walnut story")))
+                .andExpect(jsonPath("$.storyOrder", is(0)));
+    }
+
+    @Test
+    void deleteStoryRemovesItAndItsTasks() throws Exception {
+        String[] ids = createStoryReturningIds("Disposable mango story");
+        long plannerId = Long.parseLong(ids[0]);
+        String storyId = ids[1];
+        String stepBody = mvc.perform(post("/api/stories/" + storyId + "/steps")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"a step\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long stepId = mapper.readTree(stepBody).get("id").asLong();
+
+        mvc.perform(delete("/api/stories/" + storyId))
+                .andExpect(status().isNoContent());
+
+        // Story gone from the listing, and both its tasks are gone too.
+        org.junit.jupiter.api.Assertions.assertNull(findStory(storyId));
+        mvc.perform(get("/api/todos/" + plannerId)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/todos/" + stepId)).andExpect(status().isNotFound());
+
+        // Deleting it again is a 404.
+        mvc.perform(delete("/api/stories/" + storyId)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteUnknownStoryReturns404() throws Exception {
+        mvc.perform(delete("/api/stories/no-such-story"))
+                .andExpect(status().isNotFound());
+    }
+
     @Test
     void patchWithUnknownStatusReturns400() throws Exception {
         long id = createTodo("Advance me");

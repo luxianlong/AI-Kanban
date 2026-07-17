@@ -31,6 +31,16 @@ export const api = {
       body: JSON.stringify({ name, description }),
     }).then(json),
 
+  // List every story with its ordered steps, newest chain first. Includes stories
+  // that currently have NO tasks (their container persists) so an empty story
+  // still shows on the board.
+  listStories: () => fetch(`${BASE}/stories`).then(json),
+
+  // Delete a story and all of its tasks. This is the explicit, user-driven way to
+  // remove a story (an empty one won't disappear on its own).
+  deleteStory: (storyId) =>
+    fetch(`${BASE}/stories/${storyId}`, { method: 'DELETE' }).then(json),
+
   // Ask the server to decompose a free-text goal into ordered steps. Returns
   // { name, steps: [{ title, description }] } — ready to tweak and submit.
   suggestStory: (goal) =>

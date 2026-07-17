@@ -74,11 +74,20 @@ public final class TodoDtos {
 
         /** Build from the steps of one story, ordered by {@code storyOrder}. */
         public static StoryResponse from(String storyId, String name, List<Todo> steps) {
-            Instant createdAt = steps.isEmpty() ? null : steps.get(0).getCreatedAt();
+            return from(storyId, name, null, steps);
+        }
+
+        /**
+         * Build from a story's steps, falling back to {@code createdAt} when the
+         * chain is empty — an empty (task-less) story still reports the moment it
+         * was declared, so it keeps a stable place in newest-first ordering.
+         */
+        public static StoryResponse from(String storyId, String name, Instant createdAt, List<Todo> steps) {
+            Instant when = steps.isEmpty() ? createdAt : steps.get(0).getCreatedAt();
             return new StoryResponse(
                     storyId,
                     name,
-                    createdAt,
+                    when,
                     steps.stream().map(TodoResponse::from).toList());
         }
     }

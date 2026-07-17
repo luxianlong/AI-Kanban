@@ -33,13 +33,16 @@ import java.util.Map;
 public class TodoController {
 
     private final TodoRepository repository;
+    private final StoryRepository storyRepository;
     private final LiveLogRegistry liveLog;
     private final StoryClassifier classifier;
     private final AiStoryClassifier aiClassifier;
 
-    public TodoController(TodoRepository repository, LiveLogRegistry liveLog,
-                          StoryClassifier classifier, AiStoryClassifier aiClassifier) {
+    public TodoController(TodoRepository repository, StoryRepository storyRepository,
+                          LiveLogRegistry liveLog, StoryClassifier classifier,
+                          AiStoryClassifier aiClassifier) {
         this.repository = repository;
+        this.storyRepository = storyRepository;
         this.liveLog = liveLog;
         this.classifier = classifier;
         this.aiClassifier = aiClassifier;
@@ -143,10 +146,13 @@ public class TodoController {
             todo.setStoryOrder(null);
         } else {
             List<Todo> steps = repository.findByStoryIdOrderByStoryOrderAsc(storyId);
-            if (steps.isEmpty()) {
+            Story story = storyRepository.findById(storyId).orElse(null);
+            // The story must exist — either as a persisted (possibly empty) Story
+            // row or, for legacy chains, via its existing tagged todos.
+            if (steps.isEmpty() && story == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Story not found: " + storyId);
             }
-            String name = "Story";
+            String name = story != null ? story.getName() : "Story";
             for (Todo s : steps) {
                 if (s.getStoryName() != null) {
                     name = s.getStoryName();

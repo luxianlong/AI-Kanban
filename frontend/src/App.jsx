@@ -16,6 +16,9 @@ const COLUMNS = [
 
 export default function App() {
   const [todos, setTodos] = useState([])
+  // Persisted stories (from /api/stories) — includes empty ones whose task chain
+  // has been cleared, so an empty story keeps its row on the board until deleted.
+  const [stories, setStories] = useState([])
   const [worker, setWorker] = useState(null)
   const [error, setError] = useState(null)
   const [logs, setLogs] = useState({}) // id -> transcript text (in-progress + open card)
@@ -36,8 +39,13 @@ export default function App() {
 
   const refresh = useCallback(async () => {
     try {
-      const [list, status] = await Promise.all([api.listTodos(), api.workerStatus()])
+      const [list, storyList, status] = await Promise.all([
+        api.listTodos(),
+        api.listStories(),
+        api.workerStatus(),
+      ])
       setTodos(list)
+      setStories(storyList)
       setWorker(status)
       setError(null)
     } catch (e) {
@@ -286,14 +294,33 @@ export default function App() {
     }
   }
 
+  // Delete a whole story (and its tasks). Confirmed first because it's
+  // destructive — an empty story is removed outright, a populated one takes its
+  // tasks with it.
+  async function removeStory(storyId, name, taskCount) {
+    const detail = taskCount > 0
+      ? `Delete the story “${name}” and its ${taskCount} task${taskCount === 1 ? '' : 's'}? This can't be undone.`
+      : `Delete the empty story “${name}”?`
+    if (typeof window !== 'undefined' && !window.confirm(detail)) return
+    try {
+      await api.deleteStory(storyId)
+      await refresh()
+      broadcastMutation()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   const selected = todos.find((t) => t.id === selectedId) || null
   const storyMeta = computeStoryMeta(todos)
-  // Existing stories (id + name), for the drawer's manual story picker.
-  const storyList = computeStories(todos).map((s) => ({ storyId: s.storyId, name: s.name }))
-  // Matrix rows: one per story (newest first) plus a single "No story" row for
-  // standalone tasks. Columns: the statuses, hiding "Needs Attention" until
-  // something actually fails so a healthy board isn't cluttered by an empty one.
-  const rows = computeRows(todos)
+  // Existing stories (id + name), for the drawer's manual story picker — includes
+  // empty stories so a task can be filed into one that has no tasks yet.
+  const storyList = stories.map((s) => ({ storyId: s.storyId, name: s.name }))
+  // Matrix rows: one per story (newest first) — including empty stories whose
+  // chain has been cleared — plus a single "No story" row for standalone tasks.
+  // Columns: the statuses, hiding "Needs Attention" until something actually
+  // fails so a healthy board isn't cluttered by an empty one.
+  const rows = computeRows(todos, stories)
   const columns = COLUMNS.filter(
     (c) => c.status !== 'FAILED' || todos.some((t) => t.status === 'FAILED'),
   )
@@ -385,7 +412,15 @@ export default function App() {
               className={`story-block ${row.isStandalone ? 'standalone' : 'storied'}`}
               style={tint}
             >
-              <StorySwimlane row={row} tint={tint} />
+              <StorySwimlane
+                row={row}
+                tint={tint}
+                onDelete={
+                  row.isStandalone
+                    ? null
+                    : () => removeStory(row.storyId, row.name, row.items.length)
+                }
+              />
               {cells}
             </div>
           )
@@ -601,7 +636,7 @@ function NotificationCenter({ unread, onOpen, onMarkAllRead }) {
 // rectangle. The status/progress it used to show are still on the cards and in
 // the drawer. The synthetic "No story" tag stays neutral so loose tasks are
 // visibly not a story.
-function StorySwimlane({ row, tint }) {
+function StorySwimlane({ row, tint, onDelete }) {
   if (row.isStandalone) {
     return (
       <div className="swimlane standalone" style={{ gridColumn: '1 / -1' }}>
@@ -614,6 +649,7 @@ function StorySwimlane({ row, tint }) {
   const plannerActive = row.steps.length === 0 && row.planner
   const planning = plannerActive && (row.planner.status === 'PENDING' || row.planner.status === 'IN_PROGRESS')
   const planFailed = plannerActive && row.planner.status === 'FAILED'
+  const empty = row.items.length === 0
   return (
     <div
       className={`swimlane storied ${row.status.toLowerCase()}`}
@@ -622,6 +658,18 @@ function StorySwimlane({ row, tint }) {
       <span className="swimlane-name" title={row.name}>{row.name}</span>
       {planning && <span className="swimlane-sub">Planning…</span>}
       {planFailed && <span className="swimlane-sub">Plan failed — open the card</span>}
+      {empty && !row.planner && <span className="swimlane-sub">No tasks — add one or delete the story</span>}
+      {onDelete && (
+        <button
+          type="button"
+          className="swimlane-delete"
+          onClick={onDelete}
+          title="Delete this story"
+          aria-label={`Delete story ${row.name}`}
+        >
+          <Icon name="delete" size={14} />
+        </button>
+      )}
     </div>
   )
 }
@@ -1269,8 +1317,29 @@ function computeStories(todos) {
 // Assemble the matrix rows: one row per story (newest first), then a single
 // "No story" row gathering every standalone task, if any exist. Each row exposes
 // `items` — the cards the cells distribute across the status columns.
-function computeRows(todos) {
-  const rows = computeStories(todos).map((s) => ({ ...s, key: s.storyId, isStandalone: false }))
+//
+// `stories` is the persisted-story list (/api/stories); any story with no tasks
+// isn't in the todo-derived set, so it's merged in as an empty row here. That's
+// what keeps an empty story on the board instead of vanishing with its last task.
+function computeRows(todos, stories = []) {
+  const populated = computeStories(todos)
+  const seen = new Set(populated.map((s) => s.storyId))
+  const empty = stories
+    .filter((s) => !seen.has(s.storyId))
+    .map((s) => ({
+      storyId: s.storyId,
+      name: s.name || 'Story',
+      planner: null,
+      steps: [],
+      items: [],
+      done: 0,
+      total: 0,
+      status: 'PENDING',
+      newest: new Date(s.createdAt || 0).getTime(),
+    }))
+  const rows = [...populated, ...empty]
+    .sort((a, b) => b.newest - a.newest)
+    .map((s) => ({ ...s, key: s.storyId, isStandalone: false }))
   const standalone = todos.filter((t) => !t.storyId)
   if (standalone.length) {
     rows.push({ key: '__standalone', name: 'No story', isStandalone: true, items: standalone, steps: standalone })
