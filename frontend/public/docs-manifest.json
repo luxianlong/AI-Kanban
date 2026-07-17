@@ -3,56 +3,89 @@
     "id": "singapore-travel-guide",
     "title": "新加坡旅游攻略",
     "href": "/singapore.html",
-    "deletable": false,
-    "file": "docs/singapore-travel-guide.md"
+    "deletable": true,
+    "file": "docs/singapore-travel-guide.md",
+    "paths": [
+      "docs/singapore-travel-guide.md",
+      "frontend/public/singapore.html",
+      "frontend/public/img/singapore"
+    ]
   },
   {
     "id": "us-iran-war",
     "title": "美伊战争 · 分析总览 (2026)",
     "href": "/docs/us-iran-war.html",
-    "deletable": false,
-    "file": null
+    "deletable": true,
+    "file": null,
+    "paths": [
+      "research/us-iran-war",
+      "frontend/public/docs/us-iran-war.html"
+    ]
   },
   {
     "id": "ai-supply-chain",
     "title": "AI supply chain — topology",
     "href": "/docs/ai-supply-chain.html",
     "deletable": true,
-    "file": "docs/ai-supply-chain.md"
+    "file": "docs/ai-supply-chain.md",
+    "paths": [
+      "docs/ai-supply-chain.md",
+      "frontend/public/docs/ai-supply-chain.html"
+    ]
   },
   {
     "id": "public-tunnel",
     "title": "Exposing the dashboard as a public website",
     "href": "/docs/public-tunnel.html",
     "deletable": true,
-    "file": "docs/public-tunnel.md"
+    "file": "docs/public-tunnel.md",
+    "paths": [
+      "docs/public-tunnel.md",
+      "frontend/public/docs/public-tunnel.html"
+    ]
   },
   {
     "id": "architecture",
     "title": "Kanban architecture — topology",
     "href": "/docs/architecture.html",
     "deletable": true,
-    "file": "docs/architecture.md"
+    "file": "docs/architecture.md",
+    "paths": [
+      "docs/architecture.md",
+      "frontend/public/docs/architecture.html"
+    ]
   },
   {
     "id": "kechuang-investment-guide",
     "title": "科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）",
     "href": "/docs/kechuang-investment-guide.html",
     "deletable": true,
-    "file": "docs/kechuang-investment-guide.md"
+    "file": "docs/kechuang-investment-guide.md",
+    "paths": [
+      "docs/kechuang-investment-guide.md",
+      "frontend/public/docs/kechuang-investment-guide.html"
+    ]
   },
   {
     "id": "kechuang-forecast-2026-07-16",
     "title": "预测今天科创板走势（2026-07-16）",
     "href": "/docs/kechuang-forecast-2026-07-16.html",
     "deletable": true,
-    "file": "docs/kechuang-forecast-2026-07-16.md"
+    "file": "docs/kechuang-forecast-2026-07-16.md",
+    "paths": [
+      "docs/kechuang-forecast-2026-07-16.md",
+      "frontend/public/docs/kechuang-forecast-2026-07-16.html"
+    ]
   },
   {
     "id": "kechuang-forecast-2026-07-16-review",
     "title": "预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）",
     "href": "/docs/kechuang-forecast-2026-07-16-review.html",
     "deletable": true,
-    "file": "docs/kechuang-forecast-2026-07-16-review.md"
+    "file": "docs/kechuang-forecast-2026-07-16-review.md",
+    "paths": [
+      "docs/kechuang-forecast-2026-07-16-review.md",
+      "frontend/public/docs/kechuang-forecast-2026-07-16-review.html"
+    ]
   }
 ]

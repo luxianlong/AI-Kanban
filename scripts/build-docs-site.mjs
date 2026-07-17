@@ -32,9 +32,16 @@ const INDEX_OUT = path.join(ROOT, 'frontend', 'public', 'docs.html')
 const MANIFEST_OUT = path.join(ROOT, 'frontend', 'public', 'docs-manifest.json')
 
 // Docs that already have a hand-tuned bespoke page — link to that instead of
-// generating a generic one. Keyed by markdown filename -> the served URL.
+// generating a generic one. Keyed by markdown filename ->
+//   href:       the served URL (index links here instead of a generic page)
+//   extraPaths: artifacts beyond the source .md that back this page and must be
+//               removed when the doc is deleted from the web UI (the generated
+//               HTML lives at the web root, plus any asset dir it owns).
 const BESPOKE = {
-  'singapore-travel-guide.md': '/singapore.html',
+  'singapore-travel-guide.md': {
+    href: '/singapore.html',
+    extraPaths: ['frontend/public/singapore.html', 'frontend/public/img/singapore'],
+  },
 }
 
 // Multi-part research reports: a story's deliverable often lands as several
@@ -408,7 +415,7 @@ function build() {
   // web user can't open — the exact failure this docs site exists to prevent.
   const docUrlByFile = {}
   for (const f of files) {
-    docUrlByFile[f] = BESPOKE[f] || `/docs/${slugify(f.replace(/\.md$/, ''))}.html`
+    docUrlByFile[f] = BESPOKE[f]?.href || `/docs/${slugify(f.replace(/\.md$/, ''))}.html`
   }
   const resolveLink = (url) => {
     const m = /^(?:\.\/)?([^/#?]+\.md)(#.*)?$/.exec(url)
@@ -428,12 +435,14 @@ function build() {
     const ex = excerpt(md)
 
     if (BESPOKE[file]) {
-      // Don't regenerate — link the index to the hand-tuned page. Not deletable
-      // from the web UI: it owns a bespoke page that this generator doesn't
-      // manage, so removing it cleanly isn't a simple file delete.
+      // Don't regenerate — link the index to the hand-tuned page. Deletable from
+      // the web UI: `paths` lists the source Markdown plus every artifact the
+      // bespoke page owns (its generated HTML at the web root and any asset dir),
+      // so the backend can remove them all in one go.
       cards.push({
-        id: slug, title, href: BESPOKE[file], excerpt: ex, featured: true,
-        file: `docs/${file}`, deletable: false,
+        id: slug, title, href: BESPOKE[file].href, excerpt: ex, featured: true,
+        file: `docs/${file}`, deletable: true,
+        paths: [`docs/${file}`, ...(BESPOKE[file].extraPaths || [])],
       })
       continue
     }
@@ -445,6 +454,7 @@ function build() {
     cards.push({
       id: slug, title, href: `/docs/${slug}.html`, excerpt: ex, featured: false,
       file: `docs/${file}`, deletable: true,
+      paths: [`docs/${file}`, `frontend/public/docs/${slug}.html`],
     })
     generated++
   }
@@ -479,10 +489,11 @@ function build() {
       href: `/docs/${slug}.html`,
       excerpt: report.summary || excerpt(md),
       featured: !!report.featured,
-      // Stitched from several files under research/<dir>/ — not a single-file
-      // delete, so keep it off the web-deletable path.
+      // Stitched from several files under research/<dir>/. Deletable from the web
+      // UI: `paths` removes the whole source directory plus the generated page.
       file: null,
-      deletable: false,
+      deletable: true,
+      paths: [`research/${report.dir}`, `frontend/public/docs/${slug}.html`],
     })
     generated++
   }
@@ -493,14 +504,17 @@ function build() {
   fs.writeFileSync(INDEX_OUT, renderIndex(cards), 'utf8')
   // The manifest mirrors the index (same order). The board reads it to flag
   // unseen docs (id/title/href); the backend's DELETE /api/docs/{id} reads the
-  // extra `deletable`/`file` fields to know which docs the web user may remove
-  // and which source Markdown to delete.
+  // extra `deletable`/`paths` fields to know which docs the web user may remove
+  // and exactly which files/dirs back each one.
   const manifest = cards.map((c) => ({
     id: c.id,
     title: c.title,
     href: c.href,
     deletable: !!c.deletable,
     file: c.file || null,
+    // Every repo-relative file/dir backing this doc (sources + generated output).
+    // DELETE /api/docs/{id} removes each of these, then regenerates the site.
+    paths: c.paths || [],
   }))
   fs.writeFileSync(MANIFEST_OUT, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
   console.log(

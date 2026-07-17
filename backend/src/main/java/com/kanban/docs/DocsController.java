@@ -21,18 +21,24 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * REST API backing the "Delete" button on the docs index page (/docs.html).
  *
  * <p>The docs site is a static build: every {@code docs/*.md} is rendered to a
  * page and listed in {@code frontend/public/docs-manifest.json}. Deleting a
- * document therefore means removing its source Markdown plus its generated page,
- * then regenerating the index/manifest so the card disappears. Only "plain"
- * single-file docs are deletable (the manifest flags them); bespoke pages and
- * multi-file stitched reports are not, since removing them cleanly isn't a
- * single-file operation.
+ * document therefore means removing every file/dir that backs it plus its
+ * generated page, then regenerating the index/manifest so the card disappears.
+ * The manifest records that full set per doc in {@code paths}, so all doc kinds
+ * are deletable: plain single-file docs (source .md + generated page), bespoke
+ * pages (source .md + hand-tuned HTML at the web root + any asset dir) and
+ * multi-file stitched reports (the whole {@code research/<dir>/} + generated
+ * page). Deletion is guarded to a small allow-list of roots so it can never
+ * touch anything outside {@code docs/}, {@code research/} or
+ * {@code frontend/public/}.
  */
 @RestController
 @RequestMapping("/api/docs")
@@ -52,8 +58,16 @@ public class DocsController {
         this.generator = generator;
     }
 
+    /**
+     * Roots under the repo that a delete is ever allowed to touch. Every path in
+     * a manifest entry's {@code paths} must resolve to somewhere strictly inside
+     * one of these — never the root itself — so a delete can't escape docs land.
+     */
+    private static final List<String> ALLOWED_ROOTS = List.of("docs", "research", "frontend/public");
+
     /** One entry in docs-manifest.json. Extra fields (if any) are ignored. */
-    public record DocEntry(String id, String title, String href, boolean deletable, String file) {}
+    public record DocEntry(String id, String title, String href, boolean deletable, String file,
+                           List<String> paths) {}
 
     /** The docs the board knows about — mirrors docs-manifest.json. */
     @GetMapping
@@ -62,9 +76,10 @@ public class DocsController {
     }
 
     /**
-     * Delete a document by its manifest id: remove the source Markdown and the
-     * generated page, then regenerate the index + manifest. Idempotent — a
-     * second call 404s once the entry is gone.
+     * Delete a document by its manifest id: remove every file/dir that backs it
+     * (source Markdown or research dir, plus the generated page and any bespoke
+     * assets), then regenerate the index + manifest. Idempotent — missing files
+     * are skipped, and a second call 404s once the entry is gone.
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -74,34 +89,75 @@ public class DocsController {
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No such document: " + id));
 
-        if (!entry.deletable() || entry.file() == null || entry.file().isBlank()) {
+        if (!entry.deletable()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "This document can't be deleted from the web UI: " + id);
         }
+        List<String> paths = entry.paths();
+        if (paths == null || paths.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "This document has no deletable files recorded: " + id);
+        }
 
-        Path docsDir = repoRoot.resolve("docs").normalize();
-        Path source = repoRoot.resolve(entry.file()).normalize();
-        // Path-traversal guard: only ever delete a file sitting directly under docs/.
-        if (!source.startsWith(docsDir) || !docsDir.equals(source.getParent())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Refusing to delete a file outside docs/: " + entry.file());
+        // Validate every path up front (fail closed): if any escapes the allowed
+        // roots, refuse the whole delete before touching the filesystem.
+        for (String rel : paths) {
+            Path target = repoRoot.resolve(rel).normalize();
+            if (!isWithinAllowedRoot(target)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Refusing to delete a path outside the docs roots: " + rel);
+            }
         }
 
         try {
-            Files.deleteIfExists(source);
-            // Drop the generated page too so its direct URL 404s right away; the
-            // generator only writes pages for surviving docs, it won't prune this.
-            Path generated = repoRoot.resolve("frontend").resolve("public").resolve("docs")
-                    .resolve(id + ".html").normalize();
-            Files.deleteIfExists(generated);
+            for (String rel : paths) {
+                deleteRecursively(repoRoot.resolve(rel).normalize());
+            }
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to delete document files: " + e.getMessage(), e);
         }
 
-        log.info("Deleted document '{}' ({})", id, entry.file());
+        log.info("Deleted document '{}' ({} path(s))", id, paths.size());
         // Refresh index + manifest from the surviving docs (best-effort).
         generator.regenerate();
+    }
+
+    /**
+     * True only when {@code target} sits strictly inside one of {@link #ALLOWED_ROOTS}
+     * — never a root itself — so a delete can never wipe docs/, research/ or
+     * frontend/public/ wholesale, nor reach anything above them.
+     */
+    private boolean isWithinAllowedRoot(Path target) {
+        for (String rel : ALLOWED_ROOTS) {
+            Path root = repoRoot.resolve(rel).normalize();
+            if (target.startsWith(root) && !target.equals(root)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Delete a file, or a directory and everything under it. Missing paths are a no-op. */
+    private void deleteRecursively(Path path) throws IOException {
+        if (!Files.exists(path)) {
+            return;
+        }
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> walk = Files.walk(path)) {
+                walk.sorted(Comparator.reverseOrder()).forEach(p -> {
+                    try {
+                        Files.deleteIfExists(p);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+            } catch (UncheckedIOException e) {
+                throw e.getCause();
+            }
+        } else {
+            Files.deleteIfExists(path);
+        }
     }
 
     private List<DocEntry> readManifest() {
