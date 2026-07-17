@@ -1,6 +1,9 @@
 package com.kanban.todo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,4 +23,11 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     /** Tasks still held by the async story classifier — used to clear stale holds
      * on startup, since the async classification pass doesn't survive a restart. */
     List<Todo> findByClassifyingTrue();
+
+    /** Clear the unread flag on every finished-task notification in one statement
+     * ("mark all read"). Returns how many rows were cleared. */
+    @Modifying
+    @Transactional
+    @Query("update Todo t set t.unread = false where t.unread = true")
+    int markAllRead();
 }

@@ -19,8 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -161,5 +165,35 @@ class DocsApiTest {
                 .andExpect(status().isNotFound());
 
         verify(generator, never()).regenerate();
+    }
+
+    @Test
+    void docReadsStartEmptyAndPersistWhatIsMarkedSeen() throws Exception {
+        // Nothing seen yet — the badge would count every doc as new.
+        mvc.perform(get("/api/docs/reads"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        // Marking two docs seen persists them (server-side, so it's shared across
+        // devices); blank ids are ignored.
+        mvc.perform(post("/api/docs/reads")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"ids\":[\"alpha\",\"report\",\"\"]}"))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/docs/reads"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$", containsInAnyOrder("alpha", "report")));
+
+        // Idempotent: re-marking an already-seen doc plus a new one doesn't dup.
+        mvc.perform(post("/api/docs/reads")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"ids\":[\"alpha\",\"guide\"]}"))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/docs/reads"))
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$", containsInAnyOrder("alpha", "report", "guide")));
     }
 }

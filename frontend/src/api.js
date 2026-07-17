@@ -81,7 +81,32 @@ export const api = {
       body: JSON.stringify(keepResult ? { status: 'PENDING' } : { status: 'PENDING', result: '' }),
     }).then(json),
 
+  // Clear a finished task's unread-notification flag (server-side, so the badge
+  // stays in sync across every device). Called when its detail is opened.
+  markTodoRead: (id) =>
+    fetch(`${BASE}/todos/${id}/read`, { method: 'POST' }).then(json),
+
+  // Clear every unread finished-task notification at once ("mark all read").
+  markAllTodosRead: () =>
+    fetch(`${BASE}/todos/read-all`, { method: 'POST' }).then(json),
+
   todoLog: (id) => fetch(`${BASE}/todos/${id}/log`).then(json),
 
   workerStatus: () => fetch(`${BASE}/worker/status`).then(json),
+
+  // The manifest ids of docs the user has already opened. Diffed against the docs
+  // manifest to size the "new docs" badge — server-side so it's the same on every
+  // device the user browses from.
+  listDocReads: () => fetch(`${BASE}/docs/reads`).then(json),
+
+  // Mark docs as seen (on opening the Docs index), clearing the "new" badge on
+  // every device. `keepalive` lets the request outlive the navigation to
+  // /docs.html that triggers it.
+  markDocsRead: (ids) =>
+    fetch(`${BASE}/docs/reads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+      keepalive: true,
+    }).then(json),
 }

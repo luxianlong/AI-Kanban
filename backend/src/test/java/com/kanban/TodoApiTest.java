@@ -246,6 +246,67 @@ class TodoApiTest {
     }
 
     @Test
+    void finishingATaskMarksItUnreadAndReadingItClearsIt() throws Exception {
+        long id = createTodo("Notify me");
+        // A fresh task is not an unread notification.
+        mvc.perform(get("/api/todos/" + id))
+                .andExpect(jsonPath("$.unread", is(false)));
+
+        // Crossing into a terminal state flags it unread (the notification).
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"RESOLVED\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.unread", is(true)));
+
+        // Opening it (the read endpoint) clears the flag, and it stays cleared.
+        mvc.perform(post("/api/todos/" + id + "/read"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.unread", is(false)));
+        mvc.perform(get("/api/todos/" + id))
+                .andExpect(jsonPath("$.unread", is(false)));
+    }
+
+    @Test
+    void requeuingAFinishedTaskClearsUnreadUntilItFinishesAgain() throws Exception {
+        long id = createTodo("Retry me");
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"FAILED\"}"))
+                .andExpect(jsonPath("$.unread", is(true)));
+
+        // Requeuing (back to a non-terminal state) drops it out of the unread list.
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"PENDING\"}"))
+                .andExpect(jsonPath("$.unread", is(false)));
+
+        // Finishing anew flags it unread again — a retried task re-notifies once.
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"RESOLVED\"}"))
+                .andExpect(jsonPath("$.unread", is(true)));
+    }
+
+    @Test
+    void markAllReadClearsEveryUnreadNotification() throws Exception {
+        long a = createTodo("First");
+        long b = createTodo("Second");
+        for (long id : new long[] {a, b}) {
+            mvc.perform(patch("/api/todos/" + id)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"status\":\"RESOLVED\"}"))
+                    .andExpect(jsonPath("$.unread", is(true)));
+        }
+
+        mvc.perform(post("/api/todos/read-all"))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/todos/" + a)).andExpect(jsonPath("$.unread", is(false)));
+        mvc.perform(get("/api/todos/" + b)).andExpect(jsonPath("$.unread", is(false)));
+    }
+
+    @Test
     void logEndpointReturnsIdStatusAndLog() throws Exception {
         long id = createTodo("Show my log");
 

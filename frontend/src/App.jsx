@@ -27,11 +27,10 @@ export default function App() {
   const [notify, setNotify] = useState(() => notifyPref())
   const [toasts, setToasts] = useState([]) // in-app notifications (always shown)
   // Unread finished tasks: every task that crossed into a terminal state (Done /
-  // Needs Attention) since the user last checked. Surfaced as a red count badge
-  // in the topbar (the notification center) so a completed task is still findable
-  // after its transient toast fades. Persisted so the badge survives reloads, and
-  // cleared as the user opens each task. Newest first.
-  const [unread, setUnread] = useState(() => loadUnread())
+  // Needs Attention) and hasn't been opened yet. This is now a server-side
+  // property of the task (`t.unread`) rather than a per-browser localStorage list,
+  // so the badge is identical on every device the user opens the board from. We
+  // derive the notification-center list from the live todos, newest-finished first.
   const [showComposer, setShowComposer] = useState(false) // mobile: the "+" toggles the composers
   // Count of docs the user hasn't opened yet — drives the red badge on the "Docs"
   // link so a newly-produced report (e.g. the 美伊战争 analysis) is noticeable.
@@ -41,6 +40,19 @@ export default function App() {
   const [docsManifest, setDocsManifest] = useState([])
   const docIndex = useMemo(() => buildDocIndex(docsManifest), [docsManifest])
   const docIdsRef = useRef([])
+
+  // The unread notification list, derived from the server-side `unread` flag on
+  // each todo (newest-finished first). Shaped for the notification center, which
+  // renders id/status/title and a relative finish time (`updatedAt`, the moment
+  // the task last changed — i.e. when it flipped terminal).
+  const unread = useMemo(
+    () =>
+      todos
+        .filter((t) => t.unread)
+        .map((t) => ({ id: t.id, status: t.status, title: t.title, at: t.updatedAt }))
+        .sort((a, b) => new Date(b.at) - new Date(a.at)),
+    [todos],
+  )
 
   const refresh = useCallback(async () => {
     try {
@@ -121,22 +133,27 @@ export default function App() {
     setToasts((cur) => cur.filter((x) => x.key !== key))
   }, [])
 
-  // Add a just-finished task to the unread list (newest first, deduped by id so a
-  // task that finishes, is retried, and finishes again only shows once). We store
-  // a small snapshot (id/status/title/at) so the notification center can render
-  // without re-deriving it, and it stays correct even if the task is later moved.
-  const addUnread = useCallback((t) => {
-    setUnread((cur) => {
-      const rest = cur.filter((u) => u.id !== t.id)
-      return [{ id: t.id, status: t.status, title: t.title, at: Date.now() }, ...rest]
-    })
-  }, [])
+  // Clearing an unread notification writes through to the server (so the badge
+  // clears on every device), with an optimistic local update so the badge reacts
+  // instantly; the next poll reconciles with server truth. markRead is a no-op on
+  // a task that isn't currently unread, so opening any card is cheap.
   const markRead = useCallback((id) => {
-    setUnread((cur) => cur.filter((u) => u.id !== id))
+    let wasUnread = false
+    setTodos((cur) =>
+      cur.map((t) => {
+        if (t.id === id && t.unread) {
+          wasUnread = true
+          return { ...t, unread: false }
+        }
+        return t
+      }),
+    )
+    if (wasUnread) api.markTodoRead(id).catch(() => {})
   }, [])
-  const markAllRead = useCallback(() => setUnread([]), [])
-  // Persist unread across reloads so the badge doesn't reset every refresh.
-  useEffect(() => { saveUnread(unread) }, [unread])
+  const markAllRead = useCallback(() => {
+    setTodos((cur) => cur.map((t) => (t.unread ? { ...t, unread: false } : t)))
+    api.markAllTodosRead().catch(() => {})
+  }, [])
 
   // Load the docs manifest and flag any doc the user hasn't opened yet. We
   // re-check when the tab regains focus so returning from the Docs page (which is
@@ -147,14 +164,20 @@ export default function App() {
     let cancelled = false
     const check = async () => {
       try {
-        const res = await fetch('/docs-manifest.json', { cache: 'no-store' })
+        // Which docs are "new" is the manifest minus what the user has already
+        // seen. "Seen" is tracked server-side (api.listDocReads) rather than in
+        // this browser's storage, so the badge count matches across devices.
+        const [res, seenIds] = await Promise.all([
+          fetch('/docs-manifest.json', { cache: 'no-store' }),
+          api.listDocReads().catch(() => []),
+        ])
         if (!res.ok) return
         const docs = await res.json()
         if (cancelled || !Array.isArray(docs)) return
         setDocsManifest(docs)
         const ids = docs.map((d) => d && d.id).filter(Boolean)
         docIdsRef.current = ids
-        const seen = loadDocsSeen()
+        const seen = new Set(Array.isArray(seenIds) ? seenIds : [])
         setDocsNew(ids.filter((id) => !seen.has(id)).length)
       } catch {
         /* no manifest / offline — just show no badge */
@@ -166,10 +189,12 @@ export default function App() {
     return () => { cancelled = true; window.removeEventListener('focus', onFocus) }
   }, [])
 
-  // Opening Docs marks every currently-known doc as seen, clearing the badge.
+  // Opening Docs marks every currently-known doc as seen server-side, clearing the
+  // badge here immediately and on any other device on its next check.
   const markDocsSeen = useCallback(() => {
-    saveDocsSeen(docIdsRef.current)
+    const ids = docIdsRef.current
     setDocsNew(0)
+    if (ids.length) api.markDocsRead(ids).catch(() => {})
   }, [])
 
   const prevStatusRef = useRef(null)
@@ -180,31 +205,24 @@ export default function App() {
         const before = prev.get(t.id)
         const terminal = t.status === 'RESOLVED' || t.status === 'FAILED'
         if (terminal && before && before !== t.status) {
+          // The server already flags the task unread on this transition; here we
+          // only fire the transient, per-session channels (toast/chime/native
+          // notification). The persistent badge comes from `t.unread`.
           pushToast(t)
-          addUnread(t)
           playChime(t.status)
           if (notifyRef.current) notifyTaskDone(t)
         }
       }
     }
     prevStatusRef.current = new Map(todos.map((t) => [t.id, t.status]))
-  }, [todos, pushToast, addUnread])
+  }, [todos, pushToast])
 
-  // Opening a task's detail counts as reading it — clear its unread mark. Covers
-  // both routes into the drawer: clicking the topbar notification list, and
-  // clicking the task's card on the board.
+  // Opening a task's detail counts as reading it — clear its unread mark on the
+  // server. Covers both routes into the drawer: clicking the topbar notification
+  // list, and clicking the task's card on the board. (A no-op unless it's unread.)
   useEffect(() => {
     if (selectedId != null) markRead(selectedId)
   }, [selectedId, markRead])
-
-  // Drop unread entries whose task no longer exists (deleted), so a stale id can't
-  // keep the badge lit. Guarded on a non-empty board to avoid wiping the persisted
-  // list during the initial empty render before the first fetch lands.
-  useEffect(() => {
-    if (!todos.length) return
-    const live = new Set(todos.map((t) => t.id))
-    setUnread((cur) => (cur.every((u) => live.has(u.id)) ? cur : cur.filter((u) => live.has(u.id))))
-  }, [todos])
 
   async function toggleNotify() {
     if (notify) {
@@ -1407,60 +1425,11 @@ function storyColor(storyId) {
   return STORY_COLORS[h % STORY_COLORS.length]
 }
 
-// Unread finished-task list persists across reloads so the topbar badge doesn't
-// reset on every refresh. Stored as a small JSON array of {id,status,title,at}.
-// All storage access is wrapped in try/catch (private mode / disabled storage).
-const UNREAD_KEY = 'kanban.unread'
-
-function loadUnread() {
-  try {
-    const raw = localStorage.getItem(UNREAD_KEY)
-    if (!raw) return []
-    const arr = JSON.parse(raw)
-    // Defend against a corrupt/old shape: keep only well-formed entries.
-    return Array.isArray(arr)
-      ? arr.filter((u) => u && typeof u.id === 'number').map((u) => ({
-          id: u.id,
-          status: u.status === 'FAILED' ? 'FAILED' : 'RESOLVED',
-          title: u.title || `Task #${u.id}`,
-          at: u.at || 0,
-        }))
-      : []
-  } catch {
-    return []
-  }
-}
-
-function saveUnread(list) {
-  try {
-    localStorage.setItem(UNREAD_KEY, JSON.stringify(list))
-  } catch {
-    /* ignore — badge just won't persist */
-  }
-}
-
-// Which doc ids the user has already opened. A doc whose id isn't in this set is
-// "new" and counted by the red badge on the Docs link. Stored as a JSON string
-// array; all access is guarded (private mode / disabled storage).
-const DOCS_SEEN_KEY = 'kanban.docsSeen'
-
-function loadDocsSeen() {
-  try {
-    const raw = localStorage.getItem(DOCS_SEEN_KEY)
-    const arr = raw ? JSON.parse(raw) : []
-    return new Set(Array.isArray(arr) ? arr.filter((x) => typeof x === 'string') : [])
-  } catch {
-    return new Set()
-  }
-}
-
-function saveDocsSeen(ids) {
-  try {
-    localStorage.setItem(DOCS_SEEN_KEY, JSON.stringify([...new Set(ids)]))
-  } catch {
-    /* ignore — badge just won't persist */
-  }
-}
+// Both the unread finished-task list and the "docs seen" set used to live in this
+// browser's localStorage. They're now server-side properties (a task's `unread`
+// flag and the /api/docs/reads set), so the badges stay consistent across every
+// device the same user opens the board from — see App's `unread` memo and the
+// docs-manifest effect. Only the notify preference below is genuinely per-browser.
 
 // Notification preference persists across reloads in localStorage. Wrapped in
 // try/catch because storage can throw (private mode, disabled cookies).
