@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { api } from './api.js'
 import Markdown from './Markdown.jsx'
 import Icon from './Icon.jsx'
+import { buildDocIndex, linkifyDocRefs } from './docLinks.js'
 
 // The board's status columns, in flow order (left→right). This is the HORIZONTAL
 // axis of the matrix; the vertical axis is one row per story. A task starts queued
@@ -35,6 +36,10 @@ export default function App() {
   // Count of docs the user hasn't opened yet — drives the red badge on the "Docs"
   // link so a newly-produced report (e.g. the 美伊战争 analysis) is noticeable.
   const [docsNew, setDocsNew] = useState(0)
+  // The full docs manifest — used to rewrite internal doc-file references in task
+  // results (e.g. `docs/foo.md`) into links to the published page users can open.
+  const [docsManifest, setDocsManifest] = useState([])
+  const docIndex = useMemo(() => buildDocIndex(docsManifest), [docsManifest])
   const docIdsRef = useRef([])
 
   const refresh = useCallback(async () => {
@@ -146,6 +151,7 @@ export default function App() {
         if (!res.ok) return
         const docs = await res.json()
         if (cancelled || !Array.isArray(docs)) return
+        setDocsManifest(docs)
         const ids = docs.map((d) => d && d.id).filter(Boolean)
         docIdsRef.current = ids
         const seen = loadDocsSeen()
@@ -434,6 +440,7 @@ export default function App() {
           log={logs[selected.id]}
           story={storyMeta[selected.id]}
           stories={storyList}
+          docIndex={docIndex}
           onSetStory={(storyId) => setTaskStory(selected.id, storyId)}
           onClose={() => setSelectedId(null)}
           onDelete={() => removeTodo(selected.id)}
@@ -1093,7 +1100,7 @@ function Card({ todo, tail, story, onOpen }) {
   )
 }
 
-function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete, onRetry }) {
+function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose, onDelete, onRetry }) {
   const running = todo.status === 'IN_PROGRESS'
   const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
   const [retrying, setRetrying] = useState(false)
@@ -1216,10 +1223,12 @@ function Drawer({ todo, log, story, stories = [], onSetStory, onClose, onDelete,
             <div className="section-label">{todo.status === 'FAILED' ? 'Failure detail' : 'Result'}</div>
             {todo.result
               // Agent results are Markdown; render them. Failure detail is usually
-              // raw error/log text, so keep it monospaced and unparsed.
+              // raw error/log text, so keep it monospaced and unparsed. For a
+              // successful result we first rewrite any internal doc-file references
+              // (docs/foo.md, …) into links to the published page the user can open.
               ? (todo.status === 'FAILED'
                   ? <pre className="logbox result">{todo.result}</pre>
-                  : <Markdown className="logbox result" text={todo.result} />)
+                  : <Markdown className="logbox result" text={linkifyDocRefs(todo.result, docIndex)} />)
               : <pre className="logbox result">(no result)</pre>}
             {log && (
               <details className="transcript">
