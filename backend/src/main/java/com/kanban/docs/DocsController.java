@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -50,12 +53,14 @@ public class DocsController {
 
     private final Path repoRoot;
     private final DocsSiteGenerator generator;
+    private final DocReadRepository reads;
     private final ObjectMapper mapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    public DocsController(WorkerProperties props, DocsSiteGenerator generator) {
+    public DocsController(WorkerProperties props, DocsSiteGenerator generator, DocReadRepository reads) {
         this.repoRoot = Path.of(props.getWorkingDirectory());
         this.generator = generator;
+        this.reads = reads;
     }
 
     /**
@@ -73,6 +78,39 @@ public class DocsController {
     @GetMapping
     public List<DocEntry> list() {
         return readManifest();
+    }
+
+    /** Body for marking documents seen: the manifest ids the user just viewed. */
+    public record MarkReadRequest(List<String> ids) {}
+
+    /**
+     * The ids of every document the user has already opened. The board diffs this
+     * against the manifest to size the "new docs" badge — a doc whose id isn't
+     * here is still unseen. Server-side so the badge is consistent across devices.
+     */
+    @GetMapping("/reads")
+    public List<String> reads() {
+        return reads.findAll().stream().map(DocRead::getDocId).toList();
+    }
+
+    /**
+     * Mark documents as seen (called when the user opens the docs index), clearing
+     * them from the "new" badge on every device. Idempotent: an id already recorded
+     * keeps its original seen time; unknown/blank ids are ignored.
+     */
+    @PostMapping("/reads")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void markRead(@RequestBody MarkReadRequest req) {
+        if (req == null || req.ids() == null) {
+            return;
+        }
+        Instant now = Instant.now();
+        for (String id : req.ids()) {
+            if (id == null || id.isBlank() || reads.existsById(id)) {
+                continue;
+            }
+            reads.save(new DocRead(id, now));
+        }
     }
 
     /**

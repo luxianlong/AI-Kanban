@@ -122,7 +122,8 @@ public final class TodoDtos {
             String storyId,
             String storyName,
             Integer storyOrder,
-            boolean storyPlanner) {
+            boolean storyPlanner,
+            boolean unread) {
 
         public static TodoResponse from(Todo t) {
             return new TodoResponse(
@@ -140,7 +141,8 @@ public final class TodoDtos {
                     t.getStoryId(),
                     t.getStoryName(),
                     t.getStoryOrder(),
-                    t.isStoryPlanner());
+                    t.isStoryPlanner(),
+                    t.isUnread());
         }
     }
 }

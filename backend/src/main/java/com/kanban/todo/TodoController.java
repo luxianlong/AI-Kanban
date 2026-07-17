@@ -123,11 +123,47 @@ public class TodoController {
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown status: " + req.status());
         }
+        // Maintain the unread-notification flag on the status edge: a task becomes
+        // an unread notification the moment it crosses into a terminal state, and
+        // stops being one when it's requeued/rerun (so a retried task shows up as
+        // unread again only once it finishes anew). Because unread lives on the
+        // row, that badge state is shared across every device the user opens.
+        TodoStatus previous = todo.getStatus();
+        boolean nowTerminal = status == TodoStatus.RESOLVED || status == TodoStatus.FAILED;
+        if (nowTerminal && status != previous) {
+            todo.setUnread(true);
+        } else if (!nowTerminal) {
+            todo.setUnread(false);
+        }
         todo.setStatus(status);
         if (req.result() != null) {
             todo.setResult(req.result());
         }
         return TodoResponse.from(repository.save(todo));
+    }
+
+    /**
+     * Mark a finished task as read, clearing its unread-notification flag. Called
+     * when the user opens the task's detail (from the board or the notification
+     * center). Idempotent and safe on any task — a non-unread task just stays
+     * cleared. Because the flag is persisted, reading it on one device clears the
+     * badge on every device.
+     */
+    @PostMapping("/{id}/read")
+    public TodoResponse markRead(@PathVariable Long id) {
+        Todo todo = find(id);
+        if (todo.isUnread()) {
+            todo.setUnread(false);
+            todo = repository.save(todo);
+        }
+        return TodoResponse.from(todo);
+    }
+
+    /** Clear every unread finished-task notification ("mark all read"). */
+    @PostMapping("/read-all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void markAllRead() {
+        repository.markAllRead();
     }
 
     /**

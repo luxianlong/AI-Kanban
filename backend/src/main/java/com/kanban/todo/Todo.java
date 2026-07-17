@@ -95,6 +95,20 @@ public class Todo {
     @ColumnDefault("false")
     private boolean classifying = false;
 
+    /**
+     * Whether this item is an <em>unread</em> finished-task notification. A task is
+     * flagged {@code true} the moment it crosses into a terminal state
+     * ({@link TodoStatus#RESOLVED}/{@link TodoStatus#FAILED}) and cleared once the
+     * user opens it (or hits "mark all read"). Making it a persisted property — not
+     * a per-browser localStorage flag — is what lets the notification badge stay in
+     * sync when the same user opens the board from several devices. Defaults to
+     * {@code false}, so tasks that were already finished when this column was added
+     * don't retroactively light up the badge.
+     */
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean unread = false;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -166,6 +180,14 @@ public class Todo {
 
     public void setClassifying(boolean classifying) {
         this.classifying = classifying;
+    }
+
+    public boolean isUnread() {
+        return unread;
+    }
+
+    public void setUnread(boolean unread) {
+        this.unread = unread;
     }
 
     public String getResult() {
