@@ -40,6 +40,22 @@ const escapeRe = (s) => s.replace(RX_SPECIAL, '\\$&')
 // (so `docs/foo.md` inside `docs/foo.md.bak` isn't linked).
 const PATH_CHAR = /[\w/.\-]/
 
+// True when the char after a matched path doesn't continue it, i.e. the match sits
+// on a real right-hand path boundary. A trailing '.' is the tricky case: it's a
+// path char (extensions use it) but is *also* how agents end a sentence
+// ("...produced docs/foo.md."). We treat that '.' as sentence punctuation unless
+// something path-like follows it — so `docs/foo.md.` at a sentence end links, while
+// `docs/foo.md.bak` (a different, longer file) is still left alone.
+function rightBoundary(text, end) {
+  const after = text[end]
+  if (!after || !PATH_CHAR.test(after)) return true
+  if (after === '.') {
+    const next = text[end + 1]
+    return !next || !PATH_CHAR.test(next)
+  }
+  return false
+}
+
 // Rewrite every known internal doc path in `text` into a Markdown link to its
 // published page. Returns `text` unchanged when there's nothing to map. Handles
 // three surface forms without double-wrapping or breaking existing links:
@@ -69,7 +85,7 @@ export function linkifyDocRefs(text, index) {
     } else if (text.slice(start - 2, start) === '](') {
       // link target: swap just the URL, keep the author's label
       hits.push({ start, end, text: info.href })
-    } else if ((!before || !PATH_CHAR.test(before)) && (!after || !PATH_CHAR.test(after))) {
+    } else if ((!before || !PATH_CHAR.test(before)) && rightBoundary(text, end)) {
       // bare mention on its own path boundary
       hits.push({ start, end, text: `[${info.title}](${info.href})` })
     }
