@@ -36,6 +36,15 @@ ${items}
 }
 
 function build() {
+  // The guide can be deleted from the web UI (DELETE /api/docs/singapore-travel-guide),
+  // which removes docs/singapore-travel-guide.md and frontend/public/singapore.html.
+  // A later deploy still runs this prebuild step, so tolerate a missing source:
+  // drop any stale generated page and skip instead of crashing the whole build.
+  if (!fs.existsSync(SRC)) {
+    fs.rmSync(OUT, { force: true })
+    console.log(`ℹ singapore guide source gone (${path.relative(ROOT, SRC)}); skipped, removed stale page`)
+    return
+  }
   const md = fs.readFileSync(SRC, 'utf8')
   const { title: parsedTitle, body, toc } = renderMarkdown(md)
   const title = parsedTitle || '新加坡旅游攻略'
