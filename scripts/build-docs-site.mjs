@@ -31,6 +31,29 @@ const INDEX_OUT = path.join(ROOT, 'frontend', 'public', 'docs.html')
 // a "new docs" badge on the Docs link (a doc the user hasn't opened yet).
 const MANIFEST_OUT = path.join(ROOT, 'frontend', 'public', 'docs-manifest.json')
 
+// A doc counts as "recently created/updated" if its source Markdown was last
+// modified within this many days of the build. Such docs get a red "NEW" badge
+// on the top-right of their card and sort to the front of the index (task #319).
+// We key off the SOURCE .md mtime, never the generated HTML — the HTML is
+// regenerated on every deploy, so its mtime would flag everything as new.
+const NEW_WINDOW_DAYS = 7
+const NEW_CUTOFF = Date.now() - NEW_WINDOW_DAYS * 24 * 60 * 60 * 1000
+
+// Most-recent modification time (ms) across the given source files, ignoring any
+// that can't be stat'd. Returns 0 when none resolve.
+function newestMtime(absPaths) {
+  let newest = 0
+  for (const p of absPaths) {
+    try {
+      const m = fs.statSync(p).mtimeMs
+      if (m > newest) newest = m
+    } catch {
+      /* missing/unreadable — skip */
+    }
+  }
+  return newest
+}
+
 // Docs that already have a hand-tuned bespoke page — link to that instead of
 // generating a generic one. Keyed by markdown filename ->
 //   href:       the served URL (index links here instead of a generic page)
@@ -315,6 +338,17 @@ const INDEX_CSS = `
 .empty { color: var(--muted); text-align: center; padding: 40px; }
 .card-wrap { position: relative; display: flex; }
 .card-wrap .doc-card { flex: 1; }
+/* "Recently created/updated" marker (task #319): a red badge pinned to the
+   card's top-right corner. The whole card also gets a subtle red-tinted border
+   so fresh docs — which sort to the front — read as new at a glance. */
+.card-wrap.is-new .doc-card { border-color: #f3c0c0; }
+.new-dot {
+  position: absolute; top: -8px; right: -8px; z-index: 3;
+  background: #e5484d; color: #fff; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.6px; line-height: 1; padding: 4px 7px; border-radius: 999px;
+  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(229,72,77,0.45);
+  pointer-events: none;
+}
 .doc-del {
   position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
   border-radius: 8px; border: 1px solid var(--line); background: var(--card);
@@ -395,12 +429,16 @@ const INDEX_CSS = `
 function renderIndex(cards) {
   const cardHtml = cards
     .map(
-      (c) => `<div class="card-wrap" data-id="${esc(c.id)}">
+      (c) => `<div class="card-wrap${c.isNew ? ' is-new' : ''}" data-id="${esc(c.id)}">
   <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
   <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}</h2>
   <p>${esc(c.excerpt || 'Open to read the full document.')}</p>
   <div class="meta">Read →</div>
 </a>${
+        c.isNew
+          ? `\n  <span class="new-dot"${c.updatedAt ? ` title="Updated ${esc(c.updatedAt.slice(0, 10))}"` : ''} aria-label="Recently updated">NEW</span>`
+          : ''
+      }${
         c.deletable
           ? `\n  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete ${esc(c.title)}" data-id="${esc(c.id)}" data-title="${esc(c.title)}">✕</button>`
           : ''
@@ -596,11 +634,13 @@ function build() {
   let generated = 0
 
   for (const file of files) {
-    const md = fs.readFileSync(path.join(DOCS_DIR, file), 'utf8')
+    const srcPath = path.join(DOCS_DIR, file)
+    const md = fs.readFileSync(srcPath, 'utf8')
     const slug = slugify(file.replace(/\.md$/, ''))
     const { title: parsed, body, toc, hasMermaid } = renderMarkdown(md, { resolveLink })
     const title = parsed || humanize(file.replace(/\.md$/, ''))
     const ex = excerpt(md)
+    const mtime = newestMtime([srcPath])
 
     if (BESPOKE[file]) {
       // Don't regenerate — link the index to the hand-tuned page. Deletable from
@@ -609,7 +649,7 @@ function build() {
       // so the backend can remove them all in one go.
       cards.push({
         id: slug, title, href: BESPOKE[file].href, excerpt: ex, featured: true,
-        file: `docs/${file}`, deletable: true,
+        file: `docs/${file}`, deletable: true, mtime,
         paths: [`docs/${file}`, ...(BESPOKE[file].extraPaths || [])],
       })
       continue
@@ -621,7 +661,7 @@ function build() {
     // docs/<file> and the generated page is a clean, reversible-by-git operation.
     cards.push({
       id: slug, title, href: `/docs/${slug}.html`, excerpt: ex, featured: false,
-      file: `docs/${file}`, deletable: true,
+      file: `docs/${file}`, deletable: true, mtime,
       paths: [`docs/${file}`, `frontend/public/docs/${slug}.html`],
     })
     generated++
@@ -637,6 +677,7 @@ function build() {
       .sort()
     if (!parts.length) continue
 
+    const mtime = newestMtime(parts.map((p) => path.join(dir, p)))
     const md = parts
       .map((p) => demoteHeadings(fs.readFileSync(path.join(dir, p), 'utf8')))
       .join('\n\n---\n\n')
@@ -661,13 +702,27 @@ function build() {
       // UI: `paths` removes the whole source directory plus the generated page.
       file: null,
       deletable: true,
+      mtime,
       paths: [`research/${report.dir}`, `frontend/public/docs/${slug}.html`],
     })
     generated++
   }
 
-  // Featured (bespoke) cards first, then the rest alphabetically by title.
-  cards.sort((a, b) => (b.featured - a.featured) || a.title.localeCompare(b.title))
+  // Flag docs whose source Markdown changed within the freshness window, and
+  // record when (for a hover tooltip + the manifest).
+  for (const c of cards) {
+    c.isNew = c.mtime > 0 && c.mtime >= NEW_CUTOFF
+    c.updatedAt = c.mtime > 0 ? new Date(c.mtime).toISOString() : null
+  }
+
+  // Recently created/updated docs go to the very front (newest first); the rest
+  // keep the established order — featured (bespoke) cards, then alphabetical by
+  // title (task #319).
+  cards.sort((a, b) => {
+    if (a.isNew !== b.isNew) return a.isNew ? -1 : 1
+    if (a.isNew && b.isNew) return b.mtime - a.mtime
+    return (b.featured - a.featured) || a.title.localeCompare(b.title)
+  })
 
   fs.writeFileSync(INDEX_OUT, renderIndex(cards), 'utf8')
   // The manifest mirrors the index (same order). The board reads it to flag
@@ -680,6 +735,12 @@ function build() {
     href: c.href,
     deletable: !!c.deletable,
     file: c.file || null,
+    // When the source Markdown was last modified, and whether that's recent
+    // enough to flag as newly created/updated (task #319). The index already
+    // sorts new docs first and paints their red badge; exposing it here keeps the
+    // manifest a faithful mirror for any other consumer.
+    updatedAt: c.updatedAt || null,
+    isNew: !!c.isNew,
     // Every repo-relative file/dir backing this doc (sources + generated output).
     // DELETE /api/docs/{id} removes each of these, then regenerates the site.
     paths: c.paths || [],
