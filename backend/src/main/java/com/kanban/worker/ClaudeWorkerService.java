@@ -57,18 +57,44 @@ public class ClaudeWorkerService {
 
     /**
      * On startup, any todo left {@link TodoStatus#IN_PROGRESS} belongs to a
-     * session that died with the previous process (its live log is gone). Put
-     * it back in the queue so the worker re-attempts it.
+     * session that died with the previous process (its live log is gone).
+     *
+     * <p>Normally we return it to the queue so a crashed session is retried. But a
+     * restart is frequently a <em>sibling</em> improvement task's guarded deploy
+     * ({@code deploy.sh} schedules a detached restart moments later), which kills
+     * whatever task happens to be running — including an unrelated one from another
+     * story that was legitimately in-flight and may have already produced side
+     * effects (committed files, filed steps). Blindly re-queuing that task
+     * re-executes work it already did, and because a story of improvement tasks
+     * keeps deploying, the same task can be re-run again and again. So a task that
+     * has already been started {@link WorkerProperties#getMaxAttempts()} times is
+     * routed to Needs Attention instead of re-queued.
      */
     @PostConstruct
     void requeueOrphans() {
         List<Todo> orphans = repository.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS);
+        int requeued = 0;
+        int abandoned = 0;
         for (Todo t : orphans) {
-            t.setStatus(TodoStatus.PENDING);
-            repository.save(t);
+            if (t.getAttempts() >= props.getMaxAttempts()) {
+                fail(t, "Interrupted by a backend restart after " + t.getAttempts()
+                        + " attempt(s) (the max-attempts cap). Not re-running automatically, "
+                        + "because a restart mid-run is usually another task's deploy killing this "
+                        + "one after it may have already done part of its work — re-running would "
+                        + "duplicate it. Review the branch/output and re-queue manually if needed.");
+                abandoned++;
+            } else {
+                t.setStatus(TodoStatus.PENDING);
+                repository.save(t);
+                requeued++;
+            }
         }
-        if (!orphans.isEmpty()) {
-            log.info("Requeued {} orphaned in-progress todo(s) after restart.", orphans.size());
+        if (requeued > 0) {
+            log.info("Requeued {} orphaned in-progress todo(s) after restart.", requeued);
+        }
+        if (abandoned > 0) {
+            log.warn("Routed {} orphaned in-progress todo(s) to Needs Attention "
+                    + "(hit the max-attempts cap of {}).", abandoned, props.getMaxAttempts());
         }
         // The async story classifier's hold doesn't survive a restart (the pass is
         // gone), so any task still flagged `classifying` would be stranded — the
@@ -141,6 +167,9 @@ public class ClaudeWorkerService {
     private void process(Todo todo) {
         todo.setStatus(TodoStatus.IN_PROGRESS);
         todo.setProcessedAt(Instant.now());
+        // Count this pickup so a task orphaned by a restart can't be re-run forever
+        // (see requeueOrphans): past the cap it's routed to Needs Attention.
+        todo.setAttempts(todo.getAttempts() + 1);
         repository.save(todo);
 
         liveLog.start(todo.getId());
