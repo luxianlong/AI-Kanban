@@ -711,6 +711,12 @@ body {
 .card {
   display: block;
   width: 100%;
+  /* A long unbroken token in the title/desc (a URL or a spaceless run) used to
+     grow the card's min-content width past its grid cell, so the card rectangle
+     spilled well beyond the column boundary. min-width:0 lets the card shrink to
+     its track, and the text elements below break long words instead of pushing
+     the box wider than its cell. */
+  min-width: 0;
   /* Defense-in-depth against the "Done column overlap". The card stacks
      (.matrix-cell / .mobile-group) are now CSS grids whose max-content row
      tracks already make overlap structurally impossible. But a card can still
@@ -770,11 +776,15 @@ body {
 
 @keyframes cardIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-.card-title { font-weight: 600; font-size: var(--f-md); line-height: 1.35; }
+.card-title {
+  font-weight: 600; font-size: var(--f-md); line-height: 1.35;
+  overflow-wrap: anywhere; word-break: break-word;
+}
 .card-desc {
   color: var(--muted);
   font-size: var(--f-sm);
   margin-top: 5px;
+  overflow-wrap: anywhere; word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -785,6 +795,7 @@ body {
   margin-top: var(--s-2);
   font-size: var(--f-xs);
   line-height: 1.45;
+  overflow-wrap: anywhere; word-break: break-word;
   padding-left: 9px;
   border-left: 2px solid var(--done);
   display: -webkit-box;
