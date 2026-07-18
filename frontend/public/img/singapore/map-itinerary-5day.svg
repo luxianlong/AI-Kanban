@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 968" width="900" height="968" role="img" aria-labelledby="t d" font-family="'Noto Sans SC','Noto Sans CJK SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Source Han Sans SC',sans-serif">
+<title id="t">五天深度行程路线图</title>
+<desc id="d">五天深度行程的逐日路线：Day 1 滨海湾，Day 2 圣淘沙，Day 3 Mandai 动物园与夜间动物园，Day 4 文化街区深度，Day 5 机动主题日四选一，含各段交通方式与时长。</desc>
+<rect width="900" height="968" rx="14" fill="#fbfbfc" stroke="#dfe3ea" />
+<defs><marker id="ia" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse"><path d="M0 1.5 L9 5 L0 8.5 Z" fill="#8c95a4" /></marker></defs>
+<rect x="26" y="92" width="848" height="154" rx="12" fill="#d1495b" fill-opacity="0.05" />
+<rect x="26" y="92" width="4" height="154" rx="2" fill="#d1495b" />
+<text x="40" y="120" font-size="15" font-weight="700" fill="#d1495b">Day 1</text>
+<text x="40" y="137" font-size="10.5" fill="#5b6472">滨海湾地标 + 灯光秀</text>
+<rect x="190.33" y="108" width="91.5" height="46" rx="9" fill="#fff" stroke="#d1495b" stroke-width="1.6" />
+<text x="236.08" y="128" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">鱼尾狮公园</text>
+<text x="236.08" y="145" font-size="10.5" fill="#5b6472" text-anchor="middle">上午 · 免费</text>
+<path d="M295.83 131 L361.83 131" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="328.83" y="123" font-size="10" fill="#5b6472" text-anchor="middle">步行 15 分</text>
+<rect x="375.83" y="108" width="167.77" height="46" rx="9" fill="#fff" stroke="#d1495b" stroke-width="1.6" />
+<text x="459.71" y="128" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">滨海湾花园 · 擎天树丛</text>
+<text x="459.71" y="145" font-size="10.5" fill="#5b6472" text-anchor="middle">免费户外</text>
+<path d="M557.6 131 L611.6 131" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="584.6" y="123" font-size="10" fill="#5b6472" text-anchor="middle">园内步行</text>
+<rect x="625.6" y="108" width="140.77" height="46" rx="9" fill="#fff" stroke="#d1495b" stroke-width="1.6" />
+<text x="695.99" y="128" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">花穹 + 云雾林双馆</text>
+<text x="695.99" y="145" font-size="10.5" fill="#5b6472" text-anchor="middle">下午 · 约 2h · S$46</text>
+<path d="M774.37 131 L868 131 L868 169 L182.33 169 L182.33 207" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="860" y="163" font-size="10" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">步行 10 分</text>
+<rect x="190.33" y="184" width="134.25" height="46" rx="9" fill="#fff" stroke="#d1495b" stroke-width="1.6" />
+<text x="257.45" y="204" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">金沙观景台</text>
+<text x="257.45" y="221" font-size="10.5" fill="#5b6472" text-anchor="middle">傍晚看日落 · S$35–39</text>
+<path d="M338.58 207 L404.58 207" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="371.58" y="199" font-size="10" fill="#5b6472" text-anchor="middle">步行 10 分</text>
+<rect x="418.58" y="184" width="183.3" height="46" rx="9" fill="#fff" stroke="#d1495b" stroke-width="1.6" />
+<text x="510.23" y="204" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">Garden Rhapsody 灯光秀</text>
+<text x="510.23" y="221" font-size="10.5" fill="#5b6472" text-anchor="middle">19:45 / 20:45 · 免费</text>
+<rect x="26" y="262" width="848" height="154" rx="12" fill="#1f6feb" fill-opacity="0.05" />
+<rect x="26" y="262" width="4" height="154" rx="2" fill="#1f6feb" />
+<text x="40" y="290" font-size="15" font-weight="700" fill="#1f6feb">Day 2</text>
+<text x="40" y="307" font-size="10.5" fill="#5b6472">圣淘沙一整天</text>
+<rect x="190.33" y="278" width="131.32" height="46" rx="9" fill="#fff" stroke="#1f6feb" stroke-width="1.6" />
+<text x="255.99" y="298" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">怡丰城 VivoCity</text>
+<text x="255.99" y="315" font-size="10.5" fill="#5b6472" text-anchor="middle">地铁到 HarbourFront</text>
+<path d="M335.65 301 L426.15 301" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="380.9" y="293" font-size="10" fill="#5b6472" text-anchor="middle">圣淘沙捷运 4 分</text>
+<rect x="440.15" y="278" width="102.75" height="46" rx="9" fill="#fff" stroke="#1f6feb" stroke-width="1.6" />
+<text x="491.53" y="298" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">环球影城</text>
+<text x="491.53" y="315" font-size="10.5" fill="#5b6472" text-anchor="middle">全天 · S$76–89</text>
+<path d="M556.9 301 L622.9 301" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="589.9" y="293" font-size="10" fill="#5b6472" text-anchor="middle">步行 10 分</text>
+<rect x="636.9" y="278" width="128.48" height="46" rx="9" fill="#fff" stroke="#1f6feb" stroke-width="1.6" />
+<text x="701.14" y="298" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">新加坡海洋馆</text>
+<text x="701.14" y="315" font-size="10.5" fill="#5b6472" text-anchor="middle">傍晚 · 联票 S$55 起</text>
+<path d="M773.38 301 L868 301 L868 339 L182.33 339 L182.33 377" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="860" y="333" font-size="10" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">步行 / 岛内接驳</text>
+<rect x="190.33" y="354" width="167.77" height="46" rx="9" fill="#fff" stroke="#1f6feb" stroke-width="1.6" />
+<text x="274.21" y="374" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">岛上沙滩 / 天际线餐厅</text>
+<text x="274.21" y="391" font-size="10.5" fill="#5b6472" text-anchor="middle">收尾</text>
+<rect x="26" y="432" width="848" height="154" rx="12" fill="#3f9e78" fill-opacity="0.05" />
+<rect x="26" y="432" width="4" height="154" rx="2" fill="#3f9e78" />
+<text x="40" y="460" font-size="15" font-weight="700" fill="#3f9e78">Day 3</text>
+<text x="40" y="477" font-size="10.5" fill="#5b6472">Mandai + 夜间动物园</text>
+<rect x="190.33" y="448" width="78" height="46" rx="9" fill="#fff" stroke="#3f9e78" stroke-width="1.6" />
+<text x="229.33" y="468" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">市区出发</text>
+<text x="229.33" y="485" font-size="10.5" fill="#5b6472" text-anchor="middle">地铁南北线</text>
+<path d="M282.33 471 L358.33 471" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="320.33" y="463" font-size="10" fill="#5b6472" text-anchor="middle">地铁约 30 分</text>
+<rect x="372.33" y="448" width="89.48" height="46" rx="9" fill="#fff" stroke="#3f9e78" stroke-width="1.6" />
+<text x="417.06" y="468" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">Khatib 站</text>
+<text x="417.06" y="485" font-size="10.5" fill="#5b6472" text-anchor="middle">换 M2 接驳车</text>
+<path d="M475.8 471 L551.8 471" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="513.8" y="463" font-size="10" fill="#5b6472" text-anchor="middle">接驳车 15 分</text>
+<rect x="565.8" y="448" width="154.27" height="46" rx="9" fill="#fff" stroke="#3f9e78" stroke-width="1.6" />
+<text x="642.94" y="468" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">动物园 / 河川生态园</text>
+<text x="642.94" y="485" font-size="10.5" fill="#5b6472" text-anchor="middle">下午 · 大熊猫</text>
+<path d="M728.08 471 L868 471 L868 509 L182.33 509 L182.33 547" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="860" y="503" font-size="10" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">园区步行</text>
+<rect x="190.33" y="524" width="168.9" height="46" rx="9" fill="#fff" stroke="#3f9e78" stroke-width="1.6" />
+<text x="274.77" y="544" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">夜间动物园</text>
+<text x="274.77" y="561" font-size="10.5" fill="#5b6472" text-anchor="middle">18:00 转场 · 2 园联票 S$88</text>
+<rect x="26" y="602" width="848" height="154" rx="12" fill="#c77d0a" fill-opacity="0.05" />
+<rect x="26" y="602" width="4" height="154" rx="2" fill="#c77d0a" />
+<text x="40" y="630" font-size="15" font-weight="700" fill="#c77d0a">Day 4</text>
+<text x="40" y="647" font-size="10.5" fill="#5b6472">文化街区深度</text>
+<rect x="190.33" y="618" width="127.28" height="46" rx="9" fill="#fff" stroke="#c77d0a" stroke-width="1.6" />
+<text x="253.96" y="638" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">牛车水 · 佛牙寺</text>
+<text x="253.96" y="655" font-size="10.5" fill="#5b6472" text-anchor="middle">上午</text>
+<path d="M331.6 641 L392.1 641" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="361.85" y="633" font-size="10" fill="#5b6472" text-anchor="middle">步行 5 分</text>
+<rect x="406.1" y="618" width="118.5" height="46" rx="9" fill="#fff" stroke="#c77d0a" stroke-width="1.6" />
+<text x="465.35" y="638" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">麦士威熟食中心</text>
+<text x="465.35" y="655" font-size="10.5" fill="#5b6472" text-anchor="middle">午餐</text>
+<path d="M538.6 641 L604.6 641" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="571.6" y="633" font-size="10" fill="#5b6472" text-anchor="middle">地铁 10 分</text>
+<rect x="618.6" y="618" width="64.5" height="46" rx="9" fill="#fff" stroke="#c77d0a" stroke-width="1.6" />
+<text x="650.85" y="638" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">小印度</text>
+<text x="650.85" y="655" font-size="10.5" fill="#5b6472" text-anchor="middle">下午</text>
+<path d="M691.1 641 L868 641 L868 679 L182.33 679 L182.33 717" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="860" y="673" font-size="10" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">步行 / 地铁 10 分</text>
+<rect x="190.33" y="694" width="140.77" height="46" rx="9" fill="#fff" stroke="#c77d0a" stroke-width="1.6" />
+<text x="260.71" y="714" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">甘榜格南 · 哈芝巷</text>
+<text x="260.71" y="731" font-size="10.5" fill="#5b6472" text-anchor="middle">傍晚</text>
+<path d="M345.1 717 L411.1 717" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ia)" />
+<text x="378.1" y="709" font-size="10" fill="#5b6472" text-anchor="middle">地铁 12 分</text>
+<rect x="425.1" y="694" width="66" height="46" rx="9" fill="#fff" stroke="#c77d0a" stroke-width="1.6" />
+<text x="458.1" y="714" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">乌节路</text>
+<text x="458.1" y="731" font-size="10.5" fill="#5b6472" text-anchor="middle">购物收尾</text>
+<rect x="26" y="772" width="848" height="154" rx="12" fill="#7a4fbf" fill-opacity="0.05" />
+<rect x="26" y="772" width="4" height="154" rx="2" fill="#7a4fbf" />
+<text x="40" y="800" font-size="15" font-weight="700" fill="#7a4fbf">Day 5</text>
+<text x="40" y="817" font-size="10.5" fill="#5b6472">机动 / 主题日（四选一）</text>
+<rect x="190.33" y="788" width="181.95" height="46" rx="9" fill="#fff" stroke="#7a4fbf" stroke-width="1.6" />
+<text x="281.3" y="808" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">飞禽公园 Bird Paradise</text>
+<text x="281.3" y="825" font-size="10.5" fill="#5b6472" text-anchor="middle">Mandai</text>
+<path d="M386.28 811 L430.28 811" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 4" />
+<text x="408.28" y="803" font-size="10" fill="#5b6472" text-anchor="middle">或</text>
+<rect x="444.28" y="788" width="118.5" height="46" rx="9" fill="#fff" stroke="#7a4fbf" stroke-width="1.6" />
+<text x="503.53" y="808" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">滨海湾金沙购物</text>
+<text x="503.53" y="825" font-size="10.5" fill="#5b6472" text-anchor="middle">The Shoppes</text>
+<path d="M576.78 811 L620.78 811" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 4" />
+<text x="598.78" y="803" font-size="10" fill="#5b6472" text-anchor="middle">或</text>
+<rect x="634.78" y="788" width="105" height="46" rx="9" fill="#fff" stroke="#7a4fbf" stroke-width="1.6" />
+<text x="687.28" y="808" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">新加坡植物园</text>
+<text x="687.28" y="825" font-size="10.5" fill="#5b6472" text-anchor="middle">免费 · UNESCO</text>
+<path d="M747.78 811 L868 811 L868 849 L182.33 849 L182.33 887" fill="none" stroke="#8c95a4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 4" />
+<text x="860" y="843" font-size="10" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">或</text>
+<rect x="190.33" y="864" width="122.55" height="46" rx="9" fill="#fff" stroke="#7a4fbf" stroke-width="1.6" />
+<text x="251.6" y="884" font-size="13.5" font-weight="700" fill="#1f2430" text-anchor="middle">星耀樟宜 Jewel</text>
+<text x="251.6" y="901" font-size="10.5" fill="#5b6472" text-anchor="middle">返程前 · 免费瀑布</text>
+<text x="26" y="36" font-size="19" font-weight="700" fill="#1f2430">五天深度行程路线图</text><text x="26" y="56" font-size="12.5" fill="#5b6472">在三天基础上加入 Mandai 动物园群与更从容的节奏，适合亲子或深度游</text>
+<text x="26" y="956" font-size="11" fill="#8c95a4">时长为地铁/步行常速估算；票价采集于 2026‑07‑15，请以官网当期为准。Day 5 为四选一，非依次串联。</text>
+</svg>

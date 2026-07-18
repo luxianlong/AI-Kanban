@@ -75,6 +75,17 @@ a:hover { text-decoration: underline; }
 .empty { color: var(--muted); text-align: center; padding: 40px; }
 .card-wrap { position: relative; display: flex; }
 .card-wrap .doc-card { flex: 1; }
+/* "Recently created/updated" marker (task #319): a red badge pinned to the
+   card's top-right corner. The whole card also gets a subtle red-tinted border
+   so fresh docs — which sort to the front — read as new at a glance. */
+.card-wrap.is-new .doc-card { border-color: #f3c0c0; }
+.new-dot {
+  position: absolute; top: -8px; right: -8px; z-index: 3;
+  background: #e5484d; color: #fff; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.6px; line-height: 1; padding: 4px 7px; border-radius: 999px;
+  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(229,72,77,0.45);
+  pointer-events: none;
+}
 .doc-del {
   position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
   border-radius: 8px; border: 1px solid var(--line); background: var(--card);
@@ -83,9 +94,73 @@ a:hover { text-decoration: underline; }
   opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
 .card-wrap:hover .doc-del { opacity: 1; }
+.card-wrap:focus-within .doc-del { opacity: 1; }
 .doc-del:hover { background: #fdecec; color: #d63939; border-color: #f3c0c0; }
+.doc-del:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
 .doc-del:disabled { cursor: default; opacity: 0.5; }
 @media (hover: none) { .doc-del { opacity: 1; } }
+/* Card removal animation: collapse smoothly instead of vanishing abruptly. */
+.card-wrap { transition: opacity 0.25s ease, transform 0.25s ease; }
+.card-wrap.removing { opacity: 0; transform: scale(0.94); pointer-events: none; }
+
+/* Confirmation modal — replaces the native window.confirm() with a styled,
+   accessible dialog (backdrop, focus trap, Esc to cancel). */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(31,36,48,0.45);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 0.18s ease; z-index: 50;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: auto; }
+.modal {
+  background: var(--card); border-radius: 16px; max-width: 420px; width: 100%;
+  padding: 26px 26px 22px; box-shadow: 0 24px 60px rgba(31,36,48,0.28);
+  transform: translateY(12px) scale(0.98); transition: transform 0.18s ease;
+}
+.modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+.modal .modal-icon {
+  width: 44px; height: 44px; border-radius: 50%; background: #fdecec; color: #d63939;
+  display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px;
+}
+.modal h3 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 19px; margin: 0 0 8px; }
+.modal p { margin: 0 0 6px; color: var(--muted); font-size: 14.5px; }
+.modal .doc-name { color: var(--ink); font-weight: 600; word-break: break-word; }
+.modal .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+.btn {
+  font: inherit; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 10px;
+  cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+.btn:hover { background: #f3f4f8; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-danger { background: #d63939; border-color: #d63939; color: #fff; }
+.btn-danger:hover { background: #c02c2c; border-color: #c02c2c; }
+.btn-danger:disabled { opacity: 0.6; cursor: default; }
+.btn .spinner {
+  display: inline-block; width: 13px; height: 13px; margin-right: 7px; vertical-align: -1px;
+  border: 2px solid rgba(255,255,255,0.5); border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast notifications — replace native alert() for success/error feedback. */
+.toast-host {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 10px; z-index: 60; width: max-content; max-width: 92vw;
+}
+.toast {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px;
+  background: var(--ink); color: #fff; font-size: 14px; font-weight: 500;
+  box-shadow: 0 10px 30px rgba(31,36,48,0.3);
+  opacity: 0; transform: translateY(10px); transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: #b02525; }
+.toast .toast-icon { font-size: 16px; line-height: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .card-wrap, .modal-backdrop, .modal, .toast { transition: none; }
+  .btn .spinner { animation: none; }
+}
 </style>
 </head>
 <body>
@@ -97,99 +172,193 @@ a:hover { text-decoration: underline; }
 </header>
 <div class="wrap">
 <div class="grid">
-<div class="card-wrap" data-id="singapore-travel-guide">
+<div class="card-wrap is-new" data-id="qianguize-wusi">
+  <a class="doc-card" href="/docs/qianguize-wusi.html">
+  <h2>潜规则：中国历史中的真实游戏 — 分析文档</h2>
+  <p>对吴思《潜规则：中国历史中的真实游戏》(2001) 的系统性梳理与再分析。本文档是整篇分析的</p>
+  <div class="meta">Read →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 潜规则：中国历史中的真实游戏 — 分析文档" data-id="qianguize-wusi" data-title="潜规则：中国历史中的真实游戏 — 分析文档">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="kechuang-1year-forecast-2026-07-17">
+  <a class="doc-card" href="/docs/kechuang-1year-forecast-2026-07-17.html">
+  <h2>科创板一年后预测（展望至 2027 年年中，成文于 2026-07-17 收盘后）</h2>
+  <p>07-17 系统性杀跌的"震源"正是全球存储链一夜崩塌（第 2 步阶段⑤、第 4 步 5.2）。但把镜头拉到一年，存储恰恰是多空证据最"打架"的一条：</p>
+  <div class="meta">Read →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 科创板一年后预测（展望至 2027 年年中，成文于 2026-07-17 收盘后）" data-id="kechuang-1year-forecast-2026-07-17" data-title="科创板一年后预测（展望至 2027 年年中，成文于 2026-07-17 收盘后）">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="kechuang-3week-outlook-2026-07-17">
+  <a class="doc-card" href="/docs/kechuang-3week-outlook-2026-07-17.html">
+  <h2>近三周科创板前瞻研判、投资含义与风险清单（2026-06-26 → 2026-07-17，展望）</h2>
+  <p>"挤泡沫"与"趋势反转"最容易被事后叙事混淆。用第 2 步的两类驱动判别试纸，可以把它变成一组可观察、可证伪的条件，而不是一句立场：</p>
+  <div class="meta">Read →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-17" aria-label="Recently updated">NEW</span>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 近三周科创板前瞻研判、投资含义与风险清单（2026-06-26 → 2026-07-17，展望）" data-id="kechuang-3week-outlook-2026-07-17" data-title="近三周科创板前瞻研判、投资含义与风险清单（2026-06-26 → 2026-07-17，展望）">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="kechuang-3week-structure-2026-07-17">
+  <a class="doc-card" href="/docs/kechuang-3week-structure-2026-07-17.html">
+  <h2>近三周科创板板块与个股结构分析（存储 / 算力 / 设备 / 软件的分化，2026-06-26 → 2026-07-17）</h2>
+  <p>科创板权重里没有纯存储晶圆股（美光 / SK 海力士 / 闪迪 / 铠侠均在美 / 韩 / 日），因此本环境用内存接口芯片龙头澜起科技作为 A 股"存储 / 内存链"的代理——它的景气与 DDR / 内存模组、AI 服务器内存需求高度绑定，是本地最贴近"存储链"的样本。8 只标的归类如下：</p>
+  <div class="meta">Read →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-17" aria-label="Recently updated">NEW</span>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 近三周科创板板块与个股结构分析（存储 / 算力 / 设备 / 软件的分化，2026-06-26 → 2026-07-17）" data-id="kechuang-3week-structure-2026-07-17" data-title="近三周科创板板块与个股结构分析（存储 / 算力 / 设备 / 软件的分化，2026-06-26 → 2026-07-17）">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="singapore-travel-guide">
   <a class="doc-card featured" href="/singapore.html">
   <h2>新加坡旅游攻略<span class="badge">Featured</span></h2>
   <p>!新加坡中央商务区与滨海湾天际线夜景</p>
   <div class="meta">Read →</div>
 </a>
+  <span class="new-dot" title="Updated 2026-07-16" aria-label="Recently updated">NEW</span>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 新加坡旅游攻略" data-id="singapore-travel-guide" data-title="新加坡旅游攻略">✕</button>
 </div>
-<div class="card-wrap" data-id="us-iran-war">
-  <a class="doc-card featured" href="/docs/us-iran-war.html">
-  <h2>美伊战争 · 分析总览 (2026)<span class="badge">Featured</span></h2>
-  <p>六部分深度研究：背景与结构性根源、当前局势快照、军力对比与升级情景、地缘影响、市场与能源冲击、情景推演与前景研判。</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 美伊战争 · 分析总览 (2026)" data-id="us-iran-war" data-title="美伊战争 · 分析总览 (2026)">✕</button>
-</div>
-<div class="card-wrap" data-id="ai-supply-chain">
+<div class="card-wrap is-new" data-id="ai-supply-chain">
   <a class="doc-card" href="/docs/ai-supply-chain.html">
   <h2>AI supply chain — topology</h2>
   <p>A visual map of the global AI supply chain: everything that has to line up so a prompt you type in a browser can be answered by a large model. Rendered with Mermaid — GitHub…</p>
   <div class="meta">Read →</div>
 </a>
+  <span class="new-dot" title="Updated 2026-07-15" aria-label="Recently updated">NEW</span>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete AI supply chain — topology" data-id="ai-supply-chain" data-title="AI supply chain — topology">✕</button>
 </div>
-<div class="card-wrap" data-id="public-tunnel">
-  <a class="doc-card" href="/docs/public-tunnel.html">
-  <h2>Exposing the dashboard as a public website</h2>
-  <p>How to put this locally-running app on a public URL, gated by a password. Two options: a quick tunnel (zero setup, ephemeral URL — the current default) and a named tunnel…</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Exposing the dashboard as a public website" data-id="public-tunnel" data-title="Exposing the dashboard as a public website">✕</button>
-</div>
-<div class="card-wrap" data-id="architecture">
-  <a class="doc-card" href="/docs/architecture.html">
-  <h2>Kanban architecture — topology</h2>
-  <p>A visual map of how the Claude Code Kanban is put together, rendered with Mermaid. GitHub renders these diagrams inline; in an editor use a Mermaid preview extension.</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Kanban architecture — topology" data-id="architecture" data-title="Kanban architecture — topology">✕</button>
-</div>
-<div class="card-wrap" data-id="kechuang-investment-guide">
-  <a class="doc-card" href="/docs/kechuang-investment-guide.html">
-  <h2>科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）</h2>
-  <p>重灾区是前期涨幅最大、筹码最集中的方向：存储芯片、CPO、光纤、算力硬件、PCB、接口芯片。这些正是 6 月末暴涨的品种，高位获利盘集中止盈。上周涨幅第一的板块，隔周就成跌幅第一——典型的抱团瓦解。</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）" data-id="kechuang-investment-guide" data-title="科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）">✕</button>
-</div>
-<div class="card-wrap" data-id="kechuang-forecast-2026-07-16">
-  <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16.html">
-  <h2>预测今天科创板走势（2026-07-16）</h2>
-  <p>步骤 3、4 使用的是盘中/收盘瞬时快照，与最终收盘定格不一致。以日 K 接口为准：</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测今天科创板走势（2026-07-16）" data-id="kechuang-forecast-2026-07-16" data-title="预测今天科创板走势（2026-07-16）">✕</button>
-</div>
-<div class="card-wrap" data-id="kechuang-forecast-2026-07-16-review">
-  <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16-review.html">
-  <h2>预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）</h2>
-  <p>预测文档同时写了两句话：</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）" data-id="kechuang-forecast-2026-07-16-review" data-title="预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）">✕</button>
 </div>
 </div>
+
+<div class="modal-backdrop" id="del-modal" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" aria-describedby="del-modal-desc" hidden>
+  <div class="modal">
+    <div class="modal-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6"/><path d="M10 11v6M14 11v6"/></svg></div>
+    <h3 id="del-modal-title">Delete this document?</h3>
+    <p id="del-modal-desc">You're about to remove <span class="doc-name"></span>.</p>
+    <p class="note">This deletes the document and its published page. It can't be undone from here.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-act="cancel">Cancel</button>
+      <button type="button" class="btn btn-danger" data-act="confirm">Delete</button>
+    </div>
+  </div>
 </div>
+<div class="toast-host" id="toast-host" aria-live="polite" aria-atomic="true"></div>
+
 <script>
   // Delete a document: ask the backend to remove its source Markdown + generated
   // page, then drop the card. The board proxies /api to the Spring backend, so a
   // same-origin fetch works whether we're on :80 (dev/tunnel) or a build preview.
+  //
+  // UX (task #278): the raw window.confirm()/alert() are replaced with an
+  // accessible styled modal (focus trap, Esc to cancel, restores focus), a
+  // smooth card-collapse animation, and toast feedback for success and errors.
   var grid = document.querySelector('.grid');
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest && e.target.closest('.doc-del');
-    if (!btn) return;
-    e.preventDefault();
+  var wrapEl = document.querySelector('.wrap');
+  var modal = document.getElementById('del-modal');
+  var modalName = modal.querySelector('.doc-name');
+  var confirmBtn = modal.querySelector('[data-act="confirm"]');
+  var cancelBtn = modal.querySelector('[data-act="cancel"]');
+  var toastHost = document.getElementById('toast-host');
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pending = null; // the .doc-del button whose card we're about to delete
+  var lastFocus = null;
+
+  function toast(message, isError) {
+    var el = document.createElement('div');
+    el.className = 'toast' + (isError ? ' error' : '');
+    el.setAttribute('role', isError ? 'alert' : 'status');
+    var icon = document.createElement('span');
+    icon.className = 'toast-icon';
+    icon.textContent = isError ? '!' : '✓';
+    el.appendChild(icon);
+    el.appendChild(document.createTextNode(message));
+    toastHost.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('show'); });
+    setTimeout(function () {
+      el.classList.remove('show');
+      setTimeout(function () { el.remove(); }, 250);
+    }, isError ? 5000 : 3200);
+  }
+
+  function openModal(btn) {
+    pending = btn;
+    lastFocus = btn;
+    modalName.textContent = '“' + (btn.getAttribute('data-title') || 'this document') + '”';
+    modal.hidden = false;
+    requestAnimationFrame(function () { modal.classList.add('open'); });
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Delete';
+    setTimeout(function () { cancelBtn.focus(); }, 0);
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    var t = prefersReduced ? 0 : 180;
+    setTimeout(function () { modal.hidden = true; }, t);
+    pending = null;
+    if (lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
+  }
+
+  function removeCard(wrap) {
+    wrap.classList.add('removing');
+    var finish = function () {
+      wrap.remove();
+      if (grid && !grid.querySelector('.card-wrap') && wrapEl) {
+        wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
+      }
+    };
+    if (prefersReduced) finish();
+    else setTimeout(finish, 260);
+  }
+
+  function doDelete() {
+    if (!pending) return;
+    var btn = pending;
     var id = btn.getAttribute('data-id');
     var title = btn.getAttribute('data-title') || 'this document';
-    if (!window.confirm('Delete "' + title + '"? This removes the document for good.')) return;
-    btn.disabled = true;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Deleting…';
     fetch('/api/docs/' + encodeURIComponent(id), { method: 'DELETE' })
       .then(function (res) {
         if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
         var wrap = btn.closest('.card-wrap');
-        if (wrap) wrap.remove();
-        if (grid && !grid.querySelector('.card-wrap')) {
-          var wrapEl = document.querySelector('.wrap');
-          if (wrapEl) wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
-        }
+        // Don't restore focus to a button we're about to remove.
+        lastFocus = null;
+        closeModal();
+        if (wrap) removeCard(wrap);
+        toast('Deleted “' + title + '”', false);
       })
       .catch(function (err) {
-        btn.disabled = false;
-        window.alert('Could not delete "' + title + '": ' + err.message);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Delete';
+        closeModal();
+        toast('Couldn’t delete “' + title + '”: ' + err.message, true);
       });
+  }
+
+  // Open the modal from any delete button (delegated so it works after re-render).
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.doc-del');
+    if (!btn) return;
+    e.preventDefault();
+    openModal(btn);
+  });
+
+  confirmBtn.addEventListener('click', doDelete);
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeModal(); // click on backdrop
+  });
+  document.addEventListener('keydown', function (e) {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') { closeModal(); return; }
+    if (e.key === 'Tab') {
+      // Simple focus trap between the two modal buttons.
+      var focusables = [cancelBtn, confirmBtn].filter(function (b) { return !b.disabled; });
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
 </script>
 </body>
