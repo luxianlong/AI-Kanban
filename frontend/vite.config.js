@@ -387,7 +387,7 @@ export default defineConfig({
     host: '0.0.0.0',
     // Allow the tunnel's random *.trycloudflare.com Host header (Vite 5.4+
     // blocks unknown hosts). localhost/127.0.0.1 stay allowed automatically.
-    allowedHosts: ['.trycloudflare.com', '4.194.19.91', 'www.youraikanban.com'],
+    allowedHosts: ['.trycloudflare.com', '4.194.19.91', 'youraikanban.com', 'www.youraikanban.com'],
     proxy: {
       '/api': 'http://localhost:8080',
     },
