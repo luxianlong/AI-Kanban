@@ -25,6 +25,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,6 +57,9 @@ class DocsApiTest {
 
     @BeforeEach
     void seed() throws IOException {
+        // The temp repo root is shared across tests — clear per-doc visibility so
+        // each test starts from a clean (all-public) state.
+        Files.deleteIfExists(repo.resolve("frontend/.doc-visibility.json"));
         Path docs = Files.createDirectories(repo.resolve("docs"));
         Path pubDocs = Files.createDirectories(repo.resolve("frontend/public/docs"));
         // Plain single-file doc: source .md + generated page.
@@ -165,6 +169,42 @@ class DocsApiTest {
                 .andExpect(status().isNotFound());
 
         verify(generator, never()).regenerate();
+    }
+
+    @Test
+    void setVisibilityMarksDocPrivateThenPublicAndRegenerates() throws Exception {
+        Path visFile = repo.resolve("frontend/.doc-visibility.json");
+        assertThat(Files.exists(visFile)).isFalse();
+
+        // Mark 'alpha' private -> persisted to the sidecar, site regenerated.
+        mvc.perform(put("/api/docs/alpha/visibility")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"private\":true}"))
+                .andExpect(status().isNoContent());
+
+        assertThat(Files.exists(visFile)).isTrue();
+        assertThat(Files.readString(visFile)).contains("alpha");
+        verify(generator, times(1)).regenerate();
+
+        // Flip it back to public -> the id is removed from the private set.
+        mvc.perform(put("/api/docs/alpha/visibility")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"private\":false}"))
+                .andExpect(status().isNoContent());
+
+        assertThat(Files.readString(visFile)).doesNotContain("alpha");
+        verify(generator, times(2)).regenerate();
+    }
+
+    @Test
+    void setVisibilityUnknownDocIs404AndRegeneratesNothing() throws Exception {
+        mvc.perform(put("/api/docs/does-not-exist/visibility")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"private\":true}"))
+                .andExpect(status().isNotFound());
+
+        verify(generator, never()).regenerate();
+        assertThat(Files.exists(repo.resolve("frontend/.doc-visibility.json"))).isFalse();
     }
 
     @Test

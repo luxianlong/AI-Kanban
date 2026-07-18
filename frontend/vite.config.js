@@ -3,6 +3,12 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import {
+  classifyDoc,
+  stripPrivateCards,
+  stripPrivateManifest,
+  readDocsManifest,
+} from './docsGate.mjs'
 
 // During `npm run dev`, proxy API calls to the Spring Boot backend on :8080
 // so the browser talks to a single origin (no CORS surprises in dev).
@@ -37,6 +43,15 @@ import crypto from 'node:crypto'
 // remembered one, so session-only logins (Remember-me unticked) are never
 // silently upgraded into persistent ones.
 const CREDS_FILE = path.resolve(import.meta.dirname, '.public-auth.json')
+
+// The generated docs site — used by the public-docs gate (task #268) to learn
+// which docs are private and to serve a filtered listing to anonymous visitors.
+const MANIFEST_FILE = path.resolve(import.meta.dirname, 'public', 'docs-manifest.json')
+const INDEX_FILE = path.resolve(import.meta.dirname, 'public', 'docs.html')
+
+// Endpoint the docs index probes to learn whether the viewer is the authenticated
+// owner (so it can show/hide the owner-only delete + privacy controls).
+const WHOAMI_PATH = '/__auth/whoami'
 
 const AUTH_COOKIE = 'dash_auth'
 // Marks a "Remember me" session so rolling refresh only extends persistent
@@ -190,6 +205,24 @@ function parseCookies(header = '') {
   return out
 }
 
+// True when this request already proves the visitor is the owner: a valid auth
+// cookie or a matching Basic header. When the gate is off (no creds file) the
+// site is fully open, so the local user is treated as the owner. Used by the
+// public-docs gate and the /__auth/whoami probe — it never mutates cookies.
+function isAuthenticated(req, creds) {
+  if (!creds) return true // gate off -> local dev, everything open
+  const token = authToken(creds)
+  const cookies = parseCookies(req.headers['cookie'])
+  if (cookies[AUTH_COOKIE] === token) return true
+  const header = req.headers['authorization'] || ''
+  const [scheme, encoded] = header.split(' ')
+  if (scheme === 'Basic' && encoded) {
+    const [u, p] = Buffer.from(encoded, 'base64').toString().split(':')
+    return u === creds.user && p === creds.pass
+  }
+  return false
+}
+
 function readCreds(cache) {
   let stat
   try {
@@ -210,14 +243,68 @@ function readCreds(cache) {
 
 function basicAuthGate() {
   const cache = { mtimeMs: -1, creds: null }
+  const manifestCache = { mtimeMs: -1, data: null }
   return {
     name: 'public-basic-auth-gate',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const creds = readCreds(cache)
+        const urlPath = (req.url || '').split('?')[0]
+
+        // Owner-probe for the docs page (task #268): tells the static docs index
+        // whether to reveal its owner-only delete/privacy controls. Answered
+        // before the "gate off" short-circuit so it also works in local dev.
+        if (urlPath === WHOAMI_PATH) {
+          res.statusCode = 200
+          res.setHeader('Content-Type', 'application/json; charset=utf-8')
+          res.setHeader('Cache-Control', 'no-store')
+          return res.end(JSON.stringify({ authed: isAuthenticated(req, creds) }))
+        }
+
         if (!creds) return next() // no file -> frictionless local dev
         const token = authToken(creds)
-        const urlPath = (req.url || '').split('?')[0]
+
+        // --- Public documents (task #268) -----------------------------------
+        // A document is readable WITHOUT the password unless it's marked private.
+        // The board, /api and every other asset stay gated by the logic below.
+        if (req.method === 'GET') {
+          const manifest = readDocsManifest(MANIFEST_FILE, manifestCache)
+          const kind = classifyDoc(urlPath, manifest)
+          if (kind) {
+            const authed = isAuthenticated(req, creds)
+            const privatePage = kind === 'page' && manifest.privatePaths.has(urlPath)
+            if (privatePage) {
+              // Private doc: owner only. Authed -> serve it; otherwise fall
+              // through to the normal challenge (login form for an HTML nav).
+              if (authed) return next()
+            } else if (!authed && kind === 'index') {
+              // Anonymous listing -> serve the index with private cards removed.
+              try {
+                const html = stripPrivateCards(fs.readFileSync(INDEX_FILE, 'utf8'))
+                res.statusCode = 200
+                res.setHeader('Content-Type', 'text/html; charset=utf-8')
+                res.setHeader('Cache-Control', 'no-store')
+                return res.end(html)
+              } catch {
+                return next()
+              }
+            } else if (!authed && kind === 'manifest') {
+              // Anonymous manifest -> drop private entries so they stay unknown.
+              try {
+                const text = stripPrivateManifest(fs.readFileSync(MANIFEST_FILE, 'utf8'))
+                res.statusCode = 200
+                res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                res.setHeader('Cache-Control', 'no-store')
+                return res.end(text)
+              } catch {
+                return next()
+              }
+            } else {
+              // Public page/asset, or an authed listing -> serve, no password.
+              return next()
+            }
+          }
+        }
 
         // Logout: drop the cookies and bounce back to the login form.
         if (urlPath === LOGOUT_PATH) {

@@ -30,6 +30,22 @@ const INDEX_OUT = path.join(ROOT, 'frontend', 'public', 'docs.html')
 // A flat manifest of every doc card, read by the board's frontend so it can show
 // a "new docs" badge on the Docs link (a doc the user hasn't opened yet).
 const MANIFEST_OUT = path.join(ROOT, 'frontend', 'public', 'docs-manifest.json')
+// Per-doc visibility (task #268): documents are PUBLIC by default, but the owner
+// can mark one PRIVATE so only they can open it. The set of private doc ids lives
+// in this gitignored sidecar — written by the backend's visibility endpoint, read
+// here (to stamp the manifest/index) and by the Vite auth gate (to enforce it).
+// Absent/unreadable => nothing is private.
+const VISIBILITY_FILE = path.join(ROOT, 'frontend', '.doc-visibility.json')
+
+function readPrivateIds() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(VISIBILITY_FILE, 'utf8'))
+    const ids = Array.isArray(raw) ? raw : raw && raw.private
+    return new Set(Array.isArray(ids) ? ids.filter((x) => typeof x === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
 
 // A doc counts as "recently created/updated" if its source Markdown was last
 // modified within this many days of the build. Such docs get a red "NEW" badge
@@ -376,6 +392,28 @@ const INDEX_CSS = `
 .doc-del:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
 .doc-del:disabled { cursor: default; opacity: 0.5; }
 @media (hover: none) { .doc-del { opacity: 1; } }
+/* Privacy toggle (task #268): a public/private switch sitting left of delete.
+   A private doc reads as such via a lock badge on its title + a warm border. */
+.doc-card .badge.lock { background: #fdecec; color: #d63939; }
+.card-wrap.is-private .doc-card { border-color: #f0d3a6; }
+.doc-priv {
+  position: absolute; top: 10px; right: 44px; width: 28px; height: 28px;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+  color: var(--muted); font-size: 14px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.card-wrap:hover .doc-priv { opacity: 1; }
+.card-wrap:focus-within .doc-priv { opacity: 1; }
+.doc-priv:hover { background: var(--accent-soft); border-color: #c9cff5; }
+.doc-priv:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
+.doc-priv:disabled { cursor: default; opacity: 0.5; }
+@media (hover: none) { .doc-priv { opacity: 1; } }
+/* Owner-only controls stay hidden until the /__auth/whoami probe confirms the
+   viewer is the authenticated owner. Anonymous public visitors never see the
+   delete or privacy switch — and their private cards were stripped by the gate. */
+body:not(.is-owner) .doc-del,
+body:not(.is-owner) .doc-priv { display: none !important; }
 /* Card removal animation: collapse smoothly instead of vanishing abruptly. */
 .card-wrap { transition: opacity 0.25s ease, transform 0.25s ease; }
 .card-wrap.removing { opacity: 0; transform: scale(0.94); pointer-events: none; }
@@ -442,23 +480,27 @@ const INDEX_CSS = `
 
 function renderIndex(cards) {
   const cardHtml = cards
-    .map(
-      (c) => `<div class="card-wrap${c.isNew ? ' is-new' : ''}" data-id="${esc(c.id)}">
+    .map((c) => {
+      const card = `<div class="card-wrap${c.isNew ? ' is-new' : ''}${c.private ? ' is-private' : ''}" data-id="${esc(c.id)}" data-private="${c.private ? 'true' : 'false'}">
   <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
-  <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}</h2>
+  <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
   <p>${esc(c.excerpt || 'Open to read the full document.')}</p>
   <div class="meta">Read →</div>
 </a>${
         c.isNew
           ? `\n  <span class="new-dot"${c.updatedAt ? ` title="Updated ${esc(c.updatedAt.slice(0, 10))}"` : ''} aria-label="Recently updated">NEW</span>`
           : ''
-      }${
+      }
+  <button class="doc-priv" type="button" title="${c.private ? 'Make public' : 'Make private'}" aria-label="${c.private ? 'Make public' : 'Make private'}: ${esc(c.title)}" data-id="${esc(c.id)}" data-private="${c.private ? 'true' : 'false'}">${c.private ? '🔒' : '🌐'}</button>${
         c.deletable
           ? `\n  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete ${esc(c.title)}" data-id="${esc(c.id)}" data-title="${esc(c.title)}">✕</button>`
           : ''
       }
 </div>`
-    )
+      // Wrap private cards in markers the auth gate strips for anonymous visitors
+      // (task #268) so a private doc is never even listed to others.
+      return c.private ? `<!--PRIVATE-CARD:${esc(c.id)}-->\n${card}\n<!--/PRIVATE-CARD-->` : card
+    })
     .join('\n')
   return `<!doctype html>
 <html lang="en">
@@ -664,6 +706,44 @@ ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">N
     });
   })();
 </script>
+<script>
+  // Per-doc privacy (task #268). Documents are public by default; the owner can
+  // flip one PRIVATE (only they can open it) or back to PUBLIC. The delete and
+  // privacy controls only make sense for the authenticated owner, so we probe the
+  // gate at /__auth/whoami and reveal them via body.is-owner — anonymous visitors
+  // never see them, and their private cards were already stripped by the gate.
+  (function () {
+    fetch('/__auth/whoami', { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : { authed: false }; })
+      .then(function (s) { if (s && s.authed) document.body.classList.add('is-owner'); })
+      .catch(function () {});
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('.doc-priv');
+      if (!btn) return;
+      e.preventDefault();
+      var id = btn.getAttribute('data-id');
+      var makePrivate = btn.getAttribute('data-private') !== 'true';
+      btn.disabled = true;
+      fetch('/api/docs/' + encodeURIComponent(id) + '/visibility', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ private: makePrivate }),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          // The backend regenerated the index; reload to reflect the new state.
+          window.location.reload();
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          if (typeof toast === 'function') {
+            toast('Couldn’t update privacy: ' + err.message, true);
+          }
+        });
+    });
+  })();
+</script>
 </body>
 </html>
 `
@@ -772,10 +852,14 @@ function build() {
   }
 
   // Flag docs whose source Markdown changed within the freshness window, and
-  // record when (for a hover tooltip + the manifest).
+  // record when (for a hover tooltip + the manifest). Also stamp per-doc privacy
+  // (task #268) so the index can badge/hide private cards and the auth gate knows
+  // which pages to keep behind the password.
+  const privateIds = readPrivateIds()
   for (const c of cards) {
     c.isNew = c.mtime > 0 && c.mtime >= NEW_CUTOFF
     c.updatedAt = c.mtime > 0 ? new Date(c.mtime).toISOString() : null
+    c.private = privateIds.has(c.id)
   }
 
   // Recently created/updated docs go to the very front (newest first); the rest
@@ -804,6 +888,10 @@ function build() {
     // manifest a faithful mirror for any other consumer.
     updatedAt: c.updatedAt || null,
     isNew: !!c.isNew,
+    // Whether the owner has marked this doc private (task #268). The Vite auth
+    // gate reads this to keep private pages behind the password and to hide them
+    // from anonymous listings; the board reads it to badge/skip private docs.
+    private: !!c.private,
     // Every repo-relative file/dir backing this doc (sources + generated output).
     // DELETE /api/docs/{id} removes each of these, then regenerates the site.
     paths: c.paths || [],

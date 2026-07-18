@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "node src/docLinks.test.mjs",
+    "test": "node src/docLinks.test.mjs && node docsGate.test.mjs",
     "gen:singapore": "node ../scripts/build-singapore-page.mjs",
     "gen:docs": "node ../scripts/build-docs-site.mjs",
     "gen:pages": "npm run gen:singapore && npm run gen:docs",

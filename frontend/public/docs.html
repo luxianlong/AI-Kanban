@@ -75,6 +75,17 @@ a:hover { text-decoration: underline; }
 .empty { color: var(--muted); text-align: center; padding: 40px; }
 .card-wrap { position: relative; display: flex; }
 .card-wrap .doc-card { flex: 1; }
+/* "Recently created/updated" marker (task #319): a red badge pinned to the
+   card's top-right corner. The whole card also gets a subtle red-tinted border
+   so fresh docs — which sort to the front — read as new at a glance. */
+.card-wrap.is-new .doc-card { border-color: #f3c0c0; }
+.new-dot {
+  position: absolute; top: -8px; right: -8px; z-index: 3;
+  background: #e5484d; color: #fff; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.6px; line-height: 1; padding: 4px 7px; border-radius: 999px;
+  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(229,72,77,0.45);
+  pointer-events: none;
+}
 .doc-del {
   position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
   border-radius: 8px; border: 1px solid var(--line); background: var(--card);
@@ -83,9 +94,95 @@ a:hover { text-decoration: underline; }
   opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
 .card-wrap:hover .doc-del { opacity: 1; }
+.card-wrap:focus-within .doc-del { opacity: 1; }
 .doc-del:hover { background: #fdecec; color: #d63939; border-color: #f3c0c0; }
+.doc-del:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
 .doc-del:disabled { cursor: default; opacity: 0.5; }
 @media (hover: none) { .doc-del { opacity: 1; } }
+/* Privacy toggle (task #268): a public/private switch sitting left of delete.
+   A private doc reads as such via a lock badge on its title + a warm border. */
+.doc-card .badge.lock { background: #fdecec; color: #d63939; }
+.card-wrap.is-private .doc-card { border-color: #f0d3a6; }
+.doc-priv {
+  position: absolute; top: 10px; right: 44px; width: 28px; height: 28px;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+  color: var(--muted); font-size: 14px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.card-wrap:hover .doc-priv { opacity: 1; }
+.card-wrap:focus-within .doc-priv { opacity: 1; }
+.doc-priv:hover { background: var(--accent-soft); border-color: #c9cff5; }
+.doc-priv:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
+.doc-priv:disabled { cursor: default; opacity: 0.5; }
+@media (hover: none) { .doc-priv { opacity: 1; } }
+/* Owner-only controls stay hidden until the /__auth/whoami probe confirms the
+   viewer is the authenticated owner. Anonymous public visitors never see the
+   delete or privacy switch — and their private cards were stripped by the gate. */
+body:not(.is-owner) .doc-del,
+body:not(.is-owner) .doc-priv { display: none !important; }
+/* Card removal animation: collapse smoothly instead of vanishing abruptly. */
+.card-wrap { transition: opacity 0.25s ease, transform 0.25s ease; }
+.card-wrap.removing { opacity: 0; transform: scale(0.94); pointer-events: none; }
+
+/* Confirmation modal — replaces the native window.confirm() with a styled,
+   accessible dialog (backdrop, focus trap, Esc to cancel). */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(31,36,48,0.45);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 0.18s ease; z-index: 50;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: auto; }
+.modal {
+  background: var(--card); border-radius: 16px; max-width: 420px; width: 100%;
+  padding: 26px 26px 22px; box-shadow: 0 24px 60px rgba(31,36,48,0.28);
+  transform: translateY(12px) scale(0.98); transition: transform 0.18s ease;
+}
+.modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+.modal .modal-icon {
+  width: 44px; height: 44px; border-radius: 50%; background: #fdecec; color: #d63939;
+  display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px;
+}
+.modal h3 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 19px; margin: 0 0 8px; }
+.modal p { margin: 0 0 6px; color: var(--muted); font-size: 14.5px; }
+.modal .doc-name { color: var(--ink); font-weight: 600; word-break: break-word; }
+.modal .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+.btn {
+  font: inherit; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 10px;
+  cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+.btn:hover { background: #f3f4f8; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-danger { background: #d63939; border-color: #d63939; color: #fff; }
+.btn-danger:hover { background: #c02c2c; border-color: #c02c2c; }
+.btn-danger:disabled { opacity: 0.6; cursor: default; }
+.btn .spinner {
+  display: inline-block; width: 13px; height: 13px; margin-right: 7px; vertical-align: -1px;
+  border: 2px solid rgba(255,255,255,0.5); border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast notifications — replace native alert() for success/error feedback. */
+.toast-host {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 10px; z-index: 60; width: max-content; max-width: 92vw;
+}
+.toast {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px;
+  background: var(--ink); color: #fff; font-size: 14px; font-weight: 500;
+  box-shadow: 0 10px 30px rgba(31,36,48,0.3);
+  opacity: 0; transform: translateY(10px); transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: #b02525; }
+.toast .toast-icon { font-size: 16px; line-height: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .card-wrap, .modal-backdrop, .modal, .toast { transition: none; }
+  .btn .spinner { animation: none; }
+}
 </style>
 </head>
 <body>
@@ -97,100 +194,257 @@ a:hover { text-decoration: underline; }
 </header>
 <div class="wrap">
 <div class="grid">
-<div class="card-wrap" data-id="singapore-travel-guide">
-  <a class="doc-card featured" href="/singapore.html">
-  <h2>新加坡旅游攻略<span class="badge">Featured</span></h2>
-  <p>!新加坡中央商务区与滨海湾天际线夜景</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 新加坡旅游攻略" data-id="singapore-travel-guide" data-title="新加坡旅游攻略">✕</button>
-</div>
-<div class="card-wrap" data-id="us-iran-war">
+<div class="card-wrap is-new" data-id="us-iran-war" data-private="false">
   <a class="doc-card featured" href="/docs/us-iran-war.html">
   <h2>美伊战争 · 分析总览 (2026)<span class="badge">Featured</span></h2>
   <p>六部分深度研究：背景与结构性根源、当前局势快照、军力对比与升级情景、地缘影响、市场与能源冲击、情景推演与前景研判。</p>
   <div class="meta">Read →</div>
 </a>
+  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 美伊战争 · 分析总览 (2026)" data-id="us-iran-war" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 美伊战争 · 分析总览 (2026)" data-id="us-iran-war" data-title="美伊战争 · 分析总览 (2026)">✕</button>
 </div>
-<div class="card-wrap" data-id="ai-supply-chain">
+<div class="card-wrap is-new" data-id="singapore-travel-guide" data-private="false">
+  <a class="doc-card featured" href="/singapore.html">
+  <h2>新加坡旅游攻略<span class="badge">Featured</span></h2>
+  <p>!新加坡中央商务区与滨海湾天际线夜景</p>
+  <div class="meta">Read →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 新加坡旅游攻略" data-id="singapore-travel-guide" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 新加坡旅游攻略" data-id="singapore-travel-guide" data-title="新加坡旅游攻略">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="ai-supply-chain" data-private="false">
   <a class="doc-card" href="/docs/ai-supply-chain.html">
   <h2>AI supply chain — topology</h2>
   <p>A visual map of the global AI supply chain: everything that has to line up so a prompt you type in a browser can be answered by a large model. Rendered with Mermaid — GitHub…</p>
   <div class="meta">Read →</div>
 </a>
+  <span class="new-dot" title="Updated 2026-07-15" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: AI supply chain — topology" data-id="ai-supply-chain" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete AI supply chain — topology" data-id="ai-supply-chain" data-title="AI supply chain — topology">✕</button>
 </div>
-<div class="card-wrap" data-id="public-tunnel">
-  <a class="doc-card" href="/docs/public-tunnel.html">
-  <h2>Exposing the dashboard as a public website</h2>
-  <p>How to put this locally-running app on a public URL, gated by a password. Two options: a quick tunnel (zero setup, ephemeral URL — the current default) and a named tunnel…</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Exposing the dashboard as a public website" data-id="public-tunnel" data-title="Exposing the dashboard as a public website">✕</button>
-</div>
-<div class="card-wrap" data-id="architecture">
-  <a class="doc-card" href="/docs/architecture.html">
-  <h2>Kanban architecture — topology</h2>
-  <p>A visual map of how the Claude Code Kanban is put together, rendered with Mermaid. GitHub renders these diagrams inline; in an editor use a Mermaid preview extension.</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Kanban architecture — topology" data-id="architecture" data-title="Kanban architecture — topology">✕</button>
-</div>
-<div class="card-wrap" data-id="kechuang-investment-guide">
-  <a class="doc-card" href="/docs/kechuang-investment-guide.html">
-  <h2>科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）</h2>
-  <p>重灾区是前期涨幅最大、筹码最集中的方向：存储芯片、CPO、光纤、算力硬件、PCB、接口芯片。这些正是 6 月末暴涨的品种，高位获利盘集中止盈。上周涨幅第一的板块，隔周就成跌幅第一——典型的抱团瓦解。</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）" data-id="kechuang-investment-guide" data-title="科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）">✕</button>
-</div>
-<div class="card-wrap" data-id="kechuang-forecast-2026-07-16">
-  <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16.html">
-  <h2>预测今天科创板走势（2026-07-16）</h2>
-  <p>步骤 3、4 使用的是盘中/收盘瞬时快照，与最终收盘定格不一致。以日 K 接口为准：</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测今天科创板走势（2026-07-16）" data-id="kechuang-forecast-2026-07-16" data-title="预测今天科创板走势（2026-07-16）">✕</button>
-</div>
-<div class="card-wrap" data-id="kechuang-forecast-2026-07-16-review">
-  <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16-review.html">
-  <h2>预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）</h2>
-  <p>预测文档同时写了两句话：</p>
-  <div class="meta">Read →</div>
-</a>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）" data-id="kechuang-forecast-2026-07-16-review" data-title="预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）">✕</button>
 </div>
 </div>
+
+<div class="modal-backdrop" id="del-modal" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" aria-describedby="del-modal-desc" hidden>
+  <div class="modal">
+    <div class="modal-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6"/><path d="M10 11v6M14 11v6"/></svg></div>
+    <h3 id="del-modal-title">Delete this document?</h3>
+    <p id="del-modal-desc">You're about to remove <span class="doc-name"></span>.</p>
+    <p class="note">This deletes the document and its published page. It can't be undone from here.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-act="cancel">Cancel</button>
+      <button type="button" class="btn btn-danger" data-act="confirm">Delete</button>
+    </div>
+  </div>
 </div>
+<div class="toast-host" id="toast-host" aria-live="polite" aria-atomic="true"></div>
+
 <script>
   // Delete a document: ask the backend to remove its source Markdown + generated
   // page, then drop the card. The board proxies /api to the Spring backend, so a
   // same-origin fetch works whether we're on :80 (dev/tunnel) or a build preview.
+  //
+  // UX (task #278): the raw window.confirm()/alert() are replaced with an
+  // accessible styled modal (focus trap, Esc to cancel, restores focus), a
+  // smooth card-collapse animation, and toast feedback for success and errors.
   var grid = document.querySelector('.grid');
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest && e.target.closest('.doc-del');
-    if (!btn) return;
-    e.preventDefault();
+  var wrapEl = document.querySelector('.wrap');
+  var modal = document.getElementById('del-modal');
+  var modalName = modal.querySelector('.doc-name');
+  var confirmBtn = modal.querySelector('[data-act="confirm"]');
+  var cancelBtn = modal.querySelector('[data-act="cancel"]');
+  var toastHost = document.getElementById('toast-host');
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pending = null; // the .doc-del button whose card we're about to delete
+  var lastFocus = null;
+
+  function toast(message, isError) {
+    var el = document.createElement('div');
+    el.className = 'toast' + (isError ? ' error' : '');
+    el.setAttribute('role', isError ? 'alert' : 'status');
+    var icon = document.createElement('span');
+    icon.className = 'toast-icon';
+    icon.textContent = isError ? '!' : '✓';
+    el.appendChild(icon);
+    el.appendChild(document.createTextNode(message));
+    toastHost.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('show'); });
+    setTimeout(function () {
+      el.classList.remove('show');
+      setTimeout(function () { el.remove(); }, 250);
+    }, isError ? 5000 : 3200);
+  }
+
+  function openModal(btn) {
+    pending = btn;
+    lastFocus = btn;
+    modalName.textContent = '“' + (btn.getAttribute('data-title') || 'this document') + '”';
+    modal.hidden = false;
+    requestAnimationFrame(function () { modal.classList.add('open'); });
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Delete';
+    setTimeout(function () { cancelBtn.focus(); }, 0);
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    var t = prefersReduced ? 0 : 180;
+    setTimeout(function () { modal.hidden = true; }, t);
+    pending = null;
+    if (lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
+  }
+
+  function removeCard(wrap) {
+    wrap.classList.add('removing');
+    var finish = function () {
+      wrap.remove();
+      if (grid && !grid.querySelector('.card-wrap') && wrapEl) {
+        wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
+      }
+    };
+    if (prefersReduced) finish();
+    else setTimeout(finish, 260);
+  }
+
+  function doDelete() {
+    if (!pending) return;
+    var btn = pending;
     var id = btn.getAttribute('data-id');
     var title = btn.getAttribute('data-title') || 'this document';
-    if (!window.confirm('Delete "' + title + '"? This removes the document for good.')) return;
-    btn.disabled = true;
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Deleting…';
     fetch('/api/docs/' + encodeURIComponent(id), { method: 'DELETE' })
       .then(function (res) {
         if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
         var wrap = btn.closest('.card-wrap');
-        if (wrap) wrap.remove();
-        if (grid && !grid.querySelector('.card-wrap')) {
-          var wrapEl = document.querySelector('.wrap');
-          if (wrapEl) wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
-        }
+        // Don't restore focus to a button we're about to remove.
+        lastFocus = null;
+        closeModal();
+        if (wrap) removeCard(wrap);
+        toast('Deleted “' + title + '”', false);
       })
       .catch(function (err) {
-        btn.disabled = false;
-        window.alert('Could not delete "' + title + '": ' + err.message);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Delete';
+        closeModal();
+        toast('Couldn’t delete “' + title + '”: ' + err.message, true);
       });
+  }
+
+  // Open the modal from any delete button (delegated so it works after re-render).
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.doc-del');
+    if (!btn) return;
+    e.preventDefault();
+    openModal(btn);
   });
+
+  confirmBtn.addEventListener('click', doDelete);
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeModal(); // click on backdrop
+  });
+  document.addEventListener('keydown', function (e) {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') { closeModal(); return; }
+    if (e.key === 'Tab') {
+      // Simple focus trap between the two modal buttons.
+      var focusables = [cancelBtn, confirmBtn].filter(function (b) { return !b.disabled; });
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+</script>
+<script>
+  // Make the red "NEW" badge mean "recently updated AND not yet opened by you"
+  // (task #357). Two halves: (1) on load, strip NEW from any card whose doc the
+  // user has already opened — read state lives server-side at /api/docs/reads so
+  // it's the same across devices; (2) when the user clicks into a doc, record it
+  // as read (keepalive so the POST survives the navigation) and clear its badge
+  // immediately. Together: opening a doc stops it being flagged new here and on
+  // the board's Docs badge. Bespoke pages (e.g. /singapore.html) that lack their
+  // own mark-on-open script are covered by the click handler below.
+  (function () {
+    function markRead(id) {
+      if (!id) return;
+      try {
+        fetch('/api/docs/reads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: [id] }),
+          keepalive: true,
+        }).catch(function () {});
+      } catch (e) {}
+    }
+    function clearNew(wrap) {
+      if (!wrap) return;
+      wrap.classList.remove('is-new');
+      var dot = wrap.querySelector('.new-dot');
+      if (dot) dot.remove();
+    }
+    fetch('/api/docs/reads')
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (ids) {
+        if (!Array.isArray(ids) || !ids.length) return;
+        var seen = Object.create(null);
+        ids.forEach(function (id) { seen[id] = true; });
+        var wraps = document.querySelectorAll('.card-wrap[data-id]');
+        for (var i = 0; i < wraps.length; i++) {
+          if (seen[wraps[i].getAttribute('data-id')]) clearNew(wraps[i]);
+        }
+      })
+      .catch(function () {});
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest && e.target.closest('.doc-card');
+      if (!link) return; // delete buttons and empty space are handled elsewhere
+      var wrap = link.closest('.card-wrap');
+      if (!wrap) return;
+      markRead(wrap.getAttribute('data-id'));
+      clearNew(wrap);
+    });
+  })();
+</script>
+<script>
+  // Per-doc privacy (task #268). Documents are public by default; the owner can
+  // flip one PRIVATE (only they can open it) or back to PUBLIC. The delete and
+  // privacy controls only make sense for the authenticated owner, so we probe the
+  // gate at /__auth/whoami and reveal them via body.is-owner — anonymous visitors
+  // never see them, and their private cards were already stripped by the gate.
+  (function () {
+    fetch('/__auth/whoami', { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : { authed: false }; })
+      .then(function (s) { if (s && s.authed) document.body.classList.add('is-owner'); })
+      .catch(function () {});
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('.doc-priv');
+      if (!btn) return;
+      e.preventDefault();
+      var id = btn.getAttribute('data-id');
+      var makePrivate = btn.getAttribute('data-private') !== 'true';
+      btn.disabled = true;
+      fetch('/api/docs/' + encodeURIComponent(id) + '/visibility', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ private: makePrivate }),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          // The backend regenerated the index; reload to reflect the new state.
+          window.location.reload();
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          if (typeof toast === 'function') {
+            toast('Couldn’t update privacy: ' + err.message, true);
+          }
+        });
+    });
+  })();
 </script>
 </body>
 </html>
