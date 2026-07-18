@@ -230,5 +230,19 @@ pre.mermaid { background: var(--card); border: 1px solid var(--line); border-rad
   }
 </script>
 
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["public-tunnel"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+</script>
 </body>
 </html>

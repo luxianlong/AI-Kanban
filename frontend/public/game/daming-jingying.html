@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>大明王朝·衙门经营：一个知县的六年 · 模拟经营网页游戏</title>
+<meta name="description" content="一款以《潜规则》为主题的模拟经营游戏：你执掌清河县六年，逐年调度火耗、差役、孝敬、惠民四条杠杆，在上意、民心、清誉、库银、私囊之间求存。看清账本背后的潜规则，你能任满全身而退吗？" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f3e9d2;
+    --paper-2: #ece0c2;
+    --ink: #2a211a;
+    --ink-soft: #6b5b48;
+    --red: #8b1e1e;
+    --red-2: #a83232;
+    --gold: #b8912f;
+    --gold-soft: #e7d39a;
+    --line: #cdbb93;
+    --good: #2f7d54;
+    --bad: #a2331f;
+    --seal: #b23b2e;
+    --maxw: 900px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #f7efdb 0%, rgba(247,239,219,0) 60%),
+      repeating-linear-gradient(0deg, rgba(120,90,50,0.035) 0 2px, rgba(0,0,0,0) 2px 5px),
+      var(--paper);
+    font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 18px 16px 72px; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 2px 14px; }
+  .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .brand .cn {
+    font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+    font-size: clamp(24px, 6vw, 38px); color: var(--red); letter-spacing: 2px; line-height: 1;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .brand .sub { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; }
+  .homelink { font-size: 12.5px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--line); white-space: nowrap; }
+  .homelink:hover { color: var(--red); }
+
+  .card {
+    background: linear-gradient(180deg, #fbf5e5 0%, #f3e8cf 100%);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(80,55,20,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    padding: 20px 22px;
+  }
+  .card + .card { margin-top: 14px; }
+
+  /* title screen */
+  .hero { text-align: center; position: relative; overflow: hidden; }
+  .hero::before {
+    content: "衙"; position: absolute; right: -14px; top: -40px; font-family: "Ma Shan Zheng", serif;
+    font-size: 220px; color: rgba(139,30,30,0.06); pointer-events: none; line-height: 1;
+  }
+  .hero h1 { font-family: "Ma Shan Zheng", serif; color: var(--red); font-size: clamp(28px, 8vw, 50px); margin: 6px 0 2px; letter-spacing: 3px; }
+  .hero .tag { color: var(--ink-soft); font-size: 14px; letter-spacing: 1px; margin: 0 0 14px; }
+  .hero p { text-align: left; margin: 10px auto; max-width: 680px; }
+  .roles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 16px auto 8px; max-width: 680px; }
+  @media (min-width: 620px){ .roles { grid-template-columns: repeat(4, 1fr); } }
+  .role { background: rgba(255,255,255,0.5); border: 1px solid var(--line); border-radius: 10px; padding: 10px 8px; font-size: 13px; }
+  .role .emo { font-size: 22px; display: block; }
+  .role .nm { font-weight: 700; color: var(--red); }
+  .role .dsc { color: var(--ink-soft); font-size: 11.5px; }
+
+  .btn {
+    font-family: inherit; cursor: pointer; border-radius: 10px; font-size: 16px; font-weight: 700;
+    padding: 12px 26px; border: 1px solid var(--red); color: #fff;
+    background: linear-gradient(180deg, var(--red-2), var(--red));
+    box-shadow: 0 4px 14px rgba(139,30,30,0.28); letter-spacing: 1px;
+    transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .btn:hover { filter: brightness(1.06); box-shadow: 0 6px 18px rgba(139,30,30,0.36); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; filter: grayscale(.3); }
+  .btn.ghost { background: rgba(255,255,255,0.45); color: var(--red); }
+  .btn.sm { font-size: 13px; padding: 8px 16px; }
+  .center { text-align: center; margin-top: 16px; }
+
+  /* HUD */
+  .hud { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+  @media (min-width: 720px){ .hud { grid-template-columns: repeat(5, 1fr); } }
+  .stat .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; margin-bottom: 4px; }
+  .stat .name { font-weight: 700; }
+  .stat .name .ic { margin-right: 4px; }
+  .stat .val { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 12.5px; }
+  .bar { height: 10px; background: rgba(120,90,50,0.16); border-radius: 6px; overflow: hidden; border: 1px solid rgba(120,90,50,0.18); }
+  .bar > i { display: block; height: 100%; border-radius: 6px; transition: width .5s cubic-bezier(.2,.7,.2,1), background .3s; }
+  .fill-shangyi > i { background: linear-gradient(90deg,#6b1f1f,#a83232); }
+  .fill-minxin > i { background: linear-gradient(90deg,#7a5a13,#c79a2c); }
+  .fill-qingyu > i { background: linear-gradient(90deg,#2f6d7d,#3f9e9e); }
+  .coinbox { display: flex; align-items: baseline; gap: 6px; }
+  .coinbox .amt { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .coinbox.neg .amt { color: var(--bad); }
+  .coinbox .u { font-size: 11.5px; color: var(--ink-soft); }
+  .delta { font-size: 12px; font-weight: 700; margin-left: 6px; }
+  .delta.up { color: var(--good); }
+  .delta.down { color: var(--bad); }
+
+  .yearbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 2px 2px 12px; font-size: 13px; color: var(--ink-soft); flex-wrap: wrap; }
+  .yearbar .yr { font-weight: 700; color: var(--red); font-size: 15px; }
+  .pips { display: flex; gap: 5px; }
+  .pip { width: 11px; height: 11px; border-radius: 50%; background: rgba(120,90,50,0.22); }
+  .pip.done { background: var(--red); }
+  .pip.now { background: var(--gold); box-shadow: 0 0 0 3px rgba(184,145,47,0.25); }
+
+  .quota { background: linear-gradient(180deg,#fff7e6,#f6eccf); border: 1px dashed var(--red); border-radius: 10px; padding: 10px 14px; margin: 4px 0 14px; font-size: 14px; }
+  .quota b { color: var(--red); }
+
+  h2.sec { font-family: "Ma Shan Zheng", serif; color: var(--red); font-size: 22px; margin: 6px 0 12px; letter-spacing: 1px; font-weight: 400; }
+
+  /* levers */
+  .lever { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; background: rgba(255,255,255,0.35); }
+  .lever .lh { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .lever .lt { font-weight: 700; color: var(--ink); font-size: 15px; }
+  .lever .lt .ic { margin-right: 5px; }
+  .lever .ls { font-size: 12px; color: var(--ink-soft); }
+  .opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .opt {
+    font-family: inherit; cursor: pointer; border: 1px solid var(--line); border-radius: 9px;
+    background: rgba(255,255,255,0.55); padding: 8px 4px; text-align: center; font-size: 13px; color: var(--ink);
+    transition: all .12s ease;
+  }
+  .opt .on { display: block; font-weight: 700; font-size: 13.5px; }
+  .opt .oe { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .opt:hover { border-color: var(--gold); }
+  .opt.sel { background: linear-gradient(180deg,#fbeede,#f2ddb8); border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+
+  /* preview ledger */
+  .ledger { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 6px; }
+  .ledger .lgh { background: rgba(139,30,30,0.08); padding: 8px 14px; font-weight: 700; font-size: 14px; color: var(--red); }
+  .ledger table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .ledger td { padding: 6px 14px; border-top: 1px solid rgba(120,90,50,0.14); }
+  .ledger td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  .ledger tr.tot td { font-weight: 700; border-top: 2px solid rgba(120,90,50,0.3); }
+  .ledger .pos { color: var(--good); }
+  .ledger .neg { color: var(--bad); }
+  .ledger .warnrow td { background: rgba(162,51,31,0.08); color: var(--bad); }
+
+  .interp { margin-top: 12px; background: linear-gradient(180deg,#f6efe0,#efe4cb); border-left: 4px solid var(--gold); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; }
+  .interp b { color: var(--red); }
+  .interp .lbl { display: inline-block; font-size: 11px; color: #fff; background: var(--gold); border-radius: 5px; padding: 1px 7px; margin-right: 6px; letter-spacing: .5px; vertical-align: 1px; }
+
+  /* event */
+  .evt .en { font-weight: 700; color: var(--red); font-size: 17px; margin-bottom: 6px; }
+  .evt .ed { margin-bottom: 12px; }
+  .choice {
+    display: block; width: 100%; text-align: left; font-family: inherit; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,0.5);
+    padding: 12px 15px; margin-bottom: 10px; font-size: 14.5px; color: var(--ink); line-height: 1.55;
+    transition: all .12s ease;
+  }
+  .choice:hover { border-color: var(--red); background: rgba(255,255,255,0.8); transform: translateX(2px); }
+  .choice .ct { font-weight: 700; }
+  .choice .cc { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+  /* year summary sparkline */
+  .spark { display: flex; align-items: flex-end; gap: 4px; height: 46px; margin-top: 4px; }
+  .spark .s { flex: 1; background: rgba(120,90,50,0.18); border-radius: 3px 3px 0 0; position: relative; min-height: 2px; }
+  .spark .s.priv { background: linear-gradient(180deg,#c79a2c,#8a6a13); }
+  .spark .lbls { }
+
+  /* ending */
+  .ending .ec { font-family: "Ma Shan Zheng", serif; font-size: clamp(26px,7vw,42px); color: var(--red); letter-spacing: 2px; text-align: center; margin: 6px 0 4px; }
+  .ending .es { text-align: center; color: var(--ink-soft); font-size: 14px; margin-bottom: 14px; }
+  .ending .ebody { max-width: 660px; margin: 0 auto; }
+  .taglist { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
+  .tag { font-size: 12.5px; background: rgba(139,30,30,0.08); border: 1px solid var(--line); color: var(--red); border-radius: 20px; padding: 4px 12px; }
+  .scoreboard { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px 18px; max-width: 520px; margin: 14px auto; font-size: 14px; }
+  @media (min-width:620px){ .scoreboard { grid-template-columns: repeat(3,1fr); } }
+  .scoreboard div { display: flex; justify-content: space-between; border-bottom: 1px dotted var(--line); padding-bottom: 3px; }
+  .scoreboard b { font-variant-numeric: tabular-nums; }
+
+  .foot { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 24px; }
+  .foot a { color: var(--red); text-decoration: none; border-bottom: 1px dotted var(--line); }
+  .hidden { display: none; }
+  .fade { animation: fade .35s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <span class="cn">大明王朝 · 衙门经营</span>
+      <span class="sub">一个知县的六年 · 潜规则模拟经营</span>
+    </div>
+    <a class="homelink" href="/docs.html">← 返回文档索引</a>
+  </div>
+
+  <div id="app"></div>
+
+  <div class="foot">
+    玩法与文案基于吴思《潜规则：中国历史中的真实游戏》(2001)。
+    想读懂账本背后的规则 →
+    <a href="/docs/qianguize-wusi.html">学术版分析</a> ·
+    <a href="/docs/qianguize-haowanban.html">好玩版</a> ·
+    <a href="/game/daming-wangchao.html">抉择版游戏</a>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function () {
+  var app = document.getElementById("app");
+
+  // ---- balance constants ----
+  var TERM_YEARS = 6;         // 任期
+  var BASE_FIELD = 420;       // 正赋定额（田赋本色，两）
+  var START = { shangyi: 55, minxin: 60, qingyu: 72, kuyin: 220, sinang: 40 };
+
+  // 上供额度：逐年上涨，第4年起朝廷加派三饷 —— 崇祯死弯
+  function quotaFor(year) {
+    var base = 300 + (year - 1) * 30;          // 常规递增
+    var sanxiang = year >= 4 ? (year - 3) * 70 : 0; // 三饷加派
+    return { base: base, sanxiang: sanxiang, total: base + sanxiang };
+  }
+
+  // 四条杠杆：每条 4 档 (0..3)
+  var LEVERS = [
+    {
+      key: "huohao", ic: "🔥", name: "火耗加征",
+      sub: "正税之外的附加，档次越高，私囊越丰、民心越薄",
+      opts: ["不加征", "一分火耗", "二分五", "四分重耗"],
+      rate: [0, 0.10, 0.25, 0.40]
+    },
+    {
+      key: "chaiyi", ic: "🧾", name: "差役征比",
+      sub: "多雇书吏差役，征收更足额，但他们要吃陋规、也更扰民",
+      opts: ["自征·清简", "两房差役", "四房差役", "六房·催科如虎"],
+      eff: [0.80, 1.00, 1.15, 1.28],   // 征收效率
+      graft: [0, 0.10, 0.20, 0.32]     // 你能从火耗里分到的陋规回扣比例
+    },
+    {
+      key: "xiaojing", ic: "🎁", name: "孝敬上宪",
+      sub: "炭敬冰敬送往府道，用私囊买上意",
+      opts: ["不送", "薄礼 15 两", "常例 40 两", "厚馈 80 两"],
+      cost: [0, 15, 40, 80],
+      favor: [0, 6, 13, 22]
+    },
+    {
+      key: "huimin", ic: "🌾", name: "惠民之政",
+      sub: "修水利、办义仓、缓刑名，用库银买民心与清誉",
+      opts: ["不办", "略施 30 两", "实惠 65 两", "大兴 115 两"],
+      cost: [0, 30, 65, 115],
+      minxin: [0, 9, 17, 26],
+      qingyu: [0, 4, 7, 11]
+    }
+  ];
+
+  // 随机年度事件（settlement 之前触发）。每个选项一个潜规则标签。
+  var EVENTS = [
+    {
+      name: "命案投状", tag: "合法伤害权",
+      desc: "本县富户与佃农各持一词闹出人命。案卷在你手，判笔可轻可重。富户连夜送来八百两「使费」。",
+      choices: [
+        { ct: "收礼徇情，判佃农抵命", cc: "私囊+80，清誉-14，民心-8", eff: function (s) { s.sinang += 80; s.qingyu -= 14; s.minxin -= 8; } },
+        { ct: "退礼秉公，从实勘断", cc: "清誉+10，上意-6（得罪权贵）", eff: function (s) { s.qingyu += 10; s.shangyi -= 6; s.minxin += 4; } }
+      ]
+    },
+    {
+      name: "上宪考察·打点关节", tag: "陋规",
+      desc: "府尊将至境巡视。师爷提醒：迎送供张、随行「使费」是躲不掉的常例，不办便是「不上道」。",
+      choices: [
+        { ct: "如常打点，宾主尽欢", cc: "私囊-60，上意+14", eff: function (s) { s.sinang -= 60; s.shangyi += 14; } },
+        { ct: "简办公事公办", cc: "上意-10，清誉+6", eff: function (s) { s.shangyi -= 10; s.qingyu += 6; } }
+      ]
+    },
+    {
+      name: "水旱成灾", tag: "老百姓是个冤大头",
+      desc: "夏汛冲了三乡田禾。可开仓赈济，也可照旧催征——赈了库银吃紧，不赈则民心崩坏。",
+      choices: [
+        { ct: "开仓赈济、奏请缓征", cc: "库银-70，民心+16，清誉+8", eff: function (s) { s.kuyin -= 70; s.minxin += 16; s.qingyu += 8; } },
+        { ct: "灾伤不报，照额严催", cc: "民心-18，上意+5（考成达标）", eff: function (s) { s.minxin -= 18; s.shangyi += 5; } }
+      ]
+    },
+    {
+      name: "同僚约分", tag: "淘汰清官机制",
+      desc: "邻县、本府同僚按「常例」凑分子孝敬藩司，名册上留着你的位置。入伙则同气连枝，不入则被记「另册」。",
+      choices: [
+        { ct: "随众出份子", cc: "私囊-45，上意+12", eff: function (s) { s.sinang -= 45; s.shangyi += 12; } },
+        { ct: "洁身自好不入伙", cc: "上意-12，清誉+8（上了另册）", eff: function (s) { s.shangyi -= 12; s.qingyu += 8; } }
+      ]
+    },
+    {
+      name: "挂号钱", tag: "第二等公平",
+      desc: "衙门口，百姓递状先塞「挂号钱」，只求书吏别把案卷压在箱底。要不要默许这笔人人都交的规费？",
+      choices: [
+        { ct: "默许照收，人人有份", cc: "私囊+50，民心-6，清誉-8", eff: function (s) { s.sinang += 50; s.minxin -= 6; s.qingyu -= 8; } },
+        { ct: "出告示革除陋规", cc: "清誉+12，上意-5（断人财路）", eff: function (s) { s.qingyu += 12; s.shangyi -= 5; s.minxin += 5; } }
+      ]
+    },
+    {
+      name: "漕粮短纳", tag: "老百姓是个冤大头",
+      desc: "解运京仓的漕粮在途损耗，账面差了一截。补亏空要么加派于民，要么自掏私囊。",
+      choices: [
+        { ct: "加派「脚耗」摊于百姓", cc: "库银+55，民心-14", eff: function (s) { s.kuyin += 55; s.minxin -= 14; } },
+        { ct: "自掏私囊填补", cc: "私囊-55，清誉+6", eff: function (s) { s.sinang -= 55; s.qingyu += 6; } }
+      ]
+    }
+  ];
+
+  // ---- game state ----
+  var G;
+  function newGame() {
+    G = {
+      year: 1,
+      s: Object.assign({}, START),
+      choice: { huohao: 0, chaiyi: 1, xiaojing: 0, huimin: 0 },
+      history: [],           // per-year snapshots {sinang, minxin}
+      tags: {},              // triggered 潜规则 concepts
+      arrears: 0,            // 累计亏空
+      lastDelta: null,
+      over: null             // ending id when finished
+    };
+  }
+
+  function clamp(v) { return Math.max(0, Math.min(100, Math.round(v))); }
+  function addTag(t) { G.tags[t] = (G.tags[t] || 0) + 1; }
+
+  // Compute settlement preview (pure) from current choices, WITHOUT events.
+  function computeLedger() {
+    var c = G.choice;
+    var hh = LEVERS[0], cy = LEVERS[1], xj = LEVERS[2], hm = LEVERS[3];
+    var eff = cy.eff[c.chaiyi];
+    var rate = hh.rate[c.huohao];
+    var q = quotaFor(G.year);
+
+    var zhengfu = Math.round(BASE_FIELD * eff);       // 正赋征得 → 库银
+    var huohaoTotal = Math.round(BASE_FIELD * rate);   // 火耗总额
+    var graftRate = cy.graft[c.chaiyi];
+    var toSinang = Math.round(huohaoTotal * (0.30 + graftRate)); // 你分到的火耗
+    var toClerks = huohaoTotal - toSinang;              // 差役截留（流失）
+
+    var xiaojingCost = xj.cost[c.xiaojing];
+    var huiminCost = hm.cost[c.huimin];
+
+    return {
+      q: q, eff: eff, rate: rate,
+      zhengfu: zhengfu,
+      huohaoTotal: huohaoTotal,
+      toSinang: toSinang,
+      toClerks: toClerks,
+      xiaojingCost: xiaojingCost,
+      huiminCost: huiminCost,
+      shangyiGain: xj.favor[c.xiaojing],
+      minxinGain: hm.minxin[c.huimin],
+      qingyuGain: hm.qingyu[c.huimin]
+    };
+  }
+
+  // ---------- rendering ----------
+  function statBar(cls, ic, name, v) {
+    return '<div class="stat"><div class="row"><span class="name"><span class="ic">' + ic + '</span>' + name +
+      '</span><span class="val">' + v + '/100</span></div><div class="bar ' + cls + '"><i style="width:' + v + '%"></i></div></div>';
+  }
+  function coin(ic, name, v) {
+    return '<div class="stat"><div class="row"><span class="name"><span class="ic">' + ic + '</span>' + name + '</span></div>' +
+      '<div class="coinbox' + (v < 0 ? ' neg' : '') + '"><span class="amt">' + v + '</span><span class="u">两</span></div></div>';
+  }
+  function hud() {
+    var s = G.s;
+    return '<div class="card"><div class="hud">' +
+      statBar('fill-shangyi', '🎏', '上意', s.shangyi) +
+      statBar('fill-minxin', '🧑‍🌾', '民心', s.minxin) +
+      statBar('fill-qingyu', '⚖️', '清誉', s.qingyu) +
+      coin('🏛️', '库银', s.kuyin) +
+      coin('💰', '私囊', s.sinang) +
+      '</div></div>';
+  }
+  function yearbar() {
+    var pips = '';
+    for (var i = 1; i <= TERM_YEARS; i++) {
+      var cl = i < G.year ? 'done' : (i === G.year ? 'now' : '');
+      pips += '<span class="pip ' + cl + '"></span>';
+    }
+    return '<div class="yearbar"><span class="yr">崇祯' + cnNum(G.year) + '年 · 任期第 ' + G.year + '/' + TERM_YEARS + ' 年</span>' +
+      '<span class="pips">' + pips + '</span></div>';
+  }
+  function cnNum(n) { return ["", "元", "二", "三", "四", "五", "六", "七"][n] || n; }
+
+  // ---- title ----
+  function renderTitle() {
+    app.innerHTML =
+      '<div class="card hero fade">' +
+      '<h1>大明王朝 · 衙门经营</h1>' +
+      '<p class="tag">一个知县的六年 · 一场关于「潜规则」的模拟经营</p>' +
+      '<p>崇祯元年，你放了外任，做了清河县的知县。上有府道催科的考成，下有一县嗷嗷待哺的百姓，' +
+      '中间还夹着一群靠陋规吃饭的书吏差役。<b>没有俸禄能养活这套衙门</b>——钱从哪来、送往何处，全凭你逐年调度。</p>' +
+      '<p>每一年，你要拨动四条杠杆——<b>火耗、差役、孝敬、惠民</b>——在<b>上意、民心、清誉、库银、私囊</b>之间求一个能活下去的平衡。' +
+      '账本会诚实地告诉你每一笔钱的去向；而账本背后，是《潜规则》里那台不需要坏人也能自我运转的机器。</p>' +
+      '<div class="roles">' +
+      '<div class="role"><span class="emo">🎏</span><span class="nm">上意</span><span class="dsc">府道的欢心，归零即革职</span></div>' +
+      '<div class="role"><span class="emo">🧑‍🌾</span><span class="nm">民心</span><span class="dsc">百姓的承受，归零即民变</span></div>' +
+      '<div class="role"><span class="emo">⚖️</span><span class="nm">清誉</span><span class="dsc">你的良心，决定结局</span></div>' +
+      '<div class="role"><span class="emo">💰</span><span class="nm">私囊</span><span class="dsc">你的家当，也是你的软肋</span></div>' +
+      '</div>' +
+      '<p style="text-align:center;color:var(--ink-soft);font-size:13px;margin-top:14px">任满六年、京察过关即为胜；上意或民心崩盘、库银亏空案发，则中道去职。每局约 4–6 分钟，鼓励重玩。</p>' +
+      '<div class="center"><button class="btn" id="start">领凭上任 · 开始经营 →</button></div>' +
+      '</div>';
+    document.getElementById("start").onclick = function () { newGame(); renderPolicy(); };
+  }
+
+  // ---- policy phase ----
+  function renderPolicy() {
+    var q = quotaFor(G.year);
+    var html = hud() + '<div class="card fade">' + yearbar();
+    html += '<div class="quota">📜 本年 <b>上供额度 ' + q.total + ' 两</b>' +
+      '（常额 ' + q.base + (q.sanxiang ? ' ＋ <b>三饷加派 ' + q.sanxiang + '</b>' : '') + '）。' +
+      '开征结算时须从<b>库银</b>解足；不足则成<b>亏空</b>，累及上意乃至下狱。</div>';
+    html += '<h2 class="sec">调度四杠杆</h2>';
+
+    LEVERS.forEach(function (lv) {
+      html += '<div class="lever"><div class="lh"><span class="lt"><span class="ic">' + lv.ic + '</span>' + lv.name + '</span>' +
+        '<span class="ls">' + lv.sub + '</span></div><div class="opts">';
+      lv.opts.forEach(function (label, i) {
+        var extra = leverExtra(lv, i);
+        var sel = G.choice[lv.key] === i ? ' sel' : '';
+        html += '<button class="opt' + sel + '" data-k="' + lv.key + '" data-i="' + i + '">' +
+          '<span class="on">' + label + '</span><span class="oe">' + extra + '</span></button>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '<div id="preview"></div>';
+    html += '<div class="center"><button class="btn" id="settle">开征结算 · 过此一年 →</button></div>';
+    html += '</div>';
+    app.innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (b) {
+      b.onclick = function () {
+        G.choice[b.dataset.k] = parseInt(b.dataset.i, 10);
+        renderPolicy();
+      };
+    });
+    document.getElementById("settle").onclick = function () { maybeEvent(); };
+    renderPreview();
+  }
+
+  function leverExtra(lv, i) {
+    if (lv.key === "huohao") return i === 0 ? "民心持平" : "＋银 民心↓";
+    if (lv.key === "chaiyi") return "效率×" + lv.eff[i].toFixed(2);
+    if (lv.key === "xiaojing") return i === 0 ? "—" : "−" + lv.cost[i] + " 上意↑";
+    if (lv.key === "huimin") return i === 0 ? "—" : "−" + lv.cost[i] + " 民心↑";
+    return "";
+  }
+
+  function renderPreview() {
+    var L = computeLedger();
+    var netKu = G.s.kuyin + L.zhengfu - L.q.total - L.huiminCost;
+    var shortfall = netKu < 0 ? -netKu : 0;
+    var html = '<div class="ledger"><div class="lgh">📒 本年预估账本（尚未计入随机事件）</div><table>';
+    html += row("正赋征得（效率 ×" + L.eff.toFixed(2) + "）→ 库银", "+" + L.zhengfu, "pos");
+    html += row("火耗银 " + L.huohaoTotal + " 两 · 你分得 → 私囊", "+" + L.toSinang, "pos");
+    if (L.toClerks > 0) html += row("　其中差役截留（陋规流失）", "−" + L.toClerks, "neg");
+    if (L.xiaojingCost > 0) html += row("孝敬上宪 → 私囊支出", "−" + L.xiaojingCost, "neg");
+    if (L.huiminCost > 0) html += row("惠民之政 → 库银支出", "−" + L.huiminCost, "neg");
+    html += row("解运上供（额度）→ 库银", "−" + L.q.total, "neg");
+    html += '<tr class="tot"><td>结算后 库银</td><td class="r">' + netKu + ' 两</td></tr>';
+    if (shortfall > 0) {
+      html += '<tr class="warnrow"><td>⚠ 库银不足 ' + shortfall + ' 两，将形成亏空（私囊可代垫，否则记账追比）</td><td class="r"></td></tr>';
+    }
+    html += '</table></div>';
+
+    // projected stat hints
+    var hints = [];
+    if (L.rate > 0) hints.push('民心 −' + Math.round(L.rate * 34));
+    if (G.choice.chaiyi >= 2) hints.push('民心 −' + (G.choice.chaiyi * 3) + '（扰民）');
+    if (L.minxinGain) hints.push('民心 +' + L.minxinGain);
+    if (L.shangyiGain) hints.push('上意 +' + L.shangyiGain);
+    if (L.qingyuGain) hints.push('清誉 +' + L.qingyuGain);
+    if (L.rate >= 0.25 || G.choice.chaiyi >= 3) hints.push('清誉 ↓');
+    if (hints.length) html += '<div class="interp" style="border-color:var(--line);border-left-color:var(--gold)"><b>预计民情/官声：</b>' + hints.join(' · ') + '</div>';
+
+    document.getElementById("preview").innerHTML = html;
+  }
+  function row(label, val, cls) {
+    return '<tr><td>' + label + '</td><td class="r ' + (cls || '') + '">' + val + '</td></tr>';
+  }
+
+  // ---- random event ----
+  function maybeEvent() {
+    // ~65% chance of a year-mid event, drawn at random for replay variety.
+    if (Math.random() < 0.65) {
+      var ev = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+      renderEvent(ev);
+    } else {
+      settle(null);
+    }
+  }
+  function renderEvent(ev) {
+    var html = hud() + '<div class="card evt fade">' + yearbar() +
+      '<h2 class="sec">年中事件</h2>' +
+      '<div class="en">' + ev.name + '</div><div class="ed">' + ev.desc + '</div>';
+    ev.choices.forEach(function (ch, i) {
+      html += '<button class="choice" data-i="' + i + '"><span class="ct">' + ch.ct + '</span><span class="cc">→ ' + ch.cc + '</span></button>';
+    });
+    html += '</div>';
+    app.innerHTML = html;
+    Array.prototype.forEach.call(document.querySelectorAll('.choice'), function (b) {
+      b.onclick = function () {
+        var ch = ev.choices[parseInt(b.dataset.i, 10)];
+        ch.eff(G.s);
+        addTag(ev.tag);
+        settle({ name: ev.name, tag: ev.tag, choice: ch.ct });
+      };
+    });
+  }
+
+  // ---- settlement (apply ledger + stat drift) ----
+  function settle(eventInfo) {
+    var before = Object.assign({}, G.s);
+    var L = computeLedger();
+
+    // money
+    G.s.kuyin += L.zhengfu;
+    G.s.sinang += L.toSinang;
+    G.s.sinang -= L.xiaojingCost;
+    G.s.kuyin -= L.huiminCost;
+
+    // remit 上供
+    G.s.kuyin -= L.q.total;
+    var arrearThisYear = 0;
+    if (G.s.kuyin < 0) {
+      var need = -G.s.kuyin;
+      // 私囊 auto-covers if it can
+      if (G.s.sinang >= need) {
+        G.s.sinang -= need; G.s.kuyin = 0;
+        addTag("老百姓是个冤大头");
+      } else {
+        var covered = Math.max(0, G.s.sinang);
+        need -= covered; G.s.sinang -= covered; G.s.kuyin = 0;
+        arrearThisYear = need; G.arrears += need;
+      }
+    }
+
+    // stat drift from levers
+    G.s.minxin -= Math.round(L.rate * 34);            // 火耗压民
+    if (G.choice.chaiyi >= 2) G.s.minxin -= G.choice.chaiyi * 3; // 差役扰民
+    G.s.minxin += L.minxinGain;
+    G.s.minxin += 4;                                   // 太平年景自然回暖
+    G.s.shangyi += L.shangyiGain;
+    // 达标只保你不失分（微升）；要真正得上意，还得靠孝敬。亏空则重罚。
+    G.s.shangyi += (arrearThisYear === 0 ? 3 : -Math.min(30, Math.round(arrearThisYear / 8) + 8));
+    G.s.shangyi -= 2;                                  // 无孝敬则上意自然消磨（府道健忘）
+    G.s.qingyu += L.qingyuGain;
+    if (L.rate >= 0.25) G.s.qingyu -= (G.choice.huohao) * 2;
+    if (G.choice.chaiyi >= 3) G.s.qingyu -= 5;
+    if (L.toSinang > 90) G.s.qingyu -= 3;
+
+    // tag triggers from levers
+    if (L.rate > 0) addTag("火耗加征");
+    if (G.choice.chaiyi >= 2) addTag("合法伤害权");
+    if (G.choice.xiaojing >= 2) addTag("陋规");
+    if (L.toSinang >= L.toClerks && L.huohaoTotal > 0) addTag("第二等公平");
+
+    // clamp
+    G.s.shangyi = clamp(G.s.shangyi);
+    G.s.minxin = clamp(G.s.minxin);
+    G.s.qingyu = clamp(G.s.qingyu);
+
+    G.lastDelta = {
+      shangyi: G.s.shangyi - before.shangyi,
+      minxin: G.s.minxin - before.minxin,
+      qingyu: G.s.qingyu - before.qingyu,
+      kuyin: G.s.kuyin - before.kuyin,
+      sinang: G.s.sinang - before.sinang
+    };
+    G.history.push({ year: G.year, sinang: G.s.sinang, minxin: G.s.minxin });
+
+    // check mid-game game-overs
+    var go = checkGameOver(arrearThisYear);
+    renderSettle(L, eventInfo, arrearThisYear, go);
+  }
+
+  function checkGameOver(arrearThisYear) {
+    if (G.s.shangyi <= 0) return "geimzhi";       // 革职
+    if (G.s.minxin <= 0) return "minbian";        // 民变
+    if (G.arrears >= 320) return "kuikong";       // 亏空案发下狱
+    return null;
+  }
+
+  function renderSettle(L, eventInfo, arrearThisYear, go) {
+    var d = G.lastDelta;
+    var html = hud() + '<div class="card fade">' + yearbar();
+    html += '<h2 class="sec">崇祯' + cnNum(G.year) + '年 · 年终结算</h2>';
+
+    html += '<div class="ledger"><div class="lgh">📒 本年账本</div><table>';
+    html += row("正赋征得 → 库银", "+" + L.zhengfu, "pos");
+    html += row("火耗分得 → 私囊", "+" + L.toSinang, "pos");
+    if (L.toClerks > 0) html += row("差役截留（陋规流失）", "−" + L.toClerks, "neg");
+    if (L.xiaojingCost > 0) html += row("孝敬上宪", "−" + L.xiaojingCost, "neg");
+    if (L.huiminCost > 0) html += row("惠民之政", "−" + L.huiminCost, "neg");
+    html += row("解运上供 " + L.q.total + " 两" + (L.q.sanxiang ? "（含三饷 " + L.q.sanxiang + "）" : ""), "−" + L.q.total, "neg");
+    if (arrearThisYear > 0) html += '<tr class="warnrow"><td>⚠ 本年亏空 ' + arrearThisYear + ' 两（累计 ' + G.arrears + '）</td><td class="r"></td></tr>';
+    html += '</table></div>';
+
+    // deltas
+    html += '<div class="hud" style="margin-top:12px">' +
+      deltaCell("🎏 上意", G.s.shangyi, d.shangyi) +
+      deltaCell("🧑‍🌾 民心", G.s.minxin, d.minxin) +
+      deltaCell("⚖️ 清誉", G.s.qingyu, d.qingyu) +
+      deltaCell("🏛️ 库银", G.s.kuyin, d.kuyin, true) +
+      deltaCell("💰 私囊", G.s.sinang, d.sinang, true) +
+      '</div>';
+
+    // interpretation
+    var interp = interpret(L, eventInfo);
+    html += '<div class="interp"><span class="lbl">🔎 潜规则解读</span>' + interp + '</div>';
+
+    if (eventInfo) {
+      html += '<div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px">年中事件「' + eventInfo.name + '」→ 你选择了「' + eventInfo.choice + '」（' + eventInfo.tag + '）。</div>';
+    }
+
+    html += '<div class="center">';
+    if (go) {
+      html += '<button class="btn" id="next">听候发落 →</button>';
+    } else if (G.year >= TERM_YEARS) {
+      html += '<button class="btn" id="next">六年任满 · 迎京察 →</button>';
+    } else {
+      html += '<button class="btn" id="next">进入崇祯' + cnNum(G.year + 1) + '年 →</button>';
+    }
+    html += '</div></div>';
+    app.innerHTML = html;
+
+    document.getElementById("next").onclick = function () {
+      if (go) { renderEnding(go); return; }
+      if (G.year >= TERM_YEARS) { renderEnding(finalEnding()); return; }
+      G.year++;
+      renderPolicy();
+    };
+  }
+
+  function deltaCell(name, v, d, isMoney) {
+    var dtxt = "";
+    if (d) dtxt = '<span class="delta ' + (d > 0 ? 'up' : 'down') + '">' + (d > 0 ? '+' : '') + d + '</span>';
+    return '<div class="stat"><div class="row"><span class="name">' + name + '</span></div>' +
+      '<div class="coinbox' + (isMoney && v < 0 ? ' neg' : '') + '"><span class="amt">' + v + '</span>' +
+      (isMoney ? '<span class="u">两</span>' : '<span class="u">/100</span>') + dtxt + '</div></div>';
+  }
+
+  function interpret(L, ev) {
+    // pick the dominant force this year
+    if (L.rate >= 0.40 || G.choice.chaiyi >= 3) {
+      return '你把征收机器开到了极致：<b>差役即「身怀利器」</b>，火耗层层加码，成本一路转嫁，终点永远是那个跑不掉的<b>冤大头</b>。库银是丰了，可这正是「催科如虎」的样子——短期的账面达标，透支的是民心的堤坝。';
+    }
+    if (G.choice.xiaojing >= 2 && G.choice.huimin === 0) {
+      return '钱往上走，不往下走。<b>炭敬冰敬</b>买到的是上意，是你在这台机器里的安全。这就是<b>陋规</b>：不成文、却比明文更硬的规矩——交了才算「上道」，才不至于被记入同僚的「另册」。';
+    }
+    if (G.choice.huimin >= 2 && G.choice.xiaojing === 0) {
+      return '你把银子花在了百姓身上、省在了上宪身上——民心与清誉是涨了，可上意在悄悄扣分。<b>系统正在筛你</b>：守规矩的每一步都在削你的乌纱，这就是「<b>淘汰清官机制</b>」运转的手感。';
+    }
+    if (L.huohaoTotal > 0 && L.toSinang >= L.toClerks) {
+      return '你随了大流：收一份人人都收的规费。谁都吃亏、谁都不敢先退出——这就是「<b>第二等公平</b>」，一个自愿维持、看起来还挺「公道」的坏均衡。';
+    }
+    if (G.choice.huohao === 0 && G.choice.chaiyi <= 1 && G.choice.xiaojing === 0) {
+      return '你几乎什么陋规都没沾——清简自守。可账本也诚实：没有额外的银子，孝敬送不出、亏空填不平。<b>清官的难处不在道德，在算术</b>：这套衙门本就不是靠俸禄能养活的。';
+    }
+    return '你在四条杠杆间求平衡：既要账面达标讨上意，又不敢把民心榨干。<b>每一笔都是当下的最优解</b>，可它们相加，往往是一个谁都无法独自退出的局。这，就是潜规则运转的日常。';
+  }
+
+  // ---- endings ----
+  function finalEnding() {
+    var s = G.s;
+    // rare clean survival: clean name AND kept favor AND kept the people — but NOT rich
+    if (s.qingyu >= 76 && s.shangyi >= 52 && s.minxin >= 62 && s.sinang < 115 && G.arrears <= 20) return "xunli";
+    // the system's winner: rich + favored + morally compromised
+    if (s.sinang >= 150 && s.shangyi >= 52 && s.qingyu < 60) return "shengqian";
+    // benevolent but the machine filtered you out on favor
+    if (s.qingyu >= 58 && s.shangyi < 45) return "aiminbaguan";
+    // survived by squeezing — rich(ish) but the county is wrung dry
+    if (s.sinang >= 110 && s.minxin < 45) return "kuli";
+    return "taiping";                                                             // 碌碌太平官
+  }
+
+  var ENDINGS = {
+    geimzhi: {
+      title: "革职查办", sub: "上意归零 —— 你被这台机器吐了出来",
+      body: "府道对你彻底失望：考成不达、孝敬不周，或是得罪了不该得罪的人。一纸文书下来，摘印去职，交部议处。<br><br>你未必做错了什么——有时恰恰因为你太想做对。<b>在一个上意即生死的系统里，讨不到上意，比亏空更致命。</b>"
+    },
+    minbian: {
+      title: "民变四起", sub: "民心归零 —— 堤坝在你手里决了口",
+      body: "火耗、脚耗、挂号钱……一层层加上去，终于压垮了那个「跑不掉的冤大头」。饥民聚众，抢了粮仓，烧了衙门。上宪要一个交代，而你就是那个最方便的替罪羊。<br><br><b>成本可以层层转嫁，但转嫁不掉：它只是在链条末端，攒成了一次总爆发。</b>"
+    },
+    kuikong: {
+      title: "亏空案发 · 锒铛下狱", sub: "累计亏空压垮了你",
+      body: "上供的窟窿一年比一年大，私囊也垫不动了。盘查一到，账目对不上，「侵蚀钱粮」的罪名落下来。<br><br>你接过的是一场击鼓传花，只是鼓声停在了你手里。<b>这套财政的窟窿本就是结构性的——你不过是恰好站在最后一棒的位置。</b>"
+    },
+    xunli: {
+      title: "异数 · 循吏全身而退", sub: "极罕见：你既保住了清誉，又活到了任满",
+      body: "六年下来，你既没被上意抛弃，也没把民心榨干，还守住了大半良心。京察给了「卓异」，你调任别处。<br><br>但你心里清楚：这不是规则的常态，而是<b>证明规则的例外</b>——像海瑞那样，靠着几分运气、几分执拗，勉强穿过了那台专门淘汰清官的机器。你能复制它吗？"
+    },
+    shengqian: {
+      title: "同流合污 · 加官进爵", sub: "系统的赢家 —— 私囊丰厚，步步高升",
+      body: "你把这台机器玩得很顺：该收的火耗一分不少，该送的炭敬一两不差。上意欢喜，私囊充盈，京察「称职」，很快就要升知府了。<br><br>没人会说你是坏人——你只是「懂事」「上道」。<b>这正是全书最冷的地方：坏结果不需要坏人，只需要一群做出理性选择的聪明人。</b>"
+    },
+    aiminbaguan: {
+      title: "爱民罢官", sub: "淘汰清官机制的实现",
+      body: "你把银子花给了百姓，把该送的孝敬省了下来。民心念你的好，清誉也立住了——可上宪的眼里，你是个「不上道」「不合群」的麻烦。任期未满，你在一次京察里被寻了由头，去了职。<br><br><b>系统不需要你贪，只需要你不合作，就能把你筛出去。</b>你输了，输得干干净净。"
+    },
+    kuli: {
+      title: "酷吏搜刮 · 官声狼藉", sub: "你活了下来，代价是一县的元气",
+      body: "重耗、六房催科、脚耗摊派……库银和私囊都鼓了，你也熬到了任满。可清河县在你手里被榨了个遍，民间怨声载道，「酷吏」的名声传了出去。京察勉强过关，但没人愿与你共事。<br><br><b>你证明了搜刮能让你活下来——也证明了它需要多少人来买单。</b>"
+    },
+    taiping: {
+      title: "碌碌太平官", sub: "不功不过 —— 混过了这六年",
+      body: "你没大贪，也没大清；上意平平，民心尚可，私囊不丰不俭。京察一个「平常」，你平安卸任，回乡赋闲。<br><br>你既没有改变什么，也没有被什么碾碎。<b>大多数人就是这样活在潜规则里的——看得见，绕着走，不声张。</b>这不算胜利，但在这台机器里，安然退场本身已属难得。"
+    }
+  };
+
+  function renderEnding(id) {
+    G.over = id;
+    var e = ENDINGS[id];
+    var tags = Object.keys(G.tags);
+    var taghtml = tags.length
+      ? '<div class="taglist">' + tags.map(function (t) { return '<span class="tag">' + t + ' ×' + G.tags[t] + '</span>'; }).join('') + '</div>'
+      : '';
+    var s = G.s;
+    var html = '<div class="card ending fade">' +
+      '<div class="ec">' + e.title + '</div>' +
+      '<div class="es">' + e.sub + ' · 崇祯' + cnNum(G.year) + '年' + (G.over && G.year >= TERM_YEARS ? '·任满' : '·任内') + '</div>' +
+      '<div class="ebody"><p>' + e.body + '</p>' +
+      '<div class="scoreboard">' +
+      sb("🎏 上意", s.shangyi) + sb("🧑‍🌾 民心", s.minxin) + sb("⚖️ 清誉", s.qingyu) +
+      sb("🏛️ 库银", s.kuyin + " 两") + sb("💰 私囊", s.sinang + " 两") + sb("📉 累计亏空", G.arrears + " 两") +
+      '</div>' +
+      (tags.length ? '<p style="text-align:center;font-size:13px;color:var(--ink-soft);margin-top:14px">这一局，你亲历了这些潜规则：</p>' + taghtml : '') +
+      '<p style="font-size:13px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:12px;margin-top:14px">' +
+      '看清了账本，也就看清了游戏。想读懂每一条机制的来龙去脉 → ' +
+      '<a href="/docs/qianguize-wusi.html" style="color:var(--red)">学术版分析</a>。' +
+      '玩这局不是为了学会「入伙」，而是为了有朝一日<b>改写规则</b>，而不是加入它。</p>' +
+      '</div>' +
+      '<div class="center"><button class="btn" id="again">再任一届 · 重玩 ↺</button> ' +
+      '<a class="homelink" style="margin-left:14px" href="/docs.html">返回文档索引</a></div>' +
+      '</div>';
+    app.innerHTML = html;
+    document.getElementById("again").onclick = function () { renderTitle(); };
+  }
+  function sb(k, v) { return '<div><span>' + k + '</span><b>' + v + '</b></div>'; }
+
+  // boot
+  renderTitle();
+})();
+</script>
+</body>
+</html>

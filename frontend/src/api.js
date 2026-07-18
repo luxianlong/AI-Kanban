@@ -71,6 +71,13 @@ export const api = {
   deleteTodo: (id) =>
     fetch(`${BASE}/todos/${id}`, { method: 'DELETE' }).then(json),
 
+  // Stop the running Claude session for an in-progress task (user-requested). The
+  // backend kills the live process and the worker records the task as FAILED
+  // ("Stopped by user request"), from where it can be requeued. Only valid while
+  // the task is actually running — otherwise the server responds 409.
+  stopTodo: (id) =>
+    fetch(`${BASE}/todos/${id}/stop`, { method: 'POST' }).then(json),
+
   // Requeue a finished (FAILED/RESOLVED) task: flip status back to PENDING so
   // the worker re-picks it on the next poll. Clears the old result by default
   // for a clean slate; pass keepResult=true to preserve the prior output.

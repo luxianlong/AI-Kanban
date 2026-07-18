@@ -303,6 +303,23 @@ export default function App() {
     }
   }
 
+  // Stop the Claude session running on an in-progress task. Confirmed first
+  // because it discards the in-flight run; the backend kills the process and the
+  // worker marks the task FAILED, from where it can be requeued.
+  async function stopTodo(id) {
+    if (typeof window !== 'undefined'
+        && !window.confirm('Stop the running session for this task? Its current run will be discarded.')) {
+      return
+    }
+    try {
+      await api.stopTodo(id)
+      await refresh()
+      broadcastMutation()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   // Manually file a task under a story (or unassign it: storyId = null).
   async function setTaskStory(id, storyId) {
     try {
@@ -458,6 +475,7 @@ export default function App() {
           onClose={() => setSelectedId(null)}
           onDelete={() => removeTodo(selected.id)}
           onRetry={() => retryTodo(selected.id)}
+          onStop={() => stopTodo(selected.id)}
         />
       )}
 
@@ -1112,10 +1130,11 @@ function Card({ todo, tail, story, onOpen }) {
   )
 }
 
-function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose, onDelete, onRetry }) {
+function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose, onDelete, onRetry, onStop }) {
   const running = todo.status === 'IN_PROGRESS'
   const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
   const [retrying, setRetrying] = useState(false)
+  const [stopping, setStopping] = useState(false)
 
   async function retry() {
     if (retrying) return
@@ -1124,6 +1143,16 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
       await onRetry()
     } finally {
       setRetrying(false)
+    }
+  }
+
+  async function stop() {
+    if (stopping) return
+    setStopping(true)
+    try {
+      await onStop()
+    } finally {
+      setStopping(false)
     }
   }
   const logRef = useRef(null)
@@ -1154,6 +1183,17 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
         <div className="drawer-head">
           <span className={`badge ${todo.status.toLowerCase()}`}>{label(todo.status)}</span>
           <div className="drawer-actions">
+            {running && onStop && (
+              <button
+                className="icon-btn danger"
+                onClick={stop}
+                disabled={stopping}
+                title="Stop the running session"
+                aria-label="Stop task"
+              >
+                <Icon name="stop" />
+              </button>
+            )}
             {canRetry && (
               <button
                 className="icon-btn"

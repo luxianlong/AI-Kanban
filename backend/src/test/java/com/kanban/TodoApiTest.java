@@ -325,6 +325,44 @@ class TodoApiTest {
     }
 
     @Test
+    void stopOnMissingIdReturns404() throws Exception {
+        mvc.perform(post("/api/todos/999999/stop"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void stopOnNonRunningTaskReturns409() throws Exception {
+        // A freshly-created task is PENDING, not running — there is no session to
+        // stop, so the endpoint rejects it with a conflict rather than pretending.
+        long id = createTodo("Not running yet");
+
+        mvc.perform(post("/api/todos/" + id + "/stop"))
+                .andExpect(status().isConflict());
+
+        // Resolved tasks aren't running either.
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"RESOLVED\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/todos/" + id + "/stop"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void stopOnInProgressTaskWithNoLiveSessionReturns409() throws Exception {
+        // IN_PROGRESS but with no live process (e.g. orphaned by a restart): there
+        // is genuinely nothing to kill, so it's a conflict, not a false success.
+        long id = createTodo("Orphaned in progress");
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"IN_PROGRESS\"}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/todos/" + id + "/stop"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void plainTodoHasNullStoryFields() throws Exception {
         mvc.perform(post("/api/todos")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -5,6 +5,7 @@ import com.kanban.todo.TodoDtos.SetStoryRequest;
 import com.kanban.todo.TodoDtos.TodoResponse;
 import com.kanban.todo.TodoDtos.UpdateStatusRequest;
 import com.kanban.worker.LiveLogRegistry;
+import com.kanban.worker.RunningSessionRegistry;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,15 +36,17 @@ public class TodoController {
     private final TodoRepository repository;
     private final StoryRepository storyRepository;
     private final LiveLogRegistry liveLog;
+    private final RunningSessionRegistry sessions;
     private final StoryClassifier classifier;
     private final AiStoryClassifier aiClassifier;
 
     public TodoController(TodoRepository repository, StoryRepository storyRepository,
-                          LiveLogRegistry liveLog, StoryClassifier classifier,
-                          AiStoryClassifier aiClassifier) {
+                          LiveLogRegistry liveLog, RunningSessionRegistry sessions,
+                          StoryClassifier classifier, AiStoryClassifier aiClassifier) {
         this.repository = repository;
         this.storyRepository = storyRepository;
         this.liveLog = liveLog;
+        this.sessions = sessions;
         this.classifier = classifier;
         this.aiClassifier = aiClassifier;
     }
@@ -71,6 +74,32 @@ public class TodoController {
                 "id", todo.getId(),
                 "status", todo.getStatus(),
                 "log", liveLog.get(id));
+    }
+
+    /**
+     * Stop the running Claude session for an in-progress task, on user request.
+     * Forcibly terminates the live process; the worker then records the task as
+     * FAILED ("Stopped by user request") and it lands in Needs Attention, from
+     * where it can be requeued. Only valid while the task is IN_PROGRESS with a
+     * live session — otherwise there is nothing to stop (409).
+     */
+    @PostMapping("/{id}/stop")
+    public TodoResponse stop(@PathVariable Long id) {
+        Todo todo = find(id);
+        if (todo.getStatus() != TodoStatus.IN_PROGRESS) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Task #" + id + " is not running (status " + todo.getStatus() + ").");
+        }
+        if (!sessions.stop(id)) {
+            // IN_PROGRESS but no live process: the session died with a previous
+            // backend, so there is nothing here to kill.
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No live session found for task #" + id + " to stop.");
+        }
+        liveLog.append(id, "● Stop requested by user — terminating the session…");
+        // The worker flips the task to FAILED once the killed process is reaped;
+        // return the current (still IN_PROGRESS) row and let the UI poll it through.
+        return TodoResponse.from(todo);
     }
 
     @PostMapping

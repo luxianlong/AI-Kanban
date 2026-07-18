@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>大明王朝：潜规则生存模拟 · 网页游戏</title>
+<meta name="description" content="一款把《潜规则》六大机制做进玩法的明代官场生存模拟：合法伤害权、陋规、淘汰清官、冤大头、第二等公平、崇祯死弯。你能全身而退吗？" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f3e9d2;
+    --paper-2: #ece0c2;
+    --ink: #2a211a;
+    --ink-soft: #6b5b48;
+    --red: #8b1e1e;
+    --red-2: #a83232;
+    --gold: #b8912f;
+    --gold-soft: #e7d39a;
+    --line: #cdbb93;
+    --good: #2f7d54;
+    --bad: #a2331f;
+    --seal: #b23b2e;
+    --maxw: 860px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #f7efdb 0%, rgba(247,239,219,0) 60%),
+      repeating-linear-gradient(0deg, rgba(120,90,50,0.035) 0 2px, rgba(0,0,0,0) 2px 5px),
+      var(--paper);
+    font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 20px 16px 64px; }
+
+  /* --- header / seal --- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 2px 14px; }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand .cn {
+    font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+    font-size: clamp(26px, 6vw, 40px); color: var(--red); letter-spacing: 2px; line-height: 1;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .brand .sub { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; }
+  .homelink { font-size: 12.5px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--line); white-space: nowrap; }
+  .homelink:hover { color: var(--red); }
+
+  .card {
+    background: linear-gradient(180deg, #fbf5e5 0%, #f3e8cf 100%);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(80,55,20,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    padding: 22px 24px;
+  }
+  .card + .card { margin-top: 16px; }
+
+  /* --- title screen --- */
+  .hero { text-align: center; position: relative; overflow: hidden; }
+  .hero::before {
+    content: "潜"; position: absolute; right: -18px; top: -34px; font-family: "Ma Shan Zheng", serif;
+    font-size: 220px; color: rgba(139,30,30,0.06); pointer-events: none; line-height: 1;
+  }
+  .hero h1 { font-family: "Ma Shan Zheng", serif; color: var(--red); font-size: clamp(30px, 8vw, 54px); margin: 6px 0 2px; letter-spacing: 3px; }
+  .hero .tag { color: var(--ink-soft); font-size: 14px; letter-spacing: 1px; margin: 0 0 16px; }
+  .hero p { text-align: left; margin: 10px auto; max-width: 640px; }
+  .roles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 18px auto 8px; max-width: 640px; }
+  .role { background: rgba(255,255,255,0.5); border: 1px solid var(--line); border-radius: 10px; padding: 10px 6px; font-size: 13px; }
+  .role .emo { font-size: 22px; display: block; }
+  .role .nm { font-weight: 700; color: var(--red); }
+  .role .dsc { color: var(--ink-soft); font-size: 11.5px; }
+  .arrow { text-align: center; color: var(--gold); font-size: 12px; letter-spacing: 2px; margin: 4px 0 0; }
+
+  .btn {
+    font-family: inherit; cursor: pointer; border-radius: 10px; font-size: 16px; font-weight: 700;
+    padding: 12px 26px; border: 1px solid var(--red); color: #fff;
+    background: linear-gradient(180deg, var(--red-2), var(--red));
+    box-shadow: 0 4px 14px rgba(139,30,30,0.28); letter-spacing: 1px;
+    transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .btn:hover { filter: brightness(1.06); box-shadow: 0 6px 18px rgba(139,30,30,0.36); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: rgba(255,255,255,0.4); color: var(--red); }
+  .center { text-align: center; margin-top: 18px; }
+
+  /* --- HUD / stats --- */
+  .hud { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; }
+  @media (min-width: 620px){ .hud { grid-template-columns: repeat(4, 1fr); } }
+  .stat .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; margin-bottom: 4px; }
+  .stat .name { font-weight: 700; }
+  .stat .name .ic { margin-right: 4px; }
+  .stat .val { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 12.5px; }
+  .bar { height: 10px; background: rgba(120,90,50,0.16); border-radius: 6px; overflow: hidden; border: 1px solid rgba(120,90,50,0.18); }
+  .bar > i { display: block; height: 100%; border-radius: 6px; transition: width .5s cubic-bezier(.2,.7,.2,1), background .3s; }
+  .fill-wusha > i { background: linear-gradient(90deg,#6b1f1f,#a83232); }
+  .fill-minxin > i { background: linear-gradient(90deg,#7a5a13,#c79a2c); }
+  .fill-qingyu > i { background: linear-gradient(90deg,#2f6d7d,#3f9e9e); }
+  .silver { display: flex; align-items: center; gap: 8px; }
+  .silver .coin { font-size: 20px; }
+  .silver .amt { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .silver.neg .amt { color: var(--bad); }
+
+  .flash { animation: flash .6s ease; }
+  @keyframes flash { 0%{ background: var(--gold-soft);} 100%{ background: transparent;} }
+  .delta { font-size: 12px; font-weight: 700; margin-left: 6px; }
+  .delta.up { color: var(--good); }
+  .delta.down { color: var(--bad); }
+
+  .turnbar { display: flex; align-items: center; justify-content: space-between; margin: 4px 2px 12px; font-size: 13px; color: var(--ink-soft); }
+  .pips { display: flex; gap: 5px; }
+  .pip { width: 10px; height: 10px; border-radius: 50%; background: rgba(120,90,50,0.22); }
+  .pip.done { background: var(--red); }
+  .pip.now { background: var(--gold); box-shadow: 0 0 0 3px rgba(184,145,47,0.25); }
+
+  /* --- event --- */
+  .concept {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px;
+    color: #fff; background: var(--gold); padding: 2px 12px; border-radius: 999px; margin-bottom: 10px;
+  }
+  .ev-title { font-size: 22px; font-weight: 700; margin: 2px 0 8px; color: var(--red); }
+  .ev-text { margin: 0 0 6px; }
+  .choices { display: grid; gap: 10px; margin-top: 16px; }
+  .choice {
+    text-align: left; cursor: pointer; font-family: inherit; font-size: 15.5px;
+    background: rgba(255,255,255,0.55); border: 1px solid var(--line); border-left: 4px solid var(--gold);
+    border-radius: 10px; padding: 12px 14px; color: var(--ink);
+    transition: transform .08s ease, border-color .12s, background .12s, box-shadow .12s;
+  }
+  .choice:hover { background: #fff; border-left-color: var(--red); box-shadow: 0 4px 14px rgba(80,55,20,0.12); transform: translateY(-1px); }
+  .choice:active { transform: translateY(0); }
+  .choice .lab { font-weight: 700; }
+
+  .verdict {
+    margin-top: 14px; background: rgba(255,255,255,0.6); border: 1px dashed var(--line);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .verdict .read { font-size: 13.5px; color: var(--ink-soft); }
+  .verdict .read b { color: var(--red); }
+  .fx-line { margin: 6px 0 2px; font-size: 13px; }
+  .fx-chip { display: inline-block; margin: 2px 6px 2px 0; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .fx-chip.up { background: #e2f0e6; color: var(--good); }
+  .fx-chip.down { background: #f6e2dc; color: var(--bad); }
+  .next-wrap { text-align: right; margin-top: 12px; }
+
+  /* --- ending --- */
+  .ending .seal-mark {
+    width: 96px; height: 96px; margin: 4px auto 8px; border: 3px solid var(--seal); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; transform: rotate(-6deg);
+    color: var(--seal); font-family: "Ma Shan Zheng", serif; font-size: 42px; letter-spacing: 2px;
+    background: rgba(178,59,46,0.06); box-shadow: 0 0 0 2px rgba(178,59,46,0.15) inset;
+  }
+  .ending h2 { text-align: center; color: var(--red); font-size: 26px; margin: 6px 0 2px; }
+  .ending .kicker { text-align: center; color: var(--ink-soft); font-size: 13px; margin: 0 0 14px; letter-spacing: 1px; }
+  .ending .body p { margin: 10px 0; }
+  .ending .map { background: rgba(255,255,255,0.55); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+  .ending .map b { color: var(--red); }
+  .stat-final { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0 2px; }
+  .stat-final span { font-size: 12.5px; background: rgba(255,255,255,0.6); border: 1px solid var(--line); border-radius: 999px; padding: 2px 12px; }
+  .end-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+
+  .footnote { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 22px; }
+  .footnote a { color: var(--red); }
+  .hidden { display: none !important; }
+  @media (prefers-reduced-motion: reduce){ *{ transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <span class="cn">大明王朝</span>
+      <span class="sub">潜规则 · 官场生存模拟</span>
+    </div>
+    <a class="homelink" href="/docs/daming-wangchao.html">← 关于本游戏 / 文档</a>
+  </div>
+
+  <!-- ============ TITLE SCREEN ============ -->
+  <section id="screen-title" class="card hero">
+    <h1>大明王朝</h1>
+    <p class="tag">一款把《潜规则》做进玩法的官场生存模拟</p>
+    <p>崇祯元年，你放了外任，做一县之主——<b>知县</b>。头顶是催考成的上宪，身后是盘根错节的胥吏，脚下是交不完钱粮的百姓。</p>
+    <p>你手握「<b>合法伤害权</b>」：一支笔，可活人，也可杀人。这一局的规则，明面上写在《大明律》里，真正管用的那套，却从没人写下来。</p>
+    <p>你的目标只有一个：<b>在任满之前活下来</b>——保住乌纱、填平亏空、别激起民变。至于要不要守住良心，是你的选择。</p>
+
+    <div class="roles" aria-label="委托代理链">
+      <div class="role"><span class="emo">👑</span><span class="nm">皇帝</span><span class="dsc">要钱要太平</span></div>
+      <div class="role"><span class="emo">🎩</span><span class="nm">上宪/官僚</span><span class="dsc">考成·收陋规</span></div>
+      <div class="role"><span class="emo">🧾</span><span class="nm">你 · 胥吏</span><span class="dsc">执行·手握刀笔</span></div>
+      <div class="role"><span class="emo">🧑‍🌾</span><span class="nm">百姓</span><span class="dsc">最后的冤大头</span></div>
+    </div>
+    <p class="arrow">权力/暴力 ↓　　　钱财 ↑　　　信息（失真）↑</p>
+
+    <div class="center">
+      <button class="btn" id="btn-start">上任 · 开始一局 ▶</button>
+    </div>
+    <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场</p>
+  </section>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <section id="screen-game" class="hidden">
+    <div class="card" style="padding:16px 18px;">
+      <div class="turnbar">
+        <span id="turn-label">上任伊始</span>
+        <span class="pips" id="pips" aria-hidden="true"></span>
+      </div>
+      <div class="hud" id="hud">
+        <div class="stat" data-k="wusha">
+          <div class="row"><span class="name"><span class="ic">🎏</span>乌纱（仕途）</span><span class="val"><span class="num">0</span>/100</span></div>
+          <div class="bar fill-wusha"><i style="width:0%"></i></div>
+        </div>
+        <div class="stat" data-k="minxin">
+          <div class="row"><span class="name"><span class="ic">🧑‍🌾</span>民心</span><span class="val"><span class="num">0</span>/100</span></div>
+          <div class="bar fill-minxin"><i style="width:0%"></i></div>
+        </div>
+        <div class="stat" data-k="qingyu">
+          <div class="row"><span class="name"><span class="ic">⚖️</span>清誉（良心）</span><span class="val"><span class="num">0</span>/100</span></div>
+          <div class="bar fill-qingyu"><i style="width:0%"></i></div>
+        </div>
+        <div class="stat" data-k="silver">
+          <div class="row"><span class="name"><span class="ic">💰</span>家财 / 库银</span><span class="val">白银</span></div>
+          <div class="silver"><span class="coin">🪙</span><span class="amt num">0</span><span style="font-size:12px;color:var(--ink-soft)">两</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="event-card">
+      <span class="concept" id="ev-concept"></span>
+      <div class="ev-title" id="ev-title"></div>
+      <div class="ev-text" id="ev-text"></div>
+      <div class="choices" id="ev-choices"></div>
+      <div class="verdict hidden" id="ev-verdict">
+        <div id="ev-fx" class="fx-line"></div>
+        <div class="read" id="ev-read"></div>
+        <div class="next-wrap"><button class="btn" id="btn-next">下一步 ▶</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ENDING SCREEN ============ -->
+  <section id="screen-end" class="hidden card ending">
+    <div class="seal-mark" id="end-seal">终</div>
+    <h2 id="end-title"></h2>
+    <p class="kicker" id="end-kicker"></p>
+    <div class="stat-final" id="end-stats"></div>
+    <div class="body" id="end-body"></div>
+    <div class="map" id="end-map"></div>
+    <div class="end-actions">
+      <button class="btn" id="btn-restart">再世为官 · 重开一局 ↺</button>
+      <a class="btn ghost" href="/docs/qianguize-wusi.html">读懂这套规则 · 深度分析 →</a>
+    </div>
+    <p class="footnote">游戏中每一个「潜规则解读」都对应《潜规则》分析文档里的一节 ·
+      <a href="/docs/qianguize-haowanban.html">好玩版</a> ·
+      <a href="/docs/qianguize-wusi.html">学术版</a></p>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- 状态 ----------------------------------------------------------------
+  var START = { wusha: 55, minxin: 50, qingyu: 62, silver: 20 };
+  var TERM = 11;                 // 任期回合数
+  var LOSE_SILVER = -40;         // 亏空触发线
+  var S, turn, queue, current;
+
+  var el = function (id) { return document.getElementById(id); };
+
+  // ---- 事件库（每个抉择都编码一条潜规则机制）------------------------------
+  // fx 的键：wusha 乌纱 / minxin 民心 / qingyu 清誉 / silver 白银
+  var INTRO = {
+    concept: "陋规 · 新官到任",
+    title: "拜印之日，书吏呈上「常例」清单",
+    text: "你刚捧起大印，老书吏便递来一张单子：给上司的炭敬、冰敬，给同僚的印结银，给衙门书办的辛苦钱……「大人，这都是历来的规矩，不成文，但一分都少不得。」",
+    choices: [
+      { lab: "照单全收，按例孝敬上下", fx: { wusha: +9, silver: -16, qingyu: -10 },
+        read: "你交的第一笔钱，就是<b>入伙费</b>。陋规不写在律里，却是真正在运转的规则——你交了，就默认自己是这台机器的一颗齿轮。（对应：陋规 / 淘汰清官机制的第一步）" },
+      { lab: "一概拒付，清廉自守", fx: { wusha: -13, qingyu: +12 },
+        read: "上司皱了眉，同僚把你记进了「另册」。<b>淘汰清官机制</b>已经启动——系统不需要坏人来对付你，只需要「大家都这样，就你不一样」。（对应：淘汰清官机制）" },
+      { lab: "只给绕不过去的，其余暗中记账", fx: { wusha: +2, silver: -8, qingyu: -2 },
+        read: "你在夹缝里找平衡——多数人都是这么开始的。记账，是你还想给自己留个「将来说得清」的余地。（对应：第二等公平的入口）" }
+    ]
+  };
+
+  var CLIMAX = {
+    concept: "崇祯死弯 · 加征三饷",
+    title: "六百里加急：朝廷加征「三饷」，摊派到县",
+    text: "辽东战事吃紧，朝廷加派辽饷、剿饷、练饷。上命如山，数目已按你这县的丁口算好——多少两，几时解京，写得清清楚楚。可你治下的百姓，连去年的钱粮都还没交齐。",
+    choices: [
+      { lab: "如数加征，限期严逼", fx: { wusha: +8, silver: +5, minxin: -22 },
+        read: "你把压力原样传给了最下面一环。<b>委托代理链</b>每传一道就加一次码，最后全压在<b>冤大头</b>身上——皇帝越是勤政催饷，链条末端崩得越快，这就是<b>崇祯死弯</b>。（对应：崇祯死弯 / 老百姓是个冤大头）" },
+      { lab: "抗命缓征，为民请命上疏", fx: { wusha: -17, qingyu: +14, minxin: +11 },
+        read: "你替百姓挡了一刀，却把刀口对准了自己的仕途。系统允许一两个海瑞式的例外存在，正是为了证明「规矩」本身没错。（对应：淘汰清官机制 / 海瑞之为例外）" },
+      { lab: "如数上报，暗中宽限贫户", fx: { wusha: -4, minxin: -8, qingyu: +5, silver: -5 },
+        read: "你想两头都不彻底得罪——账面服从，私下留情。这能拖一阵，却填不平结构的窟窿：只要不受制约的加派还在，缓一时也只是把死弯拉长。（对应：崇祯死弯 / 第二等公平）" }
+    ]
+  };
+
+  var POOL = [
+    { concept: "合法伤害权 · 身怀利器",
+      title: "一桩人命官司，苦主与被告都来送礼",
+      text: "命案两造各托人情、各备厚礼。案卷怎么写、罪往哪边判，全在你一支笔——这支笔就是「合法伤害权」，可以救人，也可以杀人。",
+      choices: [
+        { lab: "秉公审断，两家礼金都退回", fx: { qingyu: +11, wusha: -5 },
+          read: "你放弃了变现的机会，也得罪了有力的一方。手握利器却不用来寻租，在这套系统里是「不识时务」。（对应：合法伤害权）" },
+        { lab: "收下厚礼，判给出得起价的一方", fx: { silver: +18, qingyu: -14, minxin: -8 },
+          read: "你把手里的刀明码标价卖了出去。这正是寻租的基本单元——权力一旦能定价，就一定会被定价。（对应：合法伤害权 / 寻租）" },
+        { lab: "各收一份，各打五十大板，两边通吃", fx: { silver: +8, qingyu: -6, minxin: -4 },
+          read: "「和稀泥」也是一门生意：谁都别想赢，谁都得先交钱。（对应：第二等公平）" }
+      ] },
+    { concept: "陋规 · 火耗归公",
+      title: "征收本年钱粮，火耗如何处置？",
+      text: "碎银熔铸成锭有「火耗」损耗，加征多少、归谁，全凭你一句话。加得狠，能孝敬上司、肥自己；加得轻，百姓得喘息，可上司分润就少了。",
+      choices: [
+        { lab: "火耗从实征收，尽量减轻百姓", fx: { minxin: +12, silver: -6, wusha: -4 },
+          read: "你少收的每一分，都是上司少分到的一分——于是你又上了一次「不懂规矩」的黑名单。（对应：陋规 / 淘汰清官机制）" },
+        { lab: "加征火耗，一半孝敬上宪", fx: { silver: +14, wusha: +6, minxin: -12, qingyu: -8 },
+          read: "陋规就是这样从上到下自我复制的：你孝敬上司的钱，最终都从百姓身上出。（对应：陋规 / 冤大头）" },
+        { lab: "略加一成，随大流", fx: { silver: +6, minxin: -5, qingyu: -3 },
+          read: "「大家都加，我不加反而显眼」——次优均衡就是这样一票一票投出来的。（对应：第二等公平）" }
+      ] },
+    { concept: "淘汰清官 · 分肥饭局",
+      title: "同僚设宴，席间要分「常例」的红",
+      text: "本府同僚攒了个局，酒过三巡，有人把一叠银票推到你面前：「这是这季的常例，人人有份，大人也别客气。」",
+      choices: [
+        { lab: "婉拒不受，独善其身", fx: { qingyu: +8, wusha: -10 },
+          read: "你不收，等于当众说「你们都脏，就我干净」。从此同僚会本能地排挤你——系统的免疫细胞开始围剿异类。（对应：淘汰清官机制）" },
+        { lab: "笑纳入袋，融入圈子", fx: { silver: +12, wusha: +7, qingyu: -10 },
+          read: "收下的那一刻，你就有了「把柄」，也有了「自己人」的身份。互相拿捏，才是这张网真正的绳结。（对应：淘汰清官 / 第二等公平）" }
+      ] },
+    { concept: "老百姓是冤大头 · 灾年赈济",
+      title: "灾年放赈，赈粮要不要「照例」克扣？",
+      text: "上头拨下的赈灾粮款有限，经手的每一层都想揩一点油。轮到你这一环，是原样发下去，还是「照老规矩」先留三成？",
+      choices: [
+        { lab: "亲自监放，一粒不取", fx: { minxin: +15, qingyu: +10, silver: -8, wusha: -6 },
+          read: "你堵住了自己这一环，却坏了整条链子的「规矩」，上下都嫌你多事。（对应：冤大头 / 淘汰清官）" },
+        { lab: "照例克扣三成入囊", fx: { silver: +16, minxin: -15, qingyu: -11 },
+          read: "赈灾款流到最饿的人手里已所剩无几——成本转嫁的终点，永远是那个跑不掉、也没人替他说话的百姓。（对应：老百姓是个冤大头）" },
+        { lab: "睁只眼闭只眼，交给胥吏去办", fx: { silver: +4, minxin: -8, qingyu: -6 },
+          read: "「我没伸手」——可默许胥吏伸手，坏结果照样发生。这套系统最阴狠的一点：<b>坏结果不需要坏人</b>。（对应：冤大头 / 委托代理失灵）" }
+      ] },
+    { concept: "第二等公平 · 挂号钱",
+      title: "百姓喊冤，先被胥吏索「挂号钱」",
+      text: "有苦主来告状，还没进堂，就被门口书办拦下：「递状子先交挂号钱，不然状纸递不到大人案头。」百姓咬牙掏了钱——只求别再被额外刁难。",
+      choices: [
+        { lab: "严禁陋费，敞开门公开受理", fx: { minxin: +12, silver: -6, wusha: -6 },
+          read: "你断了胥吏的财路，他们未必明着反你，却会在你看不见的地方使绊子。（对应：第二等公平 / 胥吏之害）" },
+        { lab: "默许收费，只当没看见", fx: { silver: +8, minxin: -6, qingyu: -6 },
+          read: "百姓花钱买的不是「公道」，只是「至少别再多坑我」——这就是<b>第二等公平</b>：一个人人都吃亏、却谁也不敢先退出的稳定均衡。（对应：第二等公平）" }
+      ] },
+    { concept: "上意 · 考成打点",
+      title: "上宪下来考察政绩",
+      text: "三年一考，京察在即。上宪的评语几乎决定你的去留。是重金打点、把账面粉饰得花团锦簇，还是据实以报、听天由命？",
+      choices: [
+        { lab: "重金打点，粉饰太平", fx: { wusha: +12, silver: -18, qingyu: -6 },
+          read: "考成考的从来不是治绩，而是「会不会做人」。你用真金白银，买了一句好评语。（对应：陋规 / 信息失真）" },
+        { lab: "据实以报，不迎不送", fx: { wusha: -11, qingyu: +8 },
+          read: "你把真实的难处报了上去，换来的却是「不谙政体」的差评。诚实在这套激励里是要付费的奢侈品。（对应：淘汰清官 / 激励错配）" },
+        { lab: "送常例礼，但不作假账", fx: { wusha: +4, silver: -10 },
+          read: "你守住了「不撒谎」的底线，也交了「懂规矩」的过路费。多数还想干净的人，就卡在这个位置。（对应：第二等公平）" }
+      ] },
+    { concept: "身怀利器 · 敲诈富商",
+      title: "境内一个富商，看着就是块肥肉",
+      text: "师爷凑近低声：「大人，那盐商家底厚，随便寻个由头——短了牙税也好，僭越也罢——就能敲他一大笔，他不敢不给。」",
+      choices: [
+        { lab: "罗织由头，狠敲一笔", fx: { silver: +20, qingyu: -16, minxin: -4 },
+          read: "「身怀利器，杀心自起」——一旦发现权力可以随意加害于人，用它来变现就成了本能。（对应：身怀利器 / 合法伤害权）" },
+        { lab: "依法办事，不无端加罪", fx: { qingyu: +8, wusha: -2 },
+          read: "你把出鞘的刀又收了回去。难得，但在这套系统里，克制不会被奖励，只会被当成「不会来事」。（对应：合法伤害权）" }
+      ] },
+    { concept: "公共品 · 修河堤",
+      title: "汛期将至，城外河堤该修了",
+      text: "修堤要钱要人。你可以从积攒的陋规银里掏钱认真修；也可以层层发包、大吃回扣，糊个豆腐渣工程上报完工。",
+      choices: [
+        { lab: "自掏陋规银，认真修固", fx: { minxin: +14, silver: -14, qingyu: +8, wusha: -3 },
+          read: "你把捞来的钱又投回了公共品——难得的良性回流。但它靠的是你个人的良心，而非制度，所以随时可能断。（对应：委托代理 / 制度缺位）" },
+        { lab: "层层发包，大吃回扣", fx: { silver: +16, minxin: -10, qingyu: -12 },
+          read: "回扣吃饱了，隐患埋下了。等堤一垮，冤大头还是堤下的百姓——而账，早已做平。（对应：冤大头 / 合法伤害权）" },
+        { lab: "草草敷衍，上报「已竣工」", fx: { silver: +4, wusha: +2, minxin: -6 },
+          read: "报上去的是太平，留下来的是窟窿。信息在链条里一路失真，上面看到的永远是粉饰过的版本。（对应：信息不对称）" }
+      ] },
+    { concept: "言路 · 结交言官",
+      title: "同乡在都察院做御史，来信「叙旧」",
+      text: "信里绕来绕去，落点是那句老话——「炭敬」。给足了，御史的弹章里就没你；给不够，难保哪天一本参上来。",
+      choices: [
+        { lab: "厚结言路，破财免灾", fx: { wusha: +10, silver: -15, qingyu: -4 },
+          read: "连「监督者」也在这张网里收费。本该制衡权力的言官，成了另一个收陋规的关口。（对应：制衡失效 / 陋规）" },
+        { lab: "婉言谢绝", fx: { wusha: -6, qingyu: +6 },
+          read: "你少了一个靠山，多了一个隐患。在没有真制衡的地方，得罪谁都可能是致命的。（对应：制衡缺失）" }
+      ] },
+    { concept: "信息失真 · 流民瞒报",
+      title: "境内出现成群流民",
+      text: "灾荒把邻县的流民也引了过来。如实上报请赈，会显得你「治理无能」；瞒下不报、把流民驱赶出境，账面上你这县就还是一片太平。",
+      choices: [
+        { lab: "如实上报，请求开赈", fx: { minxin: +8, wusha: -8, qingyu: +6 },
+          read: "你把真相递了上去，却给自己的考成添了污点。系统奖励「报喜」，惩罚「报忧」，于是真相越往上越稀薄。（对应：信息不对称 / 激励错配）" },
+        { lab: "瞒报太平，驱赶流民出境", fx: { wusha: +6, minxin: -12, qingyu: -8 },
+          read: "把人赶走，问题就「消失」了——至少在你的奏报里。崇祯在紫禁城看到的，就是无数这样粉饰过的太平。（对应：崇祯死弯 / 信息失真）" }
+      ] },
+    { concept: "做账 · 亏空",
+      title: "钱谷师爷教你「做平」亏空",
+      text: "府库对不上账。师爷笑眯眯：「大人不必慌，挪一挪、平一平，寅吃卯粮，账面上就圆过去了，历任都这么办。」",
+      choices: [
+        { lab: "学着做账，把窟窿糊过去", fx: { silver: +10, qingyu: -8 },
+          read: "你学会了这行的「生存技能」。窟窿没补，只是移交给了下一任——击鼓传花，总有人接最后一棒。（对应：委托代理 / 冤大头）" },
+        { lab: "拒绝做假账，宁可背亏空", fx: { silver: -6, qingyu: +8, wusha: -4 },
+          read: "你不肯说谎，代价是账面上的亏空实打实压在自己头上，随时可能成为把柄。（对应：淘汰清官）" }
+      ] },
+    { concept: "清誉 vs 上意",
+      title: "百姓要给你送「万民伞」",
+      text: "任内你办了几件实事，士绅百姓凑钱要送你一柄万民伞、立块德政碑。声名是好事——可你的上司，最忌讳属下在民间比自己有威望。",
+      choices: [
+        { lab: "欣然受之，声名远播", fx: { minxin: +10, qingyu: +8, wusha: -8 },
+          read: "民间的好名声，恰恰会招来上司的猜忌。在这套系统里，「得民心」有时比「贪」更危险。（对应：激励错配 / 淘汰清官）" },
+        { lab: "婉谢盛意，低调收场", fx: { minxin: +2, wusha: +2 },
+          read: "你收敛锋芒，保住了上意。懂得不出头，也是官场生存的一课。（对应：第二等公平）" }
+      ] },
+    { concept: "买官 · 京察运动",
+      title: "有个肥缺出了空，可以「运动」一下",
+      text: "吏部那边放出风声：某处富庶州府知州出缺。想补上去，得先花一大笔银子上下打点。机不可失，可这笔钱不是小数。",
+      choices: [
+        { lab: "倾囊运动，谋个好缺", fx: { wusha: +14, silver: -22, qingyu: -6 },
+          read: "官位可以用钱买——那么买官的钱，日后自然要从新任上的百姓身上加倍捞回。腐败就这样自我循环。（对应：陋规 / 冤大头）" },
+        { lab: "安守本分，不去钻营", fx: { wusha: -2 },
+          read: "你没去挤那条独木桥。清静，但也意味着你在这套「不进则退」的赛道上，正被人一点点甩开。（对应：淘汰清官）" }
+      ] },
+    { concept: "胥吏之害 · 整顿书办",
+      title: "衙门书办包揽词讼、上下其手",
+      text: "你渐渐发现，真正把持这县的不是你，是那群世代盘踞的胥吏书办。他们包揽诉讼、勒索百姓，你的政令出不了衙门。要不要动他们？",
+      choices: [
+        { lab: "雷厉整顿，清理蠹吏", fx: { qingyu: +10, minxin: +8, wusha: -8, silver: -4 },
+          read: "你动了这台机器最难拆的零件。胥吏不流动、通地方、握实务，反噬起来，连你的政令和考成都能悄悄搅黄。（对应：胥吏 / 委托代理链末端）" },
+        { lab: "分一杯羹，与其共谋", fx: { silver: +10, minxin: -8, qingyu: -8 },
+          read: "你选择了和他们合流——省心，进账，代价是百姓头上又多了一层盘剥。（对应：第二等公平 / 冤大头）" }
+      ] }
+  ];
+
+  // ---- 洗牌，组一局的事件序列 ---------------------------------------------
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function buildQueue() {
+    var mid = shuffle(POOL).slice(0, TERM - 2);   // 中段随机
+    return [INTRO].concat(mid, [CLIMAX]);          // 首：陋规入局；尾：崇祯死弯
+  }
+
+  // ---- 渲染 HUD ------------------------------------------------------------
+  var STAT_META = { wusha: "乌纱", minxin: "民心", qingyu: "清誉", silver: "白银" };
+  function clamp(v) { return Math.max(0, Math.min(100, v)); }
+
+  function renderHUD(deltas) {
+    ["wusha", "minxin", "qingyu"].forEach(function (k) {
+      var box = document.querySelector('.stat[data-k="' + k + '"]');
+      box.querySelector('.num').textContent = S[k];
+      box.querySelector('.bar > i').style.width = clamp(S[k]) + "%";
+      var bar = box.querySelector('.bar > i');
+      if (S[k] <= 15) bar.style.filter = "saturate(1.4) brightness(0.9)"; else bar.style.filter = "";
+    });
+    var sBox = document.querySelector('.stat[data-k="silver"]');
+    sBox.querySelector('.num').textContent = S.silver;
+    sBox.querySelector('.silver').classList.toggle('neg', S.silver < 0);
+    if (deltas) {
+      Object.keys(deltas).forEach(function (k) {
+        var box = document.querySelector('.stat[data-k="' + k + '"]');
+        if (box) { box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash'); }
+      });
+    }
+  }
+
+  function renderPips() {
+    var html = "";
+    for (var i = 0; i < TERM; i++) {
+      var cls = i < turn ? "done" : (i === turn ? "now" : "");
+      html += '<span class="pip ' + cls + '"></span>';
+    }
+    el("pips").innerHTML = html;
+    var yearsIn = Math.floor(turn / 3);
+    el("turn-label").textContent = turn === 0
+      ? "上任伊始"
+      : ("任内第 " + (turn + 1) + " 抉择 · 到任约 " + (yearsIn + 1) + " 年");
+  }
+
+  // ---- 展示一个事件 -------------------------------------------------------
+  function showEvent() {
+    current = queue[turn];
+    el("ev-concept").textContent = current.concept;
+    el("ev-title").textContent = current.title;
+    el("ev-text").textContent = current.text;
+    el("ev-verdict").classList.add("hidden");
+    var box = el("ev-choices");
+    box.innerHTML = "";
+    box.classList.remove("hidden");
+    current.choices.forEach(function (c, idx) {
+      var b = document.createElement("button");
+      b.className = "choice";
+      b.innerHTML = '<span class="lab">' + esc(c.lab) + "</span>";
+      b.addEventListener("click", function () { pick(idx); });
+      box.appendChild(b);
+    });
+    renderPips();
+    el("event-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  // ---- 应用一个抉择 -------------------------------------------------------
+  function pick(idx) {
+    var c = current.choices[idx];
+    var fx = c.fx || {};
+    // 应用数值
+    Object.keys(fx).forEach(function (k) {
+      if (k === "silver") S.silver += fx[k];
+      else S[k] = clamp(S[k] + fx[k]);
+    });
+    renderHUD(fx);
+
+    // 影响条
+    var chips = Object.keys(fx).map(function (k) {
+      var v = fx[k];
+      var cls = v >= 0 ? "up" : "down";
+      var sign = v >= 0 ? "+" : "";
+      return '<span class="fx-chip ' + cls + '">' + STAT_META[k] + " " + sign + v + "</span>";
+    }).join("");
+    el("ev-fx").innerHTML = chips || "";
+    el("ev-read").innerHTML = "🔎 潜规则解读：" + c.read;
+
+    el("ev-choices").classList.add("hidden");
+    el("ev-verdict").classList.remove("hidden");
+    el("ev-verdict").scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    // 立即致命的结局在解读后触发
+    current._gameOver = deathCheck();
+  }
+
+  function deathCheck() {
+    if (S.wusha <= 0) return S.qingyu >= 58 ? "purge" : "downfall";
+    if (S.minxin <= 0) return "revolt";
+    if (S.silver <= LOSE_SILVER) return "prison";
+    return null;
+  }
+
+  el("btn-next").addEventListener("click", function () {
+    if (current._gameOver) { endGame(current._gameOver); return; }
+    turn++;
+    if (turn >= TERM) { endGame(finalEnding()); return; }
+    showEvent();
+  });
+
+  // ---- 结局判定 -----------------------------------------------------------
+  function finalEnding() {
+    // 任满存活：按品性/家财分流
+    if (S.qingyu >= 60 && S.wusha >= 38) return "rare";        // 异数·全身而退的清官
+    if (S.qingyu <= 32 && S.silver >= 55) return "winner";     // 同流合污·系统赢家
+    if (S.qingyu <= 32) return "cynic";                         // 老于世故
+    if (S.qingyu >= 50) return "worn";                          // 清白而疲惫
+    return "survivor";                                          // 庸常幸存者
+  }
+
+  var ENDINGS = {
+    purge: { seal: "黜", title: "清官罢黜", kick: "任期未满 · 被同僚与上宪合力排挤去职",
+      body: [
+        "你守住了良心，却没守住乌纱。一封接一封的参劾、一次又一次「不谙政体」的差评，把你磨到了任满之前——你被参倒了。",
+        "不是哪个大奸大恶要害你，而是整套系统的免疫机制：当所有人都心照不宣，唯一「不合群」的那个，就成了必须被清除的异物。"
+      ],
+      map: "你亲历了 <b>淘汰清官机制</b>：系统不需要坏人来对付好人，只需要「大家都这样，就你不一样」。海瑞式的清官之所以稀有，正因为这套规则会主动把他们筛出去。" },
+    downfall: { seal: "败", title: "众叛落马", kick: "任期未满 · 失了圣眷，墙倒众人推",
+      body: [
+        "你既没干净到问心无愧，也没经营出足够的靠山。风向一变，昔日「自己人」翻脸比谁都快，把你推出去顶了缸。",
+        "在没有真制衡的地方，安全从不来自规矩，只来自关系。你两头都没抓牢，于是两头都不肯保你。"
+      ],
+      map: "你撞上了 <b>陋规 × 委托代理</b> 的另一面：入了局却站不稳，就成了随时可被牺牲的一环。系统对半吊子的惩罚，往往比对清官更冷酷。" },
+    revolt: { seal: "乱", title: "民变四起", kick: "任期未满 · 官逼民反，你成了替罪羊",
+      body: [
+        "钱粮一层层加码，最后全压在了跑不掉的百姓身上。终于，有人揭竿而起。乱起之后，上宪要的第一个人头，是你的。",
+        "你只是链条上尽职传递压力的一环——可当死弯崩断时，最末端的执行者，永远是第一个被推出来问罪的人。"
+      ],
+      map: "你走完了 <b>崇祯死弯</b> 与 <b>老百姓是个冤大头</b>：委托代理链每传一道就加一次码，越是「勤政催逼」，末端崩得越快。坏结果不需要坏人，只需要每个人都理性地把锅往下传。" },
+    prison: { seal: "囚", title: "亏空案发",  kick: "任期未满 · 库银穿底，下狱抄家",
+      body: [
+        "账终究做不平了。府库的窟窿越挖越大，寅吃卯粮撑到了尽头，一朝清查，铁证如山。你从知县变成了阶下囚。",
+        "击鼓传花的游戏里，你成了接到最后一棒的那个人——前任们挪空的、你又没能移交出去的窟窿，最后由你一个人来填。"
+      ],
+      map: "你尝到了 <b>做账 / 亏空</b> 的结构性代价：陋规体系把窟窿一任任往后传，账面太平之下是无人认领的亏空。总有人接最后一棒。" },
+    winner: { seal: "达", title: "同流合污 · 步步高升", kick: "任满 · 你成了这台机器最顺手的零件",
+      body: [
+        "你活下来了，而且活得很好。家财万贯，上下逢源，考语年年是「谙练老成」。所有人都说你是个能吏。",
+        "回望上任那天退过的礼、动过的念头，你几乎记不清自己是从哪一步开始，变成了当年最看不惯的那种人。"
+      ],
+      map: "你抵达了 <b>第二等公平</b> 的稳定均衡：人人都在这套规则里交费、也在其中获利，没人愿意、也没人敢第一个退出。你是系统的赢家——也是它得以自我维持的原因。" },
+    cynic: { seal: "熟", title: "老于世故", kick: "任满 · 一个「懂规矩」的平庸官僚",
+      body: [
+        "你没大贪，也没清高；该送的送，该收的收，棱角早被磨平。任满考绩平平，既不出彩，也没出事。",
+        "你学会了这套游戏的所有潜台词，并且不再为此感到任何不安——这或许才是系统最成功的产品。"
+      ],
+      map: "你被 <b>陋规 / 淘汰清官</b> 驯化成了「正常人」：系统真正的胜利，不是制造巨贪，而是让绝大多数普通人心安理得地随大流。" },
+    worn: { seal: "倦", title: "清白而疲惫", kick: "任满 · 守住了底线，也交足了买路钱",
+      body: [
+        "你没同流合污，也没被彻底掀翻。三年下来，你守住了不撒谎、不害人的底线，代价是仕途原地踏步、家底见薄、身心俱疲。",
+        "你没能改变什么，但至少，你没成为你所厌恶的那种人。在这套系统里，这已经是一种昂贵的胜利。"
+      ],
+      map: "你卡在了 <b>第二等公平</b> 的夹缝里：还想干净的人，多数就停在这个既不彻底堕落、也无力改造结构的位置——诊断清楚了病，却没有单独退出的选项。" },
+    rare: { seal: "异", title: "异数 · 全身而退的清官", kick: "任满 · 罕见地既守住了良心，又保住了身位",
+      body: [
+        "你走了一条几乎走不通的钢丝：既没被参倒，也没激起民变，账面干净，民间有声，任满全身而退。",
+        "但你心里清楚，这更多靠的是运气、时机和你个人的隐忍，而不是制度给了清官一条活路。你是那个「证明规则的例外」。"
+      ],
+      map: "你成了 <b>淘汰清官机制</b> 里罕见的漏网之鱼——像海瑞那样。系统容忍一两个例外存在，恰恰是为了证明「规矩本身没错」。真正的问题从不是没有好人，而是好结果为什么必须靠这么小概率的好人。" },
+    survivor: { seal: "存", title: "庸常幸存者", kick: "任满 · 随波逐流，侥幸下庄",
+      body: [
+        "谈不上清，也谈不上巨贪；随大流地交费、随大流地捞点，跌跌撞撞混到了任满。",
+        "你没想明白这套游戏，却也糊里糊涂地活了下来——这大概是绝大多数人在系统里的真实下场。"
+      ],
+      map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。" }
+  };
+
+  function endGame(key) {
+    var e = ENDINGS[key] || ENDINGS.survivor;
+    el("screen-game").classList.add("hidden");
+    var sec = el("screen-end");
+    sec.classList.remove("hidden");
+    el("end-seal").textContent = e.seal;
+    el("end-title").textContent = e.title;
+    el("end-kicker").textContent = e.kick;
+    el("end-stats").innerHTML =
+      "<span>🎏 乌纱 " + S.wusha + "</span>" +
+      "<span>🧑‍🌾 民心 " + S.minxin + "</span>" +
+      "<span>⚖️ 清誉 " + S.qingyu + "</span>" +
+      "<span>💰 白银 " + S.silver + " 两</span>";
+    el("end-body").innerHTML = e.body.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
+    el("end-map").innerHTML = "<b>这一局你亲历的潜规则 —</b><br>" + e.map;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ---- 开局 / 重开 --------------------------------------------------------
+  function startGame() {
+    S = Object.assign({}, START);
+    turn = 0;
+    queue = buildQueue();
+    el("screen-title").classList.add("hidden");
+    el("screen-end").classList.add("hidden");
+    el("screen-game").classList.remove("hidden");
+    renderHUD();
+    showEvent();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  el("btn-start").addEventListener("click", startGame);
+  el("btn-restart").addEventListener("click", startGame);
+})();
+</script>
+</body>
+</html>
