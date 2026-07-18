@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" width="1000" height="640" role="img" aria-labelledby="t d" font-family="'Noto Sans SC','Noto Sans CJK SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Source Han Sans SC',sans-serif">
+<title id="t">新加坡全岛方位图</title>
+<desc id="d">标示樟宜机场、市区核心、圣淘沙、Mandai 动物园群与兀兰关卡在新加坡岛上的相对位置，并给出彼此间的大致交通时间。</desc>
+<rect width="1000" height="640" rx="14" fill="#fbfbfc" stroke="#dfe3ea" />
+<rect x="1" y="1" width="998" height="638" rx="14" fill="#d9e7f1" />
+<path d="M81.09 114.96 L81.09 -37.71 L937.53 -37.71 L937.53 167.09 L807.2 185.71 L695.49 148.47 L583.78 120.55 L453.45 114.96 L341.75 129.85 L230.04 126.13 Z" fill="#e4e6e0" stroke="#d0d4c9" stroke-width="1" opacity="0.85" />
+<text x="509.31" y="88.89" font-size="12" fill="#8c95a4" text-anchor="middle">马来西亚 · 柔佛新山 Johor Bahru</text>
+<path d="M109.02 399.82 L136.95 362.58 L174.18 334.65 L202.11 269.49 L267.27 213.64 L304.51 176.4 L369.67 167.09 L434.84 157.78 L490.69 144.75 L555.85 135.44 L611.71 157.78 L667.56 213.64 L742.04 260.18 L807.2 278.8 L863.05 306.73 L890.98 353.27 L863.05 399.82 L807.2 418.44 L751.35 437.05 L695.49 446.36 L639.64 455.67 L583.78 464.98 L555.85 492.91 L527.93 511.53 L490.69 517.11 L434.84 502.22 L378.98 492.91 L323.13 474.29 L267.27 455.67 L192.8 437.05 L136.95 418.44 Z" fill="#eceee8" stroke="#d3d8cd" stroke-width="1.5" />
+<path d="M462.76 532.01 L490.69 526.42 L518.62 528.28 L542.82 537.59 L527.93 548.76 L500 552.49 L472.07 545.04 Z" fill="#eceee8" stroke="#d3d8cd" stroke-width="1.5" />
+<text x="360.36" y="545.04" font-size="12" fill="#7fa3bd" text-anchor="middle">新加坡海峡</text>
+<text x="639.64" y="144.75" font-size="11" fill="#7fa3bd" text-anchor="middle">柔佛海峡</text>
+<rect x="501.86" y="412.85" width="85.64" height="104.26" rx="4" fill="#d1495b" fill-opacity="0.07" stroke="#d1495b" stroke-width="1.4" stroke-dasharray="5 4" />
+<text x="593.51" y="531.11" font-size="11" fill="#d1495b">↑ 此范围详见下方「市区地铁与景点分布图」</text>
+<circle cx="805.34" cy="336.52" r="7" fill="#d1495b" stroke="#fff" stroke-width="2" />
+<text x="791.34" y="334.52" font-size="14" font-weight="700" fill="#1f2430" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">樟宜机场 Changi</text>
+<text x="791.34" y="349.52" font-size="11" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">星耀樟宜 Jewel 雨漩涡</text>
+<circle cx="434.84" cy="252.73" r="7" fill="#d1495b" stroke="#fff" stroke-width="2" />
+<text x="420.84" y="250.73" font-size="14" font-weight="700" fill="#1f2430" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">Mandai 动物园群</text>
+<text x="420.84" y="265.73" font-size="11" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">动物园 / 夜间动物园 / 河川生态园 / 飞禽公园</text>
+<circle cx="555.11" cy="470.57" r="7" fill="#d1495b" stroke="#fff" stroke-width="2" />
+<text x="539.11" y="466.57" font-size="14" font-weight="700" fill="#1f2430" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">市区核心</text>
+<text x="539.11" y="481.57" font-size="11" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">滨海湾 · 牛车水 · 小印度 · 乌节路</text>
+<circle cx="501.86" cy="539.45" r="7" fill="#d1495b" stroke="#fff" stroke-width="2" />
+<text x="519.86" y="573.45" font-size="14" font-weight="700" fill="#1f2430" text-anchor="middle" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">圣淘沙 Sentosa</text>
+<text x="519.86" y="588.45" font-size="11" fill="#5b6472" text-anchor="middle" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">环球影城 · 新加坡海洋馆</text>
+<circle cx="483.06" cy="420.67" r="5" fill="#d1495b" stroke="#fff" stroke-width="2" />
+<text x="471.06" y="424.67" font-size="12.5" font-weight="700" fill="#1f2430" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">新加坡植物园</text>
+<text x="471.06" y="439.67" font-size="11" fill="#5b6472" text-anchor="end" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">UNESCO · 免费</text>
+<circle cx="514.71" cy="227.97" r="5" fill="#d1495b" stroke="#fff" stroke-width="2" />
+<text x="526.71" y="231.97" font-size="12.5" font-weight="700" fill="#1f2430" text-anchor="start" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">Khatib 站</text>
+<text x="526.71" y="246.97" font-size="11" fill="#5b6472" text-anchor="start" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">换 M2 接驳车去 Mandai</text>
+<circle cx="405.98" cy="189.06" r="5" fill="#d1495b" stroke="#fff" stroke-width="2" />
+<text x="399.98" y="175.06" font-size="12.5" font-weight="700" fill="#1f2430" text-anchor="middle" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">兀兰关卡</text>
+<text x="399.98" y="190.06" font-size="11" fill="#5b6472" text-anchor="middle" stroke="#fbfbfc" stroke-width="3.2" paint-order="stroke" stroke-linejoin="round">陆路往马来西亚新山</text>
+<rect x="28" y="522" width="268" height="69" rx="8" fill="#ffffff" stroke="#dfe3ea" /><circle cx="48" cy="538" r="5" fill="#d1495b" stroke="#fff" stroke-width="1.5" /><text x="64" y="542" font-size="11.5" fill="#1f2430">机场 → 市区：地铁约 45 分 / Grab 约 20 分</text><circle cx="48" cy="557" r="5" fill="#d1495b" stroke="#fff" stroke-width="1.5" /><text x="64" y="561" font-size="11.5" fill="#1f2430">市区 → 圣淘沙：地铁 + 捷运约 30 分</text><circle cx="48" cy="576" r="5" fill="#d1495b" stroke="#fff" stroke-width="1.5" /><text x="64" y="580" font-size="11.5" fill="#1f2430">市区 → Mandai：地铁 + 接驳车约 60 分</text>
+<path d="M850 606 L850 601 M850 606 L933.65 606 M933.65 606 L933.65 601" stroke="#5b6472" stroke-width="1.4" fill="none" /><text x="891.82" y="619" font-size="10.5" fill="#5b6472" text-anchor="middle">5 km</text>
+<path d="M954 126 L954 96" stroke="#5b6472" stroke-width="1.6" /><path d="M954 92 L949.5 102 L958.5 102 Z" fill="#5b6472" /><text x="954" y="138" font-size="11" font-weight="700" fill="#5b6472" text-anchor="middle">N</text>
+<text x="26" y="36" font-size="19" font-weight="700" fill="#1f2430">新加坡全岛方位图</text><text x="26" y="56" font-size="12.5" fill="#5b6472">主要游玩片区、机场与跨境关卡的相对位置；全岛东西约 42 km、南北约 23 km</text>
+<text x="26" y="624" font-size="11" fill="#8c95a4">示意图：按经纬度等距投影绘制，海岸线为简化轮廓，比例尺仅供估距参考。</text>
+</svg>
