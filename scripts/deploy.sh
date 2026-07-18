@@ -24,9 +24,30 @@ fi
 
 if [ "$BRANCH" != "main" ]; then
   echo "▶ Tests green — merging '$BRANCH' into main…"
+
+  # SAFETY: the live H2 database (data/) is runtime state and must NEVER be
+  # clobbered by a git operation. It used to be tracked in git, so a
+  # checkout/merge/revert would silently roll the on-disk DB back to a stale
+  # snapshot — wiping every story/task created since (see task #270). The DB is
+  # untracked now, but we snapshot it before touching git and restore it after
+  # the merge so the live on-disk data always wins, no matter what git does.
+  DB_SNAPSHOT=""
+  if [ -d "$REPO/data" ]; then
+    DB_SNAPSHOT="$(mktemp -d)/data"
+    mkdir -p "$DB_SNAPSHOT"
+    cp -a "$REPO/data/." "$DB_SNAPSHOT/" 2>/dev/null || true
+  fi
+
   git checkout main
   git merge --no-ff "$BRANCH" -m "auto-deploy: merge $BRANCH"
   git push origin main 2>&1 || echo "(push skipped/failed — continuing with local deploy)"
+
+  if [ -n "$DB_SNAPSHOT" ] && [ -d "$DB_SNAPSHOT" ]; then
+    mkdir -p "$REPO/data"
+    cp -a "$DB_SNAPSHOT/." "$REPO/data/" 2>/dev/null || true
+    rm -rf "$(dirname "$DB_SNAPSHOT")" 2>/dev/null || true
+    echo "▶ Live database preserved across the merge."
+  fi
 else
   echo "▶ On main — deploying in place."
 fi
