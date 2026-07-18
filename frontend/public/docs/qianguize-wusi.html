@@ -159,6 +159,10 @@ pre.mermaid { background: var(--card); border: 1px solid var(--line); border-rad
 <li class="lv2"><a href="#2-核心定义什么是潜规则">2. 核心定义：什么是「潜规则」</a></li>
 <li class="lv2"><a href="#3-参与者与角色皇帝官僚胥吏百姓的委托代理链">3. 参与者与角色：皇帝—官僚—胥吏—百姓的委托代理链</a></li>
 <li class="lv2"><a href="#4-核心概念术语表">4. 核心概念术语表</a></li>
+<li class="lv2"><a href="#5-逻辑关系图把全书逻辑显性化">5. 逻辑关系图：把全书逻辑显性化</a></li>
+<li class="lv3"><a href="#51-核心机制链从权力失约到系统自维持">5.1 核心机制链：从权力失约到系统自维持</a></li>
+<li class="lv3"><a href="#52-角色关系--委托代理图四种流向与结构性缺陷">5.2 角色关系 / 委托代理图：四种流向与结构性缺陷</a></li>
+<li class="lv3"><a href="#53-明规则-vs-潜规则表皮与实质的并存">5.3 明规则 vs 潜规则：表皮与实质的并存</a></li>
 <li class="lv2"><a href="#后续步骤本文档规划">后续步骤（本文档规划）</a></li>
 </ul>
 </nav>
@@ -202,7 +206,7 @@ pre.mermaid { background: var(--card); border: 1px solid var(--line); border-rad
 <li><strong>胥吏（基层执行者 / 经手人）</strong>——不入品级却把持文书、征收、诉讼等具体经办环节，<br />是“合法伤害权”最密集的一层，陋规多由此而生。</li>
 <li><strong>百姓（最终被代理人 / 买单者）</strong>——链条最末端，既是赋税与秩序的名义受益者，又是<br />各层提取利益的最终承担者，即所谓“冤大头”。</li>
 </ul>
-<p>下面用一个<strong>占位逻辑图</strong>先行确认 Mermaid 渲染管线可用；正式的委托代理与利益/伤害流向图，<br />将在后续步骤中细化。</p>
+<p>下面先给一张<strong>简化示意图</strong>建立直觉；完整的四种流向（信息 / 暴力 / 钱财 / 庇护）与<br />信息不对称、激励错配的标注版逻辑图，见下文 <strong><a href="#5-逻辑关系图把全书逻辑显性化">第 5 节「逻辑关系图」</a></strong>。</p>
 <pre class="mermaid">flowchart TB
     emperor["皇帝&lt;br/&gt;最终委托人 · 求稳定与赋税"]
     bureau["官僚集团&lt;br/&gt;代理人 · 对上邀功对下取利"]
@@ -216,7 +220,7 @@ pre.mermaid { background: var(--card); border: 1px solid var(--line); border-rad
     people -. "赋税 + 陋规（真实负担）" .-&gt; clerk
     clerk -. "上供 / 分成" .-&gt; bureau
     bureau -. "报喜不报忧（信息截留）" .-&gt; emperor</pre>
-<blockquote class="quote"><p>说明：上图为<strong>第 1 步的占位示意</strong>，仅用于验证 <code>hasMermaid</code> 渲染管线。角色标签、箭头<br />语义与“利益上行 / 伤害下行”的双向流，将在后续步骤中替换为完整逻辑图。</p></blockquote>
+<blockquote class="quote"><p>说明：上图为<strong>简化示意</strong>，只画了权力下行、利益上行、信息截留三条主线。第 5 节会把<br />它扩展为标注四种流向与两处结构性缺陷（信息不对称、激励错配）的完整逻辑图。</p></blockquote>
 <hr />
 <h2 id="4-核心概念术语表">4. 核心概念术语表<a class="anchor" href="#4-核心概念术语表" aria-label="链接到本节">#</a></h2>
 <p>全书反复出现的几个“发明词”，是理解潜规则机制的钥匙。下表每个先给<strong>一句话定义</strong>，<br />后续步骤会对每一条展开机制分析与案例。</p>
@@ -233,9 +237,93 @@ pre.mermaid { background: var(--card); border: 1px solid var(--line); border-rad
 </table></div>
 <blockquote class="quote"><p>术语表在后续步骤中可能增补（如“血酬 / 血酬定律”“潜流”“正式规则的失灵”等相邻概念），<br />并与逻辑图交叉引用。</p></blockquote>
 <hr />
+<h2 id="5-逻辑关系图把全书逻辑显性化">5. 逻辑关系图：把全书逻辑显性化<a class="anchor" href="#5-逻辑关系图把全书逻辑显性化" aria-label="链接到本节">#</a></h2>
+<p>本节用三张 Mermaid 图把《潜规则》的核心逻辑显性化：<strong>（一）核心机制链</strong>——潜规则如何<br />产生、制度化并自我维持；<strong>（二）角色关系 / 委托代理图</strong>——信息、暴力、钱财、庇护四种流向<br />及其结构性缺陷；<strong>（三）明规则 vs 潜规则对照</strong>——表皮与实质如何长期并存。图中节点尽量<br />对应第 4 节术语表中的概念，全部使用中文。</p>
+<h3 id="51-核心机制链从权力失约到系统自维持">5.1 核心机制链：从权力失约到系统自维持<a class="anchor" href="#51-核心机制链从权力失约到系统自维持" aria-label="链接到本节">#</a></h3>
+<p>这是全书的<strong>因果主链</strong>。链条本身是单向推进的，但真正让它经久不衰的是三条<strong>反馈回路</strong><br />（图中红色虚线）：稳态反哺权力、选择压力清洗队伍、陋规锁定使明规则进一步失灵。正因为<br />存在这些正反馈，单点整顿（换一个清官、发一道禁令）往往被系统迅速消化。</p>
+<pre class="mermaid">flowchart TB
+    A["权力不受制约&lt;br/&gt;自上而下授权 · 缺乏外部问责"]
+    B["官员手握&lt;b&gt;合法伤害权&lt;/b&gt;&lt;br/&gt;可依规则'合法地'制造损害"]
+    C["&lt;b&gt;潜规则 / 陋规&lt;/b&gt;产生并制度化&lt;br/&gt;常例·部费·火耗成为默认'规矩'"]
+    D["交易成本内部化为百姓负担&lt;br/&gt;层层提取 → &lt;b&gt;老百姓是冤大头&lt;/b&gt;"]
+    E["劣币驱逐良币 · &lt;b&gt;淘汰清官机制&lt;/b&gt;&lt;br/&gt;不肯同流者被排挤出局"]
+    F["系统自我维持&lt;br/&gt;潜规则秩序稳态复制"]
+
+    A --&gt; B --&gt; C --&gt; D --&gt; E --&gt; F
+
+    F -. "① 稳态反哺：既得秩序进一步固化不受制约的权力" .-&gt; A
+    E -. "② 选择压力：留下的都是合作者，伤害权更无制衡" .-&gt; B
+    C -. "③ 规范锁定：陋规既成'规矩'，明规则进一步失灵" .-&gt; D
+
+    linkStyle 5,6,7 stroke:#c0392b,stroke-width:1.5px;
+    classDef core fill:#fde2e2,stroke:#c0392b,stroke-width:2px;
+    class B,C,E core;</pre>
+<blockquote class="quote"><p>读法：黑色实箭头是<strong>因果推进</strong>，红色虚线是<strong>反馈回路</strong>。回路 ①②③ 叠加，使系统对<br />局部干预具有强韧性——这正是吴思所谓“潜规则是一套可自我维持的秩序”的图解。</p></blockquote>
+<h3 id="52-角色关系--委托代理图四种流向与结构性缺陷">5.2 角色关系 / 委托代理图：四种流向与结构性缺陷<a class="anchor" href="#52-角色关系--委托代理图四种流向与结构性缺陷" aria-label="链接到本节">#</a></h3>
+<p>沿 <code>皇帝—官僚集团—胥吏—百姓</code> 这条委托代理链，实际流动着四样东西，方向各不相同：</p>
+<ul>
+<li><strong>权力 / 暴力（下行）</strong>——授权、指派、征收与刑名，越往下越接近<strong>合法伤害权</strong>的锋刃。</li>
+<li><strong>钱财（上行）</strong>——赋税与<strong>陋规</strong>从百姓层层上供、分成、孝敬，真实负担压在最底层。</li>
+<li><strong>信息（上行但失真）</strong>——真相自下而上传递时被逐层截留、粉饰，形成<strong>信息不对称</strong>。</li>
+<li><strong>庇护（下行）</strong>——恩荫、关系网与保护自上而下分配，是维系合作、换取忠诚的黏合剂。</li>
+</ul>
+<pre class="mermaid">flowchart TB
+    emperor["皇帝&lt;br/&gt;最终委托人 · 求江山稳固与赋税"]
+    bureau["官僚集团&lt;br/&gt;代理人 · 对上邀功·对下取利"]
+    clerk["胥吏&lt;br/&gt;基层经手 · 合法伤害权最密集"]
+    people["百姓&lt;br/&gt;最终被代理人 · 冤大头"]
+
+    emperor == "授权·考核（权力↓）" ==&gt; bureau
+    bureau == "指派·分肥（权力↓）" ==&gt; clerk
+    clerk == "征收·刑名（合法伤害权↓）" ==&gt; people
+
+    people -- "赋税＋陋规（钱财↑·真实负担）" --&gt; clerk
+    clerk -- "上供·分成（钱财↑）" --&gt; bureau
+    bureau -- "孝敬·部费（钱财↑）" --&gt; emperor
+
+    people -. "真相（信息↑）" .-&gt; clerk
+    clerk -. "报喜不报忧" .-&gt; bureau
+    bureau -. "粉饰奏报（信息↑·失真）" .-&gt; emperor
+
+    emperor -. "恩荫·庇护（庇护↓）" .-&gt; bureau
+    bureau -. "关系网·保护（庇护↓）" .-&gt; clerk
+
+    gap1["⚠ 信息不对称&lt;br/&gt;皇帝看不到基层真相，&lt;br/&gt;只能靠被层层过滤的奏报治理"]:::warn
+    gap2["⚠ 激励错配&lt;br/&gt;代理人'对上邀功'≠'对下尽责'；&lt;br/&gt;越接近百姓，越靠伤害权取利"]:::warn
+    gap1 -.-&gt; emperor
+    gap2 -.-&gt; clerk
+
+    classDef warn fill:#fff3cd,stroke:#e0a800,stroke-width:1.5px,color:#663c00;</pre>
+<blockquote class="quote"><p>读法：<strong>粗实线 = 权力/暴力下行，细实线 = 钱财上行，点线 = 信息与庇护</strong>。两处黄色告警<br />标出系统的结构性病灶：<code>gap1</code> 信息不对称让皇帝无法核实代理人；<code>gap2</code> 激励错配让代理人的<br />私利与百姓福祉背道而驰。潜规则正是在这两个缺口里长出来的——它是委托代理失灵的<strong>产物</strong>，<br />也是其<strong>放大器</strong>。</p></blockquote>
+<h3 id="53-明规则-vs-潜规则表皮与实质的并存">5.3 明规则 vs 潜规则：表皮与实质的并存<a class="anchor" href="#53-明规则-vs-潜规则表皮与实质的并存" aria-label="链接到本节">#</a></h3>
+<p>最后一张对照子图，回应第 2 节的核心定义：两套规则并非“正统 vs 腐败”，而是<strong>分工共生</strong>——<br />明规则提供合法性表皮，潜规则处理利益实质，彼此长期咬合。</p>
+<pre class="mermaid">flowchart LR
+    subgraph ming["明规则（表皮 · 应然）"]
+        direction TB
+        m1["载体：律例·典章·圣贤教诲"]
+        m2["功能：提供合法性外衣"]
+        m3["执行：常被架空·选择性执行"]
+    end
+
+    subgraph qian["潜规则（实质 · 实然）"]
+        direction TB
+        q1["载体：不成文·心照不宣"]
+        q2["功能：分配真实利益与风险"]
+        q3["执行：迅速现实·违者立付代价"]
+    end
+
+    ming == "合法性表皮包裹" ==&gt; qian
+    qian -. "谁真正发奖惩·&lt;b&gt;第二等公平&lt;/b&gt;" .-&gt; ming
+
+    classDef skin fill:#e8f0fe,stroke:#3367d6;
+    classDef real fill:#fde2e2,stroke:#c0392b;
+    class m1,m2,m3 skin;
+    class q1,q2,q3 real;</pre>
+<blockquote class="quote"><p>读法：粗箭头（明→潜）表示明规则为潜规则提供<strong>合法性伪装</strong>；回指的点线（潜→明）表示<br />真正的奖惩由潜规则发出，当事人只能退求<strong>第二等公平</strong>。二者互为里表，这正是“单纯呼吁<br />遵守明规则往往无效”的根源。</p></blockquote>
+<hr />
 <h2 id="后续步骤本文档规划">后续步骤（本文档规划）<a class="anchor" href="#后续步骤本文档规划" aria-label="链接到本节">#</a></h2>
 <ul>
-<li><strong>第 2 步</strong>：绘制完整的<strong>委托代理 / 利益—伤害流向逻辑图</strong>，替换本步占位图。</li>
+<li><strong>第 2 步</strong>（本步已完成）：绘制<strong>核心机制链</strong>、<strong>委托代理四流向图</strong>与<strong>明/潜规则对照图</strong>，<br />见上文第 5 节。</li>
 <li><strong>第 3 步</strong>：对术语表逐条展开<strong>机制分析 + 明清案例</strong>（合法伤害权、陋规、淘汰清官等）。</li>
 <li><strong>第 4 步</strong>：批判性讨论与当代映射——潜规则框架的解释力、边界与争议。</li>
 </ul>
