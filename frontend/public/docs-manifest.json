@@ -1,5 +1,19 @@
 [
   {
+    "id": "daming-jingying",
+    "title": "大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）",
+    "href": "/docs/daming-jingying.html",
+    "deletable": true,
+    "file": "docs/daming-jingying.md",
+    "updatedAt": "2026-07-18T11:49:47.823Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/daming-jingying.md",
+      "frontend/public/docs/daming-jingying.html"
+    ]
+  },
+  {
     "id": "daming-wangchao",
     "title": "大明王朝：潜规则生存模拟（网页游戏）",
     "href": "/docs/daming-wangchao.html",

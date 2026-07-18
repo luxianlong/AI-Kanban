@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏） · Kanban docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --ink: #1f2430;
+  --muted: #5b6472;
+  --line: #e5e8ee;
+  --accent: #4f46e5;
+  --accent-soft: #eef0fe;
+  --link: #1f6feb;
+  --source-bg: #f0f7f4;
+  --source-line: #3f9e78;
+  --maxw: 1120px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 55%, #7c9bf5 100%);
+  color: #fff;
+  padding: 48px 24px 40px;
+  text-align: center;
+}
+.hero .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 0 0 8px;
+}
+.hero h1 {
+  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  font-size: clamp(26px, 4.5vw, 40px);
+  margin: 0 0 10px;
+  letter-spacing: 0.3px;
+}
+.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.95; font-size: 15px; }
+.hero .back { display: inline-block; margin-top: 16px; color: #fff; font-size: 14px; opacity: 0.9; }
+.hero .back:hover { opacity: 1; }
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 36px;
+  align-items: start;
+}
+.toc {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 16px;
+  font-size: 14px;
+}
+.toc-title {
+  font-weight: 700; font-size: 13px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+}
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 1px 0; }
+.toc li a {
+  display: block; padding: 4px 8px; border-radius: 7px; color: var(--ink);
+}
+.toc li a:hover { background: var(--accent-soft); text-decoration: none; }
+.toc li.lv2 a { font-weight: 600; margin-top: 6px; }
+.toc li.lv3 a { padding-left: 20px; color: var(--muted); font-size: 13px; }
+.content {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 8px 40px 40px; min-width: 0;
+}
+.content h1 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 30px; margin: 24px 0 12px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  line-height: 1.35; scroll-margin-top: 16px; position: relative;
+}
+.content h2 { font-size: 25px; margin: 38px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-soft); }
+.content h3 { font-size: 20px; margin: 28px 0 10px; }
+.content h4 { font-size: 17px; margin: 22px 0 8px; color: var(--accent); }
+.content p { margin: 12px 0; }
+.content ul, .content ol { margin: 12px 0; padding-left: 24px; }
+.content li { margin: 5px 0; }
+.content li > ul, .content li > ol { margin: 5px 0; }
+.anchor { opacity: 0; margin-left: 8px; color: var(--accent); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.55; }
+code { background: #eef0f4; border-radius: 5px; padding: 1px 6px; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size: 0.9em; }
+blockquote.quote { margin: 16px 0; padding: 12px 18px; border-left: 4px solid var(--line); background: #f8f9fb; border-radius: 0 10px 10px 0; color: var(--muted); }
+blockquote.source { background: var(--source-bg); border-left-color: var(--source-line); }
+blockquote.source::before { content: "🔎 来源与时效"; display: block; font-weight: 700; font-size: 13px; color: var(--source-line); margin-bottom: 4px; }
+blockquote p { margin: 4px 0; font-size: 14px; }
+.figure { margin: 22px 0; text-align: center; }
+.figure img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(31,36,48,0.10); }
+.figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; border-radius: 10px; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 420px; }
+th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--accent-soft); color: var(--ink); font-weight: 700; }
+tbody tr:nth-child(even) { background: #fafbfc; }
+hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+pre.code { background: #1f2430; color: #e6e8ef; border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+pre.mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; text-align: center; overflow-x: auto; }
+.backtop {
+  position: fixed; right: 22px; bottom: 22px; width: 46px; height: 46px;
+  border-radius: 50%; background: var(--accent); color: #fff; border: none;
+  font-size: 20px; cursor: pointer; box-shadow: 0 6px 18px rgba(79,70,229,0.4);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.mobile-toc-toggle { display: none; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 16px; font: inherit; font-weight: 600; text-align: left; cursor: pointer;
+  }
+  .toc.collapsed { display: none; }
+  .content { padding: 8px 20px 28px; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">Kanban · Result</p>
+<h1>大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）</h1>
+<a class="back" href="/docs.html">← All documents</a>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ On this page</button>
+<nav class="toc" aria-label="On this page">
+<div class="toc-title">On this page</div>
+<ul>
+<li class="lv2"><a href="#-开始经营">▶ 开始经营</a></li>
+<li class="lv2"><a href="#这是一款什么样的游戏">这是一款什么样的游戏</a></li>
+<li class="lv2"><a href="#核心玩法逐年调度四条杠杆">核心玩法：逐年调度四条杠杆</a></li>
+<li class="lv2"><a href="#八种下场八面镜子">八种下场，八面镜子</a></li>
+<li class="lv2"><a href="#想读懂账本背后的规则">想读懂账本背后的规则</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>这是《潜规则》系列的<strong>收官续作</strong>——一款以「潜规则」为主题的<strong>模拟经营</strong>网页游戏。你执掌清河县六年，逐年调度四条杠杆，在<strong>上意、民心、清誉、库银、私囊</strong>之间求存。和本系列的<a href="/docs/daming-wangchao.html" target="_blank" rel="noopener noreferrer">抉择版游戏</a>不同：那是一局一局的两难抉择，这一款让你<strong>像经营者一样管理一整套衙门财政</strong>——看着账本上每一笔钱的去向，亲手推动那台"不需要坏人也能自我运转"的机器。</p>
+<blockquote class="quote source"><p>玩法与文案基于吴思《潜规则：中国历史中的真实游戏》(2001) 的分析框架，与本系列的<a href="/docs/qianguize-wusi.html" target="_blank" rel="noopener noreferrer">学术版分析</a>、<a href="/docs/qianguize-haowanban.html" target="_blank" rel="noopener noreferrer">好玩版</a>、<a href="/docs/daming-wangchao.html" target="_blank" rel="noopener noreferrer">抉择版游戏</a>同源。游戏为纯前端、单文件、无后端存档，开箱即玩；本页最后更新于 2026-07。</p></blockquote>
+<h2 id="-开始经营">▶ 开始经营<a class="anchor" href="#-开始经营" aria-label="链接到本节">#</a></h2>
+<p><strong><a href="/game/daming-jingying.html" target="_blank" rel="noopener noreferrer">点此进入 · 大明王朝·衙门经营 →</a></strong></p>
+<p>（在新标签打开，手机 / 电脑均可玩。每局约 4–6 分钟，鼓励重玩——同样的六年，不同的调度会走向不同的下场。）</p>
+<h2 id="这是一款什么样的游戏">这是一款什么样的游戏<a class="anchor" href="#这是一款什么样的游戏" aria-label="链接到本节">#</a></h2>
+<p>一款<strong>数值经营 × 官场生存</strong>的模拟游戏。你不是一次次做单选题，而是<strong>逐年经营一套没有俸禄能养活的衙门财政</strong>：钱从哪来、送往何处、留下多少，全凭你调度。你有五项资源：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>资源</th><th>含义</th><th>触底/失衡会怎样</th></tr></thead>
+<tbody>
+<tr><td>🎏 <strong>上意</strong></td><td>府道对你的欢心、考成</td><td>归零即<strong>革职查办</strong>，游戏结束</td></tr>
+<tr><td>🧑‍🌾 <strong>民心</strong></td><td>治下百姓的承受度</td><td>归零即<strong>民变四起</strong>，你当替罪羊</td></tr>
+<tr><td>⚖️ <strong>清誉</strong></td><td>清廉声望 / 你的良心</td><td>不直接致命，但决定<strong>结局走向</strong></td></tr>
+<tr><td>🏛️ <strong>库银</strong></td><td>官库存银，须逐年解足<strong>上供</strong></td><td>亏空累积过深即<strong>案发下狱</strong></td></tr>
+<tr><td>💰 <strong>私囊</strong></td><td>你的家当</td><td>既是"赢面"，也是填亏空的软肋</td></tr>
+</tbody>
+</table></div>
+<h2 id="核心玩法逐年调度四条杠杆">核心玩法：逐年调度四条杠杆<a class="anchor" href="#核心玩法逐年调度四条杠杆" aria-label="链接到本节">#</a></h2>
+<p>每一年，你先设定四条杠杆（各 4 档），<strong>账本会实时预估</strong>这一年的收支与民情，再"开征结算"过完这一年：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>杠杆</th><th>你在经营什么</th><th>对应的潜规则</th></tr></thead>
+<tbody>
+<tr><td>🔥 <strong>火耗加征</strong></td><td>正税之外的附加，越高私囊越丰、民心越薄</td><td>火耗、层层加派</td></tr>
+<tr><td>🧾 <strong>差役征比</strong></td><td>多雇书吏差役征收更足额，但他们要吃陋规、也更扰民</td><td>合法伤害权 / 身怀利器</td></tr>
+<tr><td>🎁 <strong>孝敬上宪</strong></td><td>炭敬冰敬送往府道，用<strong>私囊</strong>买上意</td><td>陋规</td></tr>
+<tr><td>🌾 <strong>惠民之政</strong></td><td>修水利、办义仓，用<strong>库银</strong>买民心与清誉</td><td>淘汰清官机制的反面</td></tr>
+</tbody>
+</table></div>
+<p>结算之间还会插入<strong>年中随机事件</strong>（命案投状、上宪考察、水旱成灾、同僚约分、挂号钱、漕粮短纳），每个选项都对应一条机制，选完弹出「🔎 潜规则解读」，把你刚做的经营决策翻译成书里的术语。</p>
+<p><strong>难点设计</strong>：上供额度<strong>逐年上涨</strong>，第 4 年起朝廷加派<strong>三饷</strong>——这正是"崇祯死弯"。越到后期，你越会发现：账面达标就得压榨民心，惠民养望就得开罪上宪。<strong>每一步都是当下的最优解，相加却是一个谁都无法独自退出的坏均衡。</strong></p>
+<h2 id="八种下场八面镜子">八种下场，八面镜子<a class="anchor" href="#八种下场八面镜子" aria-label="链接到本节">#</a></h2>
+<p>任满六年、京察过关即为胜，但"胜"有很多种脸：</p>
+<ul>
+<li><strong>同流合污·加官进爵</strong>（系统的赢家：私囊丰、上意足）</li>
+<li><strong>异数·循吏全身而退</strong>（极罕见：既保清誉又活到任满——像海瑞那样"证明规则的例外"）</li>
+<li><strong>爱民罢官</strong>（把银子花给百姓、省了孝敬 → 被系统当"不合群"筛出去：淘汰清官机制的实现）</li>
+<li><strong>酷吏搜刮·官声狼藉</strong>（靠榨取活下来，代价是一县元气）</li>
+<li><strong>碌碌太平官</strong>（不功不过，安然退场——大多数人在潜规则里的活法）</li>
+</ul>
+<p>以及三种任内翻车：<strong>革职查办</strong>（上意归零）、<strong>民变四起</strong>（民心归零）、<strong>亏空案发·锒铛下狱</strong>（累计亏空压垮）。</p>
+<p>结局屏会告诉你：<strong>这一局你究竟亲历了哪几条潜规则</strong>、五项资源的最终账面，以及通往深度分析的入口。</p>
+<h2 id="想读懂账本背后的规则">想读懂账本背后的规则<a class="anchor" href="#想读懂账本背后的规则" aria-label="链接到本节">#</a></h2>
+<ul>
+<li>📖 <strong><a href="/docs/qianguize-wusi.html" target="_blank" rel="noopener noreferrer">潜规则 · 学术版分析</a></strong> —— 核心定义、委托代理链、五大案例的博弈结构、理论对话与现代映射判别清单。游戏里每条「解读」都能在这里找到对应章节。</li>
+<li>🎈 <strong><a href="/docs/qianguize-haowanban.html" target="_blank" rel="noopener noreferrer">潜规则 · 好玩版</a></strong> —— 一句话能转发的六张「黑话卡」，30 秒看懂这局游戏的底层规则。</li>
+<li>🎮 <strong><a href="/docs/daming-wangchao.html" target="_blank" rel="noopener noreferrer">大明王朝 · 抉择版游戏</a></strong> —— 姊妹作：约 11 个两难抉择的文字生存模拟，与本作同源不同玩法。</li>
+</ul>
+<blockquote class="quote"><p>玩这款游戏不是为了学会「入伙」，而是为了<strong>看清规则</strong>——正如全书结尾所说：看清游戏，是为了有朝一日改写规则，而不是加入它。</p></blockquote>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    var toc = document.querySelector('.toc');
+    if (toc) toc.classList.add('collapsed');
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["daming-jingying"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+</script>
+</body>
+</html>
