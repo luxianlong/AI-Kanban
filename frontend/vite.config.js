@@ -28,15 +28,29 @@ import crypto from 'node:crypto'
 // invalidates every previously-issued cookie (old cookie stops matching -> the
 // login form returns and the new password is required). A `Basic` Authorization
 // header is still honoured too, so curl/scripts keep working unchanged.
+//
+// To avoid asking a regular visitor for the password over and over, a
+// "Remember me" session uses a ROLLING window: every authenticated full-page
+// load re-issues the cookie with a fresh 30-day expiry, so the credentials are
+// only requested again after 30 days of NOT visiting — not 30 days after the
+// first sign-in. A companion marker cookie records that the session was a
+// remembered one, so session-only logins (Remember-me unticked) are never
+// silently upgraded into persistent ones.
 const CREDS_FILE = path.resolve(import.meta.dirname, '.public-auth.json')
 
 const AUTH_COOKIE = 'dash_auth'
+// Marks a "Remember me" session so rolling refresh only extends persistent
+// logins, never a deliberately session-only one. Not security-sensitive: it
+// only gates whether the (already-validated) auth cookie's expiry slides.
+const PERSIST_COOKIE = 'dash_auth_p'
 // Endpoints the gate owns for the login form (kept under a /__auth/ prefix so
 // they can never collide with an app route or static asset).
 const LOGIN_PATH = '/__auth/login'
 const LOGOUT_PATH = '/__auth/logout'
-// How long the session cookie survives before the browser re-prompts, when the
-// user ticks "Remember me". Left off, the cookie is a session cookie instead.
+// How long a remembered session survives a period of inactivity before the
+// browser re-prompts. Refreshed on every authenticated page load (rolling), so
+// this is a window of inactivity, not a hard cap from first sign-in. Without
+// "Remember me" the cookie is a session cookie (cleared on browser close).
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days, in seconds
 
 // A cookie value bound to the current password: changing the password changes
@@ -63,12 +77,38 @@ function safeNext(next) {
   return typeof next === 'string' && /^\/(?!\/)/.test(next) ? next : '/'
 }
 
-function setAuthCookie(req, res, token, maxAge) {
+// Build a single Set-Cookie header value. maxAge null -> session cookie.
+function cookieStr(req, name, value, maxAge) {
   const https = (req.headers['x-forwarded-proto'] || '').includes('https')
-  const attrs = [`${AUTH_COOKIE}=${token}`, 'Path=/', 'HttpOnly', 'SameSite=Lax']
+  const attrs = [`${name}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax']
   if (maxAge != null) attrs.push(`Max-Age=${maxAge}`)
   if (https) attrs.push('Secure')
-  res.setHeader('Set-Cookie', attrs.join('; '))
+  return attrs.join('; ')
+}
+
+// Issue the auth session. When `persistent` (the user ticked "Remember me", or
+// authenticated via a Basic header), the auth cookie and its marker both get a
+// fresh 30-day expiry; calling this on each page load slides that window
+// forward. When not persistent, the auth cookie is a session cookie and the
+// marker is cleared so the session is never rolled into a persistent one.
+function setSession(req, res, token, persistent) {
+  res.setHeader('Set-Cookie', persistent
+    ? [
+        cookieStr(req, AUTH_COOKIE, token, COOKIE_MAX_AGE),
+        cookieStr(req, PERSIST_COOKIE, '1', COOKIE_MAX_AGE),
+      ]
+    : [
+        cookieStr(req, AUTH_COOKIE, token, null),
+        cookieStr(req, PERSIST_COOKIE, '', 0),
+      ])
+}
+
+// Clear both cookies (logout).
+function clearSession(req, res) {
+  res.setHeader('Set-Cookie', [
+    cookieStr(req, AUTH_COOKIE, '', 0),
+    cookieStr(req, PERSIST_COOKIE, '', 0),
+  ])
 }
 
 // Read a small x-www-form-urlencoded body, capped so a bad client can't OOM us.
@@ -179,9 +219,9 @@ function basicAuthGate() {
         const token = authToken(creds)
         const urlPath = (req.url || '').split('?')[0]
 
-        // Logout: drop the cookie and bounce back to the login form.
+        // Logout: drop the cookies and bounce back to the login form.
         if (urlPath === LOGOUT_PATH) {
-          setAuthCookie(req, res, '', 0)
+          clearSession(req, res)
           res.statusCode = 302
           res.setHeader('Location', '/')
           return res.end()
@@ -189,7 +229,17 @@ function basicAuthGate() {
 
         // Already carrying a valid session cookie -> let it through, no prompt.
         const cookies = parseCookies(req.headers['cookie'])
-        if (cookies[AUTH_COOKIE] === token) return next()
+        if (cookies[AUTH_COOKIE] === token) {
+          // Rolling session: on a full-page navigation from a remembered login,
+          // slide the 30-day window forward so an actively-used session never
+          // lapses. The user is re-prompted only after 30 days of NOT visiting,
+          // not 30 days after first sign-in — so no repeated password entry.
+          const accept = req.headers['accept'] || ''
+          if (req.method === 'GET' && cookies[PERSIST_COOKIE] === '1' && accept.includes('text/html')) {
+            setSession(req, res, token, true)
+          }
+          return next()
+        }
 
         // A `Basic` header still works (curl/scripts) — mint a 30-day cookie.
         const header = req.headers['authorization'] || ''
@@ -197,7 +247,7 @@ function basicAuthGate() {
         if (scheme === 'Basic' && encoded) {
           const [u, p] = Buffer.from(encoded, 'base64').toString().split(':')
           if (u === creds.user && p === creds.pass) {
-            setAuthCookie(req, res, token, COOKIE_MAX_AGE)
+            setSession(req, res, token, true)
             return next()
           }
         }
@@ -211,7 +261,7 @@ function basicAuthGate() {
             const p = form.get('password')
             const next = form.get('next')
             if (u === creds.user && p === creds.pass) {
-              setAuthCookie(req, res, token, form.get('remember') ? COOKIE_MAX_AGE : null)
+              setSession(req, res, token, !!form.get('remember'))
               res.statusCode = 302
               res.setHeader('Location', safeNext(next))
               return res.end()
