@@ -96,17 +96,8 @@ export const api = {
 
   // The manifest ids of docs the user has already opened. Diffed against the docs
   // manifest to size the "new docs" badge — server-side so it's the same on every
-  // device the user browses from.
+  // device the user browses from. A doc is marked read by the static docs page
+  // itself when the user actually opens it (POST /api/docs/reads from
+  // scripts/build-docs-site.mjs), not by the board SPA — the board only reads.
   listDocReads: () => fetch(`${BASE}/docs/reads`).then(json),
-
-  // Mark docs as seen (on opening the Docs index), clearing the "new" badge on
-  // every device. `keepalive` lets the request outlive the navigation to
-  // /docs.html that triggers it.
-  markDocsRead: (ids) =>
-    fetch(`${BASE}/docs/reads`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids }),
-      keepalive: true,
-    }).then(json),
 }
