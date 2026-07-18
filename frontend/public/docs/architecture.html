@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban architecture — topology · Kanban docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --ink: #1f2430;
+  --muted: #5b6472;
+  --line: #e5e8ee;
+  --accent: #4f46e5;
+  --accent-soft: #eef0fe;
+  --link: #1f6feb;
+  --source-bg: #f0f7f4;
+  --source-line: #3f9e78;
+  --maxw: 1120px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 55%, #7c9bf5 100%);
+  color: #fff;
+  padding: 48px 24px 40px;
+  text-align: center;
+}
+.hero .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 0 0 8px;
+}
+.hero h1 {
+  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  font-size: clamp(26px, 4.5vw, 40px);
+  margin: 0 0 10px;
+  letter-spacing: 0.3px;
+}
+.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.95; font-size: 15px; }
+.hero .back { display: inline-block; margin-top: 16px; color: #fff; font-size: 14px; opacity: 0.9; }
+.hero .back:hover { opacity: 1; }
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 36px;
+  align-items: start;
+}
+.toc {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 16px;
+  font-size: 14px;
+}
+.toc-title {
+  font-weight: 700; font-size: 13px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+}
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 1px 0; }
+.toc li a {
+  display: block; padding: 4px 8px; border-radius: 7px; color: var(--ink);
+}
+.toc li a:hover { background: var(--accent-soft); text-decoration: none; }
+.toc li.lv2 a { font-weight: 600; margin-top: 6px; }
+.toc li.lv3 a { padding-left: 20px; color: var(--muted); font-size: 13px; }
+.content {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 8px 40px 40px; min-width: 0;
+}
+.content h1 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 30px; margin: 24px 0 12px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  line-height: 1.35; scroll-margin-top: 16px; position: relative;
+}
+.content h2 { font-size: 25px; margin: 38px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-soft); }
+.content h3 { font-size: 20px; margin: 28px 0 10px; }
+.content h4 { font-size: 17px; margin: 22px 0 8px; color: var(--accent); }
+.content p { margin: 12px 0; }
+.content ul, .content ol { margin: 12px 0; padding-left: 24px; }
+.content li { margin: 5px 0; }
+.content li > ul, .content li > ol { margin: 5px 0; }
+.anchor { opacity: 0; margin-left: 8px; color: var(--accent); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.55; }
+code { background: #eef0f4; border-radius: 5px; padding: 1px 6px; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size: 0.9em; }
+blockquote.quote { margin: 16px 0; padding: 12px 18px; border-left: 4px solid var(--line); background: #f8f9fb; border-radius: 0 10px 10px 0; color: var(--muted); }
+blockquote.source { background: var(--source-bg); border-left-color: var(--source-line); }
+blockquote.source::before { content: "🔎 来源与时效"; display: block; font-weight: 700; font-size: 13px; color: var(--source-line); margin-bottom: 4px; }
+blockquote p { margin: 4px 0; font-size: 14px; }
+.figure { margin: 22px 0; text-align: center; }
+.figure img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(31,36,48,0.10); }
+.figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; border-radius: 10px; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 420px; }
+th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--accent-soft); color: var(--ink); font-weight: 700; }
+tbody tr:nth-child(even) { background: #fafbfc; }
+hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+pre.code { background: #1f2430; color: #e6e8ef; border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+pre.mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; text-align: center; overflow-x: auto; }
+.backtop {
+  position: fixed; right: 22px; bottom: 22px; width: 46px; height: 46px;
+  border-radius: 50%; background: var(--accent); color: #fff; border: none;
+  font-size: 20px; cursor: pointer; box-shadow: 0 6px 18px rgba(79,70,229,0.4);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.mobile-toc-toggle { display: none; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 16px; font: inherit; font-weight: 600; text-align: left; cursor: pointer;
+  }
+  .toc.collapsed { display: none; }
+  .content { padding: 8px 20px 28px; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">Kanban · Result</p>
+<h1>Kanban architecture — topology</h1>
+<a class="back" href="/docs.html">← All documents</a>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ On this page</button>
+<nav class="toc" aria-label="On this page">
+<div class="toc-title">On this page</div>
+<ul>
+<li class="lv2"><a href="#1-system-topology-runtime">1. System topology (runtime)</a></li>
+<li class="lv2"><a href="#2-backend-components">2. Backend components</a></li>
+<li class="lv2"><a href="#3-todo-lifecycle-state-machine">3. Todo lifecycle (state machine)</a></li>
+<li class="lv2"><a href="#4-worker-poll-cycle">4. Worker poll cycle</a></li>
+<li class="lv2"><a href="#5-stories--sequential-task-chains">5. Stories — sequential task chains</a></li>
+<li class="lv2"><a href="#6-guarded-deploy-flow">6. Guarded deploy flow</a></li>
+<li class="lv2"><a href="#7-rest-api-surface">7. REST API surface</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>A visual map of how the Claude Code Kanban is put together, rendered with<br /><a href="https://mermaid.js.org/" target="_blank" rel="noopener noreferrer">Mermaid</a>. GitHub renders these diagrams inline; in an<br />editor use a Mermaid preview extension.</p>
+<p>The app is a kanban board where you create <strong>todo items</strong> and a scheduled<br /><strong>Claude Code session</strong> picks them up, resolves them, and writes the result<br />back. A todo flows <code>PENDING → IN_PROGRESS → RESOLVED</code> (or <code>FAILED</code>).</p>
+<ul>
+<li><strong>Frontend</strong> — React + Vite kanban board (<code>frontend/</code>).</li>
+<li><strong>Backend</strong> — Java 21 + Spring Boot: REST API, H2 file store, a <code>@Scheduled</code><br />worker (<code>backend/</code>).</li>
+<li><strong>Worker</strong> — shells out to the <code>claude</code> CLI (<code>-p</code> / headless) one todo at a<br />time and records what the session produced.</li>
+<li><strong>Deploy</strong> — work tasks commit on a branch and call the guarded<br /><code>scripts/deploy.sh</code>, which only merges + restarts if the build and tests pass.</li>
+</ul>
+<hr />
+<h2 id="1-system-topology-runtime">1. System topology (runtime)<a class="anchor" href="#1-system-topology-runtime" aria-label="链接到本节">#</a></h2>
+<p>How the running pieces talk to each other and where state lives.</p>
+<pre class="mermaid">flowchart LR
+    user([User / Browser])
+
+    subgraph frontend["Frontend — React + Vite"]
+        react["App.jsx&lt;br/&gt;kanban board&lt;br/&gt;polls every 4s"]
+        vite["Vite dev server&lt;br/&gt;:5173&lt;br/&gt;proxies /api → :8080"]
+    end
+
+    subgraph backend["Backend — Spring Boot :8080"]
+        todoCtl["TodoController&lt;br/&gt;/api/todos"]
+        storyCtl["StoryController&lt;br/&gt;/api/stories"]
+        workerCtl["WorkerStatusController&lt;br/&gt;/api/worker/status"]
+        repo["TodoRepository&lt;br/&gt;(Spring Data JPA)"]
+        worker["ClaudeWorkerService&lt;br/&gt;@Scheduled poll"]
+        livelog["LiveLogRegistry&lt;br/&gt;(in-memory transcripts)"]
+    end
+
+    h2[("H2 file DB&lt;br/&gt;data/kanban.mv.db")]
+    cli["claude CLI&lt;br/&gt;claude -p (headless)"]
+    repofiles["Repo working dir&lt;br/&gt;(git branch + code)"]
+    deploy["scripts/deploy.sh&lt;br/&gt;build · test · merge · restart"]
+
+    user --&gt; react
+    react --&gt; vite
+    vite --&gt;|"/api/*"| todoCtl
+    vite --&gt;|"/api/*"| storyCtl
+    vite --&gt;|"/api/*"| workerCtl
+
+    todoCtl --&gt; repo
+    storyCtl --&gt; repo
+    workerCtl -.reads config.-&gt; worker
+    todoCtl -.reads.-&gt; livelog
+    repo &lt;--&gt; h2
+
+    worker --&gt; repo
+    worker --&gt; livelog
+    worker --&gt;|"spawns process"| cli
+    cli --&gt;|"edits files / runs tests"| repofiles
+    cli --&gt;|"bash scripts/deploy.sh"| deploy
+    deploy --&gt;|"restart backend"| backend</pre>
+<hr />
+<h2 id="2-backend-components">2. Backend components<a class="anchor" href="#2-backend-components" aria-label="链接到本节">#</a></h2>
+<p>Spring beans and how they wire together.</p>
+<pre class="mermaid">flowchart TB
+    app["KanbanApplication&lt;br/&gt;@SpringBootApplication&lt;br/&gt;@EnableScheduling"]
+
+    subgraph web["Web layer (REST)"]
+        todoCtl["TodoController&lt;br/&gt;GET/POST/PATCH/DELETE /api/todos&lt;br/&gt;GET /api/todos/{id}/log"]
+        storyCtl["StoryController&lt;br/&gt;GET/POST /api/stories"]
+        workerCtl["WorkerStatusController&lt;br/&gt;GET /api/worker/status"]
+    end
+
+    subgraph domain["Domain / persistence"]
+        entity["Todo (@Entity)&lt;br/&gt;+ TodoStatus enum"]
+        dtos["TodoDtos&lt;br/&gt;request/response records"]
+        repo["TodoRepository&lt;br/&gt;JpaRepository&amp;lt;Todo,Long&amp;gt;"]
+    end
+
+    subgraph workerpkg["Worker"]
+        worker["ClaudeWorkerService&lt;br/&gt;@Scheduled poll()"]
+        props["WorkerProperties&lt;br/&gt;@ConfigurationProperties(worker.*)"]
+        livelog["LiveLogRegistry&lt;br/&gt;@Component"]
+    end
+
+    db[("H2 file DB")]
+
+    app --&gt; web
+    app --&gt; worker
+    todoCtl --&gt; repo
+    todoCtl --&gt; livelog
+    storyCtl --&gt; repo
+    workerCtl --&gt; props
+    worker --&gt; repo
+    worker --&gt; props
+    worker --&gt; livelog
+    repo --&gt; entity
+    repo --&gt; db
+    web --&gt; dtos
+    entity --&gt; dtos</pre>
+<hr />
+<h2 id="3-todo-lifecycle-state-machine">3. Todo lifecycle (state machine)<a class="anchor" href="#3-todo-lifecycle-state-machine" aria-label="链接到本节">#</a></h2>
+<p>The status a card carries as it flows left→right across the board columns<br /><strong>To Do → In Progress → Done → Needs Attention</strong>.</p>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; PENDING: POST /api/todos&lt;br/&gt;(or story step created)
+
+    PENDING --&gt; IN_PROGRESS: worker picks up&lt;br/&gt;(FIFO, not story-blocked)
+    IN_PROGRESS --&gt; RESOLVED: CLI exit 0&lt;br/&gt;+ no fail sentinel
+    IN_PROGRESS --&gt; FAILED: non-zero exit / timeout /&lt;br/&gt;[[TASK_FAILED]] / worker error
+
+    IN_PROGRESS --&gt; PENDING: requeued on restart&lt;br/&gt;(orphan recovery)
+
+    RESOLVED --&gt; PENDING: retry (PATCH status=PENDING)
+    FAILED --&gt; PENDING: retry (PATCH status=PENDING)
+
+    RESOLVED --&gt; [*]
+    FAILED --&gt; [*]
+
+    note right of PENDING
+        Board column: To Do
+    end note
+    note right of IN_PROGRESS
+        Board column: In Progress
+        (live log ticker)
+    end note
+    note right of RESOLVED
+        Board column: Done
+    end note
+    note right of FAILED
+        Board column: Needs Attention
+    end note</pre>
+<hr />
+<h2 id="4-worker-poll-cycle">4. Worker poll cycle<a class="anchor" href="#4-worker-poll-cycle" aria-label="链接到本节">#</a></h2>
+<p>What one <code>@Scheduled</code> tick does (default: every 15s in <code>application.yml</code>,<br />overridden to 5s by the run scripts).</p>
+<pre class="mermaid">sequenceDiagram
+    autonumber
+    participant Sched as Spring Scheduler
+    participant W as ClaudeWorkerService
+    participant R as TodoRepository
+    participant DB as H2
+    participant L as LiveLogRegistry
+    participant C as claude CLI
+
+    Sched-&gt;&gt;W: poll() (fixedDelay)
+    W-&gt;&gt;W: enabled? tryLock tick?
+    W-&gt;&gt;R: findByStatus(PENDING) asc
+    R-&gt;&gt;DB: query
+    W-&gt;&gt;W: drop story-blocked steps
+    Note over W: take batchSize (default 1)
+    W-&gt;&gt;R: save(todo, IN_PROGRESS, processedAt)
+    W-&gt;&gt;L: start + append "Picked up #id"
+    W-&gt;&gt;C: claude -p "&lt;prompt&gt;" (stream-json)
+    loop each stream event
+        C--&gt;&gt;W: system / assistant / user / result
+        W-&gt;&gt;L: append rendered line
+    end
+    C--&gt;&gt;W: exit code (+ cost, duration)
+    alt exit 0 and no [[TASK_FAILED]]
+        W-&gt;&gt;R: save RESOLVED + result
+    else timeout / non-zero / sentinel
+        W-&gt;&gt;R: save FAILED + message
+    end
+    R-&gt;&gt;DB: persist</pre>
+<hr />
+<h2 id="5-stories--sequential-task-chains">5. Stories — sequential task chains<a class="anchor" href="#5-stories--sequential-task-chains" aria-label="链接到本节">#</a></h2>
+<p>A <strong>story</strong> is a named, ordered chain of tasks. Each step is a normal todo<br />tagged with a shared <code>storyId</code> and a <code>storyOrder</code>; the worker runs them one at<br />a time and only starts a step once every earlier step is <code>RESOLVED</code>.</p>
+<pre class="mermaid">flowchart LR
+    subgraph create["POST /api/stories"]
+        req["CreateStoryRequest&lt;br/&gt;name + steps[]"]
+    end
+
+    req --&gt;|"assign shared storyId (UUID)&lt;br/&gt;storyOrder 0..n"| s0
+
+    subgraph chain["Story chain (one storyId)"]
+        direction LR
+        s0["Step 0&lt;br/&gt;storyOrder=0"] --&gt; s1["Step 1&lt;br/&gt;storyOrder=1"] --&gt; s2["Step 2&lt;br/&gt;storyOrder=2"]
+    end
+
+    s0 -. "must be RESOLVED&lt;br/&gt;before" .-&gt; s1
+    s1 -. "must be RESOLVED&lt;br/&gt;before" .-&gt; s2
+
+    note1["isBlockedByStory(): a PENDING step is&lt;br/&gt;skipped while any earlier step is not RESOLVED.&lt;br/&gt;A failed step halts the chain."]
+    note2["appendStoryContext(): each step's prompt&lt;br/&gt;carries prior steps' results (≤4000 chars each)&lt;br/&gt;so the chain builds on itself."]
+
+    chain -.-&gt; note1
+    chain -.-&gt; note2</pre>
+<hr />
+<h2 id="6-guarded-deploy-flow">6. Guarded deploy flow<a class="anchor" href="#6-guarded-deploy-flow" aria-label="链接到本节">#</a></h2>
+<p>How a <strong>work task</strong> ships a change. The test gate means broken code can never<br />reach the running app.</p>
+<pre class="mermaid">flowchart TD
+    start(["Work task on branch&lt;br/&gt;auto/&amp;lt;taskId&amp;gt;-slug&lt;br/&gt;change committed"]) --&gt; deploy["bash scripts/deploy.sh"]
+    deploy --&gt; build["scripts/build.sh&lt;br/&gt;mvn -q -B package (runs tests)&lt;br/&gt;+ npm run build"]
+
+    build --&gt;|"fail"| abort["Print [[DEPLOY_ABORTED]]&lt;br/&gt;exit 1"]
+    abort --&gt; failsent["Agent ends reply with&lt;br/&gt;[[TASK_FAILED]]"]
+    failsent --&gt; attention["Card → Needs Attention&lt;br/&gt;branch left for human review"]
+
+    build --&gt;|"pass"| onmain{"on main?"}
+    onmain --&gt;|"no"| merge["git checkout main&lt;br/&gt;merge --no-ff branch&lt;br/&gt;push origin main"]
+    onmain --&gt;|"yes"| inplace["deploy in place"]
+    merge --&gt; restart
+    inplace --&gt; restart
+
+    restart["setsid restart-backend.sh (detached)&lt;br/&gt;sleep, kill :8080, relaunch jar,&lt;br/&gt;wait_for_backend"]
+    restart --&gt; deployed(["✔ DEPLOYED&lt;br/&gt;new code live"])</pre>
+<hr />
+<h2 id="7-rest-api-surface">7. REST API surface<a class="anchor" href="#7-rest-api-surface" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>GET</code></td><td><code>/api/todos</code></td><td>List all todos, newest first</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/todos/{id}</code></td><td>Get one todo</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/todos/{id}/log</code></td><td>Live session transcript for a todo</td></tr>
+<tr><td><code>POST</code></td><td><code>/api/todos</code></td><td>Create a todo (→ <code>PENDING</code>)</td></tr>
+<tr><td><code>PATCH</code></td><td><code>/api/todos/{id}</code></td><td>Update status/result (worker + UI retry)</td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/todos/{id}</code></td><td>Delete a todo (and clear its live log)</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/stories</code></td><td>List stories with ordered steps</td></tr>
+<tr><td><code>POST</code></td><td><code>/api/stories</code></td><td>Create a story (named ordered chain)</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/worker/status</code></td><td>Worker config (enabled, interval, batch, timeout)</td></tr>
+<tr><td><code>GET</code></td><td><code>/h2-console</code></td><td>H2 database web console</td></tr>
+</tbody>
+</table></div>
+<hr />
+<p>_Generated as documentation of the current design (task #81). Source of truth<br />remains the code under <code>backend/</code> and <code>frontend/</code>._</p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    var toc = document.querySelector('.toc');
+    if (toc) toc.classList.add('collapsed');
+  }
+</script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'strict' });
+</script>
+</body>
+</html>

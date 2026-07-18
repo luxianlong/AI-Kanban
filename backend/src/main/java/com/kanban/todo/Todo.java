@@ -109,21 +109,6 @@ public class Todo {
     @ColumnDefault("false")
     private boolean unread = false;
 
-    /**
-     * How many times the worker has <em>started</em> processing this item (each
-     * pickup bumps it in {@link TodoStatus#IN_PROGRESS}). Used to cap automatic
-     * re-queuing of tasks orphaned by a restart: a backend restart is often
-     * triggered by a <em>sibling</em> improvement task's guarded deploy, which
-     * kills whatever task is running at the time — even an unrelated one that was
-     * legitimately in-flight and may have already produced side effects. Blindly
-     * returning it to the queue re-executes work that was already (partly) done,
-     * so past a small cap the task is routed to Needs Attention instead. Defaults
-     * to {@code 0} so rows predating this column don't look already-exhausted.
-     */
-    @Column(nullable = false)
-    @ColumnDefault("0")
-    private int attempts = 0;
-
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -219,14 +204,6 @@ public class Todo {
 
     public Instant getUpdatedAt() {
         return updatedAt;
-    }
-
-    public int getAttempts() {
-        return attempts;
-    }
-
-    public void setAttempts(int attempts) {
-        this.attempts = attempts;
     }
 
     public Instant getProcessedAt() {

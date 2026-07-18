@@ -1,68 +1,25 @@
 [
   {
-    "id": "qianguize-wusi",
-    "title": "潜规则：中国历史中的真实游戏 — 分析文档",
-    "href": "/docs/qianguize-wusi.html",
-    "deletable": true,
-    "file": "docs/qianguize-wusi.md",
-    "updatedAt": "2026-07-18T05:32:29.190Z",
-    "isNew": true,
-    "paths": [
-      "docs/qianguize-wusi.md",
-      "frontend/public/docs/qianguize-wusi.html"
-    ]
-  },
-  {
-    "id": "kechuang-1year-forecast-2026-07-17",
-    "title": "科创板一年后预测（展望至 2027 年年中，成文于 2026-07-17 收盘后）",
-    "href": "/docs/kechuang-1year-forecast-2026-07-17.html",
-    "deletable": true,
-    "file": "docs/kechuang-1year-forecast-2026-07-17.md",
-    "updatedAt": "2026-07-18T03:22:57.140Z",
-    "isNew": true,
-    "paths": [
-      "docs/kechuang-1year-forecast-2026-07-17.md",
-      "frontend/public/docs/kechuang-1year-forecast-2026-07-17.html"
-    ]
-  },
-  {
-    "id": "kechuang-3week-outlook-2026-07-17",
-    "title": "近三周科创板前瞻研判、投资含义与风险清单（2026-06-26 → 2026-07-17，展望）",
-    "href": "/docs/kechuang-3week-outlook-2026-07-17.html",
-    "deletable": true,
-    "file": "docs/kechuang-3week-outlook-2026-07-17.md",
-    "updatedAt": "2026-07-17T08:22:43.115Z",
-    "isNew": true,
-    "paths": [
-      "docs/kechuang-3week-outlook-2026-07-17.md",
-      "frontend/public/docs/kechuang-3week-outlook-2026-07-17.html"
-    ]
-  },
-  {
-    "id": "kechuang-3week-structure-2026-07-17",
-    "title": "近三周科创板板块与个股结构分析（存储 / 算力 / 设备 / 软件的分化，2026-06-26 → 2026-07-17）",
-    "href": "/docs/kechuang-3week-structure-2026-07-17.html",
-    "deletable": true,
-    "file": "docs/kechuang-3week-structure-2026-07-17.md",
-    "updatedAt": "2026-07-17T08:17:06.150Z",
-    "isNew": true,
-    "paths": [
-      "docs/kechuang-3week-structure-2026-07-17.md",
-      "frontend/public/docs/kechuang-3week-structure-2026-07-17.html"
-    ]
-  },
-  {
     "id": "singapore-travel-guide",
     "title": "新加坡旅游攻略",
     "href": "/singapore.html",
     "deletable": true,
     "file": "docs/singapore-travel-guide.md",
-    "updatedAt": "2026-07-16T01:07:06.547Z",
-    "isNew": true,
     "paths": [
       "docs/singapore-travel-guide.md",
       "frontend/public/singapore.html",
       "frontend/public/img/singapore"
+    ]
+  },
+  {
+    "id": "us-iran-war",
+    "title": "美伊战争 · 分析总览 (2026)",
+    "href": "/docs/us-iran-war.html",
+    "deletable": true,
+    "file": null,
+    "paths": [
+      "research/us-iran-war",
+      "frontend/public/docs/us-iran-war.html"
     ]
   },
   {
@@ -71,11 +28,64 @@
     "href": "/docs/ai-supply-chain.html",
     "deletable": true,
     "file": "docs/ai-supply-chain.md",
-    "updatedAt": "2026-07-15T13:23:06.183Z",
-    "isNew": true,
     "paths": [
       "docs/ai-supply-chain.md",
       "frontend/public/docs/ai-supply-chain.html"
+    ]
+  },
+  {
+    "id": "public-tunnel",
+    "title": "Exposing the dashboard as a public website",
+    "href": "/docs/public-tunnel.html",
+    "deletable": true,
+    "file": "docs/public-tunnel.md",
+    "paths": [
+      "docs/public-tunnel.md",
+      "frontend/public/docs/public-tunnel.html"
+    ]
+  },
+  {
+    "id": "architecture",
+    "title": "Kanban architecture — topology",
+    "href": "/docs/architecture.html",
+    "deletable": true,
+    "file": "docs/architecture.md",
+    "paths": [
+      "docs/architecture.md",
+      "frontend/public/docs/architecture.html"
+    ]
+  },
+  {
+    "id": "kechuang-investment-guide",
+    "title": "科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）",
+    "href": "/docs/kechuang-investment-guide.html",
+    "deletable": true,
+    "file": "docs/kechuang-investment-guide.md",
+    "paths": [
+      "docs/kechuang-investment-guide.md",
+      "frontend/public/docs/kechuang-investment-guide.html"
+    ]
+  },
+  {
+    "id": "kechuang-forecast-2026-07-16",
+    "title": "预测今天科创板走势（2026-07-16）",
+    "href": "/docs/kechuang-forecast-2026-07-16.html",
+    "deletable": true,
+    "file": "docs/kechuang-forecast-2026-07-16.md",
+    "paths": [
+      "docs/kechuang-forecast-2026-07-16.md",
+      "frontend/public/docs/kechuang-forecast-2026-07-16.html"
+    ]
+  },
+  {
+    "id": "kechuang-forecast-2026-07-16-review",
+    "title": "预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）",
+    "href": "/docs/kechuang-forecast-2026-07-16-review.html",
+    "deletable": true,
+    "file": "docs/kechuang-forecast-2026-07-16-review.md",
+    "paths": [
+      "docs/kechuang-forecast-2026-07-16-review.md",
+      "frontend/public/docs/kechuang-forecast-2026-07-16-review.html"
     ]
   }
 ]

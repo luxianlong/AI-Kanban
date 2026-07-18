@@ -34,18 +34,6 @@ public class WorkerProperties {
     /** Max pending items handled per poll tick. */
     private int batchSize = 1;
 
-    /**
-     * How many times the worker may <em>start</em> a single task before it stops
-     * re-running it. A task orphaned in {@link com.kanban.todo.TodoStatus#IN_PROGRESS}
-     * by a restart is normally returned to the queue so a crashed session is
-     * retried — but a restart is often a sibling improvement task's guarded-deploy
-     * restart that killed this task mid-run, and blindly re-running duplicates work
-     * it may have already done. Once a task has been started this many times it is
-     * routed to Needs Attention instead of re-queued. Default {@code 2} allows one
-     * automatic recovery retry, then stops. Set to {@code 1} to never auto-retry.
-     */
-    private int maxAttempts = 2;
-
     /** How often the worker polls for pending items, in milliseconds. */
     private long pollIntervalMs = 15000;
 
@@ -107,14 +95,6 @@ public class WorkerProperties {
 
     public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
-    }
-
-    public int getMaxAttempts() {
-        return maxAttempts;
-    }
-
-    public void setMaxAttempts(int maxAttempts) {
-        this.maxAttempts = maxAttempts;
     }
 
     public long getPollIntervalMs() {
