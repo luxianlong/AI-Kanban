@@ -1,5 +1,6 @@
 package com.kanban.docs;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -25,7 +27,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -110,6 +115,73 @@ public class DocsController {
                 continue;
             }
             reads.save(new DocRead(id, now));
+        }
+    }
+
+    /**
+     * Where the per-doc privacy state lives: a gitignored sidecar
+     * {@code {"private":[...ids]}} written here and read by the docs generator
+     * (to stamp the manifest/index) and the Vite auth gate (to enforce it).
+     */
+    private static final String VISIBILITY_REL = "frontend/.doc-visibility.json";
+
+    /** Body for {@link #setVisibility}: whether to mark the document private. */
+    public record VisibilityRequest(@JsonProperty("private") Boolean isPrivate) {}
+
+    /**
+     * Mark a document public or private (task #268). Documents are public by
+     * default — anyone can read them without the site password — but the owner can
+     * flip one private so only they (behind the gate) can open it. Persists the
+     * choice to the visibility sidecar and regenerates the site so the manifest,
+     * the index badges and the auth gate all reflect it immediately.
+     */
+    @PutMapping("/{id}/visibility")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void setVisibility(@PathVariable String id, @RequestBody VisibilityRequest req) {
+        boolean known = readManifest().stream().anyMatch(e -> id.equals(e.id()));
+        if (!known) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such document: " + id);
+        }
+        boolean makePrivate = req != null && Boolean.TRUE.equals(req.isPrivate());
+        writePrivate(id, makePrivate);
+        log.info("Set document '{}' visibility to {}", id, makePrivate ? "private" : "public");
+        generator.regenerate();
+    }
+
+    /** The ids currently marked private, in stable insertion order. */
+    private LinkedHashSet<String> readPrivate() {
+        Path file = repoRoot.resolve(VISIBILITY_REL);
+        if (!Files.exists(file)) {
+            return new LinkedHashSet<>();
+        }
+        try {
+            Map<String, List<String>> parsed =
+                    mapper.readValue(Files.readAllBytes(file), new TypeReference<Map<String, List<String>>>() {});
+            List<String> ids = parsed == null ? null : parsed.get("private");
+            return ids == null ? new LinkedHashSet<>() : new LinkedHashSet<>(ids);
+        } catch (IOException e) {
+            log.warn("Could not read visibility file — treating nothing as private", e);
+            return new LinkedHashSet<>();
+        }
+    }
+
+    /** Add or remove {@code id} from the private set and persist it. */
+    private void writePrivate(String id, boolean makePrivate) {
+        LinkedHashSet<String> ids = readPrivate();
+        if (makePrivate) {
+            ids.add(id);
+        } else {
+            ids.remove(id);
+        }
+        Path file = repoRoot.resolve(VISIBILITY_REL);
+        try {
+            Files.createDirectories(file.getParent());
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("private", List.copyOf(ids));
+            Files.write(file, mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(out));
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to save document visibility: " + e.getMessage(), e);
         }
     }
 
