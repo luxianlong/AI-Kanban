@@ -46,13 +46,16 @@ public class ClaudeWorkerService {
     private final TodoRepository repository;
     private final WorkerProperties props;
     private final LiveLogRegistry liveLog;
+    private final RunningSessionRegistry sessions;
     private final ObjectMapper mapper = new ObjectMapper();
     private final ReentrantLock tickLock = new ReentrantLock();
 
-    public ClaudeWorkerService(TodoRepository repository, WorkerProperties props, LiveLogRegistry liveLog) {
+    public ClaudeWorkerService(TodoRepository repository, WorkerProperties props,
+                               LiveLogRegistry liveLog, RunningSessionRegistry sessions) {
         this.repository = repository;
         this.props = props;
         this.liveLog = liveLog;
+        this.sessions = sessions;
     }
 
     /**
@@ -186,7 +189,13 @@ public class ClaudeWorkerService {
             if (r.durationMs() != null) {
                 todo.setDurationMs(r.durationMs());
             }
-            if (r.timedOut()) {
+            if (sessions.consumeStopRequested(todo.getId())) {
+                // The user asked to stop this session: the process was killed
+                // deliberately, so don't dress it up as a timeout or crash.
+                liveLog.append(todo.getId(), "✗ Stopped by user request.");
+                fail(todo, "Stopped by user request. The running session was terminated "
+                        + "before it finished; requeue the task to run it again.");
+            } else if (r.timedOut()) {
                 liveLog.append(todo.getId(), "✗ Timed out after " + props.getTimeoutSeconds() + "s.");
                 fail(todo, "Timed out after " + props.getTimeoutSeconds() + "s.");
             } else if (r.exitCode() != 0) {
@@ -359,24 +368,31 @@ public class ClaudeWorkerService {
                 .redirectErrorStream(true)
                 .start();
         process.getOutputStream().close();
+        // Expose the live process so a user can stop this session on demand; always
+        // drop it again once the run ends, however it ends.
+        sessions.register(todo.getId(), process);
 
-        // Drain stdout on a separate thread so we can enforce the timeout even if
-        // the process wedges without closing its stream.
-        StringBuilder finalOutput = new StringBuilder();
-        RunMetrics metrics = new RunMetrics();
-        Thread reader = new Thread(() -> streamOutput(todo.getId(), process, finalOutput, metrics),
-                "claude-reader-" + todo.getId());
-        reader.start();
+        try {
+            // Drain stdout on a separate thread so we can enforce the timeout even if
+            // the process wedges without closing its stream.
+            StringBuilder finalOutput = new StringBuilder();
+            RunMetrics metrics = new RunMetrics();
+            Thread reader = new Thread(() -> streamOutput(todo.getId(), process, finalOutput, metrics),
+                    "claude-reader-" + todo.getId());
+            reader.start();
 
-        boolean finished = process.waitFor(props.getTimeoutSeconds(), TimeUnit.SECONDS);
-        if (!finished) {
-            process.destroyForcibly();
-            process.waitFor(10, TimeUnit.SECONDS);
+            boolean finished = process.waitFor(props.getTimeoutSeconds(), TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                process.waitFor(10, TimeUnit.SECONDS);
+                reader.join(5_000);
+                return new ProcessResult(-1, finalOutput.toString(), true, metrics.costUsd, metrics.durationMs);
+            }
             reader.join(5_000);
-            return new ProcessResult(-1, finalOutput.toString(), true, metrics.costUsd, metrics.durationMs);
+            return new ProcessResult(process.exitValue(), finalOutput.toString(), false, metrics.costUsd, metrics.durationMs);
+        } finally {
+            sessions.unregister(todo.getId());
         }
-        reader.join(5_000);
-        return new ProcessResult(process.exitValue(), finalOutput.toString(), false, metrics.costUsd, metrics.durationMs);
     }
 
     /**

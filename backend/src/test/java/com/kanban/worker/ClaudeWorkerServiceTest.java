@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
  */
 class ClaudeWorkerServiceTest {
 
-    private final ClaudeWorkerService service = new ClaudeWorkerService(null, null, null);
+    private final ClaudeWorkerService service = new ClaudeWorkerService(null, null, null, null);
 
     private Todo task(String title, boolean projectImprovement) {
         Todo t = new Todo();
@@ -79,7 +79,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null).requeueOrphans();
 
         // One automatic recovery retry is still allowed after a genuine crash.
         assertThat(t.getStatus()).isEqualTo(TodoStatus.PENDING);
@@ -93,7 +93,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
         assertThat(t.getResult()).contains("Interrupted by a backend restart");
@@ -109,7 +109,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
     }
