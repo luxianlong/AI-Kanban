@@ -270,7 +270,7 @@ const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />`
 
-function renderDocPage({ title, body, toc, hasMermaid }) {
+function renderDocPage({ id, title, body, toc, hasMermaid }) {
   const sidebar = toc.length
     ? `<nav class="toc" aria-label="On this page">
 <div class="toc-title">On this page</div>
@@ -315,6 +315,20 @@ ${body}
 ${hasMermaid ? `<script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
   mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'strict' });
+</script>` : ''}${id ? `
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [${JSON.stringify(id)}] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
 </script>` : ''}
 </body>
 </html>
@@ -601,6 +615,55 @@ ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">N
     }
   });
 </script>
+<script>
+  // Make the red "NEW" badge mean "recently updated AND not yet opened by you"
+  // (task #357). Two halves: (1) on load, strip NEW from any card whose doc the
+  // user has already opened — read state lives server-side at /api/docs/reads so
+  // it's the same across devices; (2) when the user clicks into a doc, record it
+  // as read (keepalive so the POST survives the navigation) and clear its badge
+  // immediately. Together: opening a doc stops it being flagged new here and on
+  // the board's Docs badge. Bespoke pages (e.g. /singapore.html) that lack their
+  // own mark-on-open script are covered by the click handler below.
+  (function () {
+    function markRead(id) {
+      if (!id) return;
+      try {
+        fetch('/api/docs/reads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: [id] }),
+          keepalive: true,
+        }).catch(function () {});
+      } catch (e) {}
+    }
+    function clearNew(wrap) {
+      if (!wrap) return;
+      wrap.classList.remove('is-new');
+      var dot = wrap.querySelector('.new-dot');
+      if (dot) dot.remove();
+    }
+    fetch('/api/docs/reads')
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (ids) {
+        if (!Array.isArray(ids) || !ids.length) return;
+        var seen = Object.create(null);
+        ids.forEach(function (id) { seen[id] = true; });
+        var wraps = document.querySelectorAll('.card-wrap[data-id]');
+        for (var i = 0; i < wraps.length; i++) {
+          if (seen[wraps[i].getAttribute('data-id')]) clearNew(wraps[i]);
+        }
+      })
+      .catch(function () {});
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest && e.target.closest('.doc-card');
+      if (!link) return; // delete buttons and empty space are handled elsewhere
+      var wrap = link.closest('.card-wrap');
+      if (!wrap) return;
+      markRead(wrap.getAttribute('data-id'));
+      clearNew(wrap);
+    });
+  })();
+</script>
 </body>
 </html>
 `
@@ -656,7 +719,7 @@ function build() {
     }
 
     const outPath = path.join(OUT_DIR, `${slug}.html`)
-    fs.writeFileSync(outPath, renderDocPage({ title, body, toc, hasMermaid }), 'utf8')
+    fs.writeFileSync(outPath, renderDocPage({ id: slug, title, body, toc, hasMermaid }), 'utf8')
     // Plain single-file docs are the ones the web user may delete: removing
     // docs/<file> and the generated page is a clean, reversible-by-git operation.
     cards.push({
@@ -689,7 +752,7 @@ function build() {
     const outPath = path.join(OUT_DIR, `${slug}.html`)
     fs.writeFileSync(
       outPath,
-      renderDocPage({ title: report.title, body, toc, hasMermaid }),
+      renderDocPage({ id: slug, title: report.title, body, toc, hasMermaid }),
       'utf8'
     )
     cards.push({

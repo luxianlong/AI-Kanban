@@ -39,7 +39,6 @@ export default function App() {
   // results (e.g. `docs/foo.md`) into links to the published page users can open.
   const [docsManifest, setDocsManifest] = useState([])
   const docIndex = useMemo(() => buildDocIndex(docsManifest), [docsManifest])
-  const docIdsRef = useRef([])
 
   // The unread notification list, derived from the server-side `unread` flag on
   // each todo (newest-finished first). Shaped for the notification center, which
@@ -176,7 +175,6 @@ export default function App() {
         if (cancelled || !Array.isArray(docs)) return
         setDocsManifest(docs)
         const ids = docs.map((d) => d && d.id).filter(Boolean)
-        docIdsRef.current = ids
         const seen = new Set(Array.isArray(seenIds) ? seenIds : [])
         setDocsNew(ids.filter((id) => !seen.has(id)).length)
       } catch {
@@ -189,13 +187,11 @@ export default function App() {
     return () => { cancelled = true; window.removeEventListener('focus', onFocus) }
   }, [])
 
-  // Opening Docs marks every currently-known doc as seen server-side, clearing the
-  // badge here immediately and on any other device on its next check.
-  const markDocsSeen = useCallback(() => {
-    const ids = docIdsRef.current
-    setDocsNew(0)
-    if (ids.length) api.markDocsRead(ids).catch(() => {})
-  }, [])
+  // Opening the Docs *index* is browsing, not reading — so it no longer marks every
+  // doc seen (that made an opened doc keep looking "NEW", and hid the per-doc "new"
+  // marker; task #357). Each doc records itself read when actually opened (see
+  // scripts/build-docs-site.mjs), so the badge counts docs you haven't opened yet;
+  // the focus/mount `check()` above reconciles it with server truth on return.
 
   const prevStatusRef = useRef(null)
   useEffect(() => {
@@ -360,7 +356,6 @@ export default function App() {
         onOpenUnread={setSelectedId}
         onMarkAllRead={markAllRead}
         docsNew={docsNew}
-        onOpenDocs={markDocsSeen}
         onAdd={isMobile ? () => setShowComposer((v) => !v) : null}
         addOpen={showComposer}
       />
@@ -495,7 +490,7 @@ function Toasts({ items, onDismiss }) {
   )
 }
 
-function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, docsNew, onOpenDocs, onAdd, addOpen }) {
+function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, docsNew, onAdd, addOpen }) {
   const supported = typeof Notification !== 'undefined'
   return (
     <header className="topbar">
@@ -515,7 +510,6 @@ function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, d
         <a
           className={`docs-link ${docsNew > 0 ? 'has-new' : ''}`}
           href="/docs.html"
-          onClick={onOpenDocs}
           title={
             docsNew > 0
               ? `${docsNew} new document${docsNew > 1 ? 's' : ''} — browse reports the agent produced`
