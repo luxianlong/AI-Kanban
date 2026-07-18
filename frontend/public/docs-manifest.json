@@ -1,5 +1,33 @@
 [
   {
+    "id": "daming-wangchao",
+    "title": "大明王朝：潜规则生存模拟（网页游戏）",
+    "href": "/docs/daming-wangchao.html",
+    "deletable": true,
+    "file": "docs/daming-wangchao.md",
+    "updatedAt": "2026-07-18T10:17:02.761Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/daming-wangchao.md",
+      "frontend/public/docs/daming-wangchao.html"
+    ]
+  },
+  {
+    "id": "kechuang-future",
+    "title": "中国科创板还有未来吗？（\"科创板投资\" story · 第5步 · 战略收尾）",
+    "href": "/docs/kechuang-future.html",
+    "deletable": true,
+    "file": "docs/kechuang-future.md",
+    "updatedAt": "2026-07-18T07:36:07.708Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/kechuang-future.md",
+      "frontend/public/docs/kechuang-future.html"
+    ]
+  },
+  {
     "id": "qianguize-haowanban",
     "title": "潜规则·好玩版：一句话能转发的中国官场生存游戏",
     "href": "/docs/qianguize-haowanban.html",

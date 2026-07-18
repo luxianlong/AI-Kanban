@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>大明王朝：潜规则生存模拟（网页游戏） · Kanban docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --ink: #1f2430;
+  --muted: #5b6472;
+  --line: #e5e8ee;
+  --accent: #4f46e5;
+  --accent-soft: #eef0fe;
+  --link: #1f6feb;
+  --source-bg: #f0f7f4;
+  --source-line: #3f9e78;
+  --maxw: 1120px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 55%, #7c9bf5 100%);
+  color: #fff;
+  padding: 48px 24px 40px;
+  text-align: center;
+}
+.hero .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 0 0 8px;
+}
+.hero h1 {
+  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  font-size: clamp(26px, 4.5vw, 40px);
+  margin: 0 0 10px;
+  letter-spacing: 0.3px;
+}
+.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.95; font-size: 15px; }
+.hero .back { display: inline-block; margin-top: 16px; color: #fff; font-size: 14px; opacity: 0.9; }
+.hero .back:hover { opacity: 1; }
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 36px;
+  align-items: start;
+}
+.toc {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 16px;
+  font-size: 14px;
+}
+.toc-title {
+  font-weight: 700; font-size: 13px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+}
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 1px 0; }
+.toc li a {
+  display: block; padding: 4px 8px; border-radius: 7px; color: var(--ink);
+}
+.toc li a:hover { background: var(--accent-soft); text-decoration: none; }
+.toc li.lv2 a { font-weight: 600; margin-top: 6px; }
+.toc li.lv3 a { padding-left: 20px; color: var(--muted); font-size: 13px; }
+.content {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 8px 40px 40px; min-width: 0;
+}
+.content h1 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 30px; margin: 24px 0 12px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  line-height: 1.35; scroll-margin-top: 16px; position: relative;
+}
+.content h2 { font-size: 25px; margin: 38px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-soft); }
+.content h3 { font-size: 20px; margin: 28px 0 10px; }
+.content h4 { font-size: 17px; margin: 22px 0 8px; color: var(--accent); }
+.content p { margin: 12px 0; }
+.content ul, .content ol { margin: 12px 0; padding-left: 24px; }
+.content li { margin: 5px 0; }
+.content li > ul, .content li > ol { margin: 5px 0; }
+.anchor { opacity: 0; margin-left: 8px; color: var(--accent); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.55; }
+code { background: #eef0f4; border-radius: 5px; padding: 1px 6px; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size: 0.9em; }
+blockquote.quote { margin: 16px 0; padding: 12px 18px; border-left: 4px solid var(--line); background: #f8f9fb; border-radius: 0 10px 10px 0; color: var(--muted); }
+blockquote.source { background: var(--source-bg); border-left-color: var(--source-line); }
+blockquote.source::before { content: "🔎 来源与时效"; display: block; font-weight: 700; font-size: 13px; color: var(--source-line); margin-bottom: 4px; }
+blockquote p { margin: 4px 0; font-size: 14px; }
+.figure { margin: 22px 0; text-align: center; }
+.figure img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(31,36,48,0.10); }
+.figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; border-radius: 10px; }
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 420px; }
+th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--accent-soft); color: var(--ink); font-weight: 700; }
+tbody tr:nth-child(even) { background: #fafbfc; }
+hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+pre.code { background: #1f2430; color: #e6e8ef; border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+pre.mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; text-align: center; overflow-x: auto; }
+.backtop {
+  position: fixed; right: 22px; bottom: 22px; width: 46px; height: 46px;
+  border-radius: 50%; background: var(--accent); color: #fff; border: none;
+  font-size: 20px; cursor: pointer; box-shadow: 0 6px 18px rgba(79,70,229,0.4);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.mobile-toc-toggle { display: none; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 16px; font: inherit; font-weight: 600; text-align: left; cursor: pointer;
+  }
+  .toc.collapsed { display: none; }
+  .content { padding: 8px 20px 28px; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">Kanban · Result</p>
+<h1>大明王朝：潜规则生存模拟（网页游戏）</h1>
+<a class="back" href="/docs.html">← All documents</a>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ On this page</button>
+<nav class="toc" aria-label="On this page">
+<div class="toc-title">On this page</div>
+<ul>
+<li class="lv2"><a href="#-开始游戏">▶ 开始游戏</a></li>
+<li class="lv2"><a href="#这是一款什么样的游戏">这是一款什么样的游戏</a></li>
+<li class="lv2"><a href="#六大机制如何被做进玩法">六大机制，如何被做进玩法</a></li>
+<li class="lv2"><a href="#十种下场十面镜子">十种下场，十面镜子</a></li>
+<li class="lv2"><a href="#想读懂规则本身">想读懂规则本身</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>这是《潜规则》系列的第 6 步、也是收官之作：把前五步梳理出的六大机制，<strong>做成一款可以真正玩的网页游戏</strong>。你扮演崇祯元年放了外任的一位<strong>知县</strong>，在约 11 个抉择里争取「任满全身而退」——保住乌纱、填平亏空、别激起民变。至于要不要守住良心，是你的选择；而系统会用它的方式，回答这个选择的代价。</p>
+<blockquote class="quote source"><p>玩法与文案基于吴思《潜规则：中国历史中的真实游戏》(2001) 的分析框架，与本系列的<a href="/docs/qianguize-wusi.html" target="_blank" rel="noopener noreferrer">学术版分析</a>、<a href="/docs/qianguize-haowanban.html" target="_blank" rel="noopener noreferrer">好玩版</a>同源。游戏为纯前端、单文件、无后端存档，开箱即玩；本页最后更新于 2026-07。</p></blockquote>
+<h2 id="-开始游戏">▶ 开始游戏<a class="anchor" href="#-开始游戏" aria-label="链接到本节">#</a></h2>
+<p><strong><a href="/game/daming-wangchao.html" target="_blank" rel="noopener noreferrer">点此进入 · 大明王朝：潜规则生存模拟 →</a></strong></p>
+<p>（在新标签打开，手机 / 电脑均可玩。每局 3–5 分钟，鼓励重玩——不同的选择会走向不同的下场。）</p>
+<h2 id="这是一款什么样的游戏">这是一款什么样的游戏<a class="anchor" href="#这是一款什么样的游戏" aria-label="链接到本节">#</a></h2>
+<p>一款<strong>文字抉择 × 数值经营</strong>的官场生存模拟。你有四项状态：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>状态</th><th>含义</th><th>归零/触底会怎样</th></tr></thead>
+<tbody>
+<tr><td>🎏 <strong>乌纱</strong></td><td>仕途稳固度、上意</td><td>归零即<strong>罢官/下狱</strong>，游戏结束</td></tr>
+<tr><td>🧑‍🌾 <strong>民心</strong></td><td>治下百姓的承受度</td><td>归零即<strong>民变四起</strong>，你被当替罪羊</td></tr>
+<tr><td>⚖️ <strong>清誉</strong></td><td>清廉声望 / 你的良心</td><td>不直接致命，但决定你的<strong>结局走向</strong></td></tr>
+<tr><td>💰 <strong>白银</strong></td><td>家财 / 库银</td><td>亏空过深即<strong>案发下狱</strong></td></tr>
+</tbody>
+</table></div>
+<p>每一回合抛给你一个真实的官场两难——征钱粮、放灾赈、审人命、应付上宪考察、朝廷加派三饷……<strong>每个选项都对应《潜规则》里的一条机制</strong>，选完会弹出一段「🔎 潜规则解读」，把你刚做的事翻译成书里的术语。</p>
+<p>游戏刻意设计成：<strong>当清官很难活，随大流最省事</strong>——这正是全书的论点。你会亲身体会到「劣币驱逐良币」不是道德口号，而是一步步理性选择叠出来的结构性结果。</p>
+<h2 id="六大机制如何被做进玩法">六大机制，如何被做进玩法<a class="anchor" href="#六大机制如何被做进玩法" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>书中机制</th><th>在游戏里的样子</th></tr></thead>
+<tbody>
+<tr><td><strong>合法伤害权 / 身怀利器</strong></td><td>一桩人命官司，你的判笔可救人可杀人——收厚礼判给出价高者，还是秉公退礼得罪权贵？</td></tr>
+<tr><td><strong>陋规</strong></td><td>拜印第一天就有「常例」清单：炭敬、冰敬、印结银。交，你就入了伙；不交，你上了同僚的「另册」。</td></tr>
+<tr><td><strong>淘汰清官机制</strong></td><td>拒收分肥、据实考成、整顿胥吏——每一次「守规矩」都在扣你的乌纱。系统主动把清官筛出去。</td></tr>
+<tr><td><strong>老百姓是个冤大头</strong></td><td>赈灾克扣、火耗加征、层层发包，成本一路转嫁，终点永远是那个跑不掉的百姓。</td></tr>
+<tr><td><strong>第二等公平</strong></td><td>百姓交「挂号钱」只求「至少别再多坑我」；你随大流收费——一个人人吃亏却谁都不敢先退出的均衡。</td></tr>
+<tr><td><strong>崇祯死弯</strong></td><td>收官回合朝廷加派三饷：如数严逼→民变，抗命请命→丢官。越勤政催逼，链条末端崩得越快。</td></tr>
+</tbody>
+</table></div>
+<h2 id="十种下场十面镜子">十种下场，十面镜子<a class="anchor" href="#十种下场十面镜子" aria-label="链接到本节">#</a></h2>
+<p>游戏有约 <strong>10 个结局</strong>，每个都是一面照见系统的镜子——从<strong>「清官罢黜」</strong>（淘汰清官机制的实现）、<strong>「民变四起」</strong>（崇祯死弯崩断）、<strong>「亏空案发」</strong>（击鼓传花接到最后一棒），到<strong>「同流合污·步步高升」</strong>（第二等公平的系统赢家）、以及罕见的<strong>「异数·全身而退的清官」</strong>（像海瑞那样「证明规则的例外」）。</p>
+<p>结局屏会告诉你：<strong>这一局你究竟亲历了哪几条潜规则</strong>，并给出通往深度分析的入口。</p>
+<h2 id="想读懂规则本身">想读懂规则本身<a class="anchor" href="#想读懂规则本身" aria-label="链接到本节">#</a></h2>
+<ul>
+<li>📖 <strong><a href="/docs/qianguize-wusi.html" target="_blank" rel="noopener noreferrer">潜规则 · 学术版分析</a></strong> —— 核心定义、委托代理链、五大案例的博弈结构、理论对话与现代映射判别清单。游戏里每条「解读」都能在这里找到对应章节。</li>
+<li>🎈 <strong><a href="/docs/qianguize-haowanban.html" target="_blank" rel="noopener noreferrer">潜规则 · 好玩版</a></strong> —— 一句话能转发的六张「黑话卡」，30 秒看懂这局游戏的底层规则。</li>
+</ul>
+<blockquote class="quote"><p>玩这款游戏不是为了学会「入伙」，而是为了<strong>看清规则</strong>——正如全书结尾所说：看清游戏，是为了有朝一日改写规则，而不是加入它。</p></blockquote>
+<p>&lt;/content&gt;<br />&lt;/invoke&gt;</p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    var toc = document.querySelector('.toc');
+    if (toc) toc.classList.add('collapsed');
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["daming-wangchao"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+</script>
+</body>
+</html>
