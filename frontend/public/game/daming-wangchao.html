@@ -224,6 +224,23 @@
   .codex .slot.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
   @keyframes pop { 0%{ transform: scale(.6);} 60%{ transform: scale(1.12);} 100%{ transform: scale(1);} }
 
+  /* --- 结局图鉴向导：结局页点出「下一面还没走到的镜子」及一句走法引导 --- */
+  .codex-guide {
+    margin: 9px auto 0; max-width: 470px;
+    background: rgba(255,255,255,0.42); border: 1px dashed var(--line);
+    border-radius: 10px; padding: 9px 13px; font-size: 12.5px; color: var(--ink-soft);
+    line-height: 1.62; text-align: left;
+  }
+  .codex-guide .cg-seal {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; margin-right: 6px; vertical-align: -5px;
+    border: 1px solid var(--gold); border-radius: 6px; color: var(--seal);
+    font-family: "Ma Shan Zheng", serif; font-size: 15px; background: rgba(178,59,46,0.06);
+  }
+  .codex-guide b { color: var(--red); }
+  .codex-guide .cg-left { color: var(--ink-soft); }
+  .codex-guide.done { color: var(--seal); border-style: solid; border-color: var(--gold); text-align: center; }
+
   /* --- 官声成就 / 多周目里程碑 (achievements & milestones) --- */
   .ach { margin-top: 14px; text-align: center; }
   .ach-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; }
@@ -452,6 +469,7 @@
     <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button" aria-expanded="false">🔎 这一局，你亲历了哪条潜规则？</button></div>
     <div class="map hidden" id="end-map"></div>
     <div class="codex" id="end-codex" aria-label="结局收藏"></div>
+    <div class="codex-guide hidden" id="end-codex-guide" aria-label="下一面镜子"></div>
     <div class="ach" id="end-ach" aria-label="官声成就"></div>
     <div class="ledger" id="end-ledger" aria-label="为官生涯"></div>
     <p class="seedline" id="end-seedline"></p>
@@ -671,6 +689,30 @@
     var head = "结局收藏　" + n + " / " + total + (n >= total ? "　·　十面镜子已走遍" : "　·　换个走法，看看别的下场");
     el(containerId).innerHTML =
       '<div class="codex-head">' + head + "</div><div class=\"codex-row\">" + slots + "</div>";
+  }
+
+  // ---- 结局图鉴向导：结局页点出「陈列顺序里下一面还没照过的镜子」及一句走法引导 --
+  //   纯读图鉴 + 每个结局自带的静态 guide 文案，不动 RNG/牌序/结局判定；
+  //   只在结局页多一句「离下一个未解锁下场还差什么」，替完形玩家指条方向。
+  function renderCodexGuide(containerId) {
+    var host = el(containerId);
+    if (!host) return "";
+    var got = loadCodex();
+    var locked = ENDING_ORDER.filter(function (k) { return !got[k]; });
+    if (!locked.length) {
+      host.className = "codex-guide done";
+      host.innerHTML = "🪞 十面镜子已走遍——每一种下场，你都亲手照过一遍了。";
+      return "";
+    }
+    var k = locked[0];                     // 陈列顺序里，下一面还没照过的镜子
+    var e = ENDINGS[k] || {};
+    host.className = "codex-guide";
+    host.innerHTML =
+      '<span class="cg-seal">' + esc(e.seal || "？") + "</span>" +
+      '<span class="cg-left">还差「</span><b>' + esc(e.title || "") + '</b><span class="cg-left">」　·　' +
+      esc(e.guide || "换个走法试试。") +
+      "　（图鉴还剩 " + locked.length + " 面镜子）</span>";
+    return e.title || "";
   }
 
   // ---- 官声成就 & 每日同题连胜：多周目里程碑，跨局累积存进浏览器 -----------
@@ -1398,55 +1440,64 @@
         "你守住了良心，却没守住乌纱。一封接一封的参劾、一次又一次「不谙政体」的差评，把你磨到了任满之前——你被参倒了。",
         "没有谁存心害你。只是当所有人都心照不宣，那个唯一「不合群」的，迟早要被挤出去。这一回，被挤出去的是你。"
       ],
-      map: "你亲历了 <b>淘汰清官机制</b>：系统不需要坏人来对付好人，只需要「大家都这样，就你不一样」。海瑞式的清官之所以稀有，正因为这套规则会主动把他们筛出去。" },
+      map: "你亲历了 <b>淘汰清官机制</b>：系统不需要坏人来对付好人，只需要「大家都这样，就你不一样」。海瑞式的清官之所以稀有，正因为这套规则会主动把他们筛出去。",
+      guide: "清誉守得很高，却把乌纱耗到见底——任满前，做个宁折不弯、被参倒的清官。" },
     downfall: { seal: "败", title: "众叛落马", kick: "任期未满 · 失了圣眷，墙倒众人推",
       body: [
         "你既没干净到问心无愧，也没经营出足够的靠山。风向一变，昔日「自己人」翻脸比谁都快，把你推出去顶了缸。",
         "在没有真制衡的地方，安全从不来自规矩，只来自关系。你两头都没抓牢，于是两头都不肯保你。"
       ],
-      map: "你撞上了 <b>陋规 × 委托代理</b> 的另一面：入了局却站不稳，就成了随时可被牺牲的一环。系统对半吊子的惩罚，往往比对清官更冷酷。" },
+      map: "你撞上了 <b>陋规 × 委托代理</b> 的另一面：入了局却站不稳，就成了随时可被牺牲的一环。系统对半吊子的惩罚，往往比对清官更冷酷。",
+      guide: "清誉不上不下，又把乌纱耗尽——两头不靠，最先被推出去顶缸。" },
     revolt: { seal: "乱", title: "民变四起", kick: "任期未满 · 官逼民反，你成了替罪羊",
       body: [
         "钱粮一层层加码，最后全压在了跑不掉的百姓身上。终于，有人揭竿而起。乱起之后，上宪要的第一个人头，是你的。",
         "你只是链条上尽职传递压力的一环——可当死弯崩断时，最末端的执行者，永远是第一个被推出来问罪的人。"
       ],
-      map: "你走完了 <b>崇祯死弯</b> 与 <b>老百姓是个冤大头</b>：委托代理链每传一道就加一次码，越是「勤政催逼」，末端崩得越快。坏结果不需要坏人，只需要每个人都理性地把锅往下传。" },
+      map: "你走完了 <b>崇祯死弯</b> 与 <b>老百姓是个冤大头</b>：委托代理链每传一道就加一次码，越是「勤政催逼」，末端崩得越快。坏结果不需要坏人，只需要每个人都理性地把锅往下传。",
+      guide: "一味把担子往下压，让民心归零——官逼民反的那种收场。" },
     prison: { seal: "囚", title: "亏空案发",  kick: "任期未满 · 库银穿底，下狱抄家",
       body: [
         "账终究做不平了。府库的窟窿越挖越大，寅吃卯粮撑到了尽头，一朝清查，铁证如山。你从知县变成了阶下囚。",
         "击鼓传花的游戏里，你成了接到最后一棒的那个人——前任们挪空的、你又没能移交出去的窟窿，最后由你一个人来填。"
       ],
-      map: "你尝到了 <b>做账 / 亏空</b> 的结构性代价：陋规体系把窟窿一任任往后传，账面太平之下是无人认领的亏空。总有人接最后一棒。" },
+      map: "你尝到了 <b>做账 / 亏空</b> 的结构性代价：陋规体系把窟窿一任任往后传，账面太平之下是无人认领的亏空。总有人接最后一棒。",
+      guide: "只顾做账捞银，让库银亏空穿底（跌破 -40 两）——一朝清查，下狱抄家。" },
     winner: { seal: "达", title: "同流合污 · 步步高升", kick: "任满 · 你成了这台机器最顺手的零件",
       body: [
         "你活下来了，而且活得很好。家财万贯，上下逢源，考语年年是「谙练老成」。所有人都说你是个能吏。",
         "回望上任那天退过的礼、动过的念头，你几乎记不清自己是从哪一步开始，变成了当年最看不惯的那种人。"
       ],
-      map: "你抵达了 <b>第二等公平</b> 的稳定均衡：人人都在这套规则里交费、也在其中获利，没人愿意、也没人敢第一个退出。你是系统的赢家——也是它得以自我维持的原因。" },
+      map: "你抵达了 <b>第二等公平</b> 的稳定均衡：人人都在这套规则里交费、也在其中获利，没人愿意、也没人敢第一个退出。你是系统的赢家——也是它得以自我维持的原因。",
+      guide: "任满时清誉压得很低、家财却攒到 55 两以上——做这台机器最顺手的赢家。" },
     cynic: { seal: "熟", title: "老于世故", kick: "任满 · 一个「懂规矩」的平庸官僚",
       body: [
         "你没大贪，也没清高；该送的送，该收的收，棱角早被磨平。任满考绩平平，既不出彩，也没出事。",
         "你学会了这套游戏的所有潜台词，并且不再为此感到任何不安——这或许才是系统最成功的产品。"
       ],
-      map: "你被 <b>陋规 / 淘汰清官</b> 驯化成了「正常人」：系统真正的胜利，不是制造巨贪，而是让绝大多数普通人心安理得地随大流。" },
+      map: "你被 <b>陋规 / 淘汰清官</b> 驯化成了「正常人」：系统真正的胜利，不是制造巨贪，而是让绝大多数普通人心安理得地随大流。",
+      guide: "任满时清誉压到很低，家财却不算丰——一个懂规矩、无功无过的老油子。" },
     worn: { seal: "倦", title: "清白而疲惫", kick: "任满 · 守住了底线，也交足了买路钱",
       body: [
         "你没同流合污，也没被彻底掀翻。三年下来，你守住了不撒谎、不害人的底线，代价是仕途原地踏步、家底见薄、身心俱疲。",
         "你没能改变什么，但至少，你没成为你所厌恶的那种人。在这套系统里，这已经是一种昂贵的胜利。"
       ],
-      map: "你卡在了 <b>第二等公平</b> 的夹缝里：还想干净的人，多数就停在这个既不彻底堕落、也无力改造结构的位置——诊断清楚了病，却没有单独退出的选项。" },
+      map: "你卡在了 <b>第二等公平</b> 的夹缝里：还想干净的人，多数就停在这个既不彻底堕落、也无力改造结构的位置——诊断清楚了病，却没有单独退出的选项。",
+      guide: "任满时清誉守得较高，乌纱却没剩多少——清白而疲惫地卸任。" },
     rare: { seal: "异", title: "异数 · 全身而退的清官", kick: "任满 · 罕见地既守住了良心，又保住了身位",
       body: [
         "你走了一条几乎走不通的钢丝：既没被参倒，也没激起民变，账面干净，民间有声，任满全身而退。",
         "但你心里清楚，这更多靠的是运气、时机和你个人的隐忍，而不是制度给了清官一条活路。你是那个「证明规则的例外」。"
       ],
-      map: "你成了 <b>淘汰清官机制</b> 里罕见的漏网之鱼——像海瑞那样。系统容忍一两个例外存在，恰恰是为了证明「规矩本身没错」。真正的问题从不是没有好人，而是好结果为什么必须靠这么小概率的好人。" },
+      map: "你成了 <b>淘汰清官机制</b> 里罕见的漏网之鱼——像海瑞那样。系统容忍一两个例外存在，恰恰是为了证明「规矩本身没错」。真正的问题从不是没有好人，而是好结果为什么必须靠这么小概率的好人。",
+      guide: "任满时清誉与乌纱俱高——一条几乎走不通的钢丝，最难照见的一面镜子。" },
     survivor: { seal: "存", title: "庸常幸存者", kick: "任满 · 随波逐流，侥幸下庄",
       body: [
         "谈不上清，也谈不上巨贪；随大流地交费、随大流地捞点，跌跌撞撞混到了任满。",
         "你没想明白这套游戏，却也糊里糊涂地活了下来——这大概是绝大多数人在系统里的真实下场。"
       ],
-      map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。" }
+      map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。",
+      guide: "任满时清誉不高不低（约在三到五成间）——随大流地跌撞到卸任。" }
   };
 
   var END_HINT = "🔎 这一局，你亲历了哪条潜规则？";
@@ -1482,6 +1533,7 @@
     renderTrail();
     renderSpark();
     renderCodex("end-codex", isNew ? key : null);
+    var nextMirror = renderCodexGuide("end-codex-guide");   // 下一面还没照过的镜子
     // 连胜（只认「今日同题」）→ 评定官声成就 → 渲染成就墙、记下本局新解锁
     var streakRec = playedAsDaily ? bumpDailyStreak() : loadStreak();
     var codexCount = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
@@ -1503,7 +1555,8 @@
     var achNames = freshAch.map(function (a) { return a.name; }).join("、");
     announce("这一局落幕：" + e.title + "。" + e.kick + "。乌纱 " + S.wusha +
              "，民心 " + S.minxin + "，清誉 " + S.qingyu + "，白银 " + S.silver + " 两。" +
-             (freshAch.length ? "解锁新成就：" + achNames + "。" : ""));
+             (freshAch.length ? "解锁新成就：" + achNames + "。" : "") +
+             (nextMirror ? "图鉴里下一面还没照过的镜子是「" + nextMirror + "」。" : ""));
     if (freshAch.length) showToast("🏅 解锁成就：" + achNames);
     window.scrollTo({ top: 0, behavior: "smooth" });
     // 无障碍：把焦点落到结局标题，屏幕阅读器随即读出下场
