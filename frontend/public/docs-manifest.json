@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "kechuang-investment-guide",
-    "title": "科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）",
-    "href": "/docs/kechuang-investment-guide.html",
-    "deletable": true,
-    "file": "docs/kechuang-investment-guide.md",
-    "updatedAt": "2026-07-19T05:27:11.835Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/kechuang-investment-guide.md",
-      "frontend/public/docs/kechuang-investment-guide.html"
-    ]
-  },
-  {
     "id": "public-tunnel",
     "title": "Exposing the dashboard as a public website",
     "href": "/docs/public-tunnel.html",
