@@ -178,6 +178,55 @@
 
   .footnote { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 22px; }
   .footnote a { color: var(--red); }
+
+  /* --- choice keycap (keyboard 1/2/3) --- */
+  .choice .kc { color: var(--gold); font-weight: 700; margin-right: 8px; font-variant-numeric: tabular-nums; }
+
+  /* --- critical-stat warning (show, don't tell) --- */
+  .stat.crit .name::after { content: " ⚠"; color: var(--bad); }
+  .stat.crit .bar > i { animation: pulsewarn 1.1s ease-in-out infinite; }
+  .stat.crit .amt { color: var(--bad); }
+  @keyframes pulsewarn { 0%,100%{ filter: none; } 50%{ filter: brightness(1.25) saturate(1.55); } }
+
+  /* --- 结局图鉴 (ending collection) --- */
+  .codex { margin-top: 14px; text-align: center; }
+  .codex-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 8px; }
+  .codex-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .codex .slot {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Ma Shan Zheng", serif; font-size: 20px; color: var(--ink-soft);
+    background: rgba(255,255,255,0.4); user-select: none;
+  }
+  .codex .slot.got { color: var(--seal); border-color: var(--gold); background: rgba(178,59,46,0.07); }
+  .codex .slot.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
+  @keyframes pop { 0%{ transform: scale(.6);} 60%{ transform: scale(1.12);} 100%{ transform: scale(1);} }
+
+  /* --- 施政轨迹回顾 (choice trail in ending) --- */
+  .trail { margin-top: 14px; }
+  .trail-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; text-align: center; }
+  .trail-list { border-left: 2px solid var(--gold-soft); margin-left: 8px; padding-left: 0; }
+  .trail-row { position: relative; padding: 6px 0 6px 20px; }
+  .trail-row::before {
+    content: ""; position: absolute; left: -6px; top: 12px; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--gold); border: 2px solid var(--paper);
+  }
+  .trail-row.climax::before { background: var(--seal); }
+  .trail-lab { font-size: 14px; color: var(--ink); }
+  .trail-cx { display: block; font-size: 11.5px; color: var(--ink-soft); letter-spacing: .3px; margin-top: 1px; }
+  .trail-row .mv { margin-left: 6px; font-size: 11px; font-weight: 700; }
+  .trail-row .mv.up { color: var(--good); }
+  .trail-row .mv.down { color: var(--bad); }
+
+  /* --- share toast --- */
+  .toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: var(--paper); font-size: 13px; padding: 9px 18px; border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.28); opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   .hidden { display: none !important; }
   @media (prefers-reduced-motion: reduce){ *{ transition: none !important; animation: none !important; } }
 </style>
@@ -211,7 +260,8 @@
     <div class="center">
       <button class="btn" id="btn-start">上任 · 开始一局 ▶</button>
     </div>
-    <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场</p>
+    <div class="codex hidden" id="title-codex" aria-label="结局收藏"></div>
+    <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场（键盘 1/2/3 可选，Enter 继续）</p>
   </section>
 
   <!-- ============ GAME SCREEN ============ -->
@@ -222,19 +272,19 @@
         <span class="pips" id="pips" aria-hidden="true"></span>
       </div>
       <div class="hud" id="hud">
-        <div class="stat" data-k="wusha">
+        <div class="stat" data-k="wusha" title="乌纱＝你的官位与前程。归零即被参倒去职，游戏结束。">
           <div class="row"><span class="name"><span class="ic">🎏</span>乌纱（仕途）</span><span class="val"><span class="num">0</span>/100</span></div>
           <div class="bar fill-wusha"><i style="width:0%"></i></div>
         </div>
-        <div class="stat" data-k="minxin">
+        <div class="stat" data-k="minxin" title="民心＝治下百姓的忍耐。归零即官逼民反，游戏结束。">
           <div class="row"><span class="name"><span class="ic">🧑‍🌾</span>民心</span><span class="val"><span class="num">0</span>/100</span></div>
           <div class="bar fill-minxin"><i style="width:0%"></i></div>
         </div>
-        <div class="stat" data-k="qingyu">
+        <div class="stat" data-k="qingyu" title="清誉＝你的良心与操守。不致命，但决定你最终成了哪种官。">
           <div class="row"><span class="name"><span class="ic">⚖️</span>清誉（良心）</span><span class="val"><span class="num">0</span>/100</span></div>
           <div class="bar fill-qingyu"><i style="width:0%"></i></div>
         </div>
-        <div class="stat" data-k="silver">
+        <div class="stat" data-k="silver" title="库银＝你的家财与府库。跌破 -40 两即亏空案发、下狱抄家。">
           <div class="row"><span class="name"><span class="ic">💰</span>家财 / 库银</span><span class="val">白银</span></div>
           <div class="silver"><span class="coin">🪙</span><span class="amt num">0</span><span style="font-size:12px;color:var(--ink-soft)">两</span></div>
         </div>
@@ -263,12 +313,16 @@
     <p class="kicker" id="end-kicker"></p>
     <div class="stat-final" id="end-stats"></div>
     <div class="body" id="end-body"></div>
+    <div class="trail" id="end-trail" aria-label="施政轨迹"></div>
     <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button">🔎 这一局，你亲历了哪条潜规则？</button></div>
     <div class="map hidden" id="end-map"></div>
+    <div class="codex" id="end-codex" aria-label="结局收藏"></div>
     <div class="end-actions">
       <button class="btn" id="btn-restart">再世为官 · 重开一局 ↺</button>
+      <button class="btn ghost" id="btn-share" type="button">📋 晒出我的下场</button>
       <a class="btn ghost" href="/docs/qianguize-wusi.html">想拆开来看 · 深度分析 →</a>
     </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <p class="footnote">想拆解每个选择背后的门道？点开选项后的「🔎」，或读读它的
       <a href="/docs/qianguize-haowanban.html">好玩版</a> ·
       <a href="/docs/qianguize-wusi.html">学术版</a> 分析。</p>
@@ -283,9 +337,62 @@
   var START = { wusha: 55, minxin: 50, qingyu: 62, silver: 20 };
   var TERM = 11;                 // 任期回合数
   var LOSE_SILVER = -40;         // 亏空触发线
-  var S, turn, queue, current;
+  var S, turn, queue, current, history;
 
   var el = function (id) { return document.getElementById(id); };
+  var KEYCAPS = ["①", "②", "③", "④", "⑤"];
+
+  // ---- 结局图鉴：把玩家走过的下场存进浏览器（localStorage），跨局累积 --------
+  var CODEX_KEY = "daming_wangchao_codex_v1";
+  // 图鉴里结局的陈列顺序：从「走得通的窄路」到「各种崩法」
+  var ENDING_ORDER = ["rare", "worn", "survivor", "cynic", "winner", "purge", "downfall", "revolt", "prison"];
+  function loadCodex() {
+    try { return JSON.parse(localStorage.getItem(CODEX_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveCodex(obj) {
+    try { localStorage.setItem(CODEX_KEY, JSON.stringify(obj)); } catch (e) { /* 隐私模式等，无所谓 */ }
+  }
+  function renderCodex(containerId, newKey) {
+    var got = loadCodex();
+    var total = ENDING_ORDER.length, n = 0;
+    var slots = ENDING_ORDER.map(function (k) {
+      var unlocked = !!got[k];
+      if (unlocked) n++;
+      var e = ENDINGS[k] || {};
+      var cls = "slot" + (unlocked ? " got" : "") + (k === newKey ? " new" : "");
+      var ch = unlocked ? (e.seal || "？") : "？";
+      var tip = unlocked ? (e.title || "") : "未解锁 · 换个走法试试";
+      return '<span class="' + cls + '" title="' + esc(tip) + '">' + ch + "</span>";
+    }).join("");
+    var head = "结局收藏　" + n + " / " + total + (n >= total ? "　·　十面镜子已走遍" : "　·　换个走法，看看别的下场");
+    el(containerId).innerHTML =
+      '<div class="codex-head">' + head + "</div><div class=\"codex-row\">" + slots + "</div>";
+  }
+
+  // ---- 施政轨迹：把玩家这一局走过的选择回放出来（只叙事，不评判）----------
+  function renderTrail() {
+    if (!history || !history.length) { el("end-trail").innerHTML = ""; return; }
+    var rows = history.map(function (h, i) {
+      // 挑出这步幅度最大的一项数值变化，作一枚小标记（让代价/收益一眼可见）
+      var top = null;
+      Object.keys(h.fx || {}).forEach(function (k) {
+        if (!top || Math.abs(h.fx[k]) > Math.abs(h.fx[top])) top = k;
+      });
+      var mv = "";
+      if (top) {
+        var v = h.fx[top];
+        mv = '<span class="mv ' + (v >= 0 ? "up" : "down") + '">' +
+             STAT_META[top] + " " + (v >= 0 ? "+" : "") + v + "</span>";
+      }
+      return '<div class="trail-row' + (h.climax ? " climax" : "") + '">' +
+               '<span class="trail-lab">' + (i + 1) + "、" + esc(h.lab) + mv + "</span>" +
+               '<span class="trail-cx">' + esc(h.concept) + "</span>" +
+             "</div>";
+    }).join("");
+    el("end-trail").innerHTML =
+      '<div class="trail-head">你这一任，是这样走过来的</div>' +
+      '<div class="trail-list">' + rows + "</div>";
+  }
 
   // ---- 事件库 --------------------------------------------------------------
   // 每个抉择有两段文字：
@@ -523,10 +630,14 @@
       box.querySelector('.bar > i').style.width = clamp(S[k]) + "%";
       var bar = box.querySelector('.bar > i');
       if (S[k] <= 15) bar.style.filter = "saturate(1.4) brightness(0.9)"; else bar.style.filter = "";
+      // 乌纱/民心归零即出局；逼近致命线时标红示警（清誉不致命，只影响结局走向）
+      box.classList.toggle('crit', k !== "qingyu" && S[k] <= 15);
     });
     var sBox = document.querySelector('.stat[data-k="silver"]');
     sBox.querySelector('.num').textContent = S.silver;
     sBox.querySelector('.silver').classList.toggle('neg', S.silver < 0);
+    // 亏空逼近下狱线（LOSE_SILVER）时同样示警
+    sBox.classList.toggle('crit', S.silver <= LOSE_SILVER + 15);
     if (deltas) {
       Object.keys(deltas).forEach(function (k) {
         var box = document.querySelector('.stat[data-k="' + k + '"]');
@@ -561,7 +672,8 @@
     current.choices.forEach(function (c, idx) {
       var b = document.createElement("button");
       b.className = "choice";
-      b.innerHTML = '<span class="lab">' + esc(c.lab) + "</span>";
+      var kc = KEYCAPS[idx] || "";
+      b.innerHTML = (kc ? '<span class="kc">' + kc + "</span>" : "") + '<span class="lab">' + esc(c.lab) + "</span>";
       b.addEventListener("click", function () { pick(idx); });
       box.appendChild(b);
     });
@@ -583,6 +695,9 @@
       else S[k] = clamp(S[k] + fx[k]);
     });
     renderHUD(fx);
+
+    // 记下这一步走法，任满/出局时回放成「施政轨迹」
+    history.push({ concept: current.concept, lab: c.lab, fx: fx, climax: current === CLIMAX });
 
     // 影响条
     var chips = Object.keys(fx).map(function (k) {
@@ -702,10 +817,16 @@
 
   function endGame(key) {
     var e = ENDINGS[key] || ENDINGS.survivor;
+    // 记进图鉴；本局若是头一回抵达这个下场，就高亮它
+    var got = loadCodex();
+    var isNew = !got[key];
+    got[key] = true;
+    saveCodex(got);
     el("screen-game").classList.add("hidden");
     var sec = el("screen-end");
     sec.classList.remove("hidden");
     el("end-seal").textContent = e.seal;
+    el("end-seal").dataset.key = key;
     el("end-title").textContent = e.title;
     el("end-kicker").textContent = e.kick;
     el("end-stats").innerHTML =
@@ -720,8 +841,51 @@
     map.classList.add("hidden");
     var er = el("end-reveal");
     er.textContent = END_HINT;
+    renderTrail();
+    renderCodex("end-codex", isNew ? key : null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // ---- 晒结局：拼一段可转发的文字，复制到剪贴板 --------------------------
+  function shareText() {
+    var e = ENDINGS[el("end-seal").dataset.key] || {};
+    var title = el("end-title").textContent;
+    var got = loadCodex();
+    var n = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
+    return "《大明王朝·潜规则生存模拟》\n" +
+      "我的下场：" + title + "\n" +
+      "🎏乌纱 " + S.wusha + "　🧑‍🌾民心 " + S.minxin + "　⚖️清誉 " + S.qingyu + "　💰白银 " + S.silver + " 两\n" +
+      "结局图鉴 " + n + "/" + ENDING_ORDER.length + " —— 你能走出哪个下场？\n" +
+      "▶ " + location.origin + location.pathname;
+  }
+  function showToast(msg) {
+    var t = el("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function () { t.classList.remove("show"); }, 1900);
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    // 老浏览器 / 非安全上下文回退
+    return new Promise(function (resolve, reject) {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.setAttribute("readonly", "");
+        ta.style.position = "absolute"; ta.style.left = "-9999px";
+        document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        ok ? resolve() : reject();
+      } catch (err) { reject(err); }
+    });
+  }
+  el("btn-share").addEventListener("click", function () {
+    copyText(shareText())
+      .then(function () { showToast("下场已复制，去粘给你的群 📋"); })
+      .catch(function () { showToast("复制失败，可手动选中分享"); });
+  });
 
   el("end-reveal").addEventListener("click", function () {
     var hiddenNow = el("end-map").classList.toggle("hidden");
@@ -732,6 +896,7 @@
   function startGame() {
     S = Object.assign({}, START);
     turn = 0;
+    history = [];
     queue = buildQueue();
     el("screen-title").classList.add("hidden");
     el("screen-end").classList.add("hidden");
@@ -743,6 +908,36 @@
 
   el("btn-start").addEventListener("click", startGame);
   el("btn-restart").addEventListener("click", startGame);
+
+  // ---- 键盘操作：1/2/3 选项，Enter/→/空格 继续 ----------------------------
+  document.addEventListener("keydown", function (ev) {
+    if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    var gameOn = !el("screen-game").classList.contains("hidden");
+    if (gameOn && current) {
+      var verdictShown = !el("ev-verdict").classList.contains("hidden");
+      if (!verdictShown) {
+        var n = parseInt(ev.key, 10);
+        if (n >= 1 && n <= current.choices.length) { ev.preventDefault(); pick(n - 1); }
+      } else if (ev.key === "Enter" || ev.key === " " || ev.key === "ArrowRight") {
+        ev.preventDefault(); el("btn-next").click();
+      }
+      return;
+    }
+    // 标题页 / 结局页：Enter 开局或重开
+    if (ev.key === "Enter") {
+      if (!el("screen-title").classList.contains("hidden") ||
+          !el("screen-end").classList.contains("hidden")) {
+        ev.preventDefault(); startGame();
+      }
+    }
+  });
+
+  // ---- 初始化：标题页展示已解锁的结局图鉴（有走过才显示）------------------
+  (function initTitleCodex() {
+    if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
+    el("title-codex").classList.remove("hidden");
+    renderCodex("title-codex", null);
+  })();
 })();
 </script>
 </body>
