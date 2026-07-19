@@ -923,14 +923,13 @@
   //   与「施政轨迹」清单互补：清单是一步步的叙事，这里是一眼可见的整段起落曲线。
   var SPARK_COL = { wusha: "#a83232", minxin: "#c79a2c", qingyu: "#3f9e9e", silver: "#4a6b8a" };
   var SPARK_NAME = { wusha: "🎏乌纱", minxin: "🧑‍🌾民心", qingyu: "⚖️清誉", silver: "💰库银" };
-  function renderSpark() {
-    var host = el("end-spark");
-    if (!history || !history.length) { host.innerHTML = ""; return; }
-    // 从起点按 fx 逐坎累积，重建四维轨迹（上限/下限的 clamp 与游戏内一致）
+  // 从起点按 history.fx 逐坎累积，重建四维轨迹（clamp 规则与游戏内一致）。
+  //   结局页 sparkline 与 canvas 结局图卡共用它，保证两处画出的走势一模一样。
+  function buildRunSeries() {
     var run = { wusha: START.wusha, minxin: START.minxin, qingyu: START.qingyu, silver: START.silver };
     var series = { wusha: [run.wusha], minxin: [run.minxin], qingyu: [run.qingyu], silver: [run.silver] };
     var climaxAt = -1;
-    history.forEach(function (h, i) {
+    (history || []).forEach(function (h, i) {
       var fx = h.fx || {};
       run.wusha  = clamp(run.wusha  + (fx.wusha  || 0));
       run.minxin = clamp(run.minxin + (fx.minxin || 0));
@@ -940,7 +939,14 @@
       series.qingyu.push(run.qingyu); series.silver.push(run.silver);
       if (h.climax) climaxAt = i + 1;     // 点序：起点是 0，第 i 坎落在点 i+1
     });
-    var n = series.wusha.length;          // 起点 + 每坎 = n 个点
+    return { series: series, climaxAt: climaxAt, n: series.wusha.length };
+  }
+  function renderSpark() {
+    var host = el("end-spark");
+    if (!history || !history.length) { host.innerHTML = ""; return; }
+    // 从起点按 fx 逐坎累积，重建四维轨迹（上限/下限的 clamp 与游戏内一致）
+    var built = buildRunSeries();
+    var series = built.series, climaxAt = built.climaxAt, n = built.n;
     var X0 = 44, X1 = 306;
     var xAt = function (i) { return n <= 1 ? (X0 + X1) / 2 : X0 + i / (n - 1) * (X1 - X0); };
     var poly = function (arr, yf) {
@@ -1721,10 +1727,88 @@
     lines.forEach(function (ln, i) { ctx.fillText(ln, cx, y + i * lh); });
     return y + lines.length * lh;
   }
+  // 把结局页的四维走势缩画进图卡：与 renderSpark 共用 buildRunSeries，故曲线完全一致。
+  //   上格三维（乌纱/民心/清誉）共用 0–100 轴、死线在 0；库银自成一档画于下方窄带；
+  //   崇祯死弯那一坎标淡红竖线。从 top 开始画，返回画完后的下沿 y。
+  function drawCardSpark(ctx, W, top) {
+    var built = buildRunSeries();
+    var series = built.series, n = built.n, climaxAt = built.climaxAt;
+    var COL = { wusha: "#a83232", minxin: "#c79a2c", qingyu: "#3f9e9e", silver: "#4a6b8a" };
+    var px0 = 60, px1 = W - 46;
+    var xAt = function (i) { return n <= 1 ? (px0 + px1) / 2 : px0 + i / (n - 1) * (px1 - px0); };
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '12px "Noto Serif SC", serif';
+    ctx.fillText("四维走势 · 这一任的起落", W / 2, top);
+
+    // 上格：乌纱/民心/清誉 三者共用 0–100 轴
+    var upT = top + 14, upB = top + 66;
+    var y100 = function (v) { return upB - Math.max(0, Math.min(100, v)) / 100 * (upB - upT); };
+    ctx.textAlign = "right"; ctx.font = '8px "Noto Serif SC", serif'; ctx.lineWidth = 1;
+    [100, 50, 0].forEach(function (v) {
+      var yy = y100(v);
+      ctx.strokeStyle = v === 0 ? "rgba(178,59,46,0.35)" : "rgba(120,90,50,0.18)";
+      ctx.setLineDash(v === 0 ? [3, 3] : []);
+      ctx.beginPath(); ctx.moveTo(px0, yy); ctx.lineTo(px1, yy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = v === 0 ? "#b23b2e" : "#6b5b48";
+      ctx.fillText(v === 0 ? "死线" : String(v), px0 - 4, yy + 3);
+    });
+    if (climaxAt > 0) {
+      var cxx = xAt(climaxAt);
+      ctx.strokeStyle = "rgba(178,59,46,0.3)"; ctx.setLineDash([2, 3]);
+      ctx.beginPath(); ctx.moveTo(cxx, upT); ctx.lineTo(cxx, upB); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ["wusha", "minxin", "qingyu"].forEach(function (k) {
+      ctx.strokeStyle = COL[k]; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.lineCap = "round";
+      ctx.beginPath();
+      series[k].forEach(function (v, i) { var xx = xAt(i), yy = y100(v); if (i === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); });
+      ctx.stroke();
+      ctx.fillStyle = COL[k];
+      ctx.beginPath(); ctx.arc(xAt(n - 1), y100(series[k][n - 1]), 2.4, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // 下格：库银自成一档（可为负，死线在 -40），以自身量程画于窄带
+    var sv = series.silver;
+    var lo = Math.min.apply(null, sv), hi = Math.max.apply(null, sv);
+    var pad = Math.max(6, (hi - lo) * 0.18);
+    var dmin = Math.min(lo, 0) - pad, dmax = Math.max(hi, START.silver) + pad;
+    var sT = upB + 12, sB = upB + 30;
+    var ySil = function (v) { return sB - (v - dmin) / (dmax - dmin) * (sB - sT); };
+    ctx.textAlign = "right"; ctx.font = '8px "Noto Serif SC", serif';
+    ctx.fillStyle = "#6b5b48"; ctx.fillText("库银", px0 - 4, sT + 3);
+    if (dmin <= LOSE_SILVER && dmax >= LOSE_SILVER) {
+      var dl = ySil(LOSE_SILVER);
+      ctx.strokeStyle = "rgba(162,51,31,0.4)"; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(px0, dl); ctx.lineTo(px1, dl); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.strokeStyle = COL.silver; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.beginPath();
+    sv.forEach(function (v, i) { var xx = xAt(i), yy = ySil(v); if (i === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); });
+    ctx.stroke();
+    ctx.fillStyle = COL.silver;
+    ctx.beginPath(); ctx.arc(xAt(n - 1), ySil(sv[n - 1]), 2.4, 0, Math.PI * 2); ctx.fill();
+
+    // 图例：四维「起→终」各着其色，一行四项
+    var legendY = sB + 20;
+    ctx.textAlign = "center"; ctx.font = '10px "Noto Serif SC", serif';
+    var order = ["wusha", "minxin", "qingyu", "silver"];
+    var nm = { wusha: "乌纱", minxin: "民心", qingyu: "清誉", silver: "库银" };
+    var xs = [0.155, 0.385, 0.615, 0.845];
+    order.forEach(function (k, i) {
+      var a = series[k][0], b = series[k][n - 1];
+      var arr = b > a ? "↗" : (b < a ? "↘" : "→");
+      ctx.fillStyle = COL[k];
+      ctx.fillText(nm[k] + " " + a + "→" + b + arr, W * xs[i], legendY);
+    });
+    ctx.textAlign = "center";
+    return legendY + 8;
+  }
+
   function drawEndCard() {
     var key = el("end-seal").dataset.key;
     var e = ENDINGS[key] || ENDINGS.survivor;
-    var scale = 2, W = 380, H = 620;
+    var scale = 2, W = 380, H = 756;
     var cv = document.createElement("canvas");
     cv.width = W * scale; cv.height = H * scale;
     var ctx = cv.getContext("2d");
@@ -1787,6 +1871,10 @@
     ctx.fillStyle = "#2a211a"; ctx.font = '12.5px "Noto Serif SC", serif';
     wrapText(ctx, takeaway, W / 2, y + 44, W - 108, 18, 3);
     y += 96 + 30;
+
+    // 四维走势：把结局页的 sparkline 缩画进图卡（与页面走势同源，一模一样）
+    y = drawCardSpark(ctx, W, y);
+    y += 26;
 
     // 图鉴 / 成就进度
     var codex = loadCodex(), ach = loadAch();
