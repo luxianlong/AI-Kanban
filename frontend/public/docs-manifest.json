@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "architecture",
-    "title": "Kanban architecture — topology",
-    "href": "/docs/architecture.html",
-    "deletable": true,
-    "file": "docs/architecture.md",
-    "updatedAt": "2026-07-19T05:27:11.835Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/architecture.md",
-      "frontend/public/docs/architecture.html"
-    ]
-  },
-  {
     "id": "public-tunnel",
     "title": "Exposing the dashboard as a public website",
     "href": "/docs/public-tunnel.html",
