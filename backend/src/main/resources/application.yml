@@ -2,8 +2,19 @@ spring:
   application:
     name: kanban
   datasource:
-    # File-based H2 so todos survive restarts. Delete ./data/kanban.mv.db to reset.
-    url: jdbc:h2:file:./data/kanban;AUTO_SERVER=TRUE
+    # File-based H2 so todos survive restarts.
+    #
+    # The path MUST be absolute. A relative path like ./data/kanban resolves
+    # against the process working directory, which differs by launcher:
+    #   - `java -jar` from the repo root  -> <repo>/data/kanban.mv.db
+    #   - `mvnw spring-boot:run` from backend/ -> <repo>/backend/data/kanban.mv.db
+    # That mismatch made the app silently open two different DB files depending
+    # on how it was started, so the board appeared to "revert" after a restart
+    # (bug: "my db is not correct again"). KANBAN_DATA_DIR (exported absolute by
+    # scripts/env.sh) pins the location; the fallback is absolute too so an
+    # ad-hoc launch from any directory still finds the same file.
+    # To reset, delete <KANBAN_DATA_DIR>/kanban.mv.db.
+    url: jdbc:h2:file:${KANBAN_DATA_DIR:${user.home}/Dashboard/data}/kanban;AUTO_SERVER=TRUE
     username: sa
     password: ""
     driver-class-name: org.h2.Driver
