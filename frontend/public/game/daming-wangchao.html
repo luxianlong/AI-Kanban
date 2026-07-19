@@ -620,18 +620,28 @@
     };
   })();
 
-  // ---- 导师模式：师爷进言的总开关（落笔前的凶险/重伤提醒），记进 localStorage ----
-  //   默认开——保留新手的安全网；嫌唠叨、想「全凭自己判断」的可一键关掉。
-  //   只影响提示的显隐，绝不动 RNG/种子/牌序，故同题/每日/存档语义全不受影响。
+  // ---- 导师模式：师爷进言的分档开关（落笔前的凶险/重伤提醒），记进 localStorage ----
+  //   三档循环：full 全程护航（死线+重伤都提醒）→ fatal 只报死线（只在会送命时开口）
+  //   → off 自己拿主意（无人提醒）。默认 full——保留新手的安全网；嫌重伤唠叨的可退到
+  //   只留致命示警，再嫌就全关。只影响提示的显隐，绝不动 RNG/种子/牌序，故同题/每日/
+  //   存档语义全不受影响。旧存档 "on" 视作 full、"off" 保持 off，平滑迁移。
   var MENTOR = (function () {
     var KEY = "daming_wangchao_mentor_v1";
-    var on; try { on = localStorage.getItem(KEY) !== "off"; } catch (e) { on = true; }
+    var LEVELS = ["full", "fatal", "off"];     // 循环顺序：护航 → 只报死线 → 关
+    var lvl;
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw === null || raw === "on") lvl = "full";        // 旧「开」= 全程护航；缺省亦然
+      else if (LEVELS.indexOf(raw) >= 0) lvl = raw;
+      else lvl = "off";                                       // 旧「off」或未知值
+    } catch (e) { lvl = "full"; }
     return {
-      isOn: function () { return on; },
-      toggle: function () {
-        on = !on;
-        try { localStorage.setItem(KEY, on ? "on" : "off"); } catch (e) {}
-        return on;
+      level: function () { return lvl; },
+      isOn: function () { return lvl !== "off"; },            // 「还有任何提醒吗」
+      cycle: function () {
+        lvl = LEVELS[(LEVELS.indexOf(lvl) + 1) % LEVELS.length];
+        try { localStorage.setItem(KEY, lvl); } catch (e) {}
+        return lvl;
       }
     };
   })();
@@ -1234,17 +1244,17 @@
     box.innerHTML = "";
     box.classList.remove("hidden");
     var hasPeril = false, hasHurt = false;
-    var mentor = MENTOR.isOn();           // 导师模式关了就不再有任何进言
+    var mLvl = MENTOR.level();             // full 护航 / fatal 只报死线 / off 无提醒
     current.choices.forEach(function (c, idx) {
       var b = document.createElement("button");
       b.className = "choice";
       var kc = KEYCAPS[idx] || "";
-      var p = mentor ? projectPeril(c.fx) : null;   // 这一步会伤到哪条致命线？
+      var p = (mLvl !== "off") ? projectPeril(c.fx) : null;   // 这一步会伤到哪条致命线？
       var counselHtml = "";
       if (p && p.level === "fatal") {
         b.className += " peril"; hasPeril = true;
         counselHtml = '<span class="counsel"><span class="who">师爷失色，附耳低声：</span>' + PERIL_WHISPER[p.k] + "</span>";
-      } else if (p && p.level === "hurt") {
+      } else if (p && p.level === "hurt" && mLvl === "full") {  // 重伤一档仅「全程护航」才报
         b.className += " hurt"; hasHurt = true;
         counselHtml = '<span class="counsel soft"><span class="who">师爷欲言又止，低声提醒：</span>' + HURT_WHISPER[p.k] + "</span>";
       }
@@ -1756,25 +1766,35 @@
   el("btn-sfx").addEventListener("click", function () { SFX.toggle(); syncSfxBtn(); });
   syncSfxBtn();
 
-  // ---- 师爷进言开关（导师模式）------------------------------------------------
+  // ---- 师爷进言开关（导师模式三档）--------------------------------------------
+  //   点击循环：全程护航 → 只报死线 → 关。图标随档位变，title/aria 说明当前档与下一步。
+  var MENTOR_META = {
+    full:  { icon: "🧙", label: "全程护航",
+             title: "师爷进言：全程护航 · 死线+重伤都提醒（点此改为只报死线）",
+             say:  "师爷进言：全程护航，死线与重伤都会提醒。" },
+    fatal: { icon: "🧭", label: "只报死线",
+             title: "师爷进言：只报死线 · 只在会送命时开口，重伤不再唠叨（点此关闭）",
+             say:  "师爷进言：只报死线，唯有会送命的一步才开口，重伤不再提醒。" },
+    off:   { icon: "🚶", label: "自己拿主意",
+             title: "师爷进言：关 · 无人提醒，全凭自己判断（点此开启全程护航）",
+             say:  "师爷进言已关闭，往后无人提醒，全凭自己判断。" }
+  };
   function syncMentorBtn() {
     var b = el("btn-mentor");
-    var on = MENTOR.isOn();
-    b.textContent = on ? "🧙" : "🚶";
-    b.classList.toggle("off", !on);
-    b.setAttribute("aria-pressed", on ? "true" : "false");
-    b.title = on
-      ? "师爷进言：开 · 落笔前会低声提醒凶险/重伤（点此关闭，自己拿主意）"
-      : "师爷进言：关 · 无人提醒，全凭自己判断（点此开启）";
+    var lvl = MENTOR.level(), m = MENTOR_META[lvl];
+    b.textContent = m.icon;
+    b.classList.toggle("off", lvl === "off");
+    b.setAttribute("aria-label", "师爷进言（当前：" + m.label + "，点击切换档位）");
+    b.title = m.title;
   }
   el("btn-mentor").addEventListener("click", function () {
-    var on = MENTOR.toggle();
+    var lvl = MENTOR.cycle();
     syncMentorBtn();
     // 若正卡在某坎、尚未落笔，即时重绘选项以反映新设置（存档同坎、语义不变）
     var midChoice = !el("screen-game").classList.contains("hidden") &&
       current && el("ev-verdict").classList.contains("hidden");
     if (midChoice) showEvent();
-    announce(on ? "师爷进言已开启。" : "师爷进言已关闭，往后无人提醒，全凭自己判断。");
+    announce(MENTOR_META[lvl].say);
   });
   syncMentorBtn();
 
