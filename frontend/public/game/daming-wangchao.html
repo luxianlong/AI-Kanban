@@ -146,11 +146,16 @@
   /* --- 师爷进言：某选项会把某一维逼过死线时，事前低声示警（只报凶险所在，不报数字）--- */
   .choice.peril { border-left-color: var(--bad); background: rgba(162,51,31,0.06); }
   .choice.peril:hover { border-left-color: var(--bad); background: #fff; }
+  /* 重伤但不致命：更柔和的一档提示——琥珀色，不如死线示警的红那样刺目 */
+  .choice.hurt { border-left-color: var(--gold); background: rgba(184,145,47,0.07); }
+  .choice.hurt:hover { border-left-color: var(--gold); background: #fff; }
   .choice .counsel {
     display: block; margin-top: 7px; font-size: 12.5px; line-height: 1.55;
     color: var(--bad); font-weight: 600; letter-spacing: .2px;
   }
   .choice .counsel .who { color: var(--seal); }
+  .choice .counsel.soft { color: #8a6d1e; font-weight: 500; }
+  .choice .counsel.soft .who { color: var(--gold); }
 
   .verdict {
     margin-top: 14px; background: rgba(255,255,255,0.6); border: 1px dashed var(--line);
@@ -345,6 +350,7 @@
       <span class="sub">潜规则 · 官场生存模拟</span>
     </div>
     <div class="right">
+      <button class="sfx-btn" id="btn-mentor" type="button" title="师爷进言开关" aria-label="师爷进言开关">🧙</button>
       <button class="sfx-btn" id="btn-sfx" type="button" title="音效开关（点击/翻页/收场的氛围声）" aria-label="音效开关">🔔</button>
       <a class="homelink" href="/docs/daming-wangchao.html">← 关于本游戏 / 文档</a>
     </div>
@@ -599,6 +605,22 @@
           tone({ type: "sine", f0: 392, dur: 1.1, gain: 0.10 });
           tone({ type: "sine", f0: 523, dur: 1.3, gain: 0.08, delay: 0.06 });
         }
+      }
+    };
+  })();
+
+  // ---- 导师模式：师爷进言的总开关（落笔前的凶险/重伤提醒），记进 localStorage ----
+  //   默认开——保留新手的安全网；嫌唠叨、想「全凭自己判断」的可一键关掉。
+  //   只影响提示的显隐，绝不动 RNG/种子/牌序，故同题/每日/存档语义全不受影响。
+  var MENTOR = (function () {
+    var KEY = "daming_wangchao_mentor_v1";
+    var on; try { on = localStorage.getItem(KEY) !== "off"; } catch (e) { on = true; }
+    return {
+      isOn: function () { return on; },
+      toggle: function () {
+        on = !on;
+        try { localStorage.setItem(KEY, on ? "on" : "off"); } catch (e) {}
+        return on;
       }
     };
   })();
@@ -1100,25 +1122,33 @@
     var box = el("ev-choices");
     box.innerHTML = "";
     box.classList.remove("hidden");
-    var hasPeril = false;
+    var hasPeril = false, hasHurt = false;
+    var mentor = MENTOR.isOn();           // 导师模式关了就不再有任何进言
     current.choices.forEach(function (c, idx) {
       var b = document.createElement("button");
       b.className = "choice";
       var kc = KEYCAPS[idx] || "";
-      var peril = projectDeath(c.fx);       // 这一步会把某一维逼过死线吗？
-      if (peril) { b.className += " peril"; hasPeril = true; }
+      var p = mentor ? projectPeril(c.fx) : null;   // 这一步会伤到哪条致命线？
+      var counselHtml = "";
+      if (p && p.level === "fatal") {
+        b.className += " peril"; hasPeril = true;
+        counselHtml = '<span class="counsel"><span class="who">师爷失色，附耳低声：</span>' + PERIL_WHISPER[p.k] + "</span>";
+      } else if (p && p.level === "hurt") {
+        b.className += " hurt"; hasHurt = true;
+        counselHtml = '<span class="counsel soft"><span class="who">师爷欲言又止，低声提醒：</span>' + HURT_WHISPER[p.k] + "</span>";
+      }
       b.innerHTML = (kc ? '<span class="kc">' + kc + "</span>" : "") +
-        '<span class="lab">' + esc(c.lab) + "</span>" +
-        (peril ? '<span class="counsel"><span class="who">师爷失色，附耳低声：</span>' + PERIL_WHISPER[peril] + "</span>" : "");
+        '<span class="lab">' + esc(c.lab) + "</span>" + counselHtml;
       b.addEventListener("click", function () { pick(idx); });
       box.appendChild(b);
     });
     renderPips();
     writeSave();                   // 每坎开局即存档，尚未落笔——离开后可从此坎续玩
     el("event-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    var counselMsg = hasPeril ? "师爷有言：有选项走下去恐是死路，留意标红的进言。"
+                   : hasHurt  ? "师爷有言：有选项虽不致命，却会伤及根本，留意琥珀色的提醒。" : "";
     announce("第 " + (turn + 1) + " 抉择，" + current.title + "。" +
-             current.choices.length + " 个选项，按数字键或点击选择。" +
-             (hasPeril ? "师爷有言：其中有选项走下去恐是死路，留意标红的进言。" : ""));
+             current.choices.length + " 个选项，按数字键或点击选择。" + counselMsg);
   }
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -1189,18 +1219,37 @@
     return null;
   }
 
-  // ---- 师爷进言：某抉择会把对应一维逼过死线时，落笔前只报「凶险所在」，不报具体数字 ----
+  // ---- 师爷进言：某抉择会伤及某条致命线时，落笔前只报「凶险所在」，不报具体数字 ----
   //   纯由当前四维推算，不动种子/牌序，故不影响同题复现；顺序与 deathCheck 一致。
-  var PERIL_WHISPER = {
+  //   两档：致命（跨过死线，红）与重伤（把某条致命线逼进危险带、但未破线，琥珀）。
+  //   受「导师模式」(MENTOR) 总开关节制——关了就无人提醒，全凭自己判断。
+  var HURT_BAND = 15;          // 乌纱/民心跌进此值即算「重伤」；库银则以 LOSE_SILVER+15 为界
+  var PERIL_WHISPER = {        // 致命一档：跨过死线
     wusha:  "「大人，这一步落下去，乌纱怕是就保不住了。」",
     minxin: "「大人，再往下逼，怕是要激出民变啊。」",
     silver: "「大人，府库这一亏，可就是抄家下狱的死数了。」"
+  };
+  var HURT_WHISPER = {         // 重伤一档：不致命，却动了根本
+    wusha:  "「大人，这一步乌纱要伤筋动骨，往后怕经不起再折腾。」",
+    minxin: "「大人，民心已经很薄，再割下去，离生乱就不远了。」",
+    silver: "「大人，府库快见底，再填这笔怕要动到老本。」"
   };
   function projectDeath(fx) {
     fx = fx || {};
     if (clamp(S.wusha + (fx.wusha || 0)) <= 0) return "wusha";
     if (clamp(S.minxin + (fx.minxin || 0)) <= 0) return "minxin";
     if (S.silver + (fx.silver || 0) <= LOSE_SILVER) return "silver";
+    return null;
+  }
+  // 返回 {level:"fatal"|"hurt", k:维度} 或 null。重伤仅在该选项「主动往下压」某条致命
+  // 线、且压进危险带时才报，避免逢选必唠（否则又落回爹味）。致命优先于重伤。
+  function projectPeril(fx) {
+    var fatal = projectDeath(fx);
+    if (fatal) return { level: "fatal", k: fatal };
+    fx = fx || {};
+    if ((fx.wusha || 0) < 0 && clamp(S.wusha + fx.wusha) <= HURT_BAND) return { level: "hurt", k: "wusha" };
+    if ((fx.minxin || 0) < 0 && clamp(S.minxin + fx.minxin) <= HURT_BAND) return { level: "hurt", k: "minxin" };
+    if ((fx.silver || 0) < 0 && (S.silver + fx.silver) <= LOSE_SILVER + 15) return { level: "hurt", k: "silver" };
     return null;
   }
 
@@ -1594,6 +1643,28 @@
   }
   el("btn-sfx").addEventListener("click", function () { SFX.toggle(); syncSfxBtn(); });
   syncSfxBtn();
+
+  // ---- 师爷进言开关（导师模式）------------------------------------------------
+  function syncMentorBtn() {
+    var b = el("btn-mentor");
+    var on = MENTOR.isOn();
+    b.textContent = on ? "🧙" : "🚶";
+    b.classList.toggle("off", !on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.title = on
+      ? "师爷进言：开 · 落笔前会低声提醒凶险/重伤（点此关闭，自己拿主意）"
+      : "师爷进言：关 · 无人提醒，全凭自己判断（点此开启）";
+  }
+  el("btn-mentor").addEventListener("click", function () {
+    var on = MENTOR.toggle();
+    syncMentorBtn();
+    // 若正卡在某坎、尚未落笔，即时重绘选项以反映新设置（存档同坎、语义不变）
+    var midChoice = !el("screen-game").classList.contains("hidden") &&
+      current && el("ev-verdict").classList.contains("hidden");
+    if (midChoice) showEvent();
+    announce(on ? "师爷进言已开启。" : "师爷进言已关闭，往后无人提醒，全凭自己判断。");
+  });
+  syncMentorBtn();
 
   // ---- 键盘操作：1/2/3 选项，Enter/→/空格 继续 ----------------------------
   document.addEventListener("keydown", function (ev) {
