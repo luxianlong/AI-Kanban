@@ -30,6 +30,13 @@ export CLAUDE_CMD="${CLAUDE_CMD:-$(command -v claude || echo "$HOME/.npm-global/
 export BACKEND_PORT="${BACKEND_PORT:-8080}"
 export FRONTEND_PORT="${FRONTEND_PORT:-5173}"
 
+# Live H2 database directory. MUST be absolute: the JDBC url in application.yml
+# reads this, and a relative path would resolve against each launcher's cwd
+# (repo root for `java -jar`, backend/ for `mvnw spring-boot:run`) — which
+# silently opened two different DB files and made the board "revert" after a
+# restart. Pinning it here keeps every launch on the one real database.
+export KANBAN_DATA_DIR="${KANBAN_DATA_DIR:-$REPO/data}"
+
 # Worker runtime config. The working directory IS the repo, so improvement tasks
 # can edit this project. skip-permissions lets the agent act unattended — only
 # safe because it runs against this repo behind the guarded-deploy test gate.

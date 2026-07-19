@@ -50,6 +50,14 @@
   .brand .sub { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; }
   .homelink { font-size: 12.5px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--line); white-space: nowrap; }
   .homelink:hover { color: var(--red); }
+  .topbar .right { display: flex; align-items: center; gap: 12px; }
+  .sfx-btn {
+    font-family: inherit; cursor: pointer; background: rgba(255,255,255,0.4); border: 1px solid var(--line);
+    color: var(--ink-soft); border-radius: 8px; font-size: 15px; line-height: 1; padding: 5px 9px;
+    transition: color .12s, border-color .12s, opacity .12s;
+  }
+  .sfx-btn:hover { color: var(--red); border-color: var(--red); }
+  .sfx-btn.off { opacity: 0.55; }
 
   .card {
     background: linear-gradient(180deg, #fbf5e5 0%, #f3e8cf 100%);
@@ -135,13 +143,39 @@
   .choice:active { transform: translateY(0); }
   .choice .lab { font-weight: 700; }
 
+  /* --- 师爷进言：某选项会把某一维逼过死线时，事前低声示警（只报凶险所在，不报数字）--- */
+  .choice.peril { border-left-color: var(--bad); background: rgba(162,51,31,0.06); }
+  .choice.peril:hover { border-left-color: var(--bad); background: #fff; }
+  /* 重伤但不致命：更柔和的一档提示——琥珀色，不如死线示警的红那样刺目 */
+  .choice.hurt { border-left-color: var(--gold); background: rgba(184,145,47,0.07); }
+  .choice.hurt:hover { border-left-color: var(--gold); background: #fff; }
+  .choice .counsel {
+    display: block; margin-top: 7px; font-size: 12.5px; line-height: 1.55;
+    color: var(--bad); font-weight: 600; letter-spacing: .2px;
+  }
+  .choice .counsel .who { color: var(--seal); }
+  .choice .counsel.soft { color: #8a6d1e; font-weight: 500; }
+  .choice .counsel.soft .who { color: var(--gold); }
+
   .verdict {
     margin-top: 14px; background: rgba(255,255,255,0.6); border: 1px dashed var(--line);
     border-radius: 10px; padding: 12px 14px;
   }
-  .verdict .read { font-size: 13.5px; color: var(--ink-soft); }
-  .verdict .read b { color: var(--red); }
-  .fx-line { margin: 6px 0 2px; font-size: 13px; }
+  .verdict .outcome { font-size: 14.5px; color: var(--ink); }
+  .verdict .outcome b { color: var(--red); }
+  .reveal-btn {
+    font-family: inherit; cursor: pointer; background: none; border: none;
+    padding: 6px 0 2px; margin-top: 6px; color: var(--ink-soft); font-size: 12.5px;
+    letter-spacing: .3px; border-bottom: 1px dotted var(--line);
+  }
+  .reveal-btn:hover { color: var(--red); }
+  .note {
+    margin-top: 8px; font-size: 13px; color: var(--ink-soft); line-height: 1.72;
+    border-left: 3px solid var(--gold-soft); padding-left: 12px;
+  }
+  .note b { color: var(--red); }
+  .note .tag { color: var(--gold); font-size: 12px; }
+  .fx-line { margin: 6px 0 8px; font-size: 13px; }
   .fx-chip { display: inline-block; margin: 2px 6px 2px 0; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
   .fx-chip.up { background: #e2f0e6; color: var(--good); }
   .fx-chip.down { background: #f6e2dc; color: var(--bad); }
@@ -157,6 +191,7 @@
   .ending h2 { text-align: center; color: var(--red); font-size: 26px; margin: 6px 0 2px; }
   .ending .kicker { text-align: center; color: var(--ink-soft); font-size: 13px; margin: 0 0 14px; letter-spacing: 1px; }
   .ending .body p { margin: 10px 0; }
+  .end-reveal-wrap { text-align: center; margin-top: 8px; }
   .ending .map { background: rgba(255,255,255,0.55); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
   .ending .map b { color: var(--red); }
   .stat-final { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0 2px; }
@@ -165,40 +200,199 @@
 
   .footnote { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 22px; }
   .footnote a { color: var(--red); }
+
+  /* --- choice keycap (keyboard 1/2/3) --- */
+  .choice .kc { color: var(--gold); font-weight: 700; margin-right: 8px; font-variant-numeric: tabular-nums; }
+
+  /* --- critical-stat warning (show, don't tell) --- */
+  .stat.crit .name::after { content: " ⚠"; color: var(--bad); }
+  .stat.crit .bar > i { animation: pulsewarn 1.1s ease-in-out infinite; }
+  .stat.crit .amt { color: var(--bad); }
+  @keyframes pulsewarn { 0%,100%{ filter: none; } 50%{ filter: brightness(1.25) saturate(1.55); } }
+
+  /* --- 结局图鉴 (ending collection) --- */
+  .codex { margin-top: 14px; text-align: center; }
+  .codex-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 8px; }
+  .codex-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .codex .slot {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Ma Shan Zheng", serif; font-size: 20px; color: var(--ink-soft);
+    background: rgba(255,255,255,0.4); user-select: none;
+  }
+  .codex .slot.got { color: var(--seal); border-color: var(--gold); background: rgba(178,59,46,0.07); }
+  .codex .slot.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
+  @keyframes pop { 0%{ transform: scale(.6);} 60%{ transform: scale(1.12);} 100%{ transform: scale(1);} }
+
+  /* --- 官声成就 / 多周目里程碑 (achievements & milestones) --- */
+  .ach { margin-top: 14px; text-align: center; }
+  .ach-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; }
+  .ach-head b { color: var(--seal); }
+  .ach-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 520px; margin: 0 auto; }
+  @media (min-width: 560px){ .ach-grid { grid-template-columns: repeat(4, 1fr); } }
+  .ach-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px;
+    background: rgba(255,255,255,0.4); user-select: none;
+  }
+  .ach-item.got { border-color: var(--gold); background: rgba(178,59,46,0.06); }
+  .ach-item .ach-seal {
+    width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    font-family: "Ma Shan Zheng", serif; font-size: 18px; color: var(--ink-soft);
+    border: 1px solid var(--line); background: rgba(255,255,255,0.5);
+  }
+  .ach-item.got .ach-seal { color: var(--seal); border-color: var(--gold); }
+  .ach-item .ach-name { font-size: 11.5px; color: var(--ink-soft); letter-spacing: .2px; }
+  .ach-item.got .ach-name { color: var(--ink); font-weight: 600; }
+  .ach-item.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
+
+  /* --- 为官生涯清算 (cross-run career ledger) --- */
+  .ledger { margin-top: 14px; text-align: center; }
+  .ledger-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 9px; }
+  .ledger-head b { color: var(--seal); font-size: 14px; }
+  .ledger-bar {
+    display: flex; height: 14px; max-width: 420px; margin: 0 auto 7px; border-radius: 7px;
+    overflow: hidden; border: 1px solid var(--line); background: rgba(120,90,50,0.12);
+  }
+  .ledger-bar > i { display: block; height: 100%; transition: width .5s cubic-bezier(.2,.7,.2,1); }
+  .ledger-bar > i.live { background: linear-gradient(90deg,#7a5a13,#c79a2c); }
+  .ledger-bar > i.dead { background: linear-gradient(90deg,#6b1f1f,#a83232); }
+  .ledger-legend { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; margin-bottom: 6px; }
+  .ledger-legend .live { color: var(--gold); font-weight: 700; }
+  .ledger-legend .dead { color: var(--red); font-weight: 700; }
+  .ledger-best { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; line-height: 1.7; }
+  .ledger-best b { color: var(--ink); }
+
+  /* --- 施政轨迹回顾 (choice trail in ending) --- */
+  .trail { margin-top: 14px; }
+  .trail-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; text-align: center; }
+  .trail-list { border-left: 2px solid var(--gold-soft); margin-left: 8px; padding-left: 0; }
+  .trail-row { position: relative; padding: 6px 0 6px 20px; }
+  .trail-row::before {
+    content: ""; position: absolute; left: -6px; top: 12px; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--gold); border: 2px solid var(--paper);
+  }
+  .trail-row.climax::before { background: var(--seal); }
+  .trail-lab { font-size: 14px; color: var(--ink); }
+  .trail-cx { display: block; font-size: 11.5px; color: var(--ink-soft); letter-spacing: .3px; margin-top: 1px; }
+  .trail-row .mv { margin-left: 6px; font-size: 11px; font-weight: 700; }
+  .trail-row .mv.up { color: var(--good); }
+  .trail-row .mv.down { color: var(--bad); }
+
+  /* --- 四维走势 sparkline：结局页把这一任四维的起落画成曲线（与轨迹清单互补）--- */
+  .spark { margin-top: 16px; }
+  .spark-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 8px; text-align: center; }
+  .spark-wrap { background: rgba(255,255,255,0.5); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .spark svg { display: block; width: 100%; height: auto; }
+  .spark-legend { display: flex; flex-wrap: wrap; gap: 5px 14px; justify-content: center; margin-top: 9px; font-size: 11.5px; color: var(--ink-soft); }
+  .spark-legend span { white-space: nowrap; }
+  .spark-legend .sw { display: inline-block; width: 16px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+  .spark-note { text-align: center; font-size: 11px; color: var(--ink-soft); margin-top: 7px; letter-spacing: .2px; line-height: 1.5; }
+
+  /* --- share toast --- */
+  .toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: var(--paper); font-size: 13px; padding: 9px 18px; border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.28); opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* --- 种子局 / 同题挑战 (deterministic seed & same-deck challenge) --- */
+  .seed-banner {
+    margin: 16px auto 2px; max-width: 640px; background: rgba(178,59,46,0.07);
+    border: 1px solid var(--gold); border-radius: 10px; padding: 9px 14px; font-size: 13.5px; color: var(--ink);
+  }
+  .mono { font-family: "Noto Sans SC", ui-monospace, monospace; color: var(--red); font-weight: 700; letter-spacing: 1px; }
+  .seedline { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; margin: 14px 0 2px; }
+  .seedline .mono { color: var(--red); }
+  .turnbar .right { display: flex; align-items: center; gap: 10px; }
+  .turnbar .seed-tag { font-family: "Noto Sans SC", ui-monospace, monospace; color: var(--gold); font-weight: 700; letter-spacing: 1px; font-size: 12px; }
+
+  /* --- 每日同题：标题页副行 --- */
+  .daily-line { text-align: center; font-size: 12px; color: var(--ink-soft); margin: 10px 0 0; letter-spacing: .3px; }
+  .daily-line .mono { color: var(--red); }
+  .center .btn + .btn { margin-top: 10px; }
+
+  /* --- 无障碍：仅供屏幕阅读器的实时播报区（视觉隐藏，可被朗读）--- */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* --- 稀有 / 隐事：中段小概率掺入的特殊坎 --- */
+  .concept.rare {
+    background: linear-gradient(180deg,#6d3b7a,#552a66); color: #fff;
+    box-shadow: 0 0 0 2px rgba(184,145,47,0.45), 0 2px 8px rgba(85,42,102,0.3);
+  }
+  .trail-row.rare::before { background: #6d3b7a; }
+  .trail-row.rare .trail-cx { color: #7a4a86; }
+
+  /* --- 结局图卡：canvas 生成、可长按保存/下载的分享卡 --- */
+  .cardmodal {
+    position: fixed; inset: 0; background: rgba(20,14,8,0.62); z-index: 60;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .cardmodal-inner {
+    position: relative; background: var(--paper); border-radius: 14px; padding: 16px;
+    max-width: 360px; width: 100%; max-height: 92vh; overflow: auto; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.42);
+  }
+  .cardmodal-inner img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .cardmodal-hint { font-size: 12px; color: var(--ink-soft); margin: 10px 0 12px; letter-spacing: .3px; }
+  .cardmodal-close {
+    position: absolute; top: 6px; right: 10px; background: none; border: none;
+    font-size: 18px; line-height: 1; color: var(--ink-soft); cursor: pointer;
+  }
+  .cardmodal-close:hover { color: var(--red); }
+  a.btn.dl { text-decoration: none; display: inline-block; }
+
   .hidden { display: none !important; }
   @media (prefers-reduced-motion: reduce){ *{ transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="sr-only" id="sr-live" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="topbar">
     <div class="brand">
       <span class="cn">大明王朝</span>
       <span class="sub">潜规则 · 官场生存模拟</span>
     </div>
-    <a class="homelink" href="/docs/daming-wangchao.html">← 关于本游戏 / 文档</a>
+    <div class="right">
+      <button class="sfx-btn" id="btn-mentor" type="button" title="师爷进言开关" aria-label="师爷进言开关">🧙</button>
+      <button class="sfx-btn" id="btn-sfx" type="button" title="音效开关（点击/翻页/收场的氛围声）" aria-label="音效开关">🔔</button>
+      <a class="homelink" href="/docs/daming-wangchao.html">← 关于本游戏 / 文档</a>
+    </div>
   </div>
 
   <!-- ============ TITLE SCREEN ============ -->
   <section id="screen-title" class="card hero">
     <h1>大明王朝</h1>
-    <p class="tag">一款把《潜规则》做进玩法的官场生存模拟</p>
-    <p>崇祯元年，你放了外任，做一县之主——<b>知县</b>。头顶是催考成的上宪，身后是盘根错节的胥吏，脚下是交不完钱粮的百姓。</p>
-    <p>你手握「<b>合法伤害权</b>」：一支笔，可活人，也可杀人。这一局的规则，明面上写在《大明律》里，真正管用的那套，却从没人写下来。</p>
-    <p>你的目标只有一个：<b>在任满之前活下来</b>——保住乌纱、填平亏空、别激起民变。至于要不要守住良心，是你的选择。</p>
+    <p class="tag">崇祯元年 · 你放了外任，去做一县之主</p>
+    <p>头顶是催考成的上宪，身后是盘根错节的胥吏，脚下是交不完钱粮的百姓。明面的规矩写在《大明律》里，真正管用的那套，从没人写下来。</p>
+    <p>你手里有一支笔——它能救人，也能杀人。三年任期，十来个坎，你自己选着走。</p>
+    <p>怎么下场，游戏不替你评判。走完这一局，你大概会自己看明白。</p>
 
     <div class="roles" aria-label="委托代理链">
       <div class="role"><span class="emo">👑</span><span class="nm">皇帝</span><span class="dsc">要钱要太平</span></div>
       <div class="role"><span class="emo">🎩</span><span class="nm">上宪/官僚</span><span class="dsc">考成·收陋规</span></div>
-      <div class="role"><span class="emo">🧾</span><span class="nm">你 · 胥吏</span><span class="dsc">执行·手握刀笔</span></div>
-      <div class="role"><span class="emo">🧑‍🌾</span><span class="nm">百姓</span><span class="dsc">最后的冤大头</span></div>
+      <div class="role"><span class="emo">🧾</span><span class="nm">你 · 知县</span><span class="dsc">执行·手握刀笔</span></div>
+      <div class="role"><span class="emo">🧑‍🌾</span><span class="nm">百姓</span><span class="dsc">链条的最末端</span></div>
     </div>
     <p class="arrow">权力/暴力 ↓　　　钱财 ↑　　　信息（失真）↑</p>
 
+    <div class="seed-banner hidden" id="seed-banner">🎯 有人给你下了同一副牌（<span class="mono" id="banner-seed"></span>）——接招，看你走出哪个下场。</div>
     <div class="center">
+      <button class="btn ghost hidden" id="btn-resume" type="button" title="上一任还没走完——接着上回的那副牌、那处坎往下走">▶ 继续上一任</button>
       <button class="btn" id="btn-start">上任 · 开始一局 ▶</button>
+      <button class="btn ghost" id="btn-daily" type="button" title="今天全网同一副牌，明日换新——看谁走出更好的下场">🗓️ 今日同题 · 全网同一副牌</button>
     </div>
-    <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场</p>
+    <p class="daily-line" id="daily-line"></p>
+    <div class="codex hidden" id="title-codex" aria-label="结局收藏"></div>
+    <div class="ach hidden" id="title-ach" aria-label="官声成就"></div>
+    <div class="ledger hidden" id="title-ledger" aria-label="为官生涯"></div>
+    <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场（键盘 1/2/3 可选，Enter 继续）</p>
   </section>
 
   <!-- ============ GAME SCREEN ============ -->
@@ -206,22 +400,25 @@
     <div class="card" style="padding:16px 18px;">
       <div class="turnbar">
         <span id="turn-label">上任伊始</span>
-        <span class="pips" id="pips" aria-hidden="true"></span>
+        <span class="right">
+          <span class="seed-tag" id="game-seed" title="本局牌序（种子）。同一种子＝同一副牌，可复现，可与人同题较量。"></span>
+          <span class="pips" id="pips" aria-hidden="true"></span>
+        </span>
       </div>
       <div class="hud" id="hud">
-        <div class="stat" data-k="wusha">
+        <div class="stat" data-k="wusha" title="乌纱＝你的官位与前程。归零即被参倒去职，游戏结束。">
           <div class="row"><span class="name"><span class="ic">🎏</span>乌纱（仕途）</span><span class="val"><span class="num">0</span>/100</span></div>
-          <div class="bar fill-wusha"><i style="width:0%"></i></div>
+          <div class="bar fill-wusha" role="progressbar" aria-label="乌纱（仕途）" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i style="width:0%"></i></div>
         </div>
-        <div class="stat" data-k="minxin">
+        <div class="stat" data-k="minxin" title="民心＝治下百姓的忍耐。归零即官逼民反，游戏结束。">
           <div class="row"><span class="name"><span class="ic">🧑‍🌾</span>民心</span><span class="val"><span class="num">0</span>/100</span></div>
-          <div class="bar fill-minxin"><i style="width:0%"></i></div>
+          <div class="bar fill-minxin" role="progressbar" aria-label="民心" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i style="width:0%"></i></div>
         </div>
-        <div class="stat" data-k="qingyu">
+        <div class="stat" data-k="qingyu" title="清誉＝你的良心与操守。不致命，但决定你最终成了哪种官。">
           <div class="row"><span class="name"><span class="ic">⚖️</span>清誉（良心）</span><span class="val"><span class="num">0</span>/100</span></div>
-          <div class="bar fill-qingyu"><i style="width:0%"></i></div>
+          <div class="bar fill-qingyu" role="progressbar" aria-label="清誉（良心）" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i style="width:0%"></i></div>
         </div>
-        <div class="stat" data-k="silver">
+        <div class="stat" data-k="silver" title="库银＝你的家财与府库。跌破 -40 两即亏空案发、下狱抄家。">
           <div class="row"><span class="name"><span class="ic">💰</span>家财 / 库银</span><span class="val">白银</span></div>
           <div class="silver"><span class="coin">🪙</span><span class="amt num">0</span><span style="font-size:12px;color:var(--ink-soft)">两</span></div>
         </div>
@@ -235,7 +432,9 @@
       <div class="choices" id="ev-choices"></div>
       <div class="verdict hidden" id="ev-verdict">
         <div id="ev-fx" class="fx-line"></div>
-        <div class="read" id="ev-read"></div>
+        <div class="outcome" id="ev-outcome"></div>
+        <button class="reveal-btn" id="ev-reveal" type="button" aria-expanded="false">🔎 这一步，动了哪条潜规则？</button>
+        <div class="note hidden" id="ev-note"></div>
         <div class="next-wrap"><button class="btn" id="btn-next">下一步 ▶</button></div>
       </div>
     </div>
@@ -244,19 +443,40 @@
   <!-- ============ ENDING SCREEN ============ -->
   <section id="screen-end" class="hidden card ending">
     <div class="seal-mark" id="end-seal">终</div>
-    <h2 id="end-title"></h2>
+    <h2 id="end-title" tabindex="-1"></h2>
     <p class="kicker" id="end-kicker"></p>
     <div class="stat-final" id="end-stats"></div>
     <div class="body" id="end-body"></div>
-    <div class="map" id="end-map"></div>
+    <div class="spark" id="end-spark" aria-label="四维走势"></div>
+    <div class="trail" id="end-trail" aria-label="施政轨迹"></div>
+    <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button" aria-expanded="false">🔎 这一局，你亲历了哪条潜规则？</button></div>
+    <div class="map hidden" id="end-map"></div>
+    <div class="codex" id="end-codex" aria-label="结局收藏"></div>
+    <div class="ach" id="end-ach" aria-label="官声成就"></div>
+    <div class="ledger" id="end-ledger" aria-label="为官生涯"></div>
+    <p class="seedline" id="end-seedline"></p>
     <div class="end-actions">
-      <button class="btn" id="btn-restart">再世为官 · 重开一局 ↺</button>
-      <a class="btn ghost" href="/docs/qianguize-wusi.html">读懂这套规则 · 深度分析 →</a>
+      <button class="btn" id="btn-restart">再世为官 · 换副牌重开 ↺</button>
+      <button class="btn ghost" id="btn-replay" type="button">🎯 同题再来 · 同一副牌</button>
+      <button class="btn ghost" id="btn-share" type="button">📋 晒出我的下场</button>
+      <button class="btn ghost" id="btn-card" type="button">🖼️ 生成结局图卡</button>
+      <a class="btn ghost" href="/docs/qianguize-wusi.html">想拆开来看 · 深度分析 →</a>
     </div>
-    <p class="footnote">游戏中每一个「潜规则解读」都对应《潜规则》分析文档里的一节 ·
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <p class="footnote">想拆解每个选择背后的门道？点开选项后的「🔎」，或读读它的
       <a href="/docs/qianguize-haowanban.html">好玩版</a> ·
-      <a href="/docs/qianguize-wusi.html">学术版</a></p>
+      <a href="/docs/qianguize-wusi.html">学术版</a> 分析。</p>
   </section>
+
+  <!-- ============ 结局图卡（canvas 生成，长按保存/下载分享）============ -->
+  <div class="cardmodal hidden" id="cardmodal" role="dialog" aria-modal="true" aria-label="结局图卡">
+    <div class="cardmodal-inner">
+      <button class="cardmodal-close" id="cardmodal-close" type="button" aria-label="关闭">✕</button>
+      <img id="card-img" alt="本局结局图卡" />
+      <p class="cardmodal-hint">长按图片可保存到相册 · 或点下方下载分享</p>
+      <a class="btn dl" id="card-download" download="daming-wangchao-结局.png">⬇ 下载图片</a>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -267,11 +487,438 @@
   var START = { wusha: 55, minxin: 50, qingyu: 62, silver: 20 };
   var TERM = 11;                 // 任期回合数
   var LOSE_SILVER = -40;         // 亏空触发线
-  var S, turn, queue, current;
+  var S, turn, queue, current, history;
+  var rng, currentSeed;          // 本局的随机数发生器与种子（同种子＝同一副牌）
 
   var el = function (id) { return document.getElementById(id); };
+  var KEYCAPS = ["①", "②", "③", "④", "⑤"];
 
-  // ---- 事件库（每个抉择都编码一条潜规则机制）------------------------------
+  function prefersReducedMotion() {
+    try { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch (e) { return false; }
+  }
+  // 移动端触感反馈：轻点一下、出局则一串——尊重「减少动态效果」偏好
+  function haptic(pattern) {
+    if (prefersReducedMotion()) return;
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+  }
+  // 无障碍播报：把视觉上的变化（属性增减、新抉择、下场）念给屏幕阅读器
+  function announce(msg) {
+    var live = el("sr-live");
+    if (!live) return;
+    live.textContent = "";                 // 逼 aria-live 重新触发，即使文本相同
+    setTimeout(function () { live.textContent = msg; }, 30);
+  }
+
+  // ---- 确定性种子局：同一种子复现同一副牌，可复盘、可与人「同题较量」--------
+  //  避开易混字符（0/O/1/I），生成短小好念的种子
+  var SEED_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  function randomSeed() {
+    var s = "";
+    for (var i = 0; i < 5; i++) s += SEED_ALPHABET.charAt(Math.floor(Math.random() * SEED_ALPHABET.length));
+    return s;
+  }
+  function normalizeSeed(raw) {
+    return String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+  }
+  // xmur3 取种子哈希 → mulberry32 出一串确定的伪随机数
+  function makeRng(seedStr) {
+    var h = 1779033703 ^ seedStr.length;
+    for (var i = 0; i < seedStr.length; i++) {
+      h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    var a = (h ^ (h >>> 16)) >>> 0;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // 页面若带 ?seed=XXXX，就是有人向你下了同一副牌
+  var urlSeed = (function () {
+    try {
+      var m = /[?&]seed=([^&]+)/i.exec(location.search);
+      var s = m ? normalizeSeed(decodeURIComponent(m[1])) : "";
+      return s.length >= 3 ? s : "";
+    } catch (e) { return ""; }
+  })();
+  function challengeUrl() {
+    return location.origin + location.pathname + "?seed=" + currentSeed;
+  }
+  // 每日同题：由当天日期确定地推出一副牌，全网同一天拿到同一副（次日换新）
+  function dateKey() {
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return "" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+  }
+  function dailySeed() {
+    var r = makeRng("DAMING-DAILY-" + dateKey());
+    var s = "";
+    for (var i = 0; i < 5; i++) s += SEED_ALPHABET.charAt(Math.floor(r() * SEED_ALPHABET.length));
+    return s;
+  }
+  // 昨天的日期键——用来判断「今日同题」的连胜有没有断
+  function yesterdayKey() {
+    var d = new Date(); d.setDate(d.getDate() - 1);
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return "" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+  }
+
+  // ---- 氛围音效：纯 WebAudio 合成，无外部音频文件；开关记进 localStorage ----
+  var SFX = (function () {
+    var KEY = "daming_wangchao_sfx_v1";
+    var on; try { on = localStorage.getItem(KEY) !== "off"; } catch (e) { on = true; }
+    var ctx = null;
+    function ac() {
+      if (!ctx) {
+        try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ctx = null; }
+      }
+      if (ctx && ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+      return ctx;
+    }
+    // 一枚带包络的单音；several 叠加即成钟／和弦
+    function tone(o) {
+      var c = ac(); if (!c) return;
+      try {
+        var osc = c.createOscillator(), g = c.createGain();
+        var t0 = c.currentTime + (o.delay || 0);
+        osc.type = o.type || "sine";
+        osc.frequency.setValueAtTime(o.f0, t0);
+        if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, t0 + o.dur);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(o.gain || 0.12, t0 + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+        osc.connect(g); g.connect(c.destination);
+        osc.start(t0); osc.stop(t0 + o.dur + 0.03);
+      } catch (e) {}
+    }
+    return {
+      isOn: function () { return on; },
+      toggle: function () {
+        on = !on;
+        try { localStorage.setItem(KEY, on ? "on" : "off"); } catch (e) {}
+        if (on) tone({ type: "triangle", f0: 660, f1: 990, dur: 0.14, gain: 0.12 });
+        return on;
+      },
+      // 落笔：短促的木鱼「笃」
+      pick: function () { if (on) tone({ type: "triangle", f0: 300, f1: 170, dur: 0.14, gain: 0.11 }); },
+      // 翻页：一声轻响
+      next: function () { if (on) tone({ type: "sine", f0: 520, f1: 680, dur: 0.10, gain: 0.06 }); },
+      // 收场：出局敲丧钟（低沉长鸣），任满则一声安顿的余韵
+      end: function (dead) {
+        if (!on) return;
+        if (dead) {
+          tone({ type: "sine", f0: 116, f1: 70, dur: 1.7, gain: 0.16 });
+          tone({ type: "triangle", f0: 174, f1: 116, dur: 1.4, gain: 0.06 });
+        } else {
+          tone({ type: "sine", f0: 392, dur: 1.1, gain: 0.10 });
+          tone({ type: "sine", f0: 523, dur: 1.3, gain: 0.08, delay: 0.06 });
+        }
+      }
+    };
+  })();
+
+  // ---- 导师模式：师爷进言的分档开关（落笔前的凶险/重伤提醒），记进 localStorage ----
+  //   三档循环：full 全程护航（死线+重伤都提醒）→ fatal 只报死线（只在会送命时开口）
+  //   → off 自己拿主意（无人提醒）。默认 full——保留新手的安全网；嫌重伤唠叨的可退到
+  //   只留致命示警，再嫌就全关。只影响提示的显隐，绝不动 RNG/种子/牌序，故同题/每日/
+  //   存档语义全不受影响。旧存档 "on" 视作 full、"off" 保持 off，平滑迁移。
+  var MENTOR = (function () {
+    var KEY = "daming_wangchao_mentor_v1";
+    var LEVELS = ["full", "fatal", "off"];     // 循环顺序：护航 → 只报死线 → 关
+    var lvl;
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw === null || raw === "on") lvl = "full";        // 旧「开」= 全程护航；缺省亦然
+      else if (LEVELS.indexOf(raw) >= 0) lvl = raw;
+      else lvl = "off";                                       // 旧「off」或未知值
+    } catch (e) { lvl = "full"; }
+    return {
+      level: function () { return lvl; },
+      isOn: function () { return lvl !== "off"; },            // 「还有任何提醒吗」
+      cycle: function () {
+        lvl = LEVELS[(LEVELS.indexOf(lvl) + 1) % LEVELS.length];
+        try { localStorage.setItem(KEY, lvl); } catch (e) {}
+        return lvl;
+      }
+    };
+  })();
+
+  // ---- 结局图鉴：把玩家走过的下场存进浏览器（localStorage），跨局累积 --------
+  var CODEX_KEY = "daming_wangchao_codex_v1";
+  // 图鉴里结局的陈列顺序：从「走得通的窄路」到「各种崩法」
+  var ENDING_ORDER = ["rare", "worn", "survivor", "cynic", "winner", "purge", "downfall", "revolt", "prison"];
+  function loadCodex() {
+    try { return JSON.parse(localStorage.getItem(CODEX_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveCodex(obj) {
+    try { localStorage.setItem(CODEX_KEY, JSON.stringify(obj)); } catch (e) { /* 隐私模式等，无所谓 */ }
+  }
+  function renderCodex(containerId, newKey) {
+    var got = loadCodex();
+    var total = ENDING_ORDER.length, n = 0;
+    var slots = ENDING_ORDER.map(function (k) {
+      var unlocked = !!got[k];
+      if (unlocked) n++;
+      var e = ENDINGS[k] || {};
+      var cls = "slot" + (unlocked ? " got" : "") + (k === newKey ? " new" : "");
+      var ch = unlocked ? (e.seal || "？") : "？";
+      var tip = unlocked ? (e.title || "") : "未解锁 · 换个走法试试";
+      return '<span class="' + cls + '" title="' + esc(tip) + '">' + ch + "</span>";
+    }).join("");
+    var head = "结局收藏　" + n + " / " + total + (n >= total ? "　·　十面镜子已走遍" : "　·　换个走法，看看别的下场");
+    el(containerId).innerHTML =
+      '<div class="codex-head">' + head + "</div><div class=\"codex-row\">" + slots + "</div>";
+  }
+
+  // ---- 官声成就 & 每日同题连胜：多周目里程碑，跨局累积存进浏览器 -----------
+  var ACH_KEY = "daming_wangchao_ach_v1";
+  var STREAK_KEY = "daming_wangchao_streak_v1";
+  var playedAsDaily = false;      // 本局是否走的「今日同题」（连胜只认它）
+
+  // 成就在结局时评定：check(ctx) 取本局的下场/属性/走法与跨局的图鉴、连胜
+  var ACH = [
+    { id: "first",     seal: "官", name: "初入宦海", desc: "走完第一任，尝过这局棋的滋味。",
+      check: function (c) { return true; } },
+    { id: "rare_end",  seal: "异", name: "钢丝之上", desc: "走出「异数·全身而退的清官」这条几乎走不通的窄路。",
+      check: function (c) { return c.key === "rare"; } },
+    { id: "clean",     seal: "廉", name: "两袖清风", desc: "任满卸任，且全程未取一分令库银净增的不义之财。",
+      check: function (c) { return !c.dead && c.history.length > 0 && c.history.every(function (h) { return !(h.fx && h.fx.silver > 0); }); } },
+    { id: "rich",      seal: "金", name: "富甲一方", desc: "落幕时库银 ≥ 80 两——这台机器最顺手的赢家。",
+      check: function (c) { return c.S.silver >= 80; } },
+    { id: "beloved",   seal: "心", name: "万民归心", desc: "落幕时民心 ≥ 85——难得的一方好官声。",
+      check: function (c) { return c.S.minxin >= 85; } },
+    { id: "collector", seal: "镜", name: "十面镜子", desc: "集齐全部下场，把每条潜规则都亲手走了一遍。",
+      check: function (c) { return c.codexCount >= ENDING_ORDER.length; } },
+    { id: "rare_ev",   seal: "奇", name: "官场奇遇", desc: "任内撞上一桩罕见的隐事（血酬 / 诡寄 / 京债）——不是谁都遇得到。",
+      check: function (c) { return c.history.some(function (h) { return h.rare; }); } },
+    { id: "streak3",   seal: "勤", name: "三日勤勉", desc: "连续三天接下「今日同题」并走完。",
+      check: function (c) { return c.streak >= 3; } },
+    { id: "streak7",   seal: "恒", name: "七日不辍", desc: "连续七天接下「今日同题」并走完——好定力。",
+      check: function (c) { return c.streak >= 7; } }
+  ];
+  function loadAch() { try { return JSON.parse(localStorage.getItem(ACH_KEY)) || {}; } catch (e) { return {}; } }
+  function saveAch(o) { try { localStorage.setItem(ACH_KEY, JSON.stringify(o)); } catch (e) {} }
+  function loadStreak() { try { return JSON.parse(localStorage.getItem(STREAK_KEY)) || {}; } catch (e) { return {}; } }
+  // 走完一局「今日同题」时推进连胜：昨天也玩过则 +1，断了则归 1，一天只记一次
+  function bumpDailyStreak() {
+    var rec = loadStreak();
+    var today = dateKey();
+    if (rec.last === today) return rec;                 // 今天已计过，不重复
+    rec.streak = (rec.last === yesterdayKey()) ? ((rec.streak || 0) + 1) : 1;
+    rec.best = Math.max(rec.best || 0, rec.streak);
+    rec.last = today;
+    try { localStorage.setItem(STREAK_KEY, JSON.stringify(rec)); } catch (e) {}
+    return rec;
+  }
+  // 结局时评定成就：解锁并返回本局「新解锁」的那些（供播报/高亮）
+  function evaluateAch(ctx) {
+    var got = loadAch(), fresh = [];
+    ACH.forEach(function (a) {
+      if (got[a.id]) return;
+      var ok = false; try { ok = a.check(ctx); } catch (e) { ok = false; }
+      if (ok) { got[a.id] = true; fresh.push(a); }
+    });
+    if (fresh.length) saveAch(got);
+    return fresh;
+  }
+  function renderAch(containerId, freshIds) {
+    var got = loadAch();
+    freshIds = freshIds || [];
+    var n = 0;
+    var items = ACH.map(function (a) {
+      var un = !!got[a.id]; if (un) n++;
+      var isNew = freshIds.indexOf(a.id) >= 0;
+      var cls = "ach-item" + (un ? " got" : "") + (isNew ? " new" : "");
+      var tip = un ? (a.name + "——" + a.desc) : ("未解锁 · " + a.desc);
+      return '<div class="' + cls + '" title="' + esc(tip) + '">' +
+               '<span class="ach-seal">' + (un ? a.seal : "？") + "</span>" +
+               '<span class="ach-name">' + esc(un ? a.name : "未解锁") + "</span></div>";
+    }).join("");
+    var head = "官声成就　" + n + " / " + ACH.length +
+      (freshIds.length ? "　·　<b>🏅 本局新解锁 " + freshIds.length + "</b>" : "");
+    el(containerId).innerHTML = '<div class="ach-head">' + head + "</div><div class=\"ach-grid\">" + items + "</div>";
+  }
+
+  // ---- 为官生涯清算：跨局累积的战绩（历任数、善终率、生涯之最）--------------
+  //   图鉴记「走过哪些下场」、成就记「达成哪些目标」，此处记「一生总账」：
+  //   为官几任、几回善终几回折戟、生涯里最高的民心/家财/连胜、以及最常走的下场。
+  var STATS_KEY = "daming_wangchao_stats_v1";
+  function loadStats() {
+    try { return JSON.parse(localStorage.getItem(STATS_KEY)) || {}; } catch (e) { return {}; }
+  }
+  // 每走完一局，把这一任并进生涯账：任数、存亡、各下场次数、生涯之最
+  function bumpStats(key, dead, st, streak) {
+    var s = loadStats();
+    s.runs = (s.runs || 0) + 1;
+    if (dead) s.dead = (s.dead || 0) + 1; else s.survived = (s.survived || 0) + 1;
+    s.byEnding = s.byEnding || {};
+    s.byEnding[key] = (s.byEnding[key] || 0) + 1;
+    s.bestMinxin = Math.max(s.bestMinxin || 0, st.minxin);
+    s.bestQingyu = Math.max(s.bestQingyu || 0, st.qingyu);
+    s.bestSilver = (s.bestSilver == null) ? st.silver : Math.max(s.bestSilver, st.silver);
+    s.bestStreak = Math.max(s.bestStreak || 0, streak || 0);
+    try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch (e) {}
+    return s;
+  }
+  function renderLedger(containerId) {
+    var s = loadStats();
+    var runs = s.runs || 0;
+    if (!runs) { el(containerId).innerHTML = ""; return; }
+    var live = s.survived || 0, dead = s.dead || 0;
+    var livePct = Math.round(live / runs * 100);
+    // 最常走的下场（历任≥2 才显摆，头一任无从谈「常走」）
+    var top = null, topN = 0, be = s.byEnding || {};
+    Object.keys(be).forEach(function (k) { if (be[k] > topN) { topN = be[k]; top = k; } });
+    var topTitle = (top && ENDINGS[top]) ? ENDINGS[top].title : "—";
+    var bestSilver = (s.bestSilver == null) ? 0 : s.bestSilver;
+    el(containerId).innerHTML =
+      '<div class="ledger-head">为官生涯　历任 <b>' + runs + '</b> 任</div>' +
+      '<div class="ledger-bar">' +
+        (live ? '<i class="live" style="width:' + (live / runs * 100) + '%"></i>' : "") +
+        (dead ? '<i class="dead" style="width:' + (dead / runs * 100) + '%"></i>' : "") +
+      '</div>' +
+      '<div class="ledger-legend"><span class="live">任满善终 ' + live + '</span>' +
+        '　·　<span class="dead">中道折戟 ' + dead + '</span>' +
+        '　·　善终率 ' + livePct + '%</div>' +
+      '<div class="ledger-best">生涯之最　民心 <b>' + (s.bestMinxin || 0) + '</b>' +
+        '　·　家财 <b>' + bestSilver + '</b> 两' +
+        '　·　同题连胜 <b>' + (s.bestStreak || 0) + '</b> 天' +
+        (runs >= 2 ? '<br>最常走的下场 ——「<b>' + esc(topTitle) + '</b>」' + topN + " 回" : "") +
+      '</div>';
+  }
+
+  // ---- 施政轨迹：把玩家这一局走过的选择回放出来（只叙事，不评判）----------
+  function renderTrail() {
+    if (!history || !history.length) { el("end-trail").innerHTML = ""; return; }
+    var rows = history.map(function (h, i) {
+      // 挑出这步幅度最大的一项数值变化，作一枚小标记（让代价/收益一眼可见）
+      var top = null;
+      Object.keys(h.fx || {}).forEach(function (k) {
+        if (!top || Math.abs(h.fx[k]) > Math.abs(h.fx[top])) top = k;
+      });
+      var mv = "";
+      if (top) {
+        var v = h.fx[top];
+        mv = '<span class="mv ' + (v >= 0 ? "up" : "down") + '">' +
+             STAT_META[top] + " " + (v >= 0 ? "+" : "") + v + "</span>";
+      }
+      return '<div class="trail-row' + (h.climax ? " climax" : "") + (h.rare ? " rare" : "") + '">' +
+               '<span class="trail-lab">' + (i + 1) + "、" + esc(h.lab) + mv + "</span>" +
+               '<span class="trail-cx">' + (h.rare ? "✦ " : "") + esc(h.concept) + "</span>" +
+             "</div>";
+    }).join("");
+    el("end-trail").innerHTML =
+      '<div class="trail-head">你这一任，是这样走过来的</div>' +
+      '<div class="trail-list">' + rows + "</div>";
+  }
+
+  // ---- 四维走势：把这一任四维（乌纱/民心/清誉/库银）的起落画成一张 sparkline ----
+  //   数据完全由已存的 history.fx 从起点累积重建（clamp 规则与游戏内一致），
+  //   不引入任何随机/网络，故与实际逐坎数值吻合，也不影响种子/同题语义。
+  //   与「施政轨迹」清单互补：清单是一步步的叙事，这里是一眼可见的整段起落曲线。
+  var SPARK_COL = { wusha: "#a83232", minxin: "#c79a2c", qingyu: "#3f9e9e", silver: "#4a6b8a" };
+  var SPARK_NAME = { wusha: "🎏乌纱", minxin: "🧑‍🌾民心", qingyu: "⚖️清誉", silver: "💰库银" };
+  function renderSpark() {
+    var host = el("end-spark");
+    if (!history || !history.length) { host.innerHTML = ""; return; }
+    // 从起点按 fx 逐坎累积，重建四维轨迹（上限/下限的 clamp 与游戏内一致）
+    var run = { wusha: START.wusha, minxin: START.minxin, qingyu: START.qingyu, silver: START.silver };
+    var series = { wusha: [run.wusha], minxin: [run.minxin], qingyu: [run.qingyu], silver: [run.silver] };
+    var climaxAt = -1;
+    history.forEach(function (h, i) {
+      var fx = h.fx || {};
+      run.wusha  = clamp(run.wusha  + (fx.wusha  || 0));
+      run.minxin = clamp(run.minxin + (fx.minxin || 0));
+      run.qingyu = clamp(run.qingyu + (fx.qingyu || 0));
+      run.silver = run.silver + (fx.silver || 0);
+      series.wusha.push(run.wusha); series.minxin.push(run.minxin);
+      series.qingyu.push(run.qingyu); series.silver.push(run.silver);
+      if (h.climax) climaxAt = i + 1;     // 点序：起点是 0，第 i 坎落在点 i+1
+    });
+    var n = series.wusha.length;          // 起点 + 每坎 = n 个点
+    var X0 = 44, X1 = 306;
+    var xAt = function (i) { return n <= 1 ? (X0 + X1) / 2 : X0 + i / (n - 1) * (X1 - X0); };
+    var poly = function (arr, yf) {
+      return arr.map(function (v, i) { return xAt(i).toFixed(1) + "," + yf(v).toFixed(1); }).join(" ");
+    };
+
+    // 上格：乌纱/民心/清誉 三者同为 0–100，共用一条 0–100 轴（死线在 0）
+    var tTop = 12, tBot = 96;
+    var y100 = function (v) { return tBot - clamp(v) / 100 * (tBot - tTop); };
+    // 下格：库银自成一档（可为负、死线在 -40），单独一条窄带，用自己的量程
+    var sv = series.silver;
+    var lo = Math.min.apply(null, sv), hi = Math.max.apply(null, sv);
+    var pad = Math.max(6, (hi - lo) * 0.18);
+    var dmin = Math.min(lo, 0) - pad, dmax = Math.max(hi, START.silver) + pad;
+    var sTop = 122, sBot = 150;
+    var ySil = function (v) { return sBot - (v - dmin) / (dmax - dmin) * (sBot - sTop); };
+
+    var parts = [];
+    // 上格网格线 + 轴标（100 / 50 / 0·死线）
+    [100, 50, 0].forEach(function (v) {
+      var yy = y100(v).toFixed(1);
+      parts.push('<line x1="' + X0 + '" y1="' + yy + '" x2="' + X1 + '" y2="' + yy +
+        '" stroke="rgba(120,90,50,0.16)" stroke-width="1"' + (v === 0 ? ' stroke-dasharray="3 3"' : "") + '/>');
+      parts.push('<text x="' + (X0 - 6) + '" y="' + (y100(v) + 3).toFixed(1) +
+        '" text-anchor="end" font-size="8" fill="#6b5b48">' + (v === 0 ? "0·死线" : v) + "</text>");
+    });
+    // 崇祯死弯那一坎：画一条淡红竖线做标注
+    if (climaxAt > 0) {
+      var cx = xAt(climaxAt).toFixed(1);
+      parts.push('<line x1="' + cx + '" y1="' + tTop + '" x2="' + cx + '" y2="' + sBot +
+        '" stroke="rgba(178,59,46,0.28)" stroke-width="1" stroke-dasharray="2 3"/>');
+      parts.push('<text x="' + cx + '" y="' + (tTop - 3) +
+        '" text-anchor="middle" font-size="7.5" fill="#b23b2e">死弯</text>');
+    }
+    // 上格三条线 + 终点圆点
+    ["wusha", "minxin", "qingyu"].forEach(function (k) {
+      parts.push('<polyline points="' + poly(series[k], y100) + '" fill="none" stroke="' +
+        SPARK_COL[k] + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+      parts.push('<circle cx="' + xAt(n - 1).toFixed(1) + '" cy="' + y100(series[k][n - 1]).toFixed(1) +
+        '" r="2.6" fill="' + SPARK_COL[k] + '"/>');
+    });
+    // 下格：库银窄带（如量程触及 -40，标出亏空死线）+ 线 + 终点
+    if (dmin <= LOSE_SILVER && dmax >= LOSE_SILVER) {
+      var dl = ySil(LOSE_SILVER).toFixed(1);
+      parts.push('<line x1="' + X0 + '" y1="' + dl + '" x2="' + X1 + '" y2="' + dl +
+        '" stroke="rgba(162,51,31,0.4)" stroke-width="1" stroke-dasharray="3 3"/>');
+      parts.push('<text x="' + (X0 - 6) + '" y="' + (parseFloat(dl) + 3).toFixed(1) +
+        '" text-anchor="end" font-size="7.5" fill="#a2331f">亏空</text>');
+    }
+    parts.push('<text x="' + (X0 - 6) + '" y="' + (sTop + 3) +
+      '" text-anchor="end" font-size="8" fill="#6b5b48">库银</text>');
+    parts.push('<polyline points="' + poly(sv, ySil) + '" fill="none" stroke="' +
+      SPARK_COL.silver + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+    parts.push('<circle cx="' + xAt(n - 1).toFixed(1) + '" cy="' + ySil(sv[n - 1]).toFixed(1) +
+      '" r="2.6" fill="' + SPARK_COL.silver + '"/>');
+
+    // 图例：每维「起→终」与升降箭头，兼作屏幕阅读器可读的数值
+    var legend = ["wusha", "minxin", "qingyu", "silver"].map(function (k) {
+      var s = series[k], a = s[0], b = s[n - 1];
+      var arrow = b > a ? " ↗" : (b < a ? " ↘" : " →");
+      return '<span><i class="sw" style="border-top-color:' + SPARK_COL[k] + '"></i>' +
+        SPARK_NAME[k] + " " + a + "→" + b + arrow + "</span>";
+    }).join("");
+    var summary = ["wusha", "minxin", "qingyu", "silver"].map(function (k) {
+      return SPARK_NAME[k].replace(/^[^一-龥]+/, "") + "由 " + series[k][0] + " 至 " + series[k][n - 1];
+    }).join("，");
+
+    host.innerHTML =
+      '<div class="spark-head">四维走势 · 这一任的起落</div>' +
+      '<div class="spark-wrap"><svg viewBox="0 0 320 160" role="img" ' +
+        'aria-label="四维走势图：' + esc(summary) + '。">' + parts.join("") + "</svg>" +
+        '<div class="spark-legend">' + legend + "</div></div>" +
+      '<p class="spark-note">上格三维同为 0–100（死线在 0）；库银自成一档、以自身量程画于下方。' +
+        (climaxAt > 0 ? "红色竖线为「崇祯死弯」那一坎。" : "") + "</p>";
+  }
+
+  // ---- 事件库 --------------------------------------------------------------
+  // 每个抉择有两段文字：
+  //   outcome —— 选完后世界里实际发生的事（默认就显示，只叙事，不说教）
+  //   note    —— 这一步动了哪条潜规则（藏在「🔎」里，想看才点开）
   // fx 的键：wusha 乌纱 / minxin 民心 / qingyu 清誉 / silver 白银
   var INTRO = {
     concept: "陋规 · 新官到任",
@@ -279,11 +926,14 @@
     text: "你刚捧起大印，老书吏便递来一张单子：给上司的炭敬、冰敬，给同僚的印结银，给衙门书办的辛苦钱……「大人，这都是历来的规矩，不成文，但一分都少不得。」",
     choices: [
       { lab: "照单全收，按例孝敬上下", fx: { wusha: +9, silver: -16, qingyu: -10 },
-        read: "你交的第一笔钱，就是<b>入伙费</b>。陋规不写在律里，却是真正在运转的规则——你交了，就默认自己是这台机器的一颗齿轮。（对应：陋规 / 淘汰清官机制的第一步）" },
+        outcome: "老书吏把单子折好，脸上头一回堆起笑：「大人上道，往后好说话。」消息传得比你想的快——不出半月，上下都拿你当「自己人」了。",
+        note: "这第一笔炭敬冰敬，是入伙费。它不写进《大明律》，却是真正在运转的那套规矩。<span class='tag'>〔陋规 · 淘汰清官机制的起点〕</span>" },
       { lab: "一概拒付，清廉自守", fx: { wusha: -13, qingyu: +12 },
-        read: "上司皱了眉，同僚把你记进了「另册」。<b>淘汰清官机制</b>已经启动——系统不需要坏人来对付你，只需要「大家都这样，就你不一样」。（对应：淘汰清官机制）" },
+        outcome: "书吏脸一沉，退了出去。没几天，上司的批文开始变得挑剔，同僚的酒局也「忘了」叫你。没人明说什么，你却分明被挪进了另一册名单。",
+        note: "没人下令对付你，只是「大家都这样，就你不一样」。这就是淘汰清官机制启动的样子。<span class='tag'>〔淘汰清官机制〕</span>" },
       { lab: "只给绕不过去的，其余暗中记账", fx: { wusha: +2, silver: -8, qingyu: -2 },
-        read: "你在夹缝里找平衡——多数人都是这么开始的。记账，是你还想给自己留个「将来说得清」的余地。（对应：第二等公平的入口）" }
+        outcome: "你挑着给了几处硬骨头，其余悄悄记进一个小本子。师爷瞥了一眼，没吭声——他见过太多这样开头的人。",
+        note: "夹缝里找平衡，是多数人的起手式。记账，是给将来留一句「我说得清」。<span class='tag'>〔第二等公平的入口〕</span>" }
     ]
   };
 
@@ -293,150 +943,230 @@
     text: "辽东战事吃紧，朝廷加派辽饷、剿饷、练饷。上命如山，数目已按你这县的丁口算好——多少两，几时解京，写得清清楚楚。可你治下的百姓，连去年的钱粮都还没交齐。",
     choices: [
       { lab: "如数加征，限期严逼", fx: { wusha: +8, silver: +5, minxin: -22 },
-        read: "你把压力原样传给了最下面一环。<b>委托代理链</b>每传一道就加一次码，最后全压在<b>冤大头</b>身上——皇帝越是勤政催饷，链条末端崩得越快，这就是<b>崇祯死弯</b>。（对应：崇祯死弯 / 老百姓是个冤大头）" },
+        outcome: "限期的告示贴出去，衙役下乡催缴。哭声、押解声一路传回县衙。数字总算凑齐，解京的文书也签了——你这一环，交差了。",
+        note: "压力原样往下压，每传一道加一次码，最后全落在跑不掉的百姓身上。皇帝越是催得急，末端崩得越快。<span class='tag'>〔崇祯死弯 · 老百姓是个冤大头〕</span>" },
       { lab: "抗命缓征，为民请命上疏", fx: { wusha: -17, qingyu: +14, minxin: +11 },
-        read: "你替百姓挡了一刀，却把刀口对准了自己的仕途。系统允许一两个海瑞式的例外存在，正是为了证明「规矩」本身没错。（对应：淘汰清官机制 / 海瑞之为例外）" },
+        outcome: "奏疏递上去，如石沉大海，只换回一句「不谙大体」的批语。百姓念你的好，你的考成却已经挂了彩。",
+        note: "系统容得下一两个海瑞式的例外——正好用来证明「规矩本身没错」。<span class='tag'>〔淘汰清官 · 海瑞之为例外〕</span>" },
       { lab: "如数上报，暗中宽限贫户", fx: { wusha: -4, minxin: -8, qingyu: +5, silver: -5 },
-        read: "你想两头都不彻底得罪——账面服从，私下留情。这能拖一阵，却填不平结构的窟窿：只要不受制约的加派还在，缓一时也只是把死弯拉长。（对应：崇祯死弯 / 第二等公平）" }
+        outcome: "账面上你一分不少地报了，私底下给几户贫家松了限。能拖一阵，可窟窿还在那儿——加派不停，缓一时也只是把弯拉长。",
+        note: "账面服从、私下留情，两头都不彻底。结构的窟窿，不是靠一点良心就填得平的。<span class='tag'>〔崇祯死弯 · 第二等公平〕</span>" }
     ]
   };
 
   var POOL = [
     { concept: "合法伤害权 · 身怀利器",
       title: "一桩人命官司，苦主与被告都来送礼",
-      text: "命案两造各托人情、各备厚礼。案卷怎么写、罪往哪边判，全在你一支笔——这支笔就是「合法伤害权」，可以救人，也可以杀人。",
+      text: "命案两造各托人情、各备厚礼。案卷怎么写、罪往哪边判，全在你一支笔——这支笔既能救人，也能杀人。",
       choices: [
         { lab: "秉公审断，两家礼金都退回", fx: { qingyu: +11, wusha: -5 },
-          read: "你放弃了变现的机会，也得罪了有力的一方。手握利器却不用来寻租，在这套系统里是「不识时务」。（对应：合法伤害权）" },
+          outcome: "两家的礼金都退了回去。赢的一方念你清明，输的那家却记恨上了你——偏偏那家更有来头。师爷叹气：「大人，何苦呢。」",
+          note: "手握能加害于人的笔，却不拿它变现，在这套系统里叫「不识时务」。<span class='tag'>〔合法伤害权〕</span>" },
         { lab: "收下厚礼，判给出得起价的一方", fx: { silver: +18, qingyu: -14, minxin: -8 },
-          read: "你把手里的刀明码标价卖了出去。这正是寻租的基本单元——权力一旦能定价，就一定会被定价。（对应：合法伤害权 / 寻租）" },
+          outcome: "银子入了库，案子也判了。出得起价的那家千恩万谢，另一家的哭声被挡在了衙门外。你的笔，头一回明码标了价。",
+          note: "权力一旦能定价，就一定会被定价——这是寻租最基本的那颗零件。<span class='tag'>〔合法伤害权 · 寻租〕</span>" },
         { lab: "各收一份，各打五十大板，两边通吃", fx: { silver: +8, qingyu: -6, minxin: -4 },
-          read: "「和稀泥」也是一门生意：谁都别想赢，谁都得先交钱。（对应：第二等公平）" }
+          outcome: "两家的礼你都收了，各打五十大板，谁也没赢。出了衙门，两家都在骂你，却都还得再备一份礼。",
+          note: "和稀泥也是一门生意：谁都别想赢，谁都得先交钱。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "陋规 · 火耗归公",
       title: "征收本年钱粮，火耗如何处置？",
       text: "碎银熔铸成锭有「火耗」损耗，加征多少、归谁，全凭你一句话。加得狠，能孝敬上司、肥自己；加得轻，百姓得喘息，可上司分润就少了。",
       choices: [
         { lab: "火耗从实征收，尽量减轻百姓", fx: { minxin: +12, silver: -6, wusha: -4 },
-          read: "你少收的每一分，都是上司少分到的一分——于是你又上了一次「不懂规矩」的黑名单。（对应：陋规 / 淘汰清官机制）" },
+          outcome: "你把火耗压到了最低。百姓交口称便，可这个月上司那份「分润」薄了一截——账房递账时的那个眼神，你懂。",
+          note: "你少收的每一分，都是上司少分到的一分。于是你又上了一次「不懂规矩」的名册。<span class='tag'>〔陋规 · 淘汰清官〕</span>" },
         { lab: "加征火耗，一半孝敬上宪", fx: { silver: +14, wusha: +6, minxin: -12, qingyu: -8 },
-          read: "陋规就是这样从上到下自我复制的：你孝敬上司的钱，最终都从百姓身上出。（对应：陋规 / 冤大头）" },
+          outcome: "火耗加得足足的，一半封成锭送进了府里。上司很满意，你的私囊也鼓了——只是街上多了些交不起的人家。",
+          note: "陋规就这样从上到下自我复制：你孝敬上司的钱，最后都从百姓身上出。<span class='tag'>〔陋规 · 冤大头〕</span>" },
         { lab: "略加一成，随大流", fx: { silver: +6, minxin: -5, qingyu: -3 },
-          read: "「大家都加，我不加反而显眼」——次优均衡就是这样一票一票投出来的。（对应：第二等公平）" }
+          outcome: "你随大流加了一成，不多不少。没人夸你，也没人挑你——正好淹没在人群里。",
+          note: "「大家都加，我不加反而显眼」——次优均衡，就是这样一票一票投出来的。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "淘汰清官 · 分肥饭局",
       title: "同僚设宴，席间要分「常例」的红",
       text: "本府同僚攒了个局，酒过三巡，有人把一叠银票推到你面前：「这是这季的常例，人人有份，大人也别客气。」",
       choices: [
         { lab: "婉拒不受，独善其身", fx: { qingyu: +8, wusha: -10 },
-          read: "你不收，等于当众说「你们都脏，就我干净」。从此同僚会本能地排挤你——系统的免疫细胞开始围剿异类。（对应：淘汰清官机制）" },
+          outcome: "你把银票推了回去，席上一时冷场。有人打哈哈圆了过去，可打那以后，同僚看你的眼神里，多了层客气的疏远。",
+          note: "你不收，等于当众说「你们都脏，就我干净」。这张圈子会本能地把你挤出去。<span class='tag'>〔淘汰清官机制〕</span>" },
         { lab: "笑纳入袋，融入圈子", fx: { silver: +12, wusha: +7, qingyu: -10 },
-          read: "收下的那一刻，你就有了「把柄」，也有了「自己人」的身份。互相拿捏，才是这张网真正的绳结。（对应：淘汰清官 / 第二等公平）" }
+          outcome: "你把银票收进袖子，满桌都松了口气，纷纷敬你的酒。从这一刻起，你既有了「把柄」，也有了「自己人」的身份。",
+          note: "互相拿捏，才是这张网真正的绳结。收下的那一刻，你就进圈了。<span class='tag'>〔淘汰清官 · 第二等公平〕</span>" }
       ] },
     { concept: "老百姓是冤大头 · 灾年赈济",
       title: "灾年放赈，赈粮要不要「照例」克扣？",
       text: "上头拨下的赈灾粮款有限，经手的每一层都想揩一点油。轮到你这一环，是原样发下去，还是「照老规矩」先留三成？",
       choices: [
         { lab: "亲自监放，一粒不取", fx: { minxin: +15, qingyu: +10, silver: -8, wusha: -6 },
-          read: "你堵住了自己这一环，却坏了整条链子的「规矩」，上下都嫌你多事。（对应：冤大头 / 淘汰清官）" },
+          outcome: "你盯着把每一粒赈粮发到人手里。灾民给你磕头，可经手的胥吏和上头都嫌你多事——你坏了整条链子的「规矩」。",
+          note: "你堵住了自己这一环，可这条链子，本就容不下一个不揩油的环节。<span class='tag'>〔冤大头 · 淘汰清官〕</span>" },
         { lab: "照例克扣三成入囊", fx: { silver: +16, minxin: -15, qingyu: -11 },
-          read: "赈灾款流到最饿的人手里已所剩无几——成本转嫁的终点，永远是那个跑不掉、也没人替他说话的百姓。（对应：老百姓是个冤大头）" },
+          outcome: "三成粮先入了你的囊。剩下的一层层再漏，到最饿的人手里已没剩多少。没人来查——历来都是这么放的。",
+          note: "成本转嫁的终点，永远是那个跑不掉、也没人替他说话的百姓。<span class='tag'>〔老百姓是个冤大头〕</span>" },
         { lab: "睁只眼闭只眼，交给胥吏去办", fx: { silver: +4, minxin: -8, qingyu: -6 },
-          read: "「我没伸手」——可默许胥吏伸手，坏结果照样发生。这套系统最阴狠的一点：<b>坏结果不需要坏人</b>。（对应：冤大头 / 委托代理失灵）" }
+          outcome: "你没伸手，只把事交了下去，转过身去不看。粮怎么少的、少到哪儿，你「不知道」——可饿着的人，照样饿着。",
+          note: "你没伸手，坏结果照样发生。这套系统最阴的一点：坏结果不需要坏人。<span class='tag'>〔冤大头 · 委托代理失灵〕</span>" }
       ] },
     { concept: "第二等公平 · 挂号钱",
       title: "百姓喊冤，先被胥吏索「挂号钱」",
       text: "有苦主来告状，还没进堂，就被门口书办拦下：「递状子先交挂号钱，不然状纸递不到大人案头。」百姓咬牙掏了钱——只求别再被额外刁难。",
       choices: [
         { lab: "严禁陋费，敞开门公开受理", fx: { minxin: +12, silver: -6, wusha: -6 },
-          read: "你断了胥吏的财路，他们未必明着反你，却会在你看不见的地方使绊子。（对应：第二等公平 / 胥吏之害）" },
+          outcome: "你贴出告示，敞开受理，不许再收挂号钱。百姓一时叫好，书办们却不动声色——你看不见的地方，绊子已经埋下。",
+          note: "你断了胥吏的财路，他们未必明着反你，却有的是在暗处使力的法子。<span class='tag'>〔第二等公平 · 胥吏之害〕</span>" },
         { lab: "默许收费，只当没看见", fx: { silver: +8, minxin: -6, qingyu: -6 },
-          read: "百姓花钱买的不是「公道」，只是「至少别再多坑我」——这就是<b>第二等公平</b>：一个人人都吃亏、却谁也不敢先退出的稳定均衡。（对应：第二等公平）" }
+          outcome: "你当没看见，挂号钱照收。苦主咬牙掏了钱，只求别再被额外刁难——他买的不是「公道」，只是「别再多坑我」。",
+          note: "人人吃亏、却谁也不敢先退出的稳定均衡，就是第二等公平。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "上意 · 考成打点",
       title: "上宪下来考察政绩",
       text: "三年一考，京察在即。上宪的评语几乎决定你的去留。是重金打点、把账面粉饰得花团锦簇，还是据实以报、听天由命？",
       choices: [
         { lab: "重金打点，粉饰太平", fx: { wusha: +12, silver: -18, qingyu: -6 },
-          read: "考成考的从来不是治绩，而是「会不会做人」。你用真金白银，买了一句好评语。（对应：陋规 / 信息失真）" },
+          outcome: "银子撒下去，账面粉饰得花团锦簇，考语果然是「谙练老成」。你买的不是治绩，是一句「会做人」。",
+          note: "考成考的从来不是治绩，而是会不会做人。<span class='tag'>〔陋规 · 信息失真〕</span>" },
         { lab: "据实以报，不迎不送", fx: { wusha: -11, qingyu: +8 },
-          read: "你把真实的难处报了上去，换来的却是「不谙政体」的差评。诚实在这套激励里是要付费的奢侈品。（对应：淘汰清官 / 激励错配）" },
+          outcome: "你把真实的难处一五一十报了上去，换回来的是「不谙政体」四个字。诚实在这套账里，是要另外付费的。",
+          note: "在这套激励里，诚实是奢侈品，报忧还要倒扣分。<span class='tag'>〔淘汰清官 · 激励错配〕</span>" },
         { lab: "送常例礼，但不作假账", fx: { wusha: +4, silver: -10 },
-          read: "你守住了「不撒谎」的底线，也交了「懂规矩」的过路费。多数还想干净的人，就卡在这个位置。（对应：第二等公平）" }
+          outcome: "你没撒谎，也交足了「懂规矩」的过路费。考语平平——多数还想干净的人，都卡在这个位置。",
+          note: "守住不撒谎的底线，同时交买路钱。这是大多数人落脚的均衡点。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "身怀利器 · 敲诈富商",
       title: "境内一个富商，看着就是块肥肉",
       text: "师爷凑近低声：「大人，那盐商家底厚，随便寻个由头——短了牙税也好，僭越也罢——就能敲他一大笔，他不敢不给。」",
       choices: [
         { lab: "罗织由头，狠敲一笔", fx: { silver: +20, qingyu: -16, minxin: -4 },
-          read: "「身怀利器，杀心自起」——一旦发现权力可以随意加害于人，用它来变现就成了本能。（对应：身怀利器 / 合法伤害权）" },
+          outcome: "随便寻的由头，盐商不敢不认，乖乖送来一大笔。钱来得太容易了——容易到你开始留意下一个「肥肉」。",
+          note: "一旦发现权力能随意加害于人，用它来变现就成了本能。<span class='tag'>〔身怀利器 · 合法伤害权〕</span>" },
         { lab: "依法办事，不无端加罪", fx: { qingyu: +8, wusha: -2 },
-          read: "你把出鞘的刀又收了回去。难得，但在这套系统里，克制不会被奖励，只会被当成「不会来事」。（对应：合法伤害权）" }
+          outcome: "你把出鞘的刀又收了回去，放了盐商一马。师爷直摇头——在这儿，克制不叫廉洁，叫「不会来事」。",
+          note: "克制不会被奖励，只会被当成不识时务。<span class='tag'>〔合法伤害权〕</span>" }
       ] },
     { concept: "公共品 · 修河堤",
       title: "汛期将至，城外河堤该修了",
       text: "修堤要钱要人。你可以从积攒的陋规银里掏钱认真修；也可以层层发包、大吃回扣，糊个豆腐渣工程上报完工。",
       choices: [
         { lab: "自掏陋规银，认真修固", fx: { minxin: +14, silver: -14, qingyu: +8, wusha: -3 },
-          read: "你把捞来的钱又投回了公共品——难得的良性回流。但它靠的是你个人的良心，而非制度，所以随时可能断。（对应：委托代理 / 制度缺位）" },
+          outcome: "你把捞来的银子又贴回了河堤，堤修得结结实实。百姓念你的好——可这靠的是你这一任的良心，换个人来就断了。",
+          note: "难得的良性回流，靠的是个人良心而非制度，所以随时可能中断。<span class='tag'>〔委托代理 · 制度缺位〕</span>" },
         { lab: "层层发包，大吃回扣", fx: { silver: +16, minxin: -10, qingyu: -12 },
-          read: "回扣吃饱了，隐患埋下了。等堤一垮，冤大头还是堤下的百姓——而账，早已做平。（对应：冤大头 / 合法伤害权）" },
+          outcome: "工程层层转包，回扣你吃了个饱，糊了道豆腐渣上报完工。账做平了，隐患埋进了堤里，只等一场汛。",
+          note: "堤一垮，冤大头还是堤下的百姓，账却早已做平。<span class='tag'>〔冤大头 · 合法伤害权〕</span>" },
         { lab: "草草敷衍，上报「已竣工」", fx: { silver: +4, wusha: +2, minxin: -6 },
-          read: "报上去的是太平，留下来的是窟窿。信息在链条里一路失真，上面看到的永远是粉饰过的版本。（对应：信息不对称）" }
+          outcome: "你草草糊弄，一纸「已竣工」报了上去。上面看到的是太平，看不到的是那道随时会开的口子。",
+          note: "信息一路失真，上面看到的永远是粉饰过的版本。<span class='tag'>〔信息不对称〕</span>" }
       ] },
     { concept: "言路 · 结交言官",
       title: "同乡在都察院做御史，来信「叙旧」",
       text: "信里绕来绕去，落点是那句老话——「炭敬」。给足了，御史的弹章里就没你；给不够，难保哪天一本参上来。",
       choices: [
         { lab: "厚结言路，破财免灾", fx: { wusha: +10, silver: -15, qingyu: -4 },
-          read: "连「监督者」也在这张网里收费。本该制衡权力的言官，成了另一个收陋规的关口。（对应：制衡失效 / 陋规）" },
+          outcome: "炭敬送足，御史的弹章里果然没了你的名字。连本该盯着你的人，也成了要打点的一道关口。",
+          note: "该制衡权力的言官，成了另一个收陋规的关卡。<span class='tag'>〔制衡失效 · 陋规〕</span>" },
         { lab: "婉言谢绝", fx: { wusha: -6, qingyu: +6 },
-          read: "你少了一个靠山，多了一个隐患。在没有真制衡的地方，得罪谁都可能是致命的。（对应：制衡缺失）" }
+          outcome: "你没送那份炭敬。少了一个靠山，也多了一个说不准哪天会参你一本的隐患。",
+          note: "在没有真制衡的地方，得罪谁都可能是致命的。<span class='tag'>〔制衡缺失〕</span>" }
       ] },
     { concept: "信息失真 · 流民瞒报",
       title: "境内出现成群流民",
       text: "灾荒把邻县的流民也引了过来。如实上报请赈，会显得你「治理无能」；瞒下不报、把流民驱赶出境，账面上你这县就还是一片太平。",
       choices: [
         { lab: "如实上报，请求开赈", fx: { minxin: +8, wusha: -8, qingyu: +6 },
-          read: "你把真相递了上去，却给自己的考成添了污点。系统奖励「报喜」，惩罚「报忧」，于是真相越往上越稀薄。（对应：信息不对称 / 激励错配）" },
+          outcome: "你据实请赈，救了些人，却给自己的考成添了「治理无能」的一笔。报忧的，总是先挨罚。",
+          note: "系统奖励报喜、惩罚报忧，于是真相越往上越稀薄。<span class='tag'>〔信息不对称 · 激励错配〕</span>" },
         { lab: "瞒报太平，驱赶流民出境", fx: { wusha: +6, minxin: -12, qingyu: -8 },
-          read: "把人赶走，问题就「消失」了——至少在你的奏报里。崇祯在紫禁城看到的，就是无数这样粉饰过的太平。（对应：崇祯死弯 / 信息失真）" }
+          outcome: "流民被赶出了境，你的奏报上依旧是一片太平。问题没解决，只是从你的纸面上「消失」了。",
+          note: "崇祯在紫禁城里看到的，就是无数这样粉饰过的太平。<span class='tag'>〔崇祯死弯 · 信息失真〕</span>" }
       ] },
     { concept: "做账 · 亏空",
       title: "钱谷师爷教你「做平」亏空",
       text: "府库对不上账。师爷笑眯眯：「大人不必慌，挪一挪、平一平，寅吃卯粮，账面上就圆过去了，历任都这么办。」",
       choices: [
         { lab: "学着做账，把窟窿糊过去", fx: { silver: +10, qingyu: -8 },
-          read: "你学会了这行的「生存技能」。窟窿没补，只是移交给了下一任——击鼓传花，总有人接最后一棒。（对应：委托代理 / 冤大头）" },
+          outcome: "师爷手把手教你挪账、平账，寅吃卯粮，府库的窟窿在纸面上圆了过去。你学会了这行的保命手艺——窟窿还在，只是留给了下一任。",
+          note: "击鼓传花，总有人接到最后一棒。<span class='tag'>〔委托代理 · 冤大头〕</span>" },
         { lab: "拒绝做假账，宁可背亏空", fx: { silver: -6, qingyu: +8, wusha: -4 },
-          read: "你不肯说谎，代价是账面上的亏空实打实压在自己头上，随时可能成为把柄。（对应：淘汰清官）" }
+          outcome: "你不肯动那本账，宁可让亏空实打实压在自己头上。师爷欲言又止——这窟窿，随时能成为参你的把柄。",
+          note: "不肯说谎的代价，是把结构的窟窿一个人扛着。<span class='tag'>〔淘汰清官〕</span>" }
       ] },
     { concept: "清誉 vs 上意",
       title: "百姓要给你送「万民伞」",
       text: "任内你办了几件实事，士绅百姓凑钱要送你一柄万民伞、立块德政碑。声名是好事——可你的上司，最忌讳属下在民间比自己有威望。",
       choices: [
         { lab: "欣然受之，声名远播", fx: { minxin: +10, qingyu: +8, wusha: -8 },
-          read: "民间的好名声，恰恰会招来上司的猜忌。在这套系统里，「得民心」有时比「贪」更危险。（对应：激励错配 / 淘汰清官）" },
+          outcome: "万民伞打起来，德政碑立了起来，民间传遍了你的好名声。可上司的脸色，一天比一天难看。",
+          note: "民间声望越高，越招上司猜忌。在这儿，「得民心」有时比「贪」更危险。<span class='tag'>〔激励错配 · 淘汰清官〕</span>" },
         { lab: "婉谢盛意，低调收场", fx: { minxin: +2, wusha: +2 },
-          read: "你收敛锋芒，保住了上意。懂得不出头，也是官场生存的一课。（对应：第二等公平）" }
+          outcome: "你婉言谢了盛意，低调收场。百姓有些失望，上司却踏实了——你懂得不出头。",
+          note: "懂得不出头，也是官场生存的一课。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "买官 · 京察运动",
       title: "有个肥缺出了空，可以「运动」一下",
       text: "吏部那边放出风声：某处富庶州府知州出缺。想补上去，得先花一大笔银子上下打点。机不可失，可这笔钱不是小数。",
       choices: [
         { lab: "倾囊运动，谋个好缺", fx: { wusha: +14, silver: -22, qingyu: -6 },
-          read: "官位可以用钱买——那么买官的钱，日后自然要从新任上的百姓身上加倍捞回。腐败就这样自我循环。（对应：陋规 / 冤大头）" },
+          outcome: "银子倾囊撒了出去，肥缺果然到手。只是这笔本钱，日后自然要从新任治下的百姓身上，加倍捞回来。",
+          note: "买官的钱要从百姓身上加倍捞回，腐败就这样自我循环。<span class='tag'>〔陋规 · 冤大头〕</span>" },
         { lab: "安守本分，不去钻营", fx: { wusha: -2 },
-          read: "你没去挤那条独木桥。清静，但也意味着你在这套「不进则退」的赛道上，正被人一点点甩开。（对应：淘汰清官）" }
+          outcome: "你没去挤那条独木桥，守着本任。清静是清静，可在这条「不进则退」的道上，你正被人一点点甩下。",
+          note: "不钻营的人，在这套赛道上被慢慢淘汰。<span class='tag'>〔淘汰清官〕</span>" }
       ] },
     { concept: "胥吏之害 · 整顿书办",
       title: "衙门书办包揽词讼、上下其手",
       text: "你渐渐发现，真正把持这县的不是你，是那群世代盘踞的胥吏书办。他们包揽诉讼、勒索百姓，你的政令出不了衙门。要不要动他们？",
       choices: [
         { lab: "雷厉整顿，清理蠹吏", fx: { qingyu: +10, minxin: +8, wusha: -8, silver: -4 },
-          read: "你动了这台机器最难拆的零件。胥吏不流动、通地方、握实务，反噬起来，连你的政令和考成都能悄悄搅黄。（对应：胥吏 / 委托代理链末端）" },
+          outcome: "你动了那群盘踞多年的书办。政令一时清爽了些，可这些人握着实务、通着地方，反噬起来，连你的公文都能悄悄卡住。",
+          note: "胥吏不流动、通地方、握实务，是这台机器上最难拆的零件。<span class='tag'>〔胥吏 · 委托代理链末端〕</span>" },
         { lab: "分一杯羹，与其共谋", fx: { silver: +10, minxin: -8, qingyu: -8 },
-          read: "你选择了和他们合流——省心，进账，代价是百姓头上又多了一层盘剥。（对应：第二等公平 / 冤大头）" }
+          outcome: "你和书办们合了流，事情办得顺了，进项也稳了。省心是省心——代价是百姓头上，又多压了一层。",
+          note: "省心、进账，换来百姓头上又多一层盘剥。<span class='tag'>〔第二等公平 · 冤大头〕</span>" }
+      ] }
+  ];
+
+  // ---- 稀有 / 隐事：中段以小概率掺入一桩不常见的坎（由种子决定，同题可复现）--
+  //   每桩点到《潜规则》里相对冷门的机制：血酬、诡寄、京债——遇到即触发「奇遇」成就
+  var RARE_POOL = [
+    { rare: true, concept: "血酬 · 私枭火并",
+      title: "私盐枭火并出了人命，苦主抬着尸首堵衙门",
+      text: "两股私盐贩子为争地盘火并，死了人。为首的盐枭却半点不慌——他手里有刀有人，真逼急了，敢烧敢抢。师爷压低嗓子：「大人，这号人，惹不得。」",
+      choices: [
+        { lab: "秉公缉凶，硬碰到底", fx: { qingyu: +12, wusha: -8, minxin: +6, silver: -6 },
+          outcome: "你调民壮下乡拿人。盐枭不是善茬，半路劫了差役，撂下话要「拼个鱼死网破」。案子拖成烂账，你也惹了一身腥。",
+          note: "在刀锋面前，「合法」二字很轻。谁敢豁出命，谁就在暗里定了价——这就是吴思说的<b>血酬</b>。<span class='tag'>〔血酬定律 · 暴力地基〕</span>" },
+        { lab: "私下和解，各打五十板了事", fx: { silver: +10, qingyu: -10, minxin: -8 },
+          outcome: "你把两造叫来「私了」，盐枭塞了厚礼，命案就此含糊过去。街面太平了，只是谁都记住了——在这县，敢拼命的人，官府让三分。",
+          note: "官府对敢动刀的人退了一步，等于承认：暴力也是一种能入账的本钱。<span class='tag'>〔血酬 · 潜规则的地基〕</span>" },
+        { lab: "上报请兵，把烫手山芋交出去", fx: { wusha: -4, minxin: -4, silver: -2 },
+          outcome: "你一纸文书把案子捅给上头请调营兵。公文在衙门间来回踢了几个月，盐枭早没了踪影——烫手山芋，谁都不想接。",
+          note: "击鼓传花的又一种玩法：难办的、要命的，都往别处推。<span class='tag'>〔委托代理 · 推诿〕</span>" }
+      ] },
+    { rare: true, concept: "诡寄 · 士绅投献",
+      title: "本地大绅上门，要把田产「诡寄」到功名名下",
+      text: "有功名的乡绅按例免赋。城里王举人登门陪笑：「几户薄田，想挂在举人名下图个免役，街坊都这么办，大人通融通融。」——他名下的田，早已多得离谱。",
+      choices: [
+        { lab: "照旧默许，收礼成人之美", fx: { silver: +12, wusha: +4, minxin: -14, qingyu: -8 },
+          outcome: "你收了王举人一份厚礼，睁只眼闭只眼。士绅的田越挂越多，可县里钱粮定额一分不少——省下的赋税，最后摊到了没功名的小户头上。",
+          note: "有权免赋的人越免，跑不掉的人就越重。负担不会凭空消失，只会滑向链条最末端。<span class='tag'>〔诡寄 · 老百姓是个冤大头〕</span>" },
+        { lab: "清丈田亩，追回诡寄", fx: { minxin: +12, qingyu: +12, wusha: -12, silver: -6 },
+          outcome: "你要把诡寄的田追回入册。小户拍手称快，可全城有功名、有靠山的，一夜之间成了你的对头——弹章已在路上。",
+          note: "你想把负担搬回本该承担的人身上，等于动了整个士绅集团的奶酪。张居正做过，人亡政息。<span class='tag'>〔清丈 · 淘汰清官〕</span>" },
+        { lab: "只收孝敬，暗中限个数目", fx: { silver: +6, minxin: -4, qingyu: -2 },
+          outcome: "你收了礼，却私下给诡寄划了条线，不许挂得太离谱。两头没得罪，也两头没做绝——账面的窟窿被你悄悄压小了一圈。",
+          note: "夹缝里和稀泥，是多数人的活法：既不肯全烂，也无力扳正。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { rare: true, concept: "京债 · 印子钱",
+      title: "当年补缺借的「京债」，债主找上门了",
+      text: "你这顶乌纱，是当年在京里借「印子钱」打点来的。如今债主的伙计寻到县衙，把利滚利的数目递到你面前，笑里藏刀：「大人官运亨通，也该给个准信了。」",
+      choices: [
+        { lab: "加紧盘剥治下，先还了这笔债", fx: { silver: -4, minxin: -16, qingyu: -10, wusha: +4 },
+          outcome: "为填这个利滚利的窟窿，你把各项陋规都加了码，衙役下乡的次数密了起来。债是快还上了，治下民力也被抽薄了一层。",
+          note: "买官的本钱要连本带利从百姓身上刨回来——这条债，最终是治下的人替你还的。<span class='tag'>〔京债 · 陋规自我循环〕</span>" },
+        { lab: "拖延赖账，赌债主奈何不得", fx: { silver: +2, wusha: -10, qingyu: -4 },
+          outcome: "你想赖过去。债主没吵没闹，转身把你的短处递到了该递的人手里。没过多久，一封没头没脑的参劾，落到了你的考语上。",
+          note: "在这张网里，债主要你的命，未必动刀——递一句话到对的人耳边就够了。<span class='tag'>〔制衡缺失 · 把柄〕</span>" }
       ] }
   ];
 
@@ -444,13 +1174,19 @@
   function shuffle(a) {
     a = a.slice();
     for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
+      var j = Math.floor((rng ? rng() : Math.random()) * (i + 1));
       var t = a[i]; a[i] = a[j]; a[j] = t;
     }
     return a;
   }
   function buildQueue() {
     var mid = shuffle(POOL).slice(0, TERM - 2);   // 中段随机
+    // 稀有事件：以小概率把一桩「隐事」掺进中段（用本局种子决定，保证同题可复现）
+    if (RARE_POOL.length && rng() < 0.42) {
+      var rare = RARE_POOL[Math.floor(rng() * RARE_POOL.length)];
+      var at = 1 + Math.floor(rng() * (mid.length - 1));   // 不占开局第一坎
+      mid[at] = rare;
+    }
     return [INTRO].concat(mid, [CLIMAX]);          // 首：陋规入局；尾：崇祯死弯
   }
 
@@ -463,12 +1199,17 @@
       var box = document.querySelector('.stat[data-k="' + k + '"]');
       box.querySelector('.num').textContent = S[k];
       box.querySelector('.bar > i').style.width = clamp(S[k]) + "%";
+      box.querySelector('.bar').setAttribute('aria-valuenow', clamp(S[k]));
       var bar = box.querySelector('.bar > i');
       if (S[k] <= 15) bar.style.filter = "saturate(1.4) brightness(0.9)"; else bar.style.filter = "";
+      // 乌纱/民心归零即出局；逼近致命线时标红示警（清誉不致命，只影响结局走向）
+      box.classList.toggle('crit', k !== "qingyu" && S[k] <= 15);
     });
     var sBox = document.querySelector('.stat[data-k="silver"]');
     sBox.querySelector('.num').textContent = S.silver;
     sBox.querySelector('.silver').classList.toggle('neg', S.silver < 0);
+    // 亏空逼近下狱线（LOSE_SILVER）时同样示警
+    sBox.classList.toggle('crit', S.silver <= LOSE_SILVER + 15);
     if (deltas) {
       Object.keys(deltas).forEach(function (k) {
         var box = document.querySelector('.stat[data-k="' + k + '"]');
@@ -493,36 +1234,63 @@
   // ---- 展示一个事件 -------------------------------------------------------
   function showEvent() {
     current = queue[turn];
-    el("ev-concept").textContent = current.concept;
+    var conceptEl = el("ev-concept");
+    conceptEl.textContent = (current.rare ? "✦ 稀有 · " : "") + current.concept;
+    conceptEl.classList.toggle("rare", !!current.rare);
     el("ev-title").textContent = current.title;
     el("ev-text").textContent = current.text;
     el("ev-verdict").classList.add("hidden");
     var box = el("ev-choices");
     box.innerHTML = "";
     box.classList.remove("hidden");
+    var hasPeril = false, hasHurt = false;
+    var mLvl = MENTOR.level();             // full 护航 / fatal 只报死线 / off 无提醒
     current.choices.forEach(function (c, idx) {
       var b = document.createElement("button");
       b.className = "choice";
-      b.innerHTML = '<span class="lab">' + esc(c.lab) + "</span>";
+      var kc = KEYCAPS[idx] || "";
+      var p = (mLvl !== "off") ? projectPeril(c.fx) : null;   // 这一步会伤到哪条致命线？
+      var counselHtml = "";
+      if (p && p.level === "fatal") {
+        b.className += " peril"; hasPeril = true;
+        counselHtml = '<span class="counsel"><span class="who">师爷失色，附耳低声：</span>' + PERIL_WHISPER[p.k] + "</span>";
+      } else if (p && p.level === "hurt" && mLvl === "full") {  // 重伤一档仅「全程护航」才报
+        b.className += " hurt"; hasHurt = true;
+        counselHtml = '<span class="counsel soft"><span class="who">师爷欲言又止，低声提醒：</span>' + HURT_WHISPER[p.k] + "</span>";
+      }
+      b.innerHTML = (kc ? '<span class="kc">' + kc + "</span>" : "") +
+        '<span class="lab">' + esc(c.lab) + "</span>" + counselHtml;
       b.addEventListener("click", function () { pick(idx); });
       box.appendChild(b);
     });
     renderPips();
+    writeSave();                   // 每坎开局即存档，尚未落笔——离开后可从此坎续玩
     el("event-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    var counselMsg = hasPeril ? "师爷有言：有选项走下去恐是死路，留意标红的进言。"
+                   : hasHurt  ? "师爷有言：有选项虽不致命，却会伤及根本，留意琥珀色的提醒。" : "";
+    announce("第 " + (turn + 1) + " 抉择，" + current.title + "。" +
+             current.choices.length + " 个选项，按数字键或点击选择。" + counselMsg);
   }
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  var REVEAL_HINT = "🔎 这一步，动了哪条潜规则？";
 
   // ---- 应用一个抉择 -------------------------------------------------------
   function pick(idx) {
     var c = current.choices[idx];
     var fx = c.fx || {};
+    SFX.pick();
+    haptic(12);                    // 落笔的一记轻震（移动端）
     // 应用数值
     Object.keys(fx).forEach(function (k) {
       if (k === "silver") S.silver += fx[k];
       else S[k] = clamp(S[k] + fx[k]);
     });
     renderHUD(fx);
+
+    // 记下这一步走法，任满/出局时回放成「施政轨迹」
+    history.push({ concept: current.concept, lab: c.lab, fx: fx, climax: current === CLIMAX, rare: !!current.rare });
 
     // 影响条
     var chips = Object.keys(fx).map(function (k) {
@@ -532,15 +1300,38 @@
       return '<span class="fx-chip ' + cls + '">' + STAT_META[k] + " " + sign + v + "</span>";
     }).join("");
     el("ev-fx").innerHTML = chips || "";
-    el("ev-read").innerHTML = "🔎 潜规则解读：" + c.read;
+
+    // 默认只叙事：这一步后世界里发生了什么
+    el("ev-outcome").textContent = c.outcome || "";
+
+    // 「潜规则」注解收起来，想看的人自己点开——不再逢选必说教
+    var note = el("ev-note");
+    note.innerHTML = c.note || "";
+    note.classList.add("hidden");
+    var rev = el("ev-reveal");
+    rev.textContent = REVEAL_HINT;
+    rev.setAttribute("aria-expanded", "false");
+    rev.classList.toggle("hidden", !c.note);
 
     el("ev-choices").classList.add("hidden");
     el("ev-verdict").classList.remove("hidden");
     el("ev-verdict").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // 无障碍：把属性增减 + 眼下的结果念出来，并把焦点落到「下一步」
+    var spoken = Object.keys(fx).map(function (k) {
+      return STAT_META[k] + (fx[k] >= 0 ? " 增 " : " 减 ") + Math.abs(fx[k]);
+    }).join("，");
+    announce((spoken ? spoken + "。" : "") + (c.outcome || ""));
+    try { el("btn-next").focus({ preventScroll: true }); } catch (e) { el("btn-next").focus(); }
 
-    // 立即致命的结局在解读后触发
+    // 立即致命的结局在下一步触发
     current._gameOver = deathCheck();
   }
+
+  el("ev-reveal").addEventListener("click", function () {
+    var hiddenNow = el("ev-note").classList.toggle("hidden");
+    this.textContent = hiddenNow ? REVEAL_HINT : "🔎 收起";
+    this.setAttribute("aria-expanded", hiddenNow ? "false" : "true");
+  });
 
   function deathCheck() {
     if (S.wusha <= 0) return S.qingyu >= 58 ? "purge" : "downfall";
@@ -549,10 +1340,45 @@
     return null;
   }
 
+  // ---- 师爷进言：某抉择会伤及某条致命线时，落笔前只报「凶险所在」，不报具体数字 ----
+  //   纯由当前四维推算，不动种子/牌序，故不影响同题复现；顺序与 deathCheck 一致。
+  //   两档：致命（跨过死线，红）与重伤（把某条致命线逼进危险带、但未破线，琥珀）。
+  //   受「导师模式」(MENTOR) 总开关节制——关了就无人提醒，全凭自己判断。
+  var HURT_BAND = 15;          // 乌纱/民心跌进此值即算「重伤」；库银则以 LOSE_SILVER+15 为界
+  var PERIL_WHISPER = {        // 致命一档：跨过死线
+    wusha:  "「大人，这一步落下去，乌纱怕是就保不住了。」",
+    minxin: "「大人，再往下逼，怕是要激出民变啊。」",
+    silver: "「大人，府库这一亏，可就是抄家下狱的死数了。」"
+  };
+  var HURT_WHISPER = {         // 重伤一档：不致命，却动了根本
+    wusha:  "「大人，这一步乌纱要伤筋动骨，往后怕经不起再折腾。」",
+    minxin: "「大人，民心已经很薄，再割下去，离生乱就不远了。」",
+    silver: "「大人，府库快见底，再填这笔怕要动到老本。」"
+  };
+  function projectDeath(fx) {
+    fx = fx || {};
+    if (clamp(S.wusha + (fx.wusha || 0)) <= 0) return "wusha";
+    if (clamp(S.minxin + (fx.minxin || 0)) <= 0) return "minxin";
+    if (S.silver + (fx.silver || 0) <= LOSE_SILVER) return "silver";
+    return null;
+  }
+  // 返回 {level:"fatal"|"hurt", k:维度} 或 null。重伤仅在该选项「主动往下压」某条致命
+  // 线、且压进危险带时才报，避免逢选必唠（否则又落回爹味）。致命优先于重伤。
+  function projectPeril(fx) {
+    var fatal = projectDeath(fx);
+    if (fatal) return { level: "fatal", k: fatal };
+    fx = fx || {};
+    if ((fx.wusha || 0) < 0 && clamp(S.wusha + fx.wusha) <= HURT_BAND) return { level: "hurt", k: "wusha" };
+    if ((fx.minxin || 0) < 0 && clamp(S.minxin + fx.minxin) <= HURT_BAND) return { level: "hurt", k: "minxin" };
+    if ((fx.silver || 0) < 0 && (S.silver + fx.silver) <= LOSE_SILVER + 15) return { level: "hurt", k: "silver" };
+    return null;
+  }
+
   el("btn-next").addEventListener("click", function () {
     if (current._gameOver) { endGame(current._gameOver); return; }
     turn++;
     if (turn >= TERM) { endGame(finalEnding()); return; }
+    SFX.next();
     showEvent();
   });
 
@@ -570,7 +1396,7 @@
     purge: { seal: "黜", title: "清官罢黜", kick: "任期未满 · 被同僚与上宪合力排挤去职",
       body: [
         "你守住了良心，却没守住乌纱。一封接一封的参劾、一次又一次「不谙政体」的差评，把你磨到了任满之前——你被参倒了。",
-        "不是哪个大奸大恶要害你，而是整套系统的免疫机制：当所有人都心照不宣，唯一「不合群」的那个，就成了必须被清除的异物。"
+        "没有谁存心害你。只是当所有人都心照不宣，那个唯一「不合群」的，迟早要被挤出去。这一回，被挤出去的是你。"
       ],
       map: "你亲历了 <b>淘汰清官机制</b>：系统不需要坏人来对付好人，只需要「大家都这样，就你不一样」。海瑞式的清官之所以稀有，正因为这套规则会主动把他们筛出去。" },
     downfall: { seal: "败", title: "众叛落马", kick: "任期未满 · 失了圣眷，墙倒众人推",
@@ -623,12 +1449,21 @@
       map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。" }
   };
 
+  var END_HINT = "🔎 这一局，你亲历了哪条潜规则？";
+
   function endGame(key) {
+    clearSave();                   // 一任已了结，无可续之处
     var e = ENDINGS[key] || ENDINGS.survivor;
+    // 记进图鉴；本局若是头一回抵达这个下场，就高亮它
+    var got = loadCodex();
+    var isNew = !got[key];
+    got[key] = true;
+    saveCodex(got);
     el("screen-game").classList.add("hidden");
     var sec = el("screen-end");
     sec.classList.remove("hidden");
     el("end-seal").textContent = e.seal;
+    el("end-seal").dataset.key = key;
     el("end-title").textContent = e.title;
     el("end-kicker").textContent = e.kick;
     el("end-stats").innerHTML =
@@ -637,15 +1472,257 @@
       "<span>⚖️ 清誉 " + S.qingyu + "</span>" +
       "<span>💰 白银 " + S.silver + " 两</span>";
     el("end-body").innerHTML = e.body.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
-    el("end-map").innerHTML = "<b>这一局你亲历的潜规则 —</b><br>" + e.map;
+    // 结局的「潜规则」总结同样收起来，想复盘的人才点开
+    var map = el("end-map");
+    map.innerHTML = "<b>这一局你走过的路 —</b><br>" + e.map;
+    map.classList.add("hidden");
+    var er = el("end-reveal");
+    er.textContent = END_HINT;
+    er.setAttribute("aria-expanded", "false");
+    renderTrail();
+    renderSpark();
+    renderCodex("end-codex", isNew ? key : null);
+    // 连胜（只认「今日同题」）→ 评定官声成就 → 渲染成就墙、记下本局新解锁
+    var streakRec = playedAsDaily ? bumpDailyStreak() : loadStreak();
+    var codexCount = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
+    var freshAch = evaluateAch({
+      key: key, S: S, history: history, dead: !!DEAD_ENDINGS[key],
+      streak: streakRec.streak || 0, codexCount: codexCount
+    });
+    renderAch("end-ach", freshAch.map(function (a) { return a.id; }));
+    // 生涯清算：把这一任并进总账，再把「历任 / 善终率 / 生涯之最」摆出来
+    bumpStats(key, !!DEAD_ENDINGS[key], S, streakRec.streak || 0);
+    renderLedger("end-ledger");
+    // 同题较量：亮出本局牌序，让人拿同一副牌来比
+    el("end-seedline").innerHTML =
+      "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
+      "「同题再来」或「晒出下场」里的链接，能让别人接到同一副牌。";
+    SFX.end(DEAD_ENDINGS[key]);
+    // 出局：一串沉重的震；任满：一记短震收束（移动端）
+    haptic(DEAD_ENDINGS[key] ? [90, 60, 140] : 40);
+    var achNames = freshAch.map(function (a) { return a.name; }).join("、");
+    announce("这一局落幕：" + e.title + "。" + e.kick + "。乌纱 " + S.wusha +
+             "，民心 " + S.minxin + "，清誉 " + S.qingyu + "，白银 " + S.silver + " 两。" +
+             (freshAch.length ? "解锁新成就：" + achNames + "。" : ""));
+    if (freshAch.length) showToast("🏅 解锁成就：" + achNames);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    // 无障碍：把焦点落到结局标题，屏幕阅读器随即读出下场
+    try { el("end-title").focus({ preventScroll: true }); } catch (e2) { try { el("end-title").focus(); } catch (e3) {} }
   }
 
-  // ---- 开局 / 重开 --------------------------------------------------------
-  function startGame() {
-    S = Object.assign({}, START);
-    turn = 0;
+  // 任期未满就出局的四种下场：收场敲丧钟（其余任满，给一声安顿的余韵）
+  var DEAD_ENDINGS = { purge: 1, downfall: 1, revolt: 1, prison: 1 };
+
+  // ---- 晒结局：拼一段可转发的文字，复制到剪贴板 --------------------------
+  function shareText() {
+    var e = ENDINGS[el("end-seal").dataset.key] || {};
+    var title = el("end-title").textContent;
+    var got = loadCodex();
+    var n = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
+    return "《大明王朝·潜规则生存模拟》\n" +
+      "我的下场：" + title + "\n" +
+      "🎏乌纱 " + S.wusha + "　🧑‍🌾民心 " + S.minxin + "　⚖️清誉 " + S.qingyu + "　💰白银 " + S.silver + " 两\n" +
+      "结局图鉴 " + n + "/" + ENDING_ORDER.length + " —— 你能走出哪个下场？\n" +
+      "🎯 敢接同一副牌（牌序 " + currentSeed + "）就点这里：\n" +
+      "▶ " + challengeUrl();
+  }
+  function showToast(msg) {
+    var t = el("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function () { t.classList.remove("show"); }, 1900);
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    // 老浏览器 / 非安全上下文回退
+    return new Promise(function (resolve, reject) {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.setAttribute("readonly", "");
+        ta.style.position = "absolute"; ta.style.left = "-9999px";
+        document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        ok ? resolve() : reject();
+      } catch (err) { reject(err); }
+    });
+  }
+  el("btn-share").addEventListener("click", function () {
+    copyText(shareText())
+      .then(function () { showToast("下场已复制，去粘给你的群 📋"); })
+      .catch(function () { showToast("复制失败，可手动选中分享"); });
+  });
+
+  // ---- 结局图卡：用 canvas 画一张可长按保存 / 下载的分享图 ----------------
+  function stripTags(s) { return String(s).replace(/<[^>]+>/g, ""); }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  // 居中折行，返回画完后下一行的 y
+  function wrapText(ctx, text, cx, y, maxW, lh, maxLines) {
+    var chars = String(text).split(""), line = "", lines = [];
+    for (var i = 0; i < chars.length; i++) {
+      var test = line + chars[i];
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = chars[i]; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    if (maxLines && lines.length > maxLines) {
+      lines = lines.slice(0, maxLines);
+      lines[maxLines - 1] = lines[maxLines - 1].replace(/.$/, "…");
+    }
+    lines.forEach(function (ln, i) { ctx.fillText(ln, cx, y + i * lh); });
+    return y + lines.length * lh;
+  }
+  function drawEndCard() {
+    var key = el("end-seal").dataset.key;
+    var e = ENDINGS[key] || ENDINGS.survivor;
+    var scale = 2, W = 380, H = 620;
+    var cv = document.createElement("canvas");
+    cv.width = W * scale; cv.height = H * scale;
+    var ctx = cv.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.textAlign = "center";
+
+    // 纸底 + 顶光
+    ctx.fillStyle = "#f3e9d2"; ctx.fillRect(0, 0, W, H);
+    var g = ctx.createRadialGradient(W / 2, -40, 20, W / 2, -40, 340);
+    g.addColorStop(0, "rgba(247,239,219,0.9)"); g.addColorStop(1, "rgba(247,239,219,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // 双线金框
+    ctx.strokeStyle = "#b8912f"; ctx.lineWidth = 2; ctx.strokeRect(14, 14, W - 28, H - 28);
+    ctx.strokeStyle = "rgba(184,145,47,0.5)"; ctx.lineWidth = 1; ctx.strokeRect(20, 20, W - 40, H - 40);
+
+    // 抬头
+    ctx.fillStyle = "#6b5b48"; ctx.font = '13px "Noto Serif SC", serif';
+    ctx.fillText("大明王朝 · 潜规则生存模拟", W / 2, 48);
+
+    // 印章方框（旋转 -6°）
+    ctx.save();
+    ctx.translate(W / 2, 118); ctx.rotate(-6 * Math.PI / 180);
+    ctx.fillStyle = "rgba(178,59,46,0.06)"; roundRect(ctx, -34, -34, 68, 68, 10); ctx.fill();
+    ctx.strokeStyle = "#b23b2e"; ctx.lineWidth = 3; roundRect(ctx, -34, -34, 68, 68, 10); ctx.stroke();
+    ctx.fillStyle = "#b23b2e"; ctx.font = '40px "Ma Shan Zheng", serif';
+    ctx.textBaseline = "middle"; ctx.fillText(e.seal, 0, 3);
+    ctx.restore(); ctx.textBaseline = "alphabetic";
+
+    // 结局名 + 副题
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '26px "Ma Shan Zheng", serif';
+    ctx.fillText(e.title, W / 2, 200);
+    ctx.fillStyle = "#6b5b48"; ctx.font = '12.5px "Noto Serif SC", serif';
+    var y = wrapText(ctx, e.kick, W / 2, 224, W - 90, 18, 2);
+
+    // 分隔线
+    y += 8;
+    ctx.strokeStyle = "rgba(184,145,47,0.6)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(W - 50, y); ctx.stroke();
+
+    // 四维属性（2×2）
+    y += 30;
+    var stats = [["乌纱（仕途）", S.wusha], ["民心", S.minxin], ["清誉（良心）", S.qingyu], ["家财（库银）", S.silver + " 两"]];
+    var cx0 = W / 2 - 76, cx1 = W / 2 + 76;
+    stats.forEach(function (st, i) {
+      var x = i % 2 === 0 ? cx0 : cx1, ry = y + Math.floor(i / 2) * 46;
+      ctx.fillStyle = "#6b5b48"; ctx.font = '12px "Noto Serif SC", serif';
+      ctx.fillText(st[0], x, ry);
+      ctx.fillStyle = "#2a211a"; ctx.font = '19px "Noto Serif SC", serif';
+      ctx.fillText(String(st[1]), x, ry + 23);
+    });
+    y += 46 + 34;
+
+    // 「潜规则一课」——这局结局的一句话内核
+    var takeaway = stripTags(e.map).replace(/^你[^：:]*[：:]\s*/, "");
+    ctx.fillStyle = "rgba(255,255,255,0.55)"; roundRect(ctx, 40, y, W - 80, 96, 10); ctx.fill();
+    ctx.strokeStyle = "#cdbb93"; ctx.lineWidth = 1;
+    roundRect(ctx, 40, y, W - 80, 96, 10); ctx.stroke();
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '12px "Noto Serif SC", serif';
+    ctx.fillText("潜规则一课", W / 2, y + 22);
+    ctx.fillStyle = "#2a211a"; ctx.font = '12.5px "Noto Serif SC", serif';
+    wrapText(ctx, takeaway, W / 2, y + 44, W - 108, 18, 3);
+    y += 96 + 30;
+
+    // 图鉴 / 成就进度
+    var codex = loadCodex(), ach = loadAch();
+    var cn = ENDING_ORDER.filter(function (k) { return codex[k]; }).length;
+    var an = ACH.filter(function (a) { return ach[a.id]; }).length;
+    ctx.fillStyle = "#6b5b48"; ctx.font = '12.5px "Noto Serif SC", serif';
+    ctx.fillText("结局图鉴 " + cn + "/" + ENDING_ORDER.length + "　·　官声成就 " + an + "/" + ACH.length, W / 2, y);
+    y += 22;
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '13px "Noto Sans SC", monospace';
+    ctx.fillText("牌序 " + currentSeed + "　·　敢接同一副牌？", W / 2, y);
+
+    // 页脚
+    ctx.fillStyle = "#6b5b48"; ctx.font = '11px "Noto Serif SC", serif';
+    ctx.fillText("▶ " + location.host + location.pathname, W / 2, H - 30);
+
+    return cv.toDataURL("image/png");
+  }
+  function openCard() {
+    var url;
+    try { url = drawEndCard(); }
+    catch (err) { showToast("图卡生成失败，可用「晒出我的下场」复制文字"); return; }
+    el("card-img").src = url;
+    el("card-download").href = url;
+    el("cardmodal").classList.remove("hidden");
+  }
+  function closeCard() { el("cardmodal").classList.add("hidden"); }
+  el("btn-card").addEventListener("click", function () {
+    // 等字体就绪再画，免得印章字体没加载到位
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(openCard, openCard);
+    } else { openCard(); }
+  });
+  el("cardmodal-close").addEventListener("click", closeCard);
+  el("cardmodal").addEventListener("click", function (ev) { if (ev.target === this) closeCard(); });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && !el("cardmodal").classList.contains("hidden")) closeCard();
+  });
+
+  el("end-reveal").addEventListener("click", function () {
+    var hiddenNow = el("end-map").classList.toggle("hidden");
+    this.textContent = hiddenNow ? END_HINT : "🔎 收起";
+    this.setAttribute("aria-expanded", hiddenNow ? "false" : "true");
+  });
+
+  // ---- 存档 / 续玩：一任还没走完就离开，回来能接着走 ----------------------
+  //   只存「牌序 + 走到第几坎 + 四维属性 + 走过的选择 + 是否今日同题」。
+  //   事件序列本就由牌序确定地推出，所以续玩时用同一牌序重建牌堆即可完全复现，
+  //   不另存牌堆、也不动种子/同题语义。快照落在「每坎开局、尚未落笔」这一刻。
+  var SAVE_KEY = "daming_wangchao_save_v1";
+  function loadSave() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch (e) { return null; } }
+  function writeSave() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        ver: 1, seed: currentSeed, turn: turn, S: S, history: history, daily: playedAsDaily
+      }));
+    } catch (e) { /* 隐私模式等，无所谓 */ }
+  }
+  function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+  // 有效的续玩存档：版本对、牌序在、已走过至少一坎、尚未任满、属性齐全
+  function validSave(sv) {
+    return !!sv && sv.ver === 1 && typeof sv.seed === "string" && sv.seed.length >= 3 &&
+      typeof sv.turn === "number" && sv.turn >= 1 && sv.turn < TERM &&
+      sv.S && typeof sv.S.wusha === "number" && Array.isArray(sv.history);
+  }
+  function resumeSave() {
+    var sv = loadSave();
+    if (!validSave(sv)) { el("btn-resume").classList.add("hidden"); return; }
+    playedAsDaily = !!sv.daily;
+    currentSeed = normalizeSeed(sv.seed);
+    rng = makeRng(currentSeed);                 // 同一牌序 → 重建出完全相同的牌堆
+    el("game-seed").textContent = "牌序 " + currentSeed;
+    S = Object.assign({}, START, sv.S);
+    history = sv.history.slice();
     queue = buildQueue();
+    turn = sv.turn;
     el("screen-title").classList.add("hidden");
     el("screen-end").classList.add("hidden");
     el("screen-game").classList.remove("hidden");
@@ -654,8 +1731,146 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  el("btn-start").addEventListener("click", startGame);
-  el("btn-restart").addEventListener("click", startGame);
+  // ---- 开局 / 重开 --------------------------------------------------------
+  function startGame(seed) {
+    playedAsDaily = false;                 // 默认非「今日同题」；由 btn-daily 覆盖
+    currentSeed = (seed && normalizeSeed(seed)) || randomSeed();
+    rng = makeRng(currentSeed);
+    el("game-seed").textContent = "牌序 " + currentSeed;
+    S = Object.assign({}, START);
+    turn = 0;
+    history = [];
+    queue = buildQueue();
+    el("screen-title").classList.add("hidden");
+    el("screen-end").classList.add("hidden");
+    el("screen-game").classList.remove("hidden");
+    renderHUD();
+    showEvent();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  // 从标题页开局：若 URL 带了 ?seed=，就接下那副牌，否则发一副新牌
+  function startFromTitle() { startGame(urlSeed || null); }
+
+  el("btn-start").addEventListener("click", startFromTitle);
+  el("btn-restart").addEventListener("click", function () { startGame(null); });   // 换一副新牌
+  el("btn-replay").addEventListener("click", function () { startGame(currentSeed); }); // 同一副牌再战
+  el("btn-daily").addEventListener("click", function () { startGame(dailySeed()); playedAsDaily = true; }); // 今日同题（走完计入连胜）
+
+  // ---- 音效开关 -----------------------------------------------------------
+  function syncSfxBtn() {
+    var b = el("btn-sfx");
+    b.textContent = SFX.isOn() ? "🔔" : "🔕";
+    b.classList.toggle("off", !SFX.isOn());
+    b.setAttribute("aria-pressed", SFX.isOn() ? "true" : "false");
+  }
+  el("btn-sfx").addEventListener("click", function () { SFX.toggle(); syncSfxBtn(); });
+  syncSfxBtn();
+
+  // ---- 师爷进言开关（导师模式三档）--------------------------------------------
+  //   点击循环：全程护航 → 只报死线 → 关。图标随档位变，title/aria 说明当前档与下一步。
+  var MENTOR_META = {
+    full:  { icon: "🧙", label: "全程护航",
+             title: "师爷进言：全程护航 · 死线+重伤都提醒（点此改为只报死线）",
+             say:  "师爷进言：全程护航，死线与重伤都会提醒。" },
+    fatal: { icon: "🧭", label: "只报死线",
+             title: "师爷进言：只报死线 · 只在会送命时开口，重伤不再唠叨（点此关闭）",
+             say:  "师爷进言：只报死线，唯有会送命的一步才开口，重伤不再提醒。" },
+    off:   { icon: "🚶", label: "自己拿主意",
+             title: "师爷进言：关 · 无人提醒，全凭自己判断（点此开启全程护航）",
+             say:  "师爷进言已关闭，往后无人提醒，全凭自己判断。" }
+  };
+  function syncMentorBtn() {
+    var b = el("btn-mentor");
+    var lvl = MENTOR.level(), m = MENTOR_META[lvl];
+    b.textContent = m.icon;
+    b.classList.toggle("off", lvl === "off");
+    b.setAttribute("aria-label", "师爷进言（当前：" + m.label + "，点击切换档位）");
+    b.title = m.title;
+  }
+  el("btn-mentor").addEventListener("click", function () {
+    var lvl = MENTOR.cycle();
+    syncMentorBtn();
+    // 若正卡在某坎、尚未落笔，即时重绘选项以反映新设置（存档同坎、语义不变）
+    var midChoice = !el("screen-game").classList.contains("hidden") &&
+      current && el("ev-verdict").classList.contains("hidden");
+    if (midChoice) showEvent();
+    announce(MENTOR_META[lvl].say);
+  });
+  syncMentorBtn();
+
+  // ---- 键盘操作：1/2/3 选项，Enter/→/空格 继续 ----------------------------
+  document.addEventListener("keydown", function (ev) {
+    if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    var gameOn = !el("screen-game").classList.contains("hidden");
+    if (gameOn && current) {
+      var verdictShown = !el("ev-verdict").classList.contains("hidden");
+      if (!verdictShown) {
+        var n = parseInt(ev.key, 10);
+        if (n >= 1 && n <= current.choices.length) { ev.preventDefault(); pick(n - 1); }
+      } else if (ev.key === "Enter" || ev.key === " " || ev.key === "ArrowRight") {
+        ev.preventDefault(); el("btn-next").click();
+      }
+      return;
+    }
+    // 标题页 Enter：接下 URL 那副牌（若有）；结局页 Enter：换一副新牌重开
+    if (ev.key === "Enter") {
+      if (!el("screen-title").classList.contains("hidden")) {
+        ev.preventDefault(); startFromTitle();
+      } else if (!el("screen-end").classList.contains("hidden")) {
+        ev.preventDefault(); startGame(null);
+      }
+    }
+  });
+
+  // ---- 初始化：上一任没走完，标题页亮出「继续上一任」------------------------
+  (function initResume() {
+    var sv = loadSave();
+    if (!validSave(sv)) return;
+    var b = el("btn-resume");
+    b.textContent = "▶ 继续上一任 · 第 " + (sv.turn + 1) + " 抉择";
+    b.classList.remove("hidden");
+    b.addEventListener("click", resumeSave);
+  })();
+
+  // ---- 初始化：标题页展示已解锁的结局图鉴（有走过才显示）------------------
+  (function initTitleCodex() {
+    if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
+    el("title-codex").classList.remove("hidden");
+    renderCodex("title-codex", null);
+  })();
+
+  // ---- 初始化：标题页亮出官声成就墙（走过一局后才显示，勾引集齐）----------
+  (function initTitleAch() {
+    if (Object.keys(loadCodex()).length === 0 && Object.keys(loadAch()).length === 0) return;
+    el("title-ach").classList.remove("hidden");
+    renderAch("title-ach", []);
+  })();
+
+  // ---- 初始化：标题页亮出为官生涯清算（走过一局后才显示，勾引再战刷新纪录）--
+  (function initTitleLedger() {
+    if (!(loadStats().runs > 0)) return;
+    el("title-ledger").classList.remove("hidden");
+    renderLedger("title-ledger");
+  })();
+
+  // ---- 初始化：标题页亮出今日同题的牌序（当天全网一致，次日换新）+ 连胜 ----
+  (function initDaily() {
+    var today = dailySeed();
+    var st = loadStreak();
+    // 连胜仍「续着」（最近一次是今天或昨天）才亮出来，断了就不显摆
+    var alive = st.streak && (st.last === dateKey() || st.last === yesterdayKey());
+    var streakTxt = alive ? "　·　🔥 连续 " + st.streak + " 天" : "";
+    el("daily-line").innerHTML =
+      "今日牌序 <span class=\"mono\">" + esc(today) + "</span>　·　全网同一副，明日换新" + streakTxt;
+  })();
+
+  // ---- 初始化：若被人以 ?seed= 下了战书，标题页亮出「同题挑战」横幅 --------
+  (function initChallenge() {
+    if (!urlSeed) return;
+    el("banner-seed").textContent = urlSeed;
+    el("seed-banner").classList.remove("hidden");
+    el("btn-start").textContent = "接下这副牌 ▶";
+  })();
 })();
 </script>
 </body>
