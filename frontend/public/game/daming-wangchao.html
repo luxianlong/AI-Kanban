@@ -675,7 +675,7 @@
   // ---- 结局图鉴：把玩家走过的下场存进浏览器（localStorage），跨局累积 --------
   var CODEX_KEY = "daming_wangchao_codex_v1";
   // 图鉴里结局的陈列顺序：从「走得通的窄路」到「各种崩法」
-  var ENDING_ORDER = ["rare", "worn", "survivor", "cynic", "winner", "purge", "downfall", "revolt", "prison"];
+  var ENDING_ORDER = ["rare", "worn", "survivor", "cynic", "winner", "purge", "downfall", "revolt", "prison", "saint"];
   function loadCodex() {
     try { return JSON.parse(localStorage.getItem(CODEX_KEY)) || {}; } catch (e) { return {}; }
   }
@@ -691,7 +691,8 @@
       var e = ENDINGS[k] || {};
       var cls = "slot" + (unlocked ? " got" : "") + (k === newKey ? " new" : "");
       var ch = unlocked ? (e.seal || "？") : "？";
-      var tip = unlocked ? (e.title || "") : "未解锁 · 换个走法试试";
+      var tip = unlocked ? (e.title || "")
+        : (e.hidden ? "隐藏结局 · 无从指引，自己去照见" : "未解锁 · 换个走法试试");
       return '<span class="' + cls + '" title="' + esc(tip) + '">' + ch + "</span>";
     }).join("");
     var head = "结局收藏　" + n + " / " + total + (n >= total ? "　·　十面镜子已走遍" : "　·　换个走法，看看别的下场");
@@ -712,7 +713,16 @@
       host.innerHTML = "🪞 十面镜子已走遍——每一种下场，你都亲手照过一遍了。";
       return "";
     }
-    var k = locked[0];                     // 陈列顺序里，下一面还没照过的镜子
+    // 隐藏结局不给指引（否则就不叫「藏」了）：向导只点常规下场，把隐藏面单独留白
+    var visible = locked.filter(function (k) { return !(ENDINGS[k] && ENDINGS[k].hidden); });
+    if (!visible.length) {                 // 只剩藏得最深那面没照过——给一句留白，不泄走法
+      host.className = "codex-guide";
+      host.innerHTML =
+        '<span class="cg-seal">？</span>' +
+        '<span class="cg-left">常规九面都照过了，还剩<b> 一面藏得极深的镜子 </b>——它不给指引，得你自己走到那一步。</span>';
+      return "";
+    }
+    var k = visible[0];                    // 陈列顺序里，下一面还没照过的（非隐藏）镜子
     var e = ENDINGS[k] || {};
     host.className = "codex-guide";
     host.innerHTML =
@@ -744,6 +754,8 @@
       check: function (c) { return c.codexCount >= ENDING_ORDER.length; } },
     { id: "rare_ev",   seal: "奇", name: "官场奇遇", desc: "任内撞上一桩罕见的隐事（血酬 / 诡寄 / 京债）——不是谁都遇得到。",
       check: function (c) { return c.history.some(function (h) { return h.rare; }); } },
+    { id: "saint",     seal: "青", name: "青天在世", desc: "走出那面藏得最深的镜子——一文不取、清誉民心俱近圆满的清官圣人。",
+      check: function (c) { return c.key === "saint"; } },
     { id: "streak3",   seal: "勤", name: "三日勤勉", desc: "连续三天接下「今日同题」并走完。",
       check: function (c) { return c.streak >= 3; } },
     { id: "streak7",   seal: "恒", name: "七日不辍", desc: "连续七天接下「今日同题」并走完——好定力。",
@@ -1475,6 +1487,10 @@
   // ---- 结局判定 -----------------------------------------------------------
   function finalEnding() {
     // 任满存活：按品性/家财分流
+    // 隐藏面「青天在世」：全程一文不取（无一坎令库银净增），且清誉、民心都近乎圆满——
+    //   比「异数」更严的一条窄路，故先于它判定。纯看本局走法与终值，不动种子/牌序。
+    var cleanRun = history.length > 0 && history.every(function (h) { return !(h.fx && h.fx.silver > 0); });
+    if (cleanRun && S.qingyu >= 82 && S.minxin >= 78) return "saint";  // 隐藏结局
     if (S.qingyu >= 60 && S.wusha >= 38) return "rare";        // 异数·全身而退的清官
     if (S.qingyu <= 32 && S.silver >= 55) return "winner";     // 同流合污·系统赢家
     if (S.qingyu <= 32) return "cynic";                         // 老于世故
@@ -1545,7 +1561,15 @@
         "你没想明白这套游戏，却也糊里糊涂地活了下来——这大概是绝大多数人在系统里的真实下场。"
       ],
       map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。",
-      guide: "任满时清誉不高不低（约在三到五成间）——随大流地跌撞到卸任。" }
+      guide: "任满时清誉不高不低（约在三到五成间）——随大流地跌撞到卸任。" },
+    saint: { seal: "青", title: "青天在世 · 载入方志", hidden: true,
+      kick: "任满 · 一文不取、万民称颂，却无人再问：为何非得靠青天",
+      body: [
+        "你走了一条几乎不存在的路：三年知县，一文不取，账目清白，民心归附。离任那日，百姓夹道相送，万民伞、去思碑，你的名字被写进了方志。",
+        "可你比谁都清楚，这靠的不是规矩松了口，而是你把自己逼到了极处、又恰好没撞上那道死弯。他们记住的是「青天」，不是「制度」——而只要还盼着青天，就没人肯去想那道弯本可以不必存在。"
+      ],
+      map: "你照见了最深、也最叫人止步的一面镜子——<b>青天神话</b>：这套系统偶尔容得下一个海瑞，恰恰因为「盼清官」悄悄替换掉了「改规则」。百姓把指望押在下一个好官身上，而不是那套会主动淘汰好官的规矩上。你越是耀眼，越是替这套规矩延了寿——这正是它最舍得供奉你的原因。",
+      guide: "藏得最深的一面：全程一文不取，还要让清誉与民心都近乎圆满。" }
   };
 
   var END_HINT = "🔎 这一局，你亲历了哪条潜规则？";
