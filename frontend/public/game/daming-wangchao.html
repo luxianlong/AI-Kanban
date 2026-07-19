@@ -232,6 +232,23 @@
   .ach-item.got .ach-name { color: var(--ink); font-weight: 600; }
   .ach-item.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
 
+  /* --- 为官生涯清算 (cross-run career ledger) --- */
+  .ledger { margin-top: 14px; text-align: center; }
+  .ledger-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 9px; }
+  .ledger-head b { color: var(--seal); font-size: 14px; }
+  .ledger-bar {
+    display: flex; height: 14px; max-width: 420px; margin: 0 auto 7px; border-radius: 7px;
+    overflow: hidden; border: 1px solid var(--line); background: rgba(120,90,50,0.12);
+  }
+  .ledger-bar > i { display: block; height: 100%; transition: width .5s cubic-bezier(.2,.7,.2,1); }
+  .ledger-bar > i.live { background: linear-gradient(90deg,#7a5a13,#c79a2c); }
+  .ledger-bar > i.dead { background: linear-gradient(90deg,#6b1f1f,#a83232); }
+  .ledger-legend { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; margin-bottom: 6px; }
+  .ledger-legend .live { color: var(--gold); font-weight: 700; }
+  .ledger-legend .dead { color: var(--red); font-weight: 700; }
+  .ledger-best { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; line-height: 1.7; }
+  .ledger-best b { color: var(--ink); }
+
   /* --- 施政轨迹回顾 (choice trail in ending) --- */
   .trail { margin-top: 14px; }
   .trail-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; text-align: center; }
@@ -348,6 +365,7 @@
     <p class="daily-line" id="daily-line"></p>
     <div class="codex hidden" id="title-codex" aria-label="结局收藏"></div>
     <div class="ach hidden" id="title-ach" aria-label="官声成就"></div>
+    <div class="ledger hidden" id="title-ledger" aria-label="为官生涯"></div>
     <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场（键盘 1/2/3 可选，Enter 继续）</p>
   </section>
 
@@ -408,6 +426,7 @@
     <div class="map hidden" id="end-map"></div>
     <div class="codex" id="end-codex" aria-label="结局收藏"></div>
     <div class="ach" id="end-ach" aria-label="官声成就"></div>
+    <div class="ledger" id="end-ledger" aria-label="为官生涯"></div>
     <p class="seedline" id="end-seedline"></p>
     <div class="end-actions">
       <button class="btn" id="btn-restart">再世为官 · 换副牌重开 ↺</button>
@@ -668,6 +687,54 @@
     var head = "官声成就　" + n + " / " + ACH.length +
       (freshIds.length ? "　·　<b>🏅 本局新解锁 " + freshIds.length + "</b>" : "");
     el(containerId).innerHTML = '<div class="ach-head">' + head + "</div><div class=\"ach-grid\">" + items + "</div>";
+  }
+
+  // ---- 为官生涯清算：跨局累积的战绩（历任数、善终率、生涯之最）--------------
+  //   图鉴记「走过哪些下场」、成就记「达成哪些目标」，此处记「一生总账」：
+  //   为官几任、几回善终几回折戟、生涯里最高的民心/家财/连胜、以及最常走的下场。
+  var STATS_KEY = "daming_wangchao_stats_v1";
+  function loadStats() {
+    try { return JSON.parse(localStorage.getItem(STATS_KEY)) || {}; } catch (e) { return {}; }
+  }
+  // 每走完一局，把这一任并进生涯账：任数、存亡、各下场次数、生涯之最
+  function bumpStats(key, dead, st, streak) {
+    var s = loadStats();
+    s.runs = (s.runs || 0) + 1;
+    if (dead) s.dead = (s.dead || 0) + 1; else s.survived = (s.survived || 0) + 1;
+    s.byEnding = s.byEnding || {};
+    s.byEnding[key] = (s.byEnding[key] || 0) + 1;
+    s.bestMinxin = Math.max(s.bestMinxin || 0, st.minxin);
+    s.bestQingyu = Math.max(s.bestQingyu || 0, st.qingyu);
+    s.bestSilver = (s.bestSilver == null) ? st.silver : Math.max(s.bestSilver, st.silver);
+    s.bestStreak = Math.max(s.bestStreak || 0, streak || 0);
+    try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch (e) {}
+    return s;
+  }
+  function renderLedger(containerId) {
+    var s = loadStats();
+    var runs = s.runs || 0;
+    if (!runs) { el(containerId).innerHTML = ""; return; }
+    var live = s.survived || 0, dead = s.dead || 0;
+    var livePct = Math.round(live / runs * 100);
+    // 最常走的下场（历任≥2 才显摆，头一任无从谈「常走」）
+    var top = null, topN = 0, be = s.byEnding || {};
+    Object.keys(be).forEach(function (k) { if (be[k] > topN) { topN = be[k]; top = k; } });
+    var topTitle = (top && ENDINGS[top]) ? ENDINGS[top].title : "—";
+    var bestSilver = (s.bestSilver == null) ? 0 : s.bestSilver;
+    el(containerId).innerHTML =
+      '<div class="ledger-head">为官生涯　历任 <b>' + runs + '</b> 任</div>' +
+      '<div class="ledger-bar">' +
+        (live ? '<i class="live" style="width:' + (live / runs * 100) + '%"></i>' : "") +
+        (dead ? '<i class="dead" style="width:' + (dead / runs * 100) + '%"></i>' : "") +
+      '</div>' +
+      '<div class="ledger-legend"><span class="live">任满善终 ' + live + '</span>' +
+        '　·　<span class="dead">中道折戟 ' + dead + '</span>' +
+        '　·　善终率 ' + livePct + '%</div>' +
+      '<div class="ledger-best">生涯之最　民心 <b>' + (s.bestMinxin || 0) + '</b>' +
+        '　·　家财 <b>' + bestSilver + '</b> 两' +
+        '　·　同题连胜 <b>' + (s.bestStreak || 0) + '</b> 天' +
+        (runs >= 2 ? '<br>最常走的下场 ——「<b>' + esc(topTitle) + '</b>」' + topN + " 回" : "") +
+      '</div>';
   }
 
   // ---- 施政轨迹：把玩家这一局走过的选择回放出来（只叙事，不评判）----------
@@ -1219,6 +1286,9 @@
       streak: streakRec.streak || 0, codexCount: codexCount
     });
     renderAch("end-ach", freshAch.map(function (a) { return a.id; }));
+    // 生涯清算：把这一任并进总账，再把「历任 / 善终率 / 生涯之最」摆出来
+    bumpStats(key, !!DEAD_ENDINGS[key], S, streakRec.streak || 0);
+    renderLedger("end-ledger");
     // 同题较量：亮出本局牌序，让人拿同一副牌来比
     el("end-seedline").innerHTML =
       "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
@@ -1489,6 +1559,13 @@
     if (Object.keys(loadCodex()).length === 0 && Object.keys(loadAch()).length === 0) return;
     el("title-ach").classList.remove("hidden");
     renderAch("title-ach", []);
+  })();
+
+  // ---- 初始化：标题页亮出为官生涯清算（走过一局后才显示，勾引再战刷新纪录）--
+  (function initTitleLedger() {
+    if (!(loadStats().runs > 0)) return;
+    el("title-ledger").classList.remove("hidden");
+    renderLedger("title-ledger");
   })();
 
   // ---- 初始化：标题页亮出今日同题的牌序（当天全网一致，次日换新）+ 连胜 ----
