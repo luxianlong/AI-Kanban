@@ -31,6 +31,17 @@ public class StorySuggestionService {
             "have", "will", "your", "our", "its", "their", "a", "an", "to", "of",
             "in", "on", "it", "is", "be", "as", "at", "by", "or", "we");
 
+    // Generic CJK bigrams — the Chinese equivalent of the stop-words above. These
+    // are the filler verbs/nouns shared across otherwise-unrelated dev tasks
+    // (优化/修复/测试/功能…); indexing them would let two tasks that merely both
+    // "优化…" or "修复…" collide into the same story. Topical bigrams (游戏, 王朝,
+    // 房价…) are what we actually want to match on, so only the generic ones are
+    // dropped. See {@link #keywords}.
+    private static final Set<String> CJK_STOP_BIGRAMS = Set.of(
+            "优化", "修复", "修改", "测试", "更新", "添加", "增加", "实现", "支持",
+            "功能", "问题", "任务", "文档", "数据", "显示", "完成", "处理", "系统",
+            "页面", "界面", "按钮", "调整", "改进", "重构", "删除", "创建");
+
     private static final List<String> BACKEND_HINTS = List.of(
             "api", "endpoint", "backend", "server", "database", "db", "model",
             "schema", "persist", "repository", "controller", "service", "query");
@@ -115,7 +126,19 @@ public class StorySuggestionService {
         return shared;
     }
 
-    /** Meaningful lower-cased words of length ≥ 3, minus stop-words. */
+    /**
+     * Meaningful tokens of {@code text}: Latin/digit words of length ≥ 3 (minus
+     * stop-words), plus CJK bigrams (minus generic ones).
+     *
+     * <p>The Latin split on {@code [^a-z0-9]+} drops every CJK character, so a
+     * purely-Chinese task used to yield an empty set and always score 0 — leaving
+     * every Chinese task to fall through to the fuzzy async AI pass, which is the
+     * documented source of erratic mis-filing. To give the deterministic classifier
+     * real signal on Chinese, each run of Han characters is indexed as overlapping
+     * bigrams (the standard CJK matching trick): a shared 3+-character term then
+     * yields ≥ 2 shared bigrams — enough to clear {@link StoryClassifier#AUTO_CLASSIFY_MIN_SCORE}
+     * — while a lone generic 2-character verb stays below it.
+     */
     public Set<String> keywords(String text) {
         Set<String> out = new LinkedHashSet<>();
         if (text == null) {
@@ -126,7 +149,41 @@ public class StorySuggestionService {
                 out.add(raw);
             }
         }
+        addCjkBigrams(text, out);
         return out;
+    }
+
+    /** Index each run of Han characters in {@code text} as bigrams into {@code out}. */
+    private static void addCjkBigrams(String text, Set<String> out) {
+        int n = text.length();
+        int i = 0;
+        while (i < n) {
+            if (!isHan(text.charAt(i))) {
+                i++;
+                continue;
+            }
+            int start = i;
+            while (i < n && isHan(text.charAt(i))) {
+                i++;
+            }
+            String run = text.substring(start, i);
+            if (run.length() == 1) {
+                // A lone Han character (rare in practice) is all the signal there is.
+                out.add(run);
+            } else {
+                for (int k = 0; k + 1 < run.length(); k++) {
+                    String bigram = run.substring(k, k + 2);
+                    if (!CJK_STOP_BIGRAMS.contains(bigram)) {
+                        out.add(bigram);
+                    }
+                }
+            }
+        }
+    }
+
+    /** True for CJK Unified Ideographs (incl. Ext A) and Compatibility Ideographs. */
+    private static boolean isHan(char c) {
+        return (c >= '㐀' && c <= '鿿') || (c >= '豈' && c <= '﫿');
     }
 
     private static StoryStep step(String title, String description) {
