@@ -58,13 +58,16 @@ public class DocsController {
 
     private final Path repoRoot;
     private final DocsSiteGenerator generator;
+    private final DocsGitCommitter gitCommitter;
     private final DocReadRepository reads;
     private final ObjectMapper mapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    public DocsController(WorkerProperties props, DocsSiteGenerator generator, DocReadRepository reads) {
+    public DocsController(WorkerProperties props, DocsSiteGenerator generator,
+                          DocsGitCommitter gitCommitter, DocReadRepository reads) {
         this.repoRoot = Path.of(props.getWorkingDirectory());
         this.generator = generator;
+        this.gitCommitter = gitCommitter;
         this.reads = reads;
     }
 
@@ -231,6 +234,9 @@ public class DocsController {
         log.info("Deleted document '{}' ({} path(s))", id, paths.size());
         // Refresh index + manifest from the surviving docs (best-effort).
         generator.regenerate();
+        // Persist the removal to git so the next deploy's `git checkout main`/merge
+        // can't restore the still-committed files and resurrect the doc (task #463).
+        gitCommitter.commitDeletion(id, paths);
     }
 
     /**

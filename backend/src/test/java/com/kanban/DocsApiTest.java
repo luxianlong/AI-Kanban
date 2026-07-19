@@ -1,5 +1,6 @@
 package com.kanban;
 
+import com.kanban.docs.DocsGitCommitter;
 import com.kanban.docs.DocsSiteGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,6 +48,9 @@ class DocsApiTest {
 
     @MockBean
     DocsSiteGenerator generator; // stub — don't shell out to node in tests
+
+    @MockBean
+    DocsGitCommitter gitCommitter; // stub — don't shell out to git in tests
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) throws IOException {
@@ -119,6 +125,9 @@ class DocsApiTest {
         assertThat(Files.exists(repo.resolve("docs/alpha.md"))).isFalse();
         assertThat(Files.exists(repo.resolve("frontend/public/docs/alpha.html"))).isFalse();
         verify(generator, times(1)).regenerate();
+        // The removal is persisted to git so a later checkout/merge can't restore it.
+        verify(gitCommitter, times(1)).commitDeletion(eq("alpha"),
+                eq(java.util.List.of("docs/alpha.md", "frontend/public/docs/alpha.html")));
     }
 
     @Test
@@ -151,6 +160,7 @@ class DocsApiTest {
                 .andExpect(status().isConflict());
 
         verify(generator, never()).regenerate();
+        verify(gitCommitter, never()).commitDeletion(any(), any());
     }
 
     @Test
@@ -161,6 +171,7 @@ class DocsApiTest {
         // Fail-closed: the in-roots path in the same entry must NOT be deleted.
         assertThat(Files.exists(repo.resolve("docs/evil.md"))).isTrue();
         verify(generator, never()).regenerate();
+        verify(gitCommitter, never()).commitDeletion(any(), any());
     }
 
     @Test
