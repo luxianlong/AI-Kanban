@@ -50,6 +50,14 @@
   .brand .sub { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; }
   .homelink { font-size: 12.5px; color: var(--ink-soft); text-decoration: none; border-bottom: 1px dotted var(--line); white-space: nowrap; }
   .homelink:hover { color: var(--red); }
+  .topbar .right { display: flex; align-items: center; gap: 12px; }
+  .sfx-btn {
+    font-family: inherit; cursor: pointer; background: rgba(255,255,255,0.4); border: 1px solid var(--line);
+    color: var(--ink-soft); border-radius: 8px; font-size: 15px; line-height: 1; padding: 5px 9px;
+    transition: color .12s, border-color .12s, opacity .12s;
+  }
+  .sfx-btn:hover { color: var(--red); border-color: var(--red); }
+  .sfx-btn.off { opacity: 0.55; }
 
   .card {
     background: linear-gradient(180deg, #fbf5e5 0%, #f3e8cf 100%);
@@ -227,6 +235,17 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* --- 种子局 / 同题挑战 (deterministic seed & same-deck challenge) --- */
+  .seed-banner {
+    margin: 16px auto 2px; max-width: 640px; background: rgba(178,59,46,0.07);
+    border: 1px solid var(--gold); border-radius: 10px; padding: 9px 14px; font-size: 13.5px; color: var(--ink);
+  }
+  .mono { font-family: "Noto Sans SC", ui-monospace, monospace; color: var(--red); font-weight: 700; letter-spacing: 1px; }
+  .seedline { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; margin: 14px 0 2px; }
+  .seedline .mono { color: var(--red); }
+  .turnbar .right { display: flex; align-items: center; gap: 10px; }
+  .turnbar .seed-tag { font-family: "Noto Sans SC", ui-monospace, monospace; color: var(--gold); font-weight: 700; letter-spacing: 1px; font-size: 12px; }
+
   .hidden { display: none !important; }
   @media (prefers-reduced-motion: reduce){ *{ transition: none !important; animation: none !important; } }
 </style>
@@ -238,7 +257,10 @@
       <span class="cn">大明王朝</span>
       <span class="sub">潜规则 · 官场生存模拟</span>
     </div>
-    <a class="homelink" href="/docs/daming-wangchao.html">← 关于本游戏 / 文档</a>
+    <div class="right">
+      <button class="sfx-btn" id="btn-sfx" type="button" title="音效开关（点击/翻页/收场的氛围声）" aria-label="音效开关">🔔</button>
+      <a class="homelink" href="/docs/daming-wangchao.html">← 关于本游戏 / 文档</a>
+    </div>
   </div>
 
   <!-- ============ TITLE SCREEN ============ -->
@@ -257,6 +279,7 @@
     </div>
     <p class="arrow">权力/暴力 ↓　　　钱财 ↑　　　信息（失真）↑</p>
 
+    <div class="seed-banner hidden" id="seed-banner">🎯 有人给你下了同一副牌（<span class="mono" id="banner-seed"></span>）——接招，看你走出哪个下场。</div>
     <div class="center">
       <button class="btn" id="btn-start">上任 · 开始一局 ▶</button>
     </div>
@@ -269,7 +292,10 @@
     <div class="card" style="padding:16px 18px;">
       <div class="turnbar">
         <span id="turn-label">上任伊始</span>
-        <span class="pips" id="pips" aria-hidden="true"></span>
+        <span class="right">
+          <span class="seed-tag" id="game-seed" title="本局牌序（种子）。同一种子＝同一副牌，可复现，可与人同题较量。"></span>
+          <span class="pips" id="pips" aria-hidden="true"></span>
+        </span>
       </div>
       <div class="hud" id="hud">
         <div class="stat" data-k="wusha" title="乌纱＝你的官位与前程。归零即被参倒去职，游戏结束。">
@@ -317,8 +343,10 @@
     <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button">🔎 这一局，你亲历了哪条潜规则？</button></div>
     <div class="map hidden" id="end-map"></div>
     <div class="codex" id="end-codex" aria-label="结局收藏"></div>
+    <p class="seedline" id="end-seedline"></p>
     <div class="end-actions">
-      <button class="btn" id="btn-restart">再世为官 · 重开一局 ↺</button>
+      <button class="btn" id="btn-restart">再世为官 · 换副牌重开 ↺</button>
+      <button class="btn ghost" id="btn-replay" type="button">🎯 同题再来 · 同一副牌</button>
       <button class="btn ghost" id="btn-share" type="button">📋 晒出我的下场</button>
       <a class="btn ghost" href="/docs/qianguize-wusi.html">想拆开来看 · 深度分析 →</a>
     </div>
@@ -338,9 +366,102 @@
   var TERM = 11;                 // 任期回合数
   var LOSE_SILVER = -40;         // 亏空触发线
   var S, turn, queue, current, history;
+  var rng, currentSeed;          // 本局的随机数发生器与种子（同种子＝同一副牌）
 
   var el = function (id) { return document.getElementById(id); };
   var KEYCAPS = ["①", "②", "③", "④", "⑤"];
+
+  // ---- 确定性种子局：同一种子复现同一副牌，可复盘、可与人「同题较量」--------
+  //  避开易混字符（0/O/1/I），生成短小好念的种子
+  var SEED_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  function randomSeed() {
+    var s = "";
+    for (var i = 0; i < 5; i++) s += SEED_ALPHABET.charAt(Math.floor(Math.random() * SEED_ALPHABET.length));
+    return s;
+  }
+  function normalizeSeed(raw) {
+    return String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+  }
+  // xmur3 取种子哈希 → mulberry32 出一串确定的伪随机数
+  function makeRng(seedStr) {
+    var h = 1779033703 ^ seedStr.length;
+    for (var i = 0; i < seedStr.length; i++) {
+      h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    var a = (h ^ (h >>> 16)) >>> 0;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // 页面若带 ?seed=XXXX，就是有人向你下了同一副牌
+  var urlSeed = (function () {
+    try {
+      var m = /[?&]seed=([^&]+)/i.exec(location.search);
+      var s = m ? normalizeSeed(decodeURIComponent(m[1])) : "";
+      return s.length >= 3 ? s : "";
+    } catch (e) { return ""; }
+  })();
+  function challengeUrl() {
+    return location.origin + location.pathname + "?seed=" + currentSeed;
+  }
+
+  // ---- 氛围音效：纯 WebAudio 合成，无外部音频文件；开关记进 localStorage ----
+  var SFX = (function () {
+    var KEY = "daming_wangchao_sfx_v1";
+    var on; try { on = localStorage.getItem(KEY) !== "off"; } catch (e) { on = true; }
+    var ctx = null;
+    function ac() {
+      if (!ctx) {
+        try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ctx = null; }
+      }
+      if (ctx && ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+      return ctx;
+    }
+    // 一枚带包络的单音；several 叠加即成钟／和弦
+    function tone(o) {
+      var c = ac(); if (!c) return;
+      try {
+        var osc = c.createOscillator(), g = c.createGain();
+        var t0 = c.currentTime + (o.delay || 0);
+        osc.type = o.type || "sine";
+        osc.frequency.setValueAtTime(o.f0, t0);
+        if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, t0 + o.dur);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(o.gain || 0.12, t0 + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+        osc.connect(g); g.connect(c.destination);
+        osc.start(t0); osc.stop(t0 + o.dur + 0.03);
+      } catch (e) {}
+    }
+    return {
+      isOn: function () { return on; },
+      toggle: function () {
+        on = !on;
+        try { localStorage.setItem(KEY, on ? "on" : "off"); } catch (e) {}
+        if (on) tone({ type: "triangle", f0: 660, f1: 990, dur: 0.14, gain: 0.12 });
+        return on;
+      },
+      // 落笔：短促的木鱼「笃」
+      pick: function () { if (on) tone({ type: "triangle", f0: 300, f1: 170, dur: 0.14, gain: 0.11 }); },
+      // 翻页：一声轻响
+      next: function () { if (on) tone({ type: "sine", f0: 520, f1: 680, dur: 0.10, gain: 0.06 }); },
+      // 收场：出局敲丧钟（低沉长鸣），任满则一声安顿的余韵
+      end: function (dead) {
+        if (!on) return;
+        if (dead) {
+          tone({ type: "sine", f0: 116, f1: 70, dur: 1.7, gain: 0.16 });
+          tone({ type: "triangle", f0: 174, f1: 116, dur: 1.4, gain: 0.06 });
+        } else {
+          tone({ type: "sine", f0: 392, dur: 1.1, gain: 0.10 });
+          tone({ type: "sine", f0: 523, dur: 1.3, gain: 0.08, delay: 0.06 });
+        }
+      }
+    };
+  })();
 
   // ---- 结局图鉴：把玩家走过的下场存进浏览器（localStorage），跨局累积 --------
   var CODEX_KEY = "daming_wangchao_codex_v1";
@@ -609,7 +730,7 @@
   function shuffle(a) {
     a = a.slice();
     for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
+      var j = Math.floor((rng ? rng() : Math.random()) * (i + 1));
       var t = a[i]; a[i] = a[j]; a[j] = t;
     }
     return a;
@@ -689,6 +810,7 @@
   function pick(idx) {
     var c = current.choices[idx];
     var fx = c.fx || {};
+    SFX.pick();
     // 应用数值
     Object.keys(fx).forEach(function (k) {
       if (k === "silver") S.silver += fx[k];
@@ -743,6 +865,7 @@
     if (current._gameOver) { endGame(current._gameOver); return; }
     turn++;
     if (turn >= TERM) { endGame(finalEnding()); return; }
+    SFX.next();
     showEvent();
   });
 
@@ -843,8 +966,16 @@
     er.textContent = END_HINT;
     renderTrail();
     renderCodex("end-codex", isNew ? key : null);
+    // 同题较量：亮出本局牌序，让人拿同一副牌来比
+    el("end-seedline").innerHTML =
+      "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
+      "「同题再来」或「晒出下场」里的链接，能让别人接到同一副牌。";
+    SFX.end(DEAD_ENDINGS[key]);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // 任期未满就出局的四种下场：收场敲丧钟（其余任满，给一声安顿的余韵）
+  var DEAD_ENDINGS = { purge: 1, downfall: 1, revolt: 1, prison: 1 };
 
   // ---- 晒结局：拼一段可转发的文字，复制到剪贴板 --------------------------
   function shareText() {
@@ -856,7 +987,8 @@
       "我的下场：" + title + "\n" +
       "🎏乌纱 " + S.wusha + "　🧑‍🌾民心 " + S.minxin + "　⚖️清誉 " + S.qingyu + "　💰白银 " + S.silver + " 两\n" +
       "结局图鉴 " + n + "/" + ENDING_ORDER.length + " —— 你能走出哪个下场？\n" +
-      "▶ " + location.origin + location.pathname;
+      "🎯 敢接同一副牌（牌序 " + currentSeed + "）就点这里：\n" +
+      "▶ " + challengeUrl();
   }
   function showToast(msg) {
     var t = el("toast");
@@ -893,7 +1025,10 @@
   });
 
   // ---- 开局 / 重开 --------------------------------------------------------
-  function startGame() {
+  function startGame(seed) {
+    currentSeed = (seed && normalizeSeed(seed)) || randomSeed();
+    rng = makeRng(currentSeed);
+    el("game-seed").textContent = "牌序 " + currentSeed;
     S = Object.assign({}, START);
     turn = 0;
     history = [];
@@ -905,9 +1040,22 @@
     showEvent();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+  // 从标题页开局：若 URL 带了 ?seed=，就接下那副牌，否则发一副新牌
+  function startFromTitle() { startGame(urlSeed || null); }
 
-  el("btn-start").addEventListener("click", startGame);
-  el("btn-restart").addEventListener("click", startGame);
+  el("btn-start").addEventListener("click", startFromTitle);
+  el("btn-restart").addEventListener("click", function () { startGame(null); });   // 换一副新牌
+  el("btn-replay").addEventListener("click", function () { startGame(currentSeed); }); // 同一副牌再战
+
+  // ---- 音效开关 -----------------------------------------------------------
+  function syncSfxBtn() {
+    var b = el("btn-sfx");
+    b.textContent = SFX.isOn() ? "🔔" : "🔕";
+    b.classList.toggle("off", !SFX.isOn());
+    b.setAttribute("aria-pressed", SFX.isOn() ? "true" : "false");
+  }
+  el("btn-sfx").addEventListener("click", function () { SFX.toggle(); syncSfxBtn(); });
+  syncSfxBtn();
 
   // ---- 键盘操作：1/2/3 选项，Enter/→/空格 继续 ----------------------------
   document.addEventListener("keydown", function (ev) {
@@ -923,11 +1071,12 @@
       }
       return;
     }
-    // 标题页 / 结局页：Enter 开局或重开
+    // 标题页 Enter：接下 URL 那副牌（若有）；结局页 Enter：换一副新牌重开
     if (ev.key === "Enter") {
-      if (!el("screen-title").classList.contains("hidden") ||
-          !el("screen-end").classList.contains("hidden")) {
-        ev.preventDefault(); startGame();
+      if (!el("screen-title").classList.contains("hidden")) {
+        ev.preventDefault(); startFromTitle();
+      } else if (!el("screen-end").classList.contains("hidden")) {
+        ev.preventDefault(); startGame(null);
       }
     }
   });
@@ -937,6 +1086,14 @@
     if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
     el("title-codex").classList.remove("hidden");
     renderCodex("title-codex", null);
+  })();
+
+  // ---- 初始化：若被人以 ?seed= 下了战书，标题页亮出「同题挑战」横幅 --------
+  (function initChallenge() {
+    if (!urlSeed) return;
+    el("banner-seed").textContent = urlSeed;
+    el("seed-banner").classList.remove("hidden");
+    el("btn-start").textContent = "接下这副牌 ▶";
   })();
 })();
 </script>
