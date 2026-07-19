@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "kechuang-forecast-2026-07-16",
-    "title": "预测今天科创板走势（2026-07-16）",
-    "href": "/docs/kechuang-forecast-2026-07-16.html",
-    "deletable": true,
-    "file": "docs/kechuang-forecast-2026-07-16.md",
-    "updatedAt": "2026-07-19T05:27:11.835Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/kechuang-forecast-2026-07-16.md",
-      "frontend/public/docs/kechuang-forecast-2026-07-16.html"
-    ]
-  },
-  {
     "id": "kechuang-investment-guide",
     "title": "科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）",
     "href": "/docs/kechuang-investment-guide.html",
