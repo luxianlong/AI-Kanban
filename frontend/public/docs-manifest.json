@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "kechuang-forecast-2026-07-16-review",
-    "title": "预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）",
-    "href": "/docs/kechuang-forecast-2026-07-16-review.html",
-    "deletable": true,
-    "file": "docs/kechuang-forecast-2026-07-16-review.md",
-    "updatedAt": "2026-07-19T05:27:11.835Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/kechuang-forecast-2026-07-16-review.md",
-      "frontend/public/docs/kechuang-forecast-2026-07-16-review.html"
-    ]
-  },
-  {
     "id": "kechuang-forecast-2026-07-16",
     "title": "预测今天科创板走势（2026-07-16）",
     "href": "/docs/kechuang-forecast-2026-07-16.html",
