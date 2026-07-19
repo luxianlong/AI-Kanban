@@ -359,6 +359,7 @@
 
     <div class="seed-banner hidden" id="seed-banner">🎯 有人给你下了同一副牌（<span class="mono" id="banner-seed"></span>）——接招，看你走出哪个下场。</div>
     <div class="center">
+      <button class="btn ghost hidden" id="btn-resume" type="button" title="上一任还没走完——接着上回的那副牌、那处坎往下走">▶ 继续上一任</button>
       <button class="btn" id="btn-start">上任 · 开始一局 ▶</button>
       <button class="btn ghost" id="btn-daily" type="button" title="今天全网同一副牌，明日换新——看谁走出更好的下场">🗓️ 今日同题 · 全网同一副牌</button>
     </div>
@@ -1099,6 +1100,7 @@
       box.appendChild(b);
     });
     renderPips();
+    writeSave();                   // 每坎开局即存档，尚未落笔——离开后可从此坎续玩
     el("event-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
     announce("第 " + (turn + 1) + " 抉择，" + current.title + "。" +
              current.choices.length + " 个选项，按数字键或点击选择。");
@@ -1250,6 +1252,7 @@
   var END_HINT = "🔎 这一局，你亲历了哪条潜规则？";
 
   function endGame(key) {
+    clearSave();                   // 一任已了结，无可续之处
     var e = ENDINGS[key] || ENDINGS.survivor;
     // 记进图鉴；本局若是头一回抵达这个下场，就高亮它
     var got = loadCodex();
@@ -1488,6 +1491,45 @@
     this.setAttribute("aria-expanded", hiddenNow ? "false" : "true");
   });
 
+  // ---- 存档 / 续玩：一任还没走完就离开，回来能接着走 ----------------------
+  //   只存「牌序 + 走到第几坎 + 四维属性 + 走过的选择 + 是否今日同题」。
+  //   事件序列本就由牌序确定地推出，所以续玩时用同一牌序重建牌堆即可完全复现，
+  //   不另存牌堆、也不动种子/同题语义。快照落在「每坎开局、尚未落笔」这一刻。
+  var SAVE_KEY = "daming_wangchao_save_v1";
+  function loadSave() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch (e) { return null; } }
+  function writeSave() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        ver: 1, seed: currentSeed, turn: turn, S: S, history: history, daily: playedAsDaily
+      }));
+    } catch (e) { /* 隐私模式等，无所谓 */ }
+  }
+  function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+  // 有效的续玩存档：版本对、牌序在、已走过至少一坎、尚未任满、属性齐全
+  function validSave(sv) {
+    return !!sv && sv.ver === 1 && typeof sv.seed === "string" && sv.seed.length >= 3 &&
+      typeof sv.turn === "number" && sv.turn >= 1 && sv.turn < TERM &&
+      sv.S && typeof sv.S.wusha === "number" && Array.isArray(sv.history);
+  }
+  function resumeSave() {
+    var sv = loadSave();
+    if (!validSave(sv)) { el("btn-resume").classList.add("hidden"); return; }
+    playedAsDaily = !!sv.daily;
+    currentSeed = normalizeSeed(sv.seed);
+    rng = makeRng(currentSeed);                 // 同一牌序 → 重建出完全相同的牌堆
+    el("game-seed").textContent = "牌序 " + currentSeed;
+    S = Object.assign({}, START, sv.S);
+    history = sv.history.slice();
+    queue = buildQueue();
+    turn = sv.turn;
+    el("screen-title").classList.add("hidden");
+    el("screen-end").classList.add("hidden");
+    el("screen-game").classList.remove("hidden");
+    renderHUD();
+    showEvent();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   // ---- 开局 / 重开 --------------------------------------------------------
   function startGame(seed) {
     playedAsDaily = false;                 // 默认非「今日同题」；由 btn-daily 覆盖
@@ -1546,6 +1588,16 @@
       }
     }
   });
+
+  // ---- 初始化：上一任没走完，标题页亮出「继续上一任」------------------------
+  (function initResume() {
+    var sv = loadSave();
+    if (!validSave(sv)) return;
+    var b = el("btn-resume");
+    b.textContent = "▶ 继续上一任 · 第 " + (sv.turn + 1) + " 抉择";
+    b.classList.remove("hidden");
+    b.addEventListener("click", resumeSave);
+  })();
 
   // ---- 初始化：标题页展示已解锁的结局图鉴（有走过才显示）------------------
   (function initTitleCodex() {
