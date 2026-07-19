@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "qianguize-wusi",
-    "title": "潜规则：中国历史中的真实游戏 — 分析文档",
-    "href": "/docs/qianguize-wusi.html",
-    "deletable": true,
-    "file": "docs/qianguize-wusi.md",
-    "updatedAt": "2026-07-19T03:06:20.171Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/qianguize-wusi.md",
-      "frontend/public/docs/qianguize-wusi.html"
-    ]
-  },
-  {
     "id": "daming-wangchao",
     "title": "大明王朝：潜规则生存模拟（网页游戏）",
     "href": "/docs/daming-wangchao.html",
