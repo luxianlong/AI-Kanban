@@ -139,9 +139,21 @@
     margin-top: 14px; background: rgba(255,255,255,0.6); border: 1px dashed var(--line);
     border-radius: 10px; padding: 12px 14px;
   }
-  .verdict .read { font-size: 13.5px; color: var(--ink-soft); }
-  .verdict .read b { color: var(--red); }
-  .fx-line { margin: 6px 0 2px; font-size: 13px; }
+  .verdict .outcome { font-size: 14.5px; color: var(--ink); }
+  .verdict .outcome b { color: var(--red); }
+  .reveal-btn {
+    font-family: inherit; cursor: pointer; background: none; border: none;
+    padding: 6px 0 2px; margin-top: 6px; color: var(--ink-soft); font-size: 12.5px;
+    letter-spacing: .3px; border-bottom: 1px dotted var(--line);
+  }
+  .reveal-btn:hover { color: var(--red); }
+  .note {
+    margin-top: 8px; font-size: 13px; color: var(--ink-soft); line-height: 1.72;
+    border-left: 3px solid var(--gold-soft); padding-left: 12px;
+  }
+  .note b { color: var(--red); }
+  .note .tag { color: var(--gold); font-size: 12px; }
+  .fx-line { margin: 6px 0 8px; font-size: 13px; }
   .fx-chip { display: inline-block; margin: 2px 6px 2px 0; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
   .fx-chip.up { background: #e2f0e6; color: var(--good); }
   .fx-chip.down { background: #f6e2dc; color: var(--bad); }
@@ -157,6 +169,7 @@
   .ending h2 { text-align: center; color: var(--red); font-size: 26px; margin: 6px 0 2px; }
   .ending .kicker { text-align: center; color: var(--ink-soft); font-size: 13px; margin: 0 0 14px; letter-spacing: 1px; }
   .ending .body p { margin: 10px 0; }
+  .end-reveal-wrap { text-align: center; margin-top: 8px; }
   .ending .map { background: rgba(255,255,255,0.55); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
   .ending .map b { color: var(--red); }
   .stat-final { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0 2px; }
@@ -182,16 +195,16 @@
   <!-- ============ TITLE SCREEN ============ -->
   <section id="screen-title" class="card hero">
     <h1>大明王朝</h1>
-    <p class="tag">一款把《潜规则》做进玩法的官场生存模拟</p>
-    <p>崇祯元年，你放了外任，做一县之主——<b>知县</b>。头顶是催考成的上宪，身后是盘根错节的胥吏，脚下是交不完钱粮的百姓。</p>
-    <p>你手握「<b>合法伤害权</b>」：一支笔，可活人，也可杀人。这一局的规则，明面上写在《大明律》里，真正管用的那套，却从没人写下来。</p>
-    <p>你的目标只有一个：<b>在任满之前活下来</b>——保住乌纱、填平亏空、别激起民变。至于要不要守住良心，是你的选择。</p>
+    <p class="tag">崇祯元年 · 你放了外任，去做一县之主</p>
+    <p>头顶是催考成的上宪，身后是盘根错节的胥吏，脚下是交不完钱粮的百姓。明面的规矩写在《大明律》里，真正管用的那套，从没人写下来。</p>
+    <p>你手里有一支笔——它能救人，也能杀人。三年任期，十来个坎，你自己选着走。</p>
+    <p>怎么下场，游戏不替你评判。走完这一局，你大概会自己看明白。</p>
 
     <div class="roles" aria-label="委托代理链">
       <div class="role"><span class="emo">👑</span><span class="nm">皇帝</span><span class="dsc">要钱要太平</span></div>
       <div class="role"><span class="emo">🎩</span><span class="nm">上宪/官僚</span><span class="dsc">考成·收陋规</span></div>
-      <div class="role"><span class="emo">🧾</span><span class="nm">你 · 胥吏</span><span class="dsc">执行·手握刀笔</span></div>
-      <div class="role"><span class="emo">🧑‍🌾</span><span class="nm">百姓</span><span class="dsc">最后的冤大头</span></div>
+      <div class="role"><span class="emo">🧾</span><span class="nm">你 · 知县</span><span class="dsc">执行·手握刀笔</span></div>
+      <div class="role"><span class="emo">🧑‍🌾</span><span class="nm">百姓</span><span class="dsc">链条的最末端</span></div>
     </div>
     <p class="arrow">权力/暴力 ↓　　　钱财 ↑　　　信息（失真）↑</p>
 
@@ -235,7 +248,9 @@
       <div class="choices" id="ev-choices"></div>
       <div class="verdict hidden" id="ev-verdict">
         <div id="ev-fx" class="fx-line"></div>
-        <div class="read" id="ev-read"></div>
+        <div class="outcome" id="ev-outcome"></div>
+        <button class="reveal-btn" id="ev-reveal" type="button">🔎 这一步，动了哪条潜规则？</button>
+        <div class="note hidden" id="ev-note"></div>
         <div class="next-wrap"><button class="btn" id="btn-next">下一步 ▶</button></div>
       </div>
     </div>
@@ -248,14 +263,15 @@
     <p class="kicker" id="end-kicker"></p>
     <div class="stat-final" id="end-stats"></div>
     <div class="body" id="end-body"></div>
-    <div class="map" id="end-map"></div>
+    <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button">🔎 这一局，你亲历了哪条潜规则？</button></div>
+    <div class="map hidden" id="end-map"></div>
     <div class="end-actions">
       <button class="btn" id="btn-restart">再世为官 · 重开一局 ↺</button>
-      <a class="btn ghost" href="/docs/qianguize-wusi.html">读懂这套规则 · 深度分析 →</a>
+      <a class="btn ghost" href="/docs/qianguize-wusi.html">想拆开来看 · 深度分析 →</a>
     </div>
-    <p class="footnote">游戏中每一个「潜规则解读」都对应《潜规则》分析文档里的一节 ·
+    <p class="footnote">想拆解每个选择背后的门道？点开选项后的「🔎」，或读读它的
       <a href="/docs/qianguize-haowanban.html">好玩版</a> ·
-      <a href="/docs/qianguize-wusi.html">学术版</a></p>
+      <a href="/docs/qianguize-wusi.html">学术版</a> 分析。</p>
   </section>
 </div>
 
@@ -271,7 +287,10 @@
 
   var el = function (id) { return document.getElementById(id); };
 
-  // ---- 事件库（每个抉择都编码一条潜规则机制）------------------------------
+  // ---- 事件库 --------------------------------------------------------------
+  // 每个抉择有两段文字：
+  //   outcome —— 选完后世界里实际发生的事（默认就显示，只叙事，不说教）
+  //   note    —— 这一步动了哪条潜规则（藏在「🔎」里，想看才点开）
   // fx 的键：wusha 乌纱 / minxin 民心 / qingyu 清誉 / silver 白银
   var INTRO = {
     concept: "陋规 · 新官到任",
@@ -279,11 +298,14 @@
     text: "你刚捧起大印，老书吏便递来一张单子：给上司的炭敬、冰敬，给同僚的印结银，给衙门书办的辛苦钱……「大人，这都是历来的规矩，不成文，但一分都少不得。」",
     choices: [
       { lab: "照单全收，按例孝敬上下", fx: { wusha: +9, silver: -16, qingyu: -10 },
-        read: "你交的第一笔钱，就是<b>入伙费</b>。陋规不写在律里，却是真正在运转的规则——你交了，就默认自己是这台机器的一颗齿轮。（对应：陋规 / 淘汰清官机制的第一步）" },
+        outcome: "老书吏把单子折好，脸上头一回堆起笑：「大人上道，往后好说话。」消息传得比你想的快——不出半月，上下都拿你当「自己人」了。",
+        note: "这第一笔炭敬冰敬，是入伙费。它不写进《大明律》，却是真正在运转的那套规矩。<span class='tag'>〔陋规 · 淘汰清官机制的起点〕</span>" },
       { lab: "一概拒付，清廉自守", fx: { wusha: -13, qingyu: +12 },
-        read: "上司皱了眉，同僚把你记进了「另册」。<b>淘汰清官机制</b>已经启动——系统不需要坏人来对付你，只需要「大家都这样，就你不一样」。（对应：淘汰清官机制）" },
+        outcome: "书吏脸一沉，退了出去。没几天，上司的批文开始变得挑剔，同僚的酒局也「忘了」叫你。没人明说什么，你却分明被挪进了另一册名单。",
+        note: "没人下令对付你，只是「大家都这样，就你不一样」。这就是淘汰清官机制启动的样子。<span class='tag'>〔淘汰清官机制〕</span>" },
       { lab: "只给绕不过去的，其余暗中记账", fx: { wusha: +2, silver: -8, qingyu: -2 },
-        read: "你在夹缝里找平衡——多数人都是这么开始的。记账，是你还想给自己留个「将来说得清」的余地。（对应：第二等公平的入口）" }
+        outcome: "你挑着给了几处硬骨头，其余悄悄记进一个小本子。师爷瞥了一眼，没吭声——他见过太多这样开头的人。",
+        note: "夹缝里找平衡，是多数人的起手式。记账，是给将来留一句「我说得清」。<span class='tag'>〔第二等公平的入口〕</span>" }
     ]
   };
 
@@ -293,150 +315,186 @@
     text: "辽东战事吃紧，朝廷加派辽饷、剿饷、练饷。上命如山，数目已按你这县的丁口算好——多少两，几时解京，写得清清楚楚。可你治下的百姓，连去年的钱粮都还没交齐。",
     choices: [
       { lab: "如数加征，限期严逼", fx: { wusha: +8, silver: +5, minxin: -22 },
-        read: "你把压力原样传给了最下面一环。<b>委托代理链</b>每传一道就加一次码，最后全压在<b>冤大头</b>身上——皇帝越是勤政催饷，链条末端崩得越快，这就是<b>崇祯死弯</b>。（对应：崇祯死弯 / 老百姓是个冤大头）" },
+        outcome: "限期的告示贴出去，衙役下乡催缴。哭声、押解声一路传回县衙。数字总算凑齐，解京的文书也签了——你这一环，交差了。",
+        note: "压力原样往下压，每传一道加一次码，最后全落在跑不掉的百姓身上。皇帝越是催得急，末端崩得越快。<span class='tag'>〔崇祯死弯 · 老百姓是个冤大头〕</span>" },
       { lab: "抗命缓征，为民请命上疏", fx: { wusha: -17, qingyu: +14, minxin: +11 },
-        read: "你替百姓挡了一刀，却把刀口对准了自己的仕途。系统允许一两个海瑞式的例外存在，正是为了证明「规矩」本身没错。（对应：淘汰清官机制 / 海瑞之为例外）" },
+        outcome: "奏疏递上去，如石沉大海，只换回一句「不谙大体」的批语。百姓念你的好，你的考成却已经挂了彩。",
+        note: "系统容得下一两个海瑞式的例外——正好用来证明「规矩本身没错」。<span class='tag'>〔淘汰清官 · 海瑞之为例外〕</span>" },
       { lab: "如数上报，暗中宽限贫户", fx: { wusha: -4, minxin: -8, qingyu: +5, silver: -5 },
-        read: "你想两头都不彻底得罪——账面服从，私下留情。这能拖一阵，却填不平结构的窟窿：只要不受制约的加派还在，缓一时也只是把死弯拉长。（对应：崇祯死弯 / 第二等公平）" }
+        outcome: "账面上你一分不少地报了，私底下给几户贫家松了限。能拖一阵，可窟窿还在那儿——加派不停，缓一时也只是把弯拉长。",
+        note: "账面服从、私下留情，两头都不彻底。结构的窟窿，不是靠一点良心就填得平的。<span class='tag'>〔崇祯死弯 · 第二等公平〕</span>" }
     ]
   };
 
   var POOL = [
     { concept: "合法伤害权 · 身怀利器",
       title: "一桩人命官司，苦主与被告都来送礼",
-      text: "命案两造各托人情、各备厚礼。案卷怎么写、罪往哪边判，全在你一支笔——这支笔就是「合法伤害权」，可以救人，也可以杀人。",
+      text: "命案两造各托人情、各备厚礼。案卷怎么写、罪往哪边判，全在你一支笔——这支笔既能救人，也能杀人。",
       choices: [
         { lab: "秉公审断，两家礼金都退回", fx: { qingyu: +11, wusha: -5 },
-          read: "你放弃了变现的机会，也得罪了有力的一方。手握利器却不用来寻租，在这套系统里是「不识时务」。（对应：合法伤害权）" },
+          outcome: "两家的礼金都退了回去。赢的一方念你清明，输的那家却记恨上了你——偏偏那家更有来头。师爷叹气：「大人，何苦呢。」",
+          note: "手握能加害于人的笔，却不拿它变现，在这套系统里叫「不识时务」。<span class='tag'>〔合法伤害权〕</span>" },
         { lab: "收下厚礼，判给出得起价的一方", fx: { silver: +18, qingyu: -14, minxin: -8 },
-          read: "你把手里的刀明码标价卖了出去。这正是寻租的基本单元——权力一旦能定价，就一定会被定价。（对应：合法伤害权 / 寻租）" },
+          outcome: "银子入了库，案子也判了。出得起价的那家千恩万谢，另一家的哭声被挡在了衙门外。你的笔，头一回明码标了价。",
+          note: "权力一旦能定价，就一定会被定价——这是寻租最基本的那颗零件。<span class='tag'>〔合法伤害权 · 寻租〕</span>" },
         { lab: "各收一份，各打五十大板，两边通吃", fx: { silver: +8, qingyu: -6, minxin: -4 },
-          read: "「和稀泥」也是一门生意：谁都别想赢，谁都得先交钱。（对应：第二等公平）" }
+          outcome: "两家的礼你都收了，各打五十大板，谁也没赢。出了衙门，两家都在骂你，却都还得再备一份礼。",
+          note: "和稀泥也是一门生意：谁都别想赢，谁都得先交钱。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "陋规 · 火耗归公",
       title: "征收本年钱粮，火耗如何处置？",
       text: "碎银熔铸成锭有「火耗」损耗，加征多少、归谁，全凭你一句话。加得狠，能孝敬上司、肥自己；加得轻，百姓得喘息，可上司分润就少了。",
       choices: [
         { lab: "火耗从实征收，尽量减轻百姓", fx: { minxin: +12, silver: -6, wusha: -4 },
-          read: "你少收的每一分，都是上司少分到的一分——于是你又上了一次「不懂规矩」的黑名单。（对应：陋规 / 淘汰清官机制）" },
+          outcome: "你把火耗压到了最低。百姓交口称便，可这个月上司那份「分润」薄了一截——账房递账时的那个眼神，你懂。",
+          note: "你少收的每一分，都是上司少分到的一分。于是你又上了一次「不懂规矩」的名册。<span class='tag'>〔陋规 · 淘汰清官〕</span>" },
         { lab: "加征火耗，一半孝敬上宪", fx: { silver: +14, wusha: +6, minxin: -12, qingyu: -8 },
-          read: "陋规就是这样从上到下自我复制的：你孝敬上司的钱，最终都从百姓身上出。（对应：陋规 / 冤大头）" },
+          outcome: "火耗加得足足的，一半封成锭送进了府里。上司很满意，你的私囊也鼓了——只是街上多了些交不起的人家。",
+          note: "陋规就这样从上到下自我复制：你孝敬上司的钱，最后都从百姓身上出。<span class='tag'>〔陋规 · 冤大头〕</span>" },
         { lab: "略加一成，随大流", fx: { silver: +6, minxin: -5, qingyu: -3 },
-          read: "「大家都加，我不加反而显眼」——次优均衡就是这样一票一票投出来的。（对应：第二等公平）" }
+          outcome: "你随大流加了一成，不多不少。没人夸你，也没人挑你——正好淹没在人群里。",
+          note: "「大家都加，我不加反而显眼」——次优均衡，就是这样一票一票投出来的。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "淘汰清官 · 分肥饭局",
       title: "同僚设宴，席间要分「常例」的红",
       text: "本府同僚攒了个局，酒过三巡，有人把一叠银票推到你面前：「这是这季的常例，人人有份，大人也别客气。」",
       choices: [
         { lab: "婉拒不受，独善其身", fx: { qingyu: +8, wusha: -10 },
-          read: "你不收，等于当众说「你们都脏，就我干净」。从此同僚会本能地排挤你——系统的免疫细胞开始围剿异类。（对应：淘汰清官机制）" },
+          outcome: "你把银票推了回去，席上一时冷场。有人打哈哈圆了过去，可打那以后，同僚看你的眼神里，多了层客气的疏远。",
+          note: "你不收，等于当众说「你们都脏，就我干净」。这张圈子会本能地把你挤出去。<span class='tag'>〔淘汰清官机制〕</span>" },
         { lab: "笑纳入袋，融入圈子", fx: { silver: +12, wusha: +7, qingyu: -10 },
-          read: "收下的那一刻，你就有了「把柄」，也有了「自己人」的身份。互相拿捏，才是这张网真正的绳结。（对应：淘汰清官 / 第二等公平）" }
+          outcome: "你把银票收进袖子，满桌都松了口气，纷纷敬你的酒。从这一刻起，你既有了「把柄」，也有了「自己人」的身份。",
+          note: "互相拿捏，才是这张网真正的绳结。收下的那一刻，你就进圈了。<span class='tag'>〔淘汰清官 · 第二等公平〕</span>" }
       ] },
     { concept: "老百姓是冤大头 · 灾年赈济",
       title: "灾年放赈，赈粮要不要「照例」克扣？",
       text: "上头拨下的赈灾粮款有限，经手的每一层都想揩一点油。轮到你这一环，是原样发下去，还是「照老规矩」先留三成？",
       choices: [
         { lab: "亲自监放，一粒不取", fx: { minxin: +15, qingyu: +10, silver: -8, wusha: -6 },
-          read: "你堵住了自己这一环，却坏了整条链子的「规矩」，上下都嫌你多事。（对应：冤大头 / 淘汰清官）" },
+          outcome: "你盯着把每一粒赈粮发到人手里。灾民给你磕头，可经手的胥吏和上头都嫌你多事——你坏了整条链子的「规矩」。",
+          note: "你堵住了自己这一环，可这条链子，本就容不下一个不揩油的环节。<span class='tag'>〔冤大头 · 淘汰清官〕</span>" },
         { lab: "照例克扣三成入囊", fx: { silver: +16, minxin: -15, qingyu: -11 },
-          read: "赈灾款流到最饿的人手里已所剩无几——成本转嫁的终点，永远是那个跑不掉、也没人替他说话的百姓。（对应：老百姓是个冤大头）" },
+          outcome: "三成粮先入了你的囊。剩下的一层层再漏，到最饿的人手里已没剩多少。没人来查——历来都是这么放的。",
+          note: "成本转嫁的终点，永远是那个跑不掉、也没人替他说话的百姓。<span class='tag'>〔老百姓是个冤大头〕</span>" },
         { lab: "睁只眼闭只眼，交给胥吏去办", fx: { silver: +4, minxin: -8, qingyu: -6 },
-          read: "「我没伸手」——可默许胥吏伸手，坏结果照样发生。这套系统最阴狠的一点：<b>坏结果不需要坏人</b>。（对应：冤大头 / 委托代理失灵）" }
+          outcome: "你没伸手，只把事交了下去，转过身去不看。粮怎么少的、少到哪儿，你「不知道」——可饿着的人，照样饿着。",
+          note: "你没伸手，坏结果照样发生。这套系统最阴的一点：坏结果不需要坏人。<span class='tag'>〔冤大头 · 委托代理失灵〕</span>" }
       ] },
     { concept: "第二等公平 · 挂号钱",
       title: "百姓喊冤，先被胥吏索「挂号钱」",
       text: "有苦主来告状，还没进堂，就被门口书办拦下：「递状子先交挂号钱，不然状纸递不到大人案头。」百姓咬牙掏了钱——只求别再被额外刁难。",
       choices: [
         { lab: "严禁陋费，敞开门公开受理", fx: { minxin: +12, silver: -6, wusha: -6 },
-          read: "你断了胥吏的财路，他们未必明着反你，却会在你看不见的地方使绊子。（对应：第二等公平 / 胥吏之害）" },
+          outcome: "你贴出告示，敞开受理，不许再收挂号钱。百姓一时叫好，书办们却不动声色——你看不见的地方，绊子已经埋下。",
+          note: "你断了胥吏的财路，他们未必明着反你，却有的是在暗处使力的法子。<span class='tag'>〔第二等公平 · 胥吏之害〕</span>" },
         { lab: "默许收费，只当没看见", fx: { silver: +8, minxin: -6, qingyu: -6 },
-          read: "百姓花钱买的不是「公道」，只是「至少别再多坑我」——这就是<b>第二等公平</b>：一个人人都吃亏、却谁也不敢先退出的稳定均衡。（对应：第二等公平）" }
+          outcome: "你当没看见，挂号钱照收。苦主咬牙掏了钱，只求别再被额外刁难——他买的不是「公道」，只是「别再多坑我」。",
+          note: "人人吃亏、却谁也不敢先退出的稳定均衡，就是第二等公平。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "上意 · 考成打点",
       title: "上宪下来考察政绩",
       text: "三年一考，京察在即。上宪的评语几乎决定你的去留。是重金打点、把账面粉饰得花团锦簇，还是据实以报、听天由命？",
       choices: [
         { lab: "重金打点，粉饰太平", fx: { wusha: +12, silver: -18, qingyu: -6 },
-          read: "考成考的从来不是治绩，而是「会不会做人」。你用真金白银，买了一句好评语。（对应：陋规 / 信息失真）" },
+          outcome: "银子撒下去，账面粉饰得花团锦簇，考语果然是「谙练老成」。你买的不是治绩，是一句「会做人」。",
+          note: "考成考的从来不是治绩，而是会不会做人。<span class='tag'>〔陋规 · 信息失真〕</span>" },
         { lab: "据实以报，不迎不送", fx: { wusha: -11, qingyu: +8 },
-          read: "你把真实的难处报了上去，换来的却是「不谙政体」的差评。诚实在这套激励里是要付费的奢侈品。（对应：淘汰清官 / 激励错配）" },
+          outcome: "你把真实的难处一五一十报了上去，换回来的是「不谙政体」四个字。诚实在这套账里，是要另外付费的。",
+          note: "在这套激励里，诚实是奢侈品，报忧还要倒扣分。<span class='tag'>〔淘汰清官 · 激励错配〕</span>" },
         { lab: "送常例礼，但不作假账", fx: { wusha: +4, silver: -10 },
-          read: "你守住了「不撒谎」的底线，也交了「懂规矩」的过路费。多数还想干净的人，就卡在这个位置。（对应：第二等公平）" }
+          outcome: "你没撒谎，也交足了「懂规矩」的过路费。考语平平——多数还想干净的人，都卡在这个位置。",
+          note: "守住不撒谎的底线，同时交买路钱。这是大多数人落脚的均衡点。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "身怀利器 · 敲诈富商",
       title: "境内一个富商，看着就是块肥肉",
       text: "师爷凑近低声：「大人，那盐商家底厚，随便寻个由头——短了牙税也好，僭越也罢——就能敲他一大笔，他不敢不给。」",
       choices: [
         { lab: "罗织由头，狠敲一笔", fx: { silver: +20, qingyu: -16, minxin: -4 },
-          read: "「身怀利器，杀心自起」——一旦发现权力可以随意加害于人，用它来变现就成了本能。（对应：身怀利器 / 合法伤害权）" },
+          outcome: "随便寻的由头，盐商不敢不认，乖乖送来一大笔。钱来得太容易了——容易到你开始留意下一个「肥肉」。",
+          note: "一旦发现权力能随意加害于人，用它来变现就成了本能。<span class='tag'>〔身怀利器 · 合法伤害权〕</span>" },
         { lab: "依法办事，不无端加罪", fx: { qingyu: +8, wusha: -2 },
-          read: "你把出鞘的刀又收了回去。难得，但在这套系统里，克制不会被奖励，只会被当成「不会来事」。（对应：合法伤害权）" }
+          outcome: "你把出鞘的刀又收了回去，放了盐商一马。师爷直摇头——在这儿，克制不叫廉洁，叫「不会来事」。",
+          note: "克制不会被奖励，只会被当成不识时务。<span class='tag'>〔合法伤害权〕</span>" }
       ] },
     { concept: "公共品 · 修河堤",
       title: "汛期将至，城外河堤该修了",
       text: "修堤要钱要人。你可以从积攒的陋规银里掏钱认真修；也可以层层发包、大吃回扣，糊个豆腐渣工程上报完工。",
       choices: [
         { lab: "自掏陋规银，认真修固", fx: { minxin: +14, silver: -14, qingyu: +8, wusha: -3 },
-          read: "你把捞来的钱又投回了公共品——难得的良性回流。但它靠的是你个人的良心，而非制度，所以随时可能断。（对应：委托代理 / 制度缺位）" },
+          outcome: "你把捞来的银子又贴回了河堤，堤修得结结实实。百姓念你的好——可这靠的是你这一任的良心，换个人来就断了。",
+          note: "难得的良性回流，靠的是个人良心而非制度，所以随时可能中断。<span class='tag'>〔委托代理 · 制度缺位〕</span>" },
         { lab: "层层发包，大吃回扣", fx: { silver: +16, minxin: -10, qingyu: -12 },
-          read: "回扣吃饱了，隐患埋下了。等堤一垮，冤大头还是堤下的百姓——而账，早已做平。（对应：冤大头 / 合法伤害权）" },
+          outcome: "工程层层转包，回扣你吃了个饱，糊了道豆腐渣上报完工。账做平了，隐患埋进了堤里，只等一场汛。",
+          note: "堤一垮，冤大头还是堤下的百姓，账却早已做平。<span class='tag'>〔冤大头 · 合法伤害权〕</span>" },
         { lab: "草草敷衍，上报「已竣工」", fx: { silver: +4, wusha: +2, minxin: -6 },
-          read: "报上去的是太平，留下来的是窟窿。信息在链条里一路失真，上面看到的永远是粉饰过的版本。（对应：信息不对称）" }
+          outcome: "你草草糊弄，一纸「已竣工」报了上去。上面看到的是太平，看不到的是那道随时会开的口子。",
+          note: "信息一路失真，上面看到的永远是粉饰过的版本。<span class='tag'>〔信息不对称〕</span>" }
       ] },
     { concept: "言路 · 结交言官",
       title: "同乡在都察院做御史，来信「叙旧」",
       text: "信里绕来绕去，落点是那句老话——「炭敬」。给足了，御史的弹章里就没你；给不够，难保哪天一本参上来。",
       choices: [
         { lab: "厚结言路，破财免灾", fx: { wusha: +10, silver: -15, qingyu: -4 },
-          read: "连「监督者」也在这张网里收费。本该制衡权力的言官，成了另一个收陋规的关口。（对应：制衡失效 / 陋规）" },
+          outcome: "炭敬送足，御史的弹章里果然没了你的名字。连本该盯着你的人，也成了要打点的一道关口。",
+          note: "该制衡权力的言官，成了另一个收陋规的关卡。<span class='tag'>〔制衡失效 · 陋规〕</span>" },
         { lab: "婉言谢绝", fx: { wusha: -6, qingyu: +6 },
-          read: "你少了一个靠山，多了一个隐患。在没有真制衡的地方，得罪谁都可能是致命的。（对应：制衡缺失）" }
+          outcome: "你没送那份炭敬。少了一个靠山，也多了一个说不准哪天会参你一本的隐患。",
+          note: "在没有真制衡的地方，得罪谁都可能是致命的。<span class='tag'>〔制衡缺失〕</span>" }
       ] },
     { concept: "信息失真 · 流民瞒报",
       title: "境内出现成群流民",
       text: "灾荒把邻县的流民也引了过来。如实上报请赈，会显得你「治理无能」；瞒下不报、把流民驱赶出境，账面上你这县就还是一片太平。",
       choices: [
         { lab: "如实上报，请求开赈", fx: { minxin: +8, wusha: -8, qingyu: +6 },
-          read: "你把真相递了上去，却给自己的考成添了污点。系统奖励「报喜」，惩罚「报忧」，于是真相越往上越稀薄。（对应：信息不对称 / 激励错配）" },
+          outcome: "你据实请赈，救了些人，却给自己的考成添了「治理无能」的一笔。报忧的，总是先挨罚。",
+          note: "系统奖励报喜、惩罚报忧，于是真相越往上越稀薄。<span class='tag'>〔信息不对称 · 激励错配〕</span>" },
         { lab: "瞒报太平，驱赶流民出境", fx: { wusha: +6, minxin: -12, qingyu: -8 },
-          read: "把人赶走，问题就「消失」了——至少在你的奏报里。崇祯在紫禁城看到的，就是无数这样粉饰过的太平。（对应：崇祯死弯 / 信息失真）" }
+          outcome: "流民被赶出了境，你的奏报上依旧是一片太平。问题没解决，只是从你的纸面上「消失」了。",
+          note: "崇祯在紫禁城里看到的，就是无数这样粉饰过的太平。<span class='tag'>〔崇祯死弯 · 信息失真〕</span>" }
       ] },
     { concept: "做账 · 亏空",
       title: "钱谷师爷教你「做平」亏空",
       text: "府库对不上账。师爷笑眯眯：「大人不必慌，挪一挪、平一平，寅吃卯粮，账面上就圆过去了，历任都这么办。」",
       choices: [
         { lab: "学着做账，把窟窿糊过去", fx: { silver: +10, qingyu: -8 },
-          read: "你学会了这行的「生存技能」。窟窿没补，只是移交给了下一任——击鼓传花，总有人接最后一棒。（对应：委托代理 / 冤大头）" },
+          outcome: "师爷手把手教你挪账、平账，寅吃卯粮，府库的窟窿在纸面上圆了过去。你学会了这行的保命手艺——窟窿还在，只是留给了下一任。",
+          note: "击鼓传花，总有人接到最后一棒。<span class='tag'>〔委托代理 · 冤大头〕</span>" },
         { lab: "拒绝做假账，宁可背亏空", fx: { silver: -6, qingyu: +8, wusha: -4 },
-          read: "你不肯说谎，代价是账面上的亏空实打实压在自己头上，随时可能成为把柄。（对应：淘汰清官）" }
+          outcome: "你不肯动那本账，宁可让亏空实打实压在自己头上。师爷欲言又止——这窟窿，随时能成为参你的把柄。",
+          note: "不肯说谎的代价，是把结构的窟窿一个人扛着。<span class='tag'>〔淘汰清官〕</span>" }
       ] },
     { concept: "清誉 vs 上意",
       title: "百姓要给你送「万民伞」",
       text: "任内你办了几件实事，士绅百姓凑钱要送你一柄万民伞、立块德政碑。声名是好事——可你的上司，最忌讳属下在民间比自己有威望。",
       choices: [
         { lab: "欣然受之，声名远播", fx: { minxin: +10, qingyu: +8, wusha: -8 },
-          read: "民间的好名声，恰恰会招来上司的猜忌。在这套系统里，「得民心」有时比「贪」更危险。（对应：激励错配 / 淘汰清官）" },
+          outcome: "万民伞打起来，德政碑立了起来，民间传遍了你的好名声。可上司的脸色，一天比一天难看。",
+          note: "民间声望越高，越招上司猜忌。在这儿，「得民心」有时比「贪」更危险。<span class='tag'>〔激励错配 · 淘汰清官〕</span>" },
         { lab: "婉谢盛意，低调收场", fx: { minxin: +2, wusha: +2 },
-          read: "你收敛锋芒，保住了上意。懂得不出头，也是官场生存的一课。（对应：第二等公平）" }
+          outcome: "你婉言谢了盛意，低调收场。百姓有些失望，上司却踏实了——你懂得不出头。",
+          note: "懂得不出头，也是官场生存的一课。<span class='tag'>〔第二等公平〕</span>" }
       ] },
     { concept: "买官 · 京察运动",
       title: "有个肥缺出了空，可以「运动」一下",
       text: "吏部那边放出风声：某处富庶州府知州出缺。想补上去，得先花一大笔银子上下打点。机不可失，可这笔钱不是小数。",
       choices: [
         { lab: "倾囊运动，谋个好缺", fx: { wusha: +14, silver: -22, qingyu: -6 },
-          read: "官位可以用钱买——那么买官的钱，日后自然要从新任上的百姓身上加倍捞回。腐败就这样自我循环。（对应：陋规 / 冤大头）" },
+          outcome: "银子倾囊撒了出去，肥缺果然到手。只是这笔本钱，日后自然要从新任治下的百姓身上，加倍捞回来。",
+          note: "买官的钱要从百姓身上加倍捞回，腐败就这样自我循环。<span class='tag'>〔陋规 · 冤大头〕</span>" },
         { lab: "安守本分，不去钻营", fx: { wusha: -2 },
-          read: "你没去挤那条独木桥。清静，但也意味着你在这套「不进则退」的赛道上，正被人一点点甩开。（对应：淘汰清官）" }
+          outcome: "你没去挤那条独木桥，守着本任。清静是清静，可在这条「不进则退」的道上，你正被人一点点甩下。",
+          note: "不钻营的人，在这套赛道上被慢慢淘汰。<span class='tag'>〔淘汰清官〕</span>" }
       ] },
     { concept: "胥吏之害 · 整顿书办",
       title: "衙门书办包揽词讼、上下其手",
       text: "你渐渐发现，真正把持这县的不是你，是那群世代盘踞的胥吏书办。他们包揽诉讼、勒索百姓，你的政令出不了衙门。要不要动他们？",
       choices: [
         { lab: "雷厉整顿，清理蠹吏", fx: { qingyu: +10, minxin: +8, wusha: -8, silver: -4 },
-          read: "你动了这台机器最难拆的零件。胥吏不流动、通地方、握实务，反噬起来，连你的政令和考成都能悄悄搅黄。（对应：胥吏 / 委托代理链末端）" },
+          outcome: "你动了那群盘踞多年的书办。政令一时清爽了些，可这些人握着实务、通着地方，反噬起来，连你的公文都能悄悄卡住。",
+          note: "胥吏不流动、通地方、握实务，是这台机器上最难拆的零件。<span class='tag'>〔胥吏 · 委托代理链末端〕</span>" },
         { lab: "分一杯羹，与其共谋", fx: { silver: +10, minxin: -8, qingyu: -8 },
-          read: "你选择了和他们合流——省心，进账，代价是百姓头上又多了一层盘剥。（对应：第二等公平 / 冤大头）" }
+          outcome: "你和书办们合了流，事情办得顺了，进项也稳了。省心是省心——代价是百姓头上，又多压了一层。",
+          note: "省心、进账，换来百姓头上又多一层盘剥。<span class='tag'>〔第二等公平 · 冤大头〕</span>" }
       ] }
   ];
 
@@ -513,6 +571,8 @@
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
+  var REVEAL_HINT = "🔎 这一步，动了哪条潜规则？";
+
   // ---- 应用一个抉择 -------------------------------------------------------
   function pick(idx) {
     var c = current.choices[idx];
@@ -532,15 +592,30 @@
       return '<span class="fx-chip ' + cls + '">' + STAT_META[k] + " " + sign + v + "</span>";
     }).join("");
     el("ev-fx").innerHTML = chips || "";
-    el("ev-read").innerHTML = "🔎 潜规则解读：" + c.read;
+
+    // 默认只叙事：这一步后世界里发生了什么
+    el("ev-outcome").textContent = c.outcome || "";
+
+    // 「潜规则」注解收起来，想看的人自己点开——不再逢选必说教
+    var note = el("ev-note");
+    note.innerHTML = c.note || "";
+    note.classList.add("hidden");
+    var rev = el("ev-reveal");
+    rev.textContent = REVEAL_HINT;
+    rev.classList.toggle("hidden", !c.note);
 
     el("ev-choices").classList.add("hidden");
     el("ev-verdict").classList.remove("hidden");
     el("ev-verdict").scrollIntoView({ behavior: "smooth", block: "nearest" });
 
-    // 立即致命的结局在解读后触发
+    // 立即致命的结局在下一步触发
     current._gameOver = deathCheck();
   }
+
+  el("ev-reveal").addEventListener("click", function () {
+    var hiddenNow = el("ev-note").classList.toggle("hidden");
+    this.textContent = hiddenNow ? REVEAL_HINT : "🔎 收起";
+  });
 
   function deathCheck() {
     if (S.wusha <= 0) return S.qingyu >= 58 ? "purge" : "downfall";
@@ -570,7 +645,7 @@
     purge: { seal: "黜", title: "清官罢黜", kick: "任期未满 · 被同僚与上宪合力排挤去职",
       body: [
         "你守住了良心，却没守住乌纱。一封接一封的参劾、一次又一次「不谙政体」的差评，把你磨到了任满之前——你被参倒了。",
-        "不是哪个大奸大恶要害你，而是整套系统的免疫机制：当所有人都心照不宣，唯一「不合群」的那个，就成了必须被清除的异物。"
+        "没有谁存心害你。只是当所有人都心照不宣，那个唯一「不合群」的，迟早要被挤出去。这一回，被挤出去的是你。"
       ],
       map: "你亲历了 <b>淘汰清官机制</b>：系统不需要坏人来对付好人，只需要「大家都这样，就你不一样」。海瑞式的清官之所以稀有，正因为这套规则会主动把他们筛出去。" },
     downfall: { seal: "败", title: "众叛落马", kick: "任期未满 · 失了圣眷，墙倒众人推",
@@ -623,6 +698,8 @@
       map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。" }
   };
 
+  var END_HINT = "🔎 这一局，你亲历了哪条潜规则？";
+
   function endGame(key) {
     var e = ENDINGS[key] || ENDINGS.survivor;
     el("screen-game").classList.add("hidden");
@@ -637,9 +714,19 @@
       "<span>⚖️ 清誉 " + S.qingyu + "</span>" +
       "<span>💰 白银 " + S.silver + " 两</span>";
     el("end-body").innerHTML = e.body.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("");
-    el("end-map").innerHTML = "<b>这一局你亲历的潜规则 —</b><br>" + e.map;
+    // 结局的「潜规则」总结同样收起来，想复盘的人才点开
+    var map = el("end-map");
+    map.innerHTML = "<b>这一局你走过的路 —</b><br>" + e.map;
+    map.classList.add("hidden");
+    var er = el("end-reveal");
+    er.textContent = END_HINT;
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  el("end-reveal").addEventListener("click", function () {
+    var hiddenNow = el("end-map").classList.toggle("hidden");
+    this.textContent = hiddenNow ? END_HINT : "🔎 收起";
+  });
 
   // ---- 开局 / 重开 --------------------------------------------------------
   function startGame() {
