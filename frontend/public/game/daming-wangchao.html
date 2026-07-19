@@ -246,12 +246,24 @@
   .turnbar .right { display: flex; align-items: center; gap: 10px; }
   .turnbar .seed-tag { font-family: "Noto Sans SC", ui-monospace, monospace; color: var(--gold); font-weight: 700; letter-spacing: 1px; font-size: 12px; }
 
+  /* --- 每日同题：标题页副行 --- */
+  .daily-line { text-align: center; font-size: 12px; color: var(--ink-soft); margin: 10px 0 0; letter-spacing: .3px; }
+  .daily-line .mono { color: var(--red); }
+  .center .btn + .btn { margin-top: 10px; }
+
+  /* --- 无障碍：仅供屏幕阅读器的实时播报区（视觉隐藏，可被朗读）--- */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
   .hidden { display: none !important; }
   @media (prefers-reduced-motion: reduce){ *{ transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="sr-only" id="sr-live" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="topbar">
     <div class="brand">
       <span class="cn">大明王朝</span>
@@ -282,7 +294,9 @@
     <div class="seed-banner hidden" id="seed-banner">🎯 有人给你下了同一副牌（<span class="mono" id="banner-seed"></span>）——接招，看你走出哪个下场。</div>
     <div class="center">
       <button class="btn" id="btn-start">上任 · 开始一局 ▶</button>
+      <button class="btn ghost" id="btn-daily" type="button" title="今天全网同一副牌，明日换新——看谁走出更好的下场">🗓️ 今日同题 · 全网同一副牌</button>
     </div>
+    <p class="daily-line" id="daily-line"></p>
     <div class="codex hidden" id="title-codex" aria-label="结局收藏"></div>
     <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场（键盘 1/2/3 可选，Enter 继续）</p>
   </section>
@@ -300,15 +314,15 @@
       <div class="hud" id="hud">
         <div class="stat" data-k="wusha" title="乌纱＝你的官位与前程。归零即被参倒去职，游戏结束。">
           <div class="row"><span class="name"><span class="ic">🎏</span>乌纱（仕途）</span><span class="val"><span class="num">0</span>/100</span></div>
-          <div class="bar fill-wusha"><i style="width:0%"></i></div>
+          <div class="bar fill-wusha" role="progressbar" aria-label="乌纱（仕途）" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i style="width:0%"></i></div>
         </div>
         <div class="stat" data-k="minxin" title="民心＝治下百姓的忍耐。归零即官逼民反，游戏结束。">
           <div class="row"><span class="name"><span class="ic">🧑‍🌾</span>民心</span><span class="val"><span class="num">0</span>/100</span></div>
-          <div class="bar fill-minxin"><i style="width:0%"></i></div>
+          <div class="bar fill-minxin" role="progressbar" aria-label="民心" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i style="width:0%"></i></div>
         </div>
         <div class="stat" data-k="qingyu" title="清誉＝你的良心与操守。不致命，但决定你最终成了哪种官。">
           <div class="row"><span class="name"><span class="ic">⚖️</span>清誉（良心）</span><span class="val"><span class="num">0</span>/100</span></div>
-          <div class="bar fill-qingyu"><i style="width:0%"></i></div>
+          <div class="bar fill-qingyu" role="progressbar" aria-label="清誉（良心）" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i style="width:0%"></i></div>
         </div>
         <div class="stat" data-k="silver" title="库银＝你的家财与府库。跌破 -40 两即亏空案发、下狱抄家。">
           <div class="row"><span class="name"><span class="ic">💰</span>家财 / 库银</span><span class="val">白银</span></div>
@@ -325,7 +339,7 @@
       <div class="verdict hidden" id="ev-verdict">
         <div id="ev-fx" class="fx-line"></div>
         <div class="outcome" id="ev-outcome"></div>
-        <button class="reveal-btn" id="ev-reveal" type="button">🔎 这一步，动了哪条潜规则？</button>
+        <button class="reveal-btn" id="ev-reveal" type="button" aria-expanded="false">🔎 这一步，动了哪条潜规则？</button>
         <div class="note hidden" id="ev-note"></div>
         <div class="next-wrap"><button class="btn" id="btn-next">下一步 ▶</button></div>
       </div>
@@ -335,12 +349,12 @@
   <!-- ============ ENDING SCREEN ============ -->
   <section id="screen-end" class="hidden card ending">
     <div class="seal-mark" id="end-seal">终</div>
-    <h2 id="end-title"></h2>
+    <h2 id="end-title" tabindex="-1"></h2>
     <p class="kicker" id="end-kicker"></p>
     <div class="stat-final" id="end-stats"></div>
     <div class="body" id="end-body"></div>
     <div class="trail" id="end-trail" aria-label="施政轨迹"></div>
-    <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button">🔎 这一局，你亲历了哪条潜规则？</button></div>
+    <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button" aria-expanded="false">🔎 这一局，你亲历了哪条潜规则？</button></div>
     <div class="map hidden" id="end-map"></div>
     <div class="codex" id="end-codex" aria-label="结局收藏"></div>
     <p class="seedline" id="end-seedline"></p>
@@ -370,6 +384,23 @@
 
   var el = function (id) { return document.getElementById(id); };
   var KEYCAPS = ["①", "②", "③", "④", "⑤"];
+
+  function prefersReducedMotion() {
+    try { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch (e) { return false; }
+  }
+  // 移动端触感反馈：轻点一下、出局则一串——尊重「减少动态效果」偏好
+  function haptic(pattern) {
+    if (prefersReducedMotion()) return;
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+  }
+  // 无障碍播报：把视觉上的变化（属性增减、新抉择、下场）念给屏幕阅读器
+  function announce(msg) {
+    var live = el("sr-live");
+    if (!live) return;
+    live.textContent = "";                 // 逼 aria-live 重新触发，即使文本相同
+    setTimeout(function () { live.textContent = msg; }, 30);
+  }
 
   // ---- 确定性种子局：同一种子复现同一副牌，可复盘、可与人「同题较量」--------
   //  避开易混字符（0/O/1/I），生成短小好念的种子
@@ -407,6 +438,18 @@
   })();
   function challengeUrl() {
     return location.origin + location.pathname + "?seed=" + currentSeed;
+  }
+  // 每日同题：由当天日期确定地推出一副牌，全网同一天拿到同一副（次日换新）
+  function dateKey() {
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return "" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+  }
+  function dailySeed() {
+    var r = makeRng("DAMING-DAILY-" + dateKey());
+    var s = "";
+    for (var i = 0; i < 5; i++) s += SEED_ALPHABET.charAt(Math.floor(r() * SEED_ALPHABET.length));
+    return s;
   }
 
   // ---- 氛围音效：纯 WebAudio 合成，无外部音频文件；开关记进 localStorage ----
@@ -749,6 +792,7 @@
       var box = document.querySelector('.stat[data-k="' + k + '"]');
       box.querySelector('.num').textContent = S[k];
       box.querySelector('.bar > i').style.width = clamp(S[k]) + "%";
+      box.querySelector('.bar').setAttribute('aria-valuenow', clamp(S[k]));
       var bar = box.querySelector('.bar > i');
       if (S[k] <= 15) bar.style.filter = "saturate(1.4) brightness(0.9)"; else bar.style.filter = "";
       // 乌纱/民心归零即出局；逼近致命线时标红示警（清誉不致命，只影响结局走向）
@@ -800,6 +844,8 @@
     });
     renderPips();
     el("event-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    announce("第 " + (turn + 1) + " 抉择，" + current.title + "。" +
+             current.choices.length + " 个选项，按数字键或点击选择。");
   }
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -811,6 +857,7 @@
     var c = current.choices[idx];
     var fx = c.fx || {};
     SFX.pick();
+    haptic(12);                    // 落笔的一记轻震（移动端）
     // 应用数值
     Object.keys(fx).forEach(function (k) {
       if (k === "silver") S.silver += fx[k];
@@ -839,11 +886,18 @@
     note.classList.add("hidden");
     var rev = el("ev-reveal");
     rev.textContent = REVEAL_HINT;
+    rev.setAttribute("aria-expanded", "false");
     rev.classList.toggle("hidden", !c.note);
 
     el("ev-choices").classList.add("hidden");
     el("ev-verdict").classList.remove("hidden");
     el("ev-verdict").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // 无障碍：把属性增减 + 眼下的结果念出来，并把焦点落到「下一步」
+    var spoken = Object.keys(fx).map(function (k) {
+      return STAT_META[k] + (fx[k] >= 0 ? " 增 " : " 减 ") + Math.abs(fx[k]);
+    }).join("，");
+    announce((spoken ? spoken + "。" : "") + (c.outcome || ""));
+    try { el("btn-next").focus({ preventScroll: true }); } catch (e) { el("btn-next").focus(); }
 
     // 立即致命的结局在下一步触发
     current._gameOver = deathCheck();
@@ -852,6 +906,7 @@
   el("ev-reveal").addEventListener("click", function () {
     var hiddenNow = el("ev-note").classList.toggle("hidden");
     this.textContent = hiddenNow ? REVEAL_HINT : "🔎 收起";
+    this.setAttribute("aria-expanded", hiddenNow ? "false" : "true");
   });
 
   function deathCheck() {
@@ -964,6 +1019,7 @@
     map.classList.add("hidden");
     var er = el("end-reveal");
     er.textContent = END_HINT;
+    er.setAttribute("aria-expanded", "false");
     renderTrail();
     renderCodex("end-codex", isNew ? key : null);
     // 同题较量：亮出本局牌序，让人拿同一副牌来比
@@ -971,7 +1027,13 @@
       "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
       "「同题再来」或「晒出下场」里的链接，能让别人接到同一副牌。";
     SFX.end(DEAD_ENDINGS[key]);
+    // 出局：一串沉重的震；任满：一记短震收束（移动端）
+    haptic(DEAD_ENDINGS[key] ? [90, 60, 140] : 40);
+    announce("这一局落幕：" + e.title + "。" + e.kick + "。乌纱 " + S.wusha +
+             "，民心 " + S.minxin + "，清誉 " + S.qingyu + "，白银 " + S.silver + " 两。");
     window.scrollTo({ top: 0, behavior: "smooth" });
+    // 无障碍：把焦点落到结局标题，屏幕阅读器随即读出下场
+    try { el("end-title").focus({ preventScroll: true }); } catch (e2) { try { el("end-title").focus(); } catch (e3) {} }
   }
 
   // 任期未满就出局的四种下场：收场敲丧钟（其余任满，给一声安顿的余韵）
@@ -1022,6 +1084,7 @@
   el("end-reveal").addEventListener("click", function () {
     var hiddenNow = el("end-map").classList.toggle("hidden");
     this.textContent = hiddenNow ? END_HINT : "🔎 收起";
+    this.setAttribute("aria-expanded", hiddenNow ? "false" : "true");
   });
 
   // ---- 开局 / 重开 --------------------------------------------------------
@@ -1046,6 +1109,7 @@
   el("btn-start").addEventListener("click", startFromTitle);
   el("btn-restart").addEventListener("click", function () { startGame(null); });   // 换一副新牌
   el("btn-replay").addEventListener("click", function () { startGame(currentSeed); }); // 同一副牌再战
+  el("btn-daily").addEventListener("click", function () { startGame(dailySeed()); }); // 今日同题
 
   // ---- 音效开关 -----------------------------------------------------------
   function syncSfxBtn() {
@@ -1086,6 +1150,13 @@
     if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
     el("title-codex").classList.remove("hidden");
     renderCodex("title-codex", null);
+  })();
+
+  // ---- 初始化：标题页亮出今日同题的牌序（当天全网一致，次日换新）----------
+  (function initDaily() {
+    var today = dailySeed();
+    el("daily-line").innerHTML =
+      "今日牌序 <span class=\"mono\">" + esc(today) + "</span>　·　全网同一副，明日换新";
   })();
 
   // ---- 初始化：若被人以 ?seed= 下了战书，标题页亮出「同题挑战」横幅 --------
