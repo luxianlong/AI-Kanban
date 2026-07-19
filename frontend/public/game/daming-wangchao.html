@@ -415,6 +415,7 @@
     </div>
     <p class="daily-line" id="daily-line"></p>
     <div class="codex hidden" id="title-codex" aria-label="结局收藏"></div>
+    <div class="codex-guide hidden" id="title-guide" aria-label="今天想照哪面镜子"></div>
     <div class="ach hidden" id="title-ach" aria-label="官声成就"></div>
     <div class="ledger hidden" id="title-ledger" aria-label="为官生涯"></div>
     <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场（键盘 1/2/3 可选，Enter 继续）</p>
@@ -703,40 +704,87 @@
   // ---- 结局图鉴向导：结局页点出「陈列顺序里下一面还没照过的镜子」及一句走法引导 --
   //   纯读图鉴 + 每个结局自带的静态 guide 文案，不动 RNG/牌序/结局判定；
   //   只在结局页多一句「离下一个未解锁下场还差什么」，替完形玩家指条方向。
+  // 陈列顺序里「下一面还没照过的镜子」：结局页向导与标题页开局引导共用同一套判定，
+  //   避免两处各写一份、日后走样。隐藏结局单列（onlyHidden），不泄走法。
+  function pickNextMirror() {
+    var got = loadCodex();
+    var locked = ENDING_ORDER.filter(function (k) { return !got[k]; });
+    if (!locked.length) return { done: true, locked: 0 };
+    var visible = locked.filter(function (k) { return !(ENDINGS[k] && ENDINGS[k].hidden); });
+    if (!visible.length) return { onlyHidden: true, locked: locked.length };
+    return { key: visible[0], locked: locked.length };   // 陈列顺序里下一面非隐藏、未照过的镜子
+  }
   function renderCodexGuide(containerId) {
     var host = el(containerId);
     if (!host) return "";
-    var got = loadCodex();
-    var locked = ENDING_ORDER.filter(function (k) { return !got[k]; });
-    if (!locked.length) {
+    var pick = pickNextMirror();
+    if (pick.done) {
       host.className = "codex-guide done";
       host.innerHTML = "🪞 十面镜子已走遍——每一种下场，你都亲手照过一遍了。";
       return "";
     }
     // 隐藏结局不给指引（否则就不叫「藏」了）：向导只点常规下场，把隐藏面单独留白
-    var visible = locked.filter(function (k) { return !(ENDINGS[k] && ENDINGS[k].hidden); });
-    if (!visible.length) {                 // 只剩藏得最深那面没照过——给一句留白，不泄走法
+    if (pick.onlyHidden) {                 // 只剩藏得最深那面没照过——给一句留白，不泄走法
       host.className = "codex-guide";
       host.innerHTML =
         '<span class="cg-seal">？</span>' +
         '<span class="cg-left">常规九面都照过了，还剩<b> 一面藏得极深的镜子 </b>——它不给指引，得你自己走到那一步。</span>';
       return "";
     }
-    var k = visible[0];                    // 陈列顺序里，下一面还没照过的（非隐藏）镜子
-    var e = ENDINGS[k] || {};
+    var e = ENDINGS[pick.key] || {};
     host.className = "codex-guide";
     host.innerHTML =
       '<span class="cg-seal">' + esc(e.seal || "？") + "</span>" +
       '<span class="cg-left">还差「</span><b>' + esc(e.title || "") + '</b><span class="cg-left">」　·　' +
       esc(e.guide || "换个走法试试。") +
-      "　（图鉴还剩 " + locked.length + " 面镜子）</span>";
+      "　（图鉴还剩 " + pick.locked + " 面镜子）</span>";
     return e.title || "";
+  }
+
+  // ---- 标题页开局引导：「今天想照哪面镜子」-------------------------------------
+  //   开局前就把陈列顺序里下一面还没照过的镜子（及一句走法）指给回头客，替完形
+  //   玩家先立个本局小目标。与结局页向导同源（pickNextMirror），纯读图鉴，不动
+  //   RNG/牌序/结局判定；只在标题页多一句引导。
+  function renderTitleGuide(containerId) {
+    var host = el(containerId);
+    if (!host) return;
+    var pick = pickNextMirror();
+    if (pick.done) {                       // 十面都照过了——放开手随便玩
+      host.className = "codex-guide done";
+      host.innerHTML = "🪞 十面镜子都照过了——今天随手挑副牌，想重照哪面都随你。";
+      return;
+    }
+    if (pick.onlyHidden) {                 // 只剩藏得最深那面——同样不泄走法，只给个念想
+      host.className = "codex-guide";
+      host.innerHTML =
+        '<span class="cg-seal">？</span>' +
+        '<span class="cg-left">🪞 常规九面都照过了，只剩<b> 一面藏得极深的镜子 </b>——它不给指引，今天就看你能否自己走到那一步。</span>';
+      return;
+    }
+    var e = ENDINGS[pick.key] || {};
+    host.className = "codex-guide";
+    host.innerHTML =
+      '<span class="cg-seal">' + esc(e.seal || "？") + "</span>" +
+      '<span class="cg-left">🪞 今天想照哪面镜子？不妨去照「</span><b>' + esc(e.title || "") + '</b>' +
+      '<span class="cg-left">」　·　' + esc(e.guide || "换个走法试试。") +
+      "　（图鉴还剩 " + pick.locked + " 面）</span>";
   }
 
   // ---- 官声成就 & 每日同题连胜：多周目里程碑，跨局累积存进浏览器 -----------
   var ACH_KEY = "daming_wangchao_ach_v1";
   var STREAK_KEY = "daming_wangchao_streak_v1";
   var playedAsDaily = false;      // 本局是否走的「今日同题」（连胜只认它）
+
+  // 本局高光：结局时记下「这一任」独有的成果——初次照见的镜子、新解锁的成就、
+  //   刷新的生涯纪录——供「晒出下场」文字与结局图卡引用，让分享带上本局的骄傲。
+  var lastHL = { newEnding: null, ach: [], records: [] };
+  function runHighlights() {
+    var h = [];
+    if (lastHL.newEnding) h.push("初次照见「" + lastHL.newEnding + "」");
+    if (lastHL.ach.length) h.push("解锁成就「" + lastHL.ach.join("」「") + "」");
+    if (lastHL.records.length) h.push("刷新" + lastHL.records.join("／") + "纪录");
+    return h;
+  }
 
   // 成就在结局时评定：check(ctx) 取本局的下场/属性/走法与跨局的图鉴、连胜
   var ACH = [
@@ -1635,6 +1683,12 @@
     if (nh.qingyu) recNames.push("清誉");
     if (nh.silver) recNames.push("家财");
     if (nh.streak) recNames.push("同题连胜");
+    // 记下本局高光，供分享文字 / 结局图卡引用（初次照见的镜子取结局名的核心词）
+    lastHL = {
+      newEnding: isNew ? e.title.split(" · ")[0] : null,
+      ach: freshAch.map(function (a) { return a.name; }),
+      records: recNames.slice()
+    };
     // 同题较量：亮出本局牌序，让人拿同一副牌来比
     el("end-seedline").innerHTML =
       "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
@@ -1664,9 +1718,11 @@
     var title = el("end-title").textContent;
     var got = loadCodex();
     var n = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
+    var hl = runHighlights();
     return "《大明王朝·潜规则生存模拟》\n" +
       "我的下场：" + title + "\n" +
       "🎏乌纱 " + S.wusha + "　🧑‍🌾民心 " + S.minxin + "　⚖️清誉 " + S.qingyu + "　💰白银 " + S.silver + " 两\n" +
+      (hl.length ? "🏅本局高光：" + hl.join("　·　") + "\n" : "") +
       "结局图鉴 " + n + "/" + ENDING_ORDER.length + " —— 你能走出哪个下场？\n" +
       "🎯 敢接同一副牌（牌序 " + currentSeed + "）就点这里：\n" +
       "▶ " + challengeUrl();
@@ -1808,7 +1864,9 @@
   function drawEndCard() {
     var key = el("end-seal").dataset.key;
     var e = ENDINGS[key] || ENDINGS.survivor;
-    var scale = 2, W = 380, H = 756;
+    var hl = runHighlights();
+    var HL_H = hl.length ? 72 : 0;      // 有本局高光时，为「本局高光」带预留一段高度
+    var scale = 2, W = 380, H = 756 + HL_H;
     var cv = document.createElement("canvas");
     cv.width = W * scale; cv.height = H * scale;
     var ctx = cv.getContext("2d");
@@ -1842,6 +1900,19 @@
     ctx.fillText(e.title, W / 2, 200);
     ctx.fillStyle = "#6b5b48"; ctx.font = '12.5px "Noto Serif SC", serif';
     var y = wrapText(ctx, e.kick, W / 2, 224, W - 90, 18, 2);
+
+    // 本局高光：初次照见的镜子 / 新解锁的成就 / 刷新的生涯纪录——这一任独有的成果
+    if (hl.length) {
+      y += 12;
+      var boxH = 52;
+      ctx.fillStyle = "rgba(184,145,47,0.10)"; roundRect(ctx, 40, y, W - 80, boxH, 10); ctx.fill();
+      ctx.strokeStyle = "#b8912f"; ctx.lineWidth = 1; roundRect(ctx, 40, y, W - 80, boxH, 10); ctx.stroke();
+      ctx.fillStyle = "#8b1e1e"; ctx.font = '11px "Noto Serif SC", serif';
+      ctx.fillText("本局高光", W / 2, y + 17);
+      ctx.fillStyle = "#2a211a"; ctx.font = '12px "Noto Serif SC", serif';
+      wrapText(ctx, hl.join("　·　"), W / 2, y + 36, W - 104, 16, 2);
+      y += boxH + 8;
+    }
 
     // 分隔线
     y += 8;
@@ -2064,6 +2135,13 @@
     if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
     el("title-codex").classList.remove("hidden");
     renderCodex("title-codex", null);
+  })();
+
+  // ---- 初始化：标题页开局引导「今天想照哪面镜子」（走过一局后才显示）--------
+  (function initTitleGuide() {
+    if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
+    el("title-guide").classList.remove("hidden");
+    renderTitleGuide("title-guide");
   })();
 
   // ---- 初始化：标题页亮出官声成就墙（走过一局后才显示，勾引集齐）----------
