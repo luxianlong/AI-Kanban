@@ -143,6 +143,15 @@
   .choice:active { transform: translateY(0); }
   .choice .lab { font-weight: 700; }
 
+  /* --- 师爷进言：某选项会把某一维逼过死线时，事前低声示警（只报凶险所在，不报数字）--- */
+  .choice.peril { border-left-color: var(--bad); background: rgba(162,51,31,0.06); }
+  .choice.peril:hover { border-left-color: var(--bad); background: #fff; }
+  .choice .counsel {
+    display: block; margin-top: 7px; font-size: 12.5px; line-height: 1.55;
+    color: var(--bad); font-weight: 600; letter-spacing: .2px;
+  }
+  .choice .counsel .who { color: var(--seal); }
+
   .verdict {
     margin-top: 14px; background: rgba(255,255,255,0.6); border: 1px dashed var(--line);
     border-radius: 10px; padding: 12px 14px;
@@ -1091,11 +1100,16 @@
     var box = el("ev-choices");
     box.innerHTML = "";
     box.classList.remove("hidden");
+    var hasPeril = false;
     current.choices.forEach(function (c, idx) {
       var b = document.createElement("button");
       b.className = "choice";
       var kc = KEYCAPS[idx] || "";
-      b.innerHTML = (kc ? '<span class="kc">' + kc + "</span>" : "") + '<span class="lab">' + esc(c.lab) + "</span>";
+      var peril = projectDeath(c.fx);       // 这一步会把某一维逼过死线吗？
+      if (peril) { b.className += " peril"; hasPeril = true; }
+      b.innerHTML = (kc ? '<span class="kc">' + kc + "</span>" : "") +
+        '<span class="lab">' + esc(c.lab) + "</span>" +
+        (peril ? '<span class="counsel"><span class="who">师爷失色，附耳低声：</span>' + PERIL_WHISPER[peril] + "</span>" : "");
       b.addEventListener("click", function () { pick(idx); });
       box.appendChild(b);
     });
@@ -1103,7 +1117,8 @@
     writeSave();                   // 每坎开局即存档，尚未落笔——离开后可从此坎续玩
     el("event-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
     announce("第 " + (turn + 1) + " 抉择，" + current.title + "。" +
-             current.choices.length + " 个选项，按数字键或点击选择。");
+             current.choices.length + " 个选项，按数字键或点击选择。" +
+             (hasPeril ? "师爷有言：其中有选项走下去恐是死路，留意标红的进言。" : ""));
   }
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -1171,6 +1186,21 @@
     if (S.wusha <= 0) return S.qingyu >= 58 ? "purge" : "downfall";
     if (S.minxin <= 0) return "revolt";
     if (S.silver <= LOSE_SILVER) return "prison";
+    return null;
+  }
+
+  // ---- 师爷进言：某抉择会把对应一维逼过死线时，落笔前只报「凶险所在」，不报具体数字 ----
+  //   纯由当前四维推算，不动种子/牌序，故不影响同题复现；顺序与 deathCheck 一致。
+  var PERIL_WHISPER = {
+    wusha:  "「大人，这一步落下去，乌纱怕是就保不住了。」",
+    minxin: "「大人，再往下逼，怕是要激出民变啊。」",
+    silver: "「大人，府库这一亏，可就是抄家下狱的死数了。」"
+  };
+  function projectDeath(fx) {
+    fx = fx || {};
+    if (clamp(S.wusha + (fx.wusha || 0)) <= 0) return "wusha";
+    if (clamp(S.minxin + (fx.minxin || 0)) <= 0) return "minxin";
+    if (S.silver + (fx.silver || 0) <= LOSE_SILVER) return "silver";
     return null;
   }
 
