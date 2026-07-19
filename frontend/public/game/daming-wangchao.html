@@ -279,6 +279,14 @@
   .ledger-legend .dead { color: var(--red); font-weight: 700; }
   .ledger-best { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; line-height: 1.7; }
   .ledger-best b { color: var(--ink); }
+  /* --- 本局 vs 生涯之最：结局页把这一任逐项对照历任纪录，创新高者挂徽标 --- */
+  .ledger-run { margin-top: 9px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--ink-soft); line-height: 1.75; }
+  .ledger-run-head { display: block; font-size: 12px; letter-spacing: .5px; margin-bottom: 3px; }
+  .ledger-run b { color: var(--ink); }
+  .ledger-run .best { color: var(--ink-soft); }
+  .ledger-run .nh-badge { color: var(--seal); font-weight: 700; margin-left: 3px; font-size: 11px; white-space: nowrap; }
+  .ledger-run.hit { background: rgba(178,59,46,0.05); border: 1px solid var(--gold); border-top: 1px solid var(--gold); border-radius: 8px; padding: 8px 11px; margin-top: 10px; }
+  .ledger-run.hit .ledger-run-head { color: var(--seal); font-weight: 700; }
 
   /* --- 施政轨迹回顾 (choice trail in ending) --- */
   .trail { margin-top: 14px; }
@@ -791,9 +799,17 @@
   function loadStats() {
     try { return JSON.parse(localStorage.getItem(STATS_KEY)) || {}; } catch (e) { return {}; }
   }
-  // 每走完一局，把这一任并进生涯账：任数、存亡、各下场次数、生涯之最
+  // 每走完一局，把这一任并进生涯账：任数、存亡、各下场次数、生涯之最。
+  // 返回 { stats, newHigh }——newHigh 标出本局有没有创下各维的生涯新纪录（供结局页对照）。
   function bumpStats(key, dead, st, streak) {
     var s = loadStats();
+    var firstRun = !(s.runs > 0);               // 头一任无「旧纪录」可破，不算创新高
+    var prev = {                                 // 并入之前的生涯之最，用来判断这一任破没破纪录
+      minxin: s.bestMinxin || 0,
+      qingyu: s.bestQingyu || 0,
+      silver: (s.bestSilver == null) ? null : s.bestSilver,
+      streak: s.bestStreak || 0
+    };
     s.runs = (s.runs || 0) + 1;
     if (dead) s.dead = (s.dead || 0) + 1; else s.survived = (s.survived || 0) + 1;
     s.byEnding = s.byEnding || {};
@@ -803,9 +819,17 @@
     s.bestSilver = (s.bestSilver == null) ? st.silver : Math.max(s.bestSilver, st.silver);
     s.bestStreak = Math.max(s.bestStreak || 0, streak || 0);
     try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch (e) {}
-    return s;
+    var newHigh = {                              // 须严格超过旧纪录才算新高（连胜还须本局确有连胜）
+      minxin: !firstRun && st.minxin > prev.minxin,
+      qingyu: !firstRun && st.qingyu > prev.qingyu,
+      silver: !firstRun && prev.silver != null && st.silver > prev.silver,
+      streak: !firstRun && (streak || 0) > 0 && (streak || 0) > prev.streak
+    };
+    return { stats: s, newHigh: newHigh };
   }
-  function renderLedger(containerId) {
+  // runInfo（仅结局页传入）：{ S:{minxin,qingyu,silver}, newHigh, daily, streak }
+  //   有它就在生涯账下方多摆一行「本局 vs 生涯之最」逐项对照，破了纪录的挂「🏅新高」。
+  function renderLedger(containerId, runInfo) {
     var s = loadStats();
     var runs = s.runs || 0;
     if (!runs) { el(containerId).innerHTML = ""; return; }
@@ -829,7 +853,31 @@
         '　·　家财 <b>' + bestSilver + '</b> 两' +
         '　·　同题连胜 <b>' + (s.bestStreak || 0) + '</b> 天' +
         (runs >= 2 ? '<br>最常走的下场 ——「<b>' + esc(topTitle) + '</b>」' + topN + " 回" : "") +
-      '</div>';
+      '</div>' +
+      (runInfo ? renderRunCompare(s, runInfo) : "");
+  }
+  // 本局逐项对照生涯之最（此刻 s 里的 best* 已并入本局，故新高项的「之最」正等于本局值）
+  function renderRunCompare(s, ri) {
+    var nh = ri.newHigh || {};
+    var badge = function (on) { return on ? '<span class="nh-badge">🏅新高</span>' : ""; };
+    var line = function (label, val, unit, best, isNew) {
+      return label + ' <b>' + val + '</b>' + unit +
+        '<span class="best">（之最 ' + best + unit + '）</span>' + badge(isNew);
+    };
+    var items = [
+      line("民心", ri.S.minxin, "", (s.bestMinxin || 0), nh.minxin),
+      line("清誉", ri.S.qingyu, "", (s.bestQingyu || 0), nh.qingyu),
+      line("家财", ri.S.silver, " 两", ((s.bestSilver == null) ? 0 : s.bestSilver), nh.silver)
+    ];
+    // 同题连胜只在本局确是「今日同题」时才有意义，才列出对照
+    if (ri.daily && (ri.streak || 0) > 0) {
+      items.push(line("同题连胜", ri.streak, " 天", (s.bestStreak || 0), nh.streak));
+    }
+    var anyNew = nh.minxin || nh.qingyu || nh.silver || nh.streak;
+    var head = anyNew ? "🏅 本局刷新了生涯纪录" : "本局战绩 · 对照生涯之最";
+    return '<div class="ledger-run' + (anyNew ? " hit" : "") + '">' +
+      '<span class="ledger-run-head">' + head + "</span>" +
+      items.join("　·　") + "</div>";
   }
 
   // ---- 施政轨迹：把玩家这一局走过的选择回放出来（只叙事，不评判）----------
@@ -1542,9 +1590,21 @@
       streak: streakRec.streak || 0, codexCount: codexCount
     });
     renderAch("end-ach", freshAch.map(function (a) { return a.id; }));
-    // 生涯清算：把这一任并进总账，再把「历任 / 善终率 / 生涯之最」摆出来
-    bumpStats(key, !!DEAD_ENDINGS[key], S, streakRec.streak || 0);
-    renderLedger("end-ledger");
+    // 生涯清算：把这一任并进总账，摆出「历任 / 善终率 / 生涯之最」，并对照本局是否创纪录
+    var ledgerInfo = bumpStats(key, !!DEAD_ENDINGS[key], S, streakRec.streak || 0);
+    var nh = ledgerInfo.newHigh;
+    // 连胜是「今日同题」专属；非同题局的 streak 只是沿用旧值，不算本局的连胜新高
+    if (!playedAsDaily) nh.streak = false;
+    var anyNewHigh = nh.minxin || nh.qingyu || nh.silver || nh.streak;
+    renderLedger("end-ledger", {
+      S: { minxin: S.minxin, qingyu: S.qingyu, silver: S.silver },
+      newHigh: nh, daily: playedAsDaily, streak: streakRec.streak || 0
+    });
+    var recNames = [];
+    if (nh.minxin) recNames.push("民心");
+    if (nh.qingyu) recNames.push("清誉");
+    if (nh.silver) recNames.push("家财");
+    if (nh.streak) recNames.push("同题连胜");
     // 同题较量：亮出本局牌序，让人拿同一副牌来比
     el("end-seedline").innerHTML =
       "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
@@ -1555,9 +1615,11 @@
     var achNames = freshAch.map(function (a) { return a.name; }).join("、");
     announce("这一局落幕：" + e.title + "。" + e.kick + "。乌纱 " + S.wusha +
              "，民心 " + S.minxin + "，清誉 " + S.qingyu + "，白银 " + S.silver + " 两。" +
+             (recNames.length ? "刷新生涯纪录：" + recNames.join("、") + "。" : "") +
              (freshAch.length ? "解锁新成就：" + achNames + "。" : "") +
              (nextMirror ? "图鉴里下一面还没照过的镜子是「" + nextMirror + "」。" : ""));
     if (freshAch.length) showToast("🏅 解锁成就：" + achNames);
+    else if (anyNewHigh) showToast("🏅 本局刷新生涯纪录：" + recNames.join("、"));
     window.scrollTo({ top: 0, behavior: "smooth" });
     // 无障碍：把焦点落到结局标题，屏幕阅读器随即读出下场
     try { el("end-title").focus({ preventScroll: true }); } catch (e2) { try { el("end-title").focus(); } catch (e3) {} }
