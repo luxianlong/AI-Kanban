@@ -279,6 +279,16 @@
   .trail-row .mv.up { color: var(--good); }
   .trail-row .mv.down { color: var(--bad); }
 
+  /* --- 四维走势 sparkline：结局页把这一任四维的起落画成曲线（与轨迹清单互补）--- */
+  .spark { margin-top: 16px; }
+  .spark-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 8px; text-align: center; }
+  .spark-wrap { background: rgba(255,255,255,0.5); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .spark svg { display: block; width: 100%; height: auto; }
+  .spark-legend { display: flex; flex-wrap: wrap; gap: 5px 14px; justify-content: center; margin-top: 9px; font-size: 11.5px; color: var(--ink-soft); }
+  .spark-legend span { white-space: nowrap; }
+  .spark-legend .sw { display: inline-block; width: 16px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+  .spark-note { text-align: center; font-size: 11px; color: var(--ink-soft); margin-top: 7px; letter-spacing: .2px; line-height: 1.5; }
+
   /* --- share toast --- */
   .toast {
     position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(12px);
@@ -437,6 +447,7 @@
     <p class="kicker" id="end-kicker"></p>
     <div class="stat-final" id="end-stats"></div>
     <div class="body" id="end-body"></div>
+    <div class="spark" id="end-spark" aria-label="四维走势"></div>
     <div class="trail" id="end-trail" aria-label="施政轨迹"></div>
     <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button" aria-expanded="false">🔎 这一局，你亲历了哪条潜规则？</button></div>
     <div class="map hidden" id="end-map"></div>
@@ -792,6 +803,106 @@
     el("end-trail").innerHTML =
       '<div class="trail-head">你这一任，是这样走过来的</div>' +
       '<div class="trail-list">' + rows + "</div>";
+  }
+
+  // ---- 四维走势：把这一任四维（乌纱/民心/清誉/库银）的起落画成一张 sparkline ----
+  //   数据完全由已存的 history.fx 从起点累积重建（clamp 规则与游戏内一致），
+  //   不引入任何随机/网络，故与实际逐坎数值吻合，也不影响种子/同题语义。
+  //   与「施政轨迹」清单互补：清单是一步步的叙事，这里是一眼可见的整段起落曲线。
+  var SPARK_COL = { wusha: "#a83232", minxin: "#c79a2c", qingyu: "#3f9e9e", silver: "#4a6b8a" };
+  var SPARK_NAME = { wusha: "🎏乌纱", minxin: "🧑‍🌾民心", qingyu: "⚖️清誉", silver: "💰库银" };
+  function renderSpark() {
+    var host = el("end-spark");
+    if (!history || !history.length) { host.innerHTML = ""; return; }
+    // 从起点按 fx 逐坎累积，重建四维轨迹（上限/下限的 clamp 与游戏内一致）
+    var run = { wusha: START.wusha, minxin: START.minxin, qingyu: START.qingyu, silver: START.silver };
+    var series = { wusha: [run.wusha], minxin: [run.minxin], qingyu: [run.qingyu], silver: [run.silver] };
+    var climaxAt = -1;
+    history.forEach(function (h, i) {
+      var fx = h.fx || {};
+      run.wusha  = clamp(run.wusha  + (fx.wusha  || 0));
+      run.minxin = clamp(run.minxin + (fx.minxin || 0));
+      run.qingyu = clamp(run.qingyu + (fx.qingyu || 0));
+      run.silver = run.silver + (fx.silver || 0);
+      series.wusha.push(run.wusha); series.minxin.push(run.minxin);
+      series.qingyu.push(run.qingyu); series.silver.push(run.silver);
+      if (h.climax) climaxAt = i + 1;     // 点序：起点是 0，第 i 坎落在点 i+1
+    });
+    var n = series.wusha.length;          // 起点 + 每坎 = n 个点
+    var X0 = 44, X1 = 306;
+    var xAt = function (i) { return n <= 1 ? (X0 + X1) / 2 : X0 + i / (n - 1) * (X1 - X0); };
+    var poly = function (arr, yf) {
+      return arr.map(function (v, i) { return xAt(i).toFixed(1) + "," + yf(v).toFixed(1); }).join(" ");
+    };
+
+    // 上格：乌纱/民心/清誉 三者同为 0–100，共用一条 0–100 轴（死线在 0）
+    var tTop = 12, tBot = 96;
+    var y100 = function (v) { return tBot - clamp(v) / 100 * (tBot - tTop); };
+    // 下格：库银自成一档（可为负、死线在 -40），单独一条窄带，用自己的量程
+    var sv = series.silver;
+    var lo = Math.min.apply(null, sv), hi = Math.max.apply(null, sv);
+    var pad = Math.max(6, (hi - lo) * 0.18);
+    var dmin = Math.min(lo, 0) - pad, dmax = Math.max(hi, START.silver) + pad;
+    var sTop = 122, sBot = 150;
+    var ySil = function (v) { return sBot - (v - dmin) / (dmax - dmin) * (sBot - sTop); };
+
+    var parts = [];
+    // 上格网格线 + 轴标（100 / 50 / 0·死线）
+    [100, 50, 0].forEach(function (v) {
+      var yy = y100(v).toFixed(1);
+      parts.push('<line x1="' + X0 + '" y1="' + yy + '" x2="' + X1 + '" y2="' + yy +
+        '" stroke="rgba(120,90,50,0.16)" stroke-width="1"' + (v === 0 ? ' stroke-dasharray="3 3"' : "") + '/>');
+      parts.push('<text x="' + (X0 - 6) + '" y="' + (y100(v) + 3).toFixed(1) +
+        '" text-anchor="end" font-size="8" fill="#6b5b48">' + (v === 0 ? "0·死线" : v) + "</text>");
+    });
+    // 崇祯死弯那一坎：画一条淡红竖线做标注
+    if (climaxAt > 0) {
+      var cx = xAt(climaxAt).toFixed(1);
+      parts.push('<line x1="' + cx + '" y1="' + tTop + '" x2="' + cx + '" y2="' + sBot +
+        '" stroke="rgba(178,59,46,0.28)" stroke-width="1" stroke-dasharray="2 3"/>');
+      parts.push('<text x="' + cx + '" y="' + (tTop - 3) +
+        '" text-anchor="middle" font-size="7.5" fill="#b23b2e">死弯</text>');
+    }
+    // 上格三条线 + 终点圆点
+    ["wusha", "minxin", "qingyu"].forEach(function (k) {
+      parts.push('<polyline points="' + poly(series[k], y100) + '" fill="none" stroke="' +
+        SPARK_COL[k] + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+      parts.push('<circle cx="' + xAt(n - 1).toFixed(1) + '" cy="' + y100(series[k][n - 1]).toFixed(1) +
+        '" r="2.6" fill="' + SPARK_COL[k] + '"/>');
+    });
+    // 下格：库银窄带（如量程触及 -40，标出亏空死线）+ 线 + 终点
+    if (dmin <= LOSE_SILVER && dmax >= LOSE_SILVER) {
+      var dl = ySil(LOSE_SILVER).toFixed(1);
+      parts.push('<line x1="' + X0 + '" y1="' + dl + '" x2="' + X1 + '" y2="' + dl +
+        '" stroke="rgba(162,51,31,0.4)" stroke-width="1" stroke-dasharray="3 3"/>');
+      parts.push('<text x="' + (X0 - 6) + '" y="' + (parseFloat(dl) + 3).toFixed(1) +
+        '" text-anchor="end" font-size="7.5" fill="#a2331f">亏空</text>');
+    }
+    parts.push('<text x="' + (X0 - 6) + '" y="' + (sTop + 3) +
+      '" text-anchor="end" font-size="8" fill="#6b5b48">库银</text>');
+    parts.push('<polyline points="' + poly(sv, ySil) + '" fill="none" stroke="' +
+      SPARK_COL.silver + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+    parts.push('<circle cx="' + xAt(n - 1).toFixed(1) + '" cy="' + ySil(sv[n - 1]).toFixed(1) +
+      '" r="2.6" fill="' + SPARK_COL.silver + '"/>');
+
+    // 图例：每维「起→终」与升降箭头，兼作屏幕阅读器可读的数值
+    var legend = ["wusha", "minxin", "qingyu", "silver"].map(function (k) {
+      var s = series[k], a = s[0], b = s[n - 1];
+      var arrow = b > a ? " ↗" : (b < a ? " ↘" : " →");
+      return '<span><i class="sw" style="border-top-color:' + SPARK_COL[k] + '"></i>' +
+        SPARK_NAME[k] + " " + a + "→" + b + arrow + "</span>";
+    }).join("");
+    var summary = ["wusha", "minxin", "qingyu", "silver"].map(function (k) {
+      return SPARK_NAME[k].replace(/^[^一-龥]+/, "") + "由 " + series[k][0] + " 至 " + series[k][n - 1];
+    }).join("，");
+
+    host.innerHTML =
+      '<div class="spark-head">四维走势 · 这一任的起落</div>' +
+      '<div class="spark-wrap"><svg viewBox="0 0 320 160" role="img" ' +
+        'aria-label="四维走势图：' + esc(summary) + '。">' + parts.join("") + "</svg>" +
+        '<div class="spark-legend">' + legend + "</div></div>" +
+      '<p class="spark-note">上格三维同为 0–100（死线在 0）；库银自成一档、以自身量程画于下方。' +
+        (climaxAt > 0 ? "红色竖线为「崇祯死弯」那一坎。" : "") + "</p>";
   }
 
   // ---- 事件库 --------------------------------------------------------------
@@ -1359,6 +1470,7 @@
     er.textContent = END_HINT;
     er.setAttribute("aria-expanded", "false");
     renderTrail();
+    renderSpark();
     renderCodex("end-codex", isNew ? key : null);
     // 连胜（只认「今日同题」）→ 评定官声成就 → 渲染成就墙、记下本局新解锁
     var streakRec = playedAsDaily ? bumpDailyStreak() : loadStreak();
