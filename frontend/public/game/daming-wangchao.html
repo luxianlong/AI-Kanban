@@ -210,6 +210,28 @@
   .codex .slot.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
   @keyframes pop { 0%{ transform: scale(.6);} 60%{ transform: scale(1.12);} 100%{ transform: scale(1);} }
 
+  /* --- 官声成就 / 多周目里程碑 (achievements & milestones) --- */
+  .ach { margin-top: 14px; text-align: center; }
+  .ach-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; }
+  .ach-head b { color: var(--seal); }
+  .ach-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 520px; margin: 0 auto; }
+  @media (min-width: 560px){ .ach-grid { grid-template-columns: repeat(4, 1fr); } }
+  .ach-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px;
+    background: rgba(255,255,255,0.4); user-select: none;
+  }
+  .ach-item.got { border-color: var(--gold); background: rgba(178,59,46,0.06); }
+  .ach-item .ach-seal {
+    width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+    font-family: "Ma Shan Zheng", serif; font-size: 18px; color: var(--ink-soft);
+    border: 1px solid var(--line); background: rgba(255,255,255,0.5);
+  }
+  .ach-item.got .ach-seal { color: var(--seal); border-color: var(--gold); }
+  .ach-item .ach-name { font-size: 11.5px; color: var(--ink-soft); letter-spacing: .2px; }
+  .ach-item.got .ach-name { color: var(--ink); font-weight: 600; }
+  .ach-item.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
+
   /* --- 施政轨迹回顾 (choice trail in ending) --- */
   .trail { margin-top: 14px; }
   .trail-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; text-align: center; }
@@ -298,6 +320,7 @@
     </div>
     <p class="daily-line" id="daily-line"></p>
     <div class="codex hidden" id="title-codex" aria-label="结局收藏"></div>
+    <div class="ach hidden" id="title-ach" aria-label="官声成就"></div>
     <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场（键盘 1/2/3 可选，Enter 继续）</p>
   </section>
 
@@ -357,6 +380,7 @@
     <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button" aria-expanded="false">🔎 这一局，你亲历了哪条潜规则？</button></div>
     <div class="map hidden" id="end-map"></div>
     <div class="codex" id="end-codex" aria-label="结局收藏"></div>
+    <div class="ach" id="end-ach" aria-label="官声成就"></div>
     <p class="seedline" id="end-seedline"></p>
     <div class="end-actions">
       <button class="btn" id="btn-restart">再世为官 · 换副牌重开 ↺</button>
@@ -451,6 +475,12 @@
     for (var i = 0; i < 5; i++) s += SEED_ALPHABET.charAt(Math.floor(r() * SEED_ALPHABET.length));
     return s;
   }
+  // 昨天的日期键——用来判断「今日同题」的连胜有没有断
+  function yesterdayKey() {
+    var d = new Date(); d.setDate(d.getDate() - 1);
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return "" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+  }
 
   // ---- 氛围音效：纯 WebAudio 合成，无外部音频文件；开关记进 localStorage ----
   var SFX = (function () {
@@ -531,6 +561,73 @@
     var head = "结局收藏　" + n + " / " + total + (n >= total ? "　·　十面镜子已走遍" : "　·　换个走法，看看别的下场");
     el(containerId).innerHTML =
       '<div class="codex-head">' + head + "</div><div class=\"codex-row\">" + slots + "</div>";
+  }
+
+  // ---- 官声成就 & 每日同题连胜：多周目里程碑，跨局累积存进浏览器 -----------
+  var ACH_KEY = "daming_wangchao_ach_v1";
+  var STREAK_KEY = "daming_wangchao_streak_v1";
+  var playedAsDaily = false;      // 本局是否走的「今日同题」（连胜只认它）
+
+  // 成就在结局时评定：check(ctx) 取本局的下场/属性/走法与跨局的图鉴、连胜
+  var ACH = [
+    { id: "first",     seal: "官", name: "初入宦海", desc: "走完第一任，尝过这局棋的滋味。",
+      check: function (c) { return true; } },
+    { id: "rare_end",  seal: "异", name: "钢丝之上", desc: "走出「异数·全身而退的清官」这条几乎走不通的窄路。",
+      check: function (c) { return c.key === "rare"; } },
+    { id: "clean",     seal: "廉", name: "两袖清风", desc: "任满卸任，且全程未取一分令库银净增的不义之财。",
+      check: function (c) { return !c.dead && c.history.length > 0 && c.history.every(function (h) { return !(h.fx && h.fx.silver > 0); }); } },
+    { id: "rich",      seal: "金", name: "富甲一方", desc: "落幕时库银 ≥ 80 两——这台机器最顺手的赢家。",
+      check: function (c) { return c.S.silver >= 80; } },
+    { id: "beloved",   seal: "心", name: "万民归心", desc: "落幕时民心 ≥ 85——难得的一方好官声。",
+      check: function (c) { return c.S.minxin >= 85; } },
+    { id: "collector", seal: "镜", name: "十面镜子", desc: "集齐全部下场，把每条潜规则都亲手走了一遍。",
+      check: function (c) { return c.codexCount >= ENDING_ORDER.length; } },
+    { id: "streak3",   seal: "勤", name: "三日勤勉", desc: "连续三天接下「今日同题」并走完。",
+      check: function (c) { return c.streak >= 3; } },
+    { id: "streak7",   seal: "恒", name: "七日不辍", desc: "连续七天接下「今日同题」并走完——好定力。",
+      check: function (c) { return c.streak >= 7; } }
+  ];
+  function loadAch() { try { return JSON.parse(localStorage.getItem(ACH_KEY)) || {}; } catch (e) { return {}; } }
+  function saveAch(o) { try { localStorage.setItem(ACH_KEY, JSON.stringify(o)); } catch (e) {} }
+  function loadStreak() { try { return JSON.parse(localStorage.getItem(STREAK_KEY)) || {}; } catch (e) { return {}; } }
+  // 走完一局「今日同题」时推进连胜：昨天也玩过则 +1，断了则归 1，一天只记一次
+  function bumpDailyStreak() {
+    var rec = loadStreak();
+    var today = dateKey();
+    if (rec.last === today) return rec;                 // 今天已计过，不重复
+    rec.streak = (rec.last === yesterdayKey()) ? ((rec.streak || 0) + 1) : 1;
+    rec.best = Math.max(rec.best || 0, rec.streak);
+    rec.last = today;
+    try { localStorage.setItem(STREAK_KEY, JSON.stringify(rec)); } catch (e) {}
+    return rec;
+  }
+  // 结局时评定成就：解锁并返回本局「新解锁」的那些（供播报/高亮）
+  function evaluateAch(ctx) {
+    var got = loadAch(), fresh = [];
+    ACH.forEach(function (a) {
+      if (got[a.id]) return;
+      var ok = false; try { ok = a.check(ctx); } catch (e) { ok = false; }
+      if (ok) { got[a.id] = true; fresh.push(a); }
+    });
+    if (fresh.length) saveAch(got);
+    return fresh;
+  }
+  function renderAch(containerId, freshIds) {
+    var got = loadAch();
+    freshIds = freshIds || [];
+    var n = 0;
+    var items = ACH.map(function (a) {
+      var un = !!got[a.id]; if (un) n++;
+      var isNew = freshIds.indexOf(a.id) >= 0;
+      var cls = "ach-item" + (un ? " got" : "") + (isNew ? " new" : "");
+      var tip = un ? (a.name + "——" + a.desc) : ("未解锁 · " + a.desc);
+      return '<div class="' + cls + '" title="' + esc(tip) + '">' +
+               '<span class="ach-seal">' + (un ? a.seal : "？") + "</span>" +
+               '<span class="ach-name">' + esc(un ? a.name : "未解锁") + "</span></div>";
+    }).join("");
+    var head = "官声成就　" + n + " / " + ACH.length +
+      (freshIds.length ? "　·　<b>🏅 本局新解锁 " + freshIds.length + "</b>" : "");
+    el(containerId).innerHTML = '<div class="ach-head">' + head + "</div><div class=\"ach-grid\">" + items + "</div>";
   }
 
   // ---- 施政轨迹：把玩家这一局走过的选择回放出来（只叙事，不评判）----------
@@ -1022,6 +1119,14 @@
     er.setAttribute("aria-expanded", "false");
     renderTrail();
     renderCodex("end-codex", isNew ? key : null);
+    // 连胜（只认「今日同题」）→ 评定官声成就 → 渲染成就墙、记下本局新解锁
+    var streakRec = playedAsDaily ? bumpDailyStreak() : loadStreak();
+    var codexCount = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
+    var freshAch = evaluateAch({
+      key: key, S: S, history: history, dead: !!DEAD_ENDINGS[key],
+      streak: streakRec.streak || 0, codexCount: codexCount
+    });
+    renderAch("end-ach", freshAch.map(function (a) { return a.id; }));
     // 同题较量：亮出本局牌序，让人拿同一副牌来比
     el("end-seedline").innerHTML =
       "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
@@ -1029,8 +1134,11 @@
     SFX.end(DEAD_ENDINGS[key]);
     // 出局：一串沉重的震；任满：一记短震收束（移动端）
     haptic(DEAD_ENDINGS[key] ? [90, 60, 140] : 40);
+    var achNames = freshAch.map(function (a) { return a.name; }).join("、");
     announce("这一局落幕：" + e.title + "。" + e.kick + "。乌纱 " + S.wusha +
-             "，民心 " + S.minxin + "，清誉 " + S.qingyu + "，白银 " + S.silver + " 两。");
+             "，民心 " + S.minxin + "，清誉 " + S.qingyu + "，白银 " + S.silver + " 两。" +
+             (freshAch.length ? "解锁新成就：" + achNames + "。" : ""));
+    if (freshAch.length) showToast("🏅 解锁成就：" + achNames);
     window.scrollTo({ top: 0, behavior: "smooth" });
     // 无障碍：把焦点落到结局标题，屏幕阅读器随即读出下场
     try { el("end-title").focus({ preventScroll: true }); } catch (e2) { try { el("end-title").focus(); } catch (e3) {} }
@@ -1089,6 +1197,7 @@
 
   // ---- 开局 / 重开 --------------------------------------------------------
   function startGame(seed) {
+    playedAsDaily = false;                 // 默认非「今日同题」；由 btn-daily 覆盖
     currentSeed = (seed && normalizeSeed(seed)) || randomSeed();
     rng = makeRng(currentSeed);
     el("game-seed").textContent = "牌序 " + currentSeed;
@@ -1109,7 +1218,7 @@
   el("btn-start").addEventListener("click", startFromTitle);
   el("btn-restart").addEventListener("click", function () { startGame(null); });   // 换一副新牌
   el("btn-replay").addEventListener("click", function () { startGame(currentSeed); }); // 同一副牌再战
-  el("btn-daily").addEventListener("click", function () { startGame(dailySeed()); }); // 今日同题
+  el("btn-daily").addEventListener("click", function () { startGame(dailySeed()); playedAsDaily = true; }); // 今日同题（走完计入连胜）
 
   // ---- 音效开关 -----------------------------------------------------------
   function syncSfxBtn() {
@@ -1152,11 +1261,22 @@
     renderCodex("title-codex", null);
   })();
 
-  // ---- 初始化：标题页亮出今日同题的牌序（当天全网一致，次日换新）----------
+  // ---- 初始化：标题页亮出官声成就墙（走过一局后才显示，勾引集齐）----------
+  (function initTitleAch() {
+    if (Object.keys(loadCodex()).length === 0 && Object.keys(loadAch()).length === 0) return;
+    el("title-ach").classList.remove("hidden");
+    renderAch("title-ach", []);
+  })();
+
+  // ---- 初始化：标题页亮出今日同题的牌序（当天全网一致，次日换新）+ 连胜 ----
   (function initDaily() {
     var today = dailySeed();
+    var st = loadStreak();
+    // 连胜仍「续着」（最近一次是今天或昨天）才亮出来，断了就不显摆
+    var alive = st.streak && (st.last === dateKey() || st.last === yesterdayKey());
+    var streakTxt = alive ? "　·　🔥 连续 " + st.streak + " 天" : "";
     el("daily-line").innerHTML =
-      "今日牌序 <span class=\"mono\">" + esc(today) + "</span>　·　全网同一副，明日换新";
+      "今日牌序 <span class=\"mono\">" + esc(today) + "</span>　·　全网同一副，明日换新" + streakTxt;
   })();
 
   // ---- 初始化：若被人以 ?seed= 下了战书，标题页亮出「同题挑战」横幅 --------
