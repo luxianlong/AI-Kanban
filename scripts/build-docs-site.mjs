@@ -143,19 +143,26 @@ function excerpt(md) {
 }
 
 // --- shared page shell -------------------------------------------------------
+// Visual language: a Xiaohongshu (小红书 / RED) "note" look rather than a formal
+// wiki (task #462). Warm blush canvas, coral brand accent, rounded chunky cards
+// with soft pink shadows, and pill-shaped tags — the friendly, mobile-first feel
+// of a RED note. Only the CSS/markup changes; the generated DOM (classes, TOC,
+// controls) is untouched so every existing behaviour still works.
 const THEME = `
 :root {
-  --bg: #f6f7f9;
+  --bg: #fdf1ee;
   --card: #ffffff;
-  --ink: #1f2430;
-  --muted: #5b6472;
-  --line: #e5e8ee;
-  --accent: #4f46e5;
-  --accent-soft: #eef0fe;
-  --link: #1f6feb;
-  --source-bg: #f0f7f4;
-  --source-line: #3f9e78;
-  --maxw: 1120px;
+  --ink: #33313a;
+  --muted: #9a939b;
+  --line: #f4e4e0;
+  --accent: #ff2e4d;
+  --accent-2: #ff7a59;
+  --accent-soft: #ffe6ea;
+  --link: #ff2e4d;
+  --source-bg: #fff3ec;
+  --source-line: #ff8a5c;
+  --shadow: 0 10px 30px rgba(255,46,77,0.10);
+  --maxw: 1040px;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -163,44 +170,57 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Inter", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Nunito", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 16px;
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .hero {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 55%, #7c9bf5 100%);
+  position: relative;
+  background: linear-gradient(135deg, #ff5b79 0%, #ff2e4d 52%, #ff8a5c 100%);
   color: #fff;
-  padding: 48px 24px 40px;
+  padding: 46px 24px 40px;
   text-align: center;
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 12px 30px rgba(255,46,77,0.22);
 }
 .hero .eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  display: inline-block;
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 4px 14px;
+  border-radius: 999px;
+  letter-spacing: 1px;
   font-size: 12px;
-  opacity: 0.9;
-  margin: 0 0 8px;
+  font-weight: 700;
+  margin: 0 0 12px;
 }
 .hero h1 {
-  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  font-family: "Nunito", "Noto Sans SC", sans-serif;
+  font-weight: 800;
   font-size: clamp(26px, 4.5vw, 40px);
   margin: 0 0 10px;
   letter-spacing: 0.3px;
 }
-.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.95; font-size: 15px; }
-.hero .back { display: inline-block; margin-top: 16px; color: #fff; font-size: 14px; opacity: 0.9; }
-.hero .back:hover { opacity: 1; }
+.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.96; font-size: 15px; }
+.hero .back {
+  display: inline-block; margin-top: 18px; color: #ff2e4d; background: #fff;
+  font-size: 14px; font-weight: 700; padding: 7px 18px; border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+.hero .back:hover { text-decoration: none; transform: translateY(-1px); }
 `
 
 const CONTENT_CSS = `
 .layout {
   max-width: var(--maxw);
-  margin: 0 auto;
+  margin: -20px auto 0;
+  position: relative;
   padding: 32px 24px 80px;
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  gap: 36px;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 30px;
   align-items: start;
 }
 .toc {
@@ -210,62 +230,69 @@ const CONTENT_CSS = `
   overflow-y: auto;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 20px;
   padding: 18px 16px;
   font-size: 14px;
+  box-shadow: var(--shadow);
 }
 .toc-title {
-  font-weight: 700; font-size: 13px; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+  font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+  color: var(--accent); margin-bottom: 10px;
 }
+.toc-title::before { content: "📌 "; }
 .toc ul { list-style: none; margin: 0; padding: 0; }
 .toc li { margin: 1px 0; }
 .toc li a {
-  display: block; padding: 4px 8px; border-radius: 7px; color: var(--ink);
+  display: block; padding: 5px 10px; border-radius: 999px; color: var(--ink);
 }
-.toc li a:hover { background: var(--accent-soft); text-decoration: none; }
-.toc li.lv2 a { font-weight: 600; margin-top: 6px; }
-.toc li.lv3 a { padding-left: 20px; color: var(--muted); font-size: 13px; }
+.toc li a:hover { background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { font-weight: 700; margin-top: 6px; }
+.toc li.lv3 a { padding-left: 22px; color: var(--muted); font-size: 13px; }
 .content {
   background: var(--card); border: 1px solid var(--line);
-  border-radius: 14px; padding: 8px 40px 40px; min-width: 0;
+  border-radius: 22px; padding: 12px 42px 44px; min-width: 0;
+  box-shadow: var(--shadow);
 }
-.content h1 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 30px; margin: 24px 0 12px; }
+.content h1 { font-family: "Nunito","Noto Sans SC",sans-serif; font-weight: 800; font-size: 30px; margin: 24px 0 12px; }
 .content h2, .content h3, .content h4, .content h5, .content h6 {
-  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
-  line-height: 1.35; scroll-margin-top: 16px; position: relative;
+  font-family: "Nunito", "Noto Sans SC", sans-serif; font-weight: 800;
+  line-height: 1.4; scroll-margin-top: 16px; position: relative;
 }
-.content h2 { font-size: 25px; margin: 38px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-soft); }
-.content h3 { font-size: 20px; margin: 28px 0 10px; }
+.content h2 { font-size: 24px; margin: 40px 0 16px; padding-left: 14px; border-left: 6px solid var(--accent); }
+.content h3 { font-size: 19px; margin: 28px 0 10px; }
+.content h3::before { content: "🌸 "; font-size: 0.85em; }
 .content h4 { font-size: 17px; margin: 22px 0 8px; color: var(--accent); }
 .content p { margin: 12px 0; }
 .content ul, .content ol { margin: 12px 0; padding-left: 24px; }
-.content li { margin: 5px 0; }
+.content li { margin: 6px 0; }
+.content ul li::marker { color: var(--accent); }
 .content li > ul, .content li > ol { margin: 5px 0; }
+.content strong { color: var(--accent); }
 .anchor { opacity: 0; margin-left: 8px; color: var(--accent); font-weight: 400; text-decoration: none; }
 h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.55; }
-code { background: #eef0f4; border-radius: 5px; padding: 1px 6px; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size: 0.9em; }
-blockquote.quote { margin: 16px 0; padding: 12px 18px; border-left: 4px solid var(--line); background: #f8f9fb; border-radius: 0 10px 10px 0; color: var(--muted); }
+code { background: var(--accent-soft); color: #d61f3c; border-radius: 6px; padding: 1px 6px; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size: 0.9em; }
+blockquote.quote { margin: 18px 0; padding: 14px 20px; border-left: 5px solid var(--accent-2); background: var(--source-bg); border-radius: 0 16px 16px 0; color: #6f5a52; }
 blockquote.source { background: var(--source-bg); border-left-color: var(--source-line); }
-blockquote.source::before { content: "🔎 来源与时效"; display: block; font-weight: 700; font-size: 13px; color: var(--source-line); margin-bottom: 4px; }
+blockquote.source::before { content: "🔎 来源与时效"; display: block; font-weight: 800; font-size: 13px; color: var(--source-line); margin-bottom: 4px; }
 blockquote p { margin: 4px 0; font-size: 14px; }
 .figure { margin: 22px 0; text-align: center; }
-.figure img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(31,36,48,0.10); }
+.figure img { max-width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 10px 26px rgba(255,46,77,0.12); }
 .figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
-.content p img { max-width: 100%; height: auto; border-radius: 10px; }
-.table-wrap { overflow-x: auto; margin: 16px 0; }
+.content p img { max-width: 100%; height: auto; border-radius: 16px; }
+.table-wrap { overflow-x: auto; margin: 18px 0; border-radius: 16px; border: 1px solid var(--line); }
 table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 420px; }
-th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
-thead th { background: var(--accent-soft); color: var(--ink); font-weight: 700; }
-tbody tr:nth-child(even) { background: #fafbfc; }
-hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
-pre.code { background: #1f2430; color: #e6e8ef; border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+th, td { border-bottom: 1px solid var(--line); padding: 10px 14px; text-align: left; vertical-align: top; }
+thead th { background: var(--accent-soft); color: var(--accent); font-weight: 800; border-bottom: none; }
+tbody tr:nth-child(even) { background: #fff7f5; }
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 2px dashed var(--line); margin: 28px 0; }
+pre.code { background: #33202a; color: #ffe7ec; border-radius: 16px; padding: 16px 18px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
 pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
-pre.mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; text-align: center; overflow-x: auto; }
+pre.mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; overflow-x: auto; }
 .backtop {
   position: fixed; right: 22px; bottom: 22px; width: 46px; height: 46px;
   border-radius: 50%; background: var(--accent); color: #fff; border: none;
-  font-size: 20px; cursor: pointer; box-shadow: 0 6px 18px rgba(79,70,229,0.4);
+  font-size: 20px; cursor: pointer; box-shadow: 0 8px 20px rgba(255,46,77,0.45);
   opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 .backtop.show { opacity: 1; pointer-events: auto; }
@@ -275,16 +302,17 @@ pre.mermaid { background: var(--card); border: 1px solid var(--line); border-rad
   .toc { position: static; max-height: none; }
   .mobile-toc-toggle {
     display: block; width: 100%; background: var(--card); border: 1px solid var(--line);
-    border-radius: 10px; padding: 12px 16px; font: inherit; font-weight: 600; text-align: left; cursor: pointer;
+    border-radius: 16px; padding: 12px 16px; font: inherit; font-weight: 700; text-align: left; cursor: pointer;
+    box-shadow: var(--shadow);
   }
   .toc.collapsed { display: none; }
-  .content { padding: 8px 20px 28px; }
+  .content { padding: 12px 22px 30px; }
 }
 `
 
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />`
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />`
 
 function renderDocPage({ id, title, body, toc, hasMermaid }) {
   const sidebar = toc.length
@@ -306,9 +334,9 @@ ${FONTS}
 </head>
 <body>
 <header class="hero">
-<p class="eyebrow">Kanban · Result</p>
+<p class="eyebrow">📔 笔记详情</p>
 <h1>${esc(title)}</h1>
-<a class="back" href="/docs.html">← All documents</a>
+<a class="back" href="/docs.html">← 回到笔记墙</a>
 </header>
 <div class="layout">
 <button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ On this page</button>
@@ -352,31 +380,36 @@ ${hasMermaid ? `<script type="module">
 }
 
 const INDEX_CSS = `
-.wrap { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 34px 24px 80px; }
+/* A Xiaohongshu-style "note wall": a masonry-ish grid of soft rounded cards. */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
 .doc-card {
   display: block; background: var(--card); border: 1px solid var(--line);
-  border-radius: 14px; padding: 20px 22px; color: var(--ink);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  border-radius: 20px; padding: 20px 22px; color: var(--ink);
+  box-shadow: 0 8px 22px rgba(255,46,77,0.07);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
 }
-.doc-card:hover { text-decoration: none; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(31,36,48,0.08); border-color: #c9cff5; }
-.doc-card.featured { border-color: #c9cff5; background: linear-gradient(180deg, #fbfbff 0%, #ffffff 100%); }
-.doc-card h2 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 19px; margin: 0 0 8px; }
-.doc-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.doc-card .meta { margin-top: 12px; font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0.3px; }
-.doc-card .badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; vertical-align: middle; }
+.doc-card:hover { text-decoration: none; transform: translateY(-3px); box-shadow: 0 16px 34px rgba(255,46,77,0.16); border-color: var(--accent-soft); }
+.doc-card.featured { border-color: var(--accent-soft); background: linear-gradient(180deg, #fff6f3 0%, #ffffff 60%); }
+.doc-card h2 { font-family: "Nunito","Noto Sans SC",sans-serif; font-weight: 800; font-size: 18px; margin: 0 0 8px; }
+.doc-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.doc-card .meta {
+  margin-top: 14px; display: inline-block; font-size: 13px; color: #fff; font-weight: 800;
+  background: linear-gradient(135deg, #ff5b79, #ff2e4d); padding: 5px 14px; border-radius: 999px;
+}
+.doc-card .badge { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 700; vertical-align: middle; }
 .empty { color: var(--muted); text-align: center; padding: 40px; }
 .card-wrap { position: relative; display: flex; }
 .card-wrap .doc-card { flex: 1; }
 /* "Recently created/updated" marker (task #319): a red badge pinned to the
    card's top-right corner. The whole card also gets a subtle red-tinted border
    so fresh docs — which sort to the front — read as new at a glance. */
-.card-wrap.is-new .doc-card { border-color: #f3c0c0; }
+.card-wrap.is-new .doc-card { border-color: #ffc2cc; }
 .new-dot {
   position: absolute; top: -8px; right: -8px; z-index: 3;
-  background: #e5484d; color: #fff; font-size: 10px; font-weight: 800;
-  letter-spacing: 0.6px; line-height: 1; padding: 4px 7px; border-radius: 999px;
-  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(229,72,77,0.45);
+  background: var(--accent); color: #fff; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.6px; line-height: 1; padding: 4px 8px; border-radius: 999px;
+  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(255,46,77,0.5);
   pointer-events: none;
 }
 .doc-del {
@@ -485,7 +518,7 @@ function renderIndex(cards) {
   <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
   <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
   <p>${esc(c.excerpt || 'Open to read the full document.')}</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>${
         c.isNew
           ? `\n  <span class="new-dot"${c.updatedAt ? ` title="Updated ${esc(c.updatedAt.slice(0, 10))}"` : ''} aria-label="Recently updated">NEW</span>`
@@ -516,10 +549,10 @@ ${INDEX_CSS}</style>
 </head>
 <body>
 <header class="hero">
-<p class="eyebrow">Kanban</p>
+<p class="eyebrow">📔 笔记墙</p>
 <h1>Documents &amp; Results</h1>
-<p class="sub">Reports and guides the board's agent produced, rendered from the repo's Markdown as browsable web pages.</p>
-<a class="back" href="/">← Back to the board</a>
+<p class="sub">看板 agent 产出的报告与攻略，像小红书笔记一样一张张摊开 · 点开任意一张即可阅读全文。</p>
+<a class="back" href="/">← 回到看板</a>
 </header>
 <div class="wrap">
 ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">No documents yet.</p>'}

@@ -224,6 +224,23 @@
   .codex .slot.new { box-shadow: 0 0 0 3px rgba(184,145,47,0.4); animation: pop .5s ease; }
   @keyframes pop { 0%{ transform: scale(.6);} 60%{ transform: scale(1.12);} 100%{ transform: scale(1);} }
 
+  /* --- 结局图鉴向导：结局页点出「下一面还没走到的镜子」及一句走法引导 --- */
+  .codex-guide {
+    margin: 9px auto 0; max-width: 470px;
+    background: rgba(255,255,255,0.42); border: 1px dashed var(--line);
+    border-radius: 10px; padding: 9px 13px; font-size: 12.5px; color: var(--ink-soft);
+    line-height: 1.62; text-align: left;
+  }
+  .codex-guide .cg-seal {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; margin-right: 6px; vertical-align: -5px;
+    border: 1px solid var(--gold); border-radius: 6px; color: var(--seal);
+    font-family: "Ma Shan Zheng", serif; font-size: 15px; background: rgba(178,59,46,0.06);
+  }
+  .codex-guide b { color: var(--red); }
+  .codex-guide .cg-left { color: var(--ink-soft); }
+  .codex-guide.done { color: var(--seal); border-style: solid; border-color: var(--gold); text-align: center; }
+
   /* --- 官声成就 / 多周目里程碑 (achievements & milestones) --- */
   .ach { margin-top: 14px; text-align: center; }
   .ach-head { font-size: 12.5px; color: var(--ink-soft); letter-spacing: 1px; margin-bottom: 10px; }
@@ -262,6 +279,14 @@
   .ledger-legend .dead { color: var(--red); font-weight: 700; }
   .ledger-best { font-size: 12px; color: var(--ink-soft); letter-spacing: .3px; line-height: 1.7; }
   .ledger-best b { color: var(--ink); }
+  /* --- 本局 vs 生涯之最：结局页把这一任逐项对照历任纪录，创新高者挂徽标 --- */
+  .ledger-run { margin-top: 9px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--ink-soft); line-height: 1.75; }
+  .ledger-run-head { display: block; font-size: 12px; letter-spacing: .5px; margin-bottom: 3px; }
+  .ledger-run b { color: var(--ink); }
+  .ledger-run .best { color: var(--ink-soft); }
+  .ledger-run .nh-badge { color: var(--seal); font-weight: 700; margin-left: 3px; font-size: 11px; white-space: nowrap; }
+  .ledger-run.hit { background: rgba(178,59,46,0.05); border: 1px solid var(--gold); border-top: 1px solid var(--gold); border-radius: 8px; padding: 8px 11px; margin-top: 10px; }
+  .ledger-run.hit .ledger-run-head { color: var(--seal); font-weight: 700; }
 
   /* --- 施政轨迹回顾 (choice trail in ending) --- */
   .trail { margin-top: 14px; }
@@ -390,6 +415,7 @@
     </div>
     <p class="daily-line" id="daily-line"></p>
     <div class="codex hidden" id="title-codex" aria-label="结局收藏"></div>
+    <div class="codex-guide hidden" id="title-guide" aria-label="今天想照哪面镜子"></div>
     <div class="ach hidden" id="title-ach" aria-label="官声成就"></div>
     <div class="ledger hidden" id="title-ledger" aria-label="为官生涯"></div>
     <p class="footnote">约 11 个抉择 · 每局 3–5 分钟 · 可重玩，看看不同的下场（键盘 1/2/3 可选，Enter 继续）</p>
@@ -452,6 +478,7 @@
     <div class="end-reveal-wrap"><button class="reveal-btn" id="end-reveal" type="button" aria-expanded="false">🔎 这一局，你亲历了哪条潜规则？</button></div>
     <div class="map hidden" id="end-map"></div>
     <div class="codex" id="end-codex" aria-label="结局收藏"></div>
+    <div class="codex-guide hidden" id="end-codex-guide" aria-label="下一面镜子"></div>
     <div class="ach" id="end-ach" aria-label="官声成就"></div>
     <div class="ledger" id="end-ledger" aria-label="为官生涯"></div>
     <p class="seedline" id="end-seedline"></p>
@@ -649,7 +676,7 @@
   // ---- 结局图鉴：把玩家走过的下场存进浏览器（localStorage），跨局累积 --------
   var CODEX_KEY = "daming_wangchao_codex_v1";
   // 图鉴里结局的陈列顺序：从「走得通的窄路」到「各种崩法」
-  var ENDING_ORDER = ["rare", "worn", "survivor", "cynic", "winner", "purge", "downfall", "revolt", "prison"];
+  var ENDING_ORDER = ["rare", "worn", "survivor", "cynic", "winner", "purge", "downfall", "revolt", "prison", "saint"];
   function loadCodex() {
     try { return JSON.parse(localStorage.getItem(CODEX_KEY)) || {}; } catch (e) { return {}; }
   }
@@ -665,7 +692,8 @@
       var e = ENDINGS[k] || {};
       var cls = "slot" + (unlocked ? " got" : "") + (k === newKey ? " new" : "");
       var ch = unlocked ? (e.seal || "？") : "？";
-      var tip = unlocked ? (e.title || "") : "未解锁 · 换个走法试试";
+      var tip = unlocked ? (e.title || "")
+        : (e.hidden ? "隐藏结局 · 无从指引，自己去照见" : "未解锁 · 换个走法试试");
       return '<span class="' + cls + '" title="' + esc(tip) + '">' + ch + "</span>";
     }).join("");
     var head = "结局收藏　" + n + " / " + total + (n >= total ? "　·　十面镜子已走遍" : "　·　换个走法，看看别的下场");
@@ -673,10 +701,90 @@
       '<div class="codex-head">' + head + "</div><div class=\"codex-row\">" + slots + "</div>";
   }
 
+  // ---- 结局图鉴向导：结局页点出「陈列顺序里下一面还没照过的镜子」及一句走法引导 --
+  //   纯读图鉴 + 每个结局自带的静态 guide 文案，不动 RNG/牌序/结局判定；
+  //   只在结局页多一句「离下一个未解锁下场还差什么」，替完形玩家指条方向。
+  // 陈列顺序里「下一面还没照过的镜子」：结局页向导与标题页开局引导共用同一套判定，
+  //   避免两处各写一份、日后走样。隐藏结局单列（onlyHidden），不泄走法。
+  function pickNextMirror() {
+    var got = loadCodex();
+    var locked = ENDING_ORDER.filter(function (k) { return !got[k]; });
+    if (!locked.length) return { done: true, locked: 0 };
+    var visible = locked.filter(function (k) { return !(ENDINGS[k] && ENDINGS[k].hidden); });
+    if (!visible.length) return { onlyHidden: true, locked: locked.length };
+    return { key: visible[0], locked: locked.length };   // 陈列顺序里下一面非隐藏、未照过的镜子
+  }
+  function renderCodexGuide(containerId) {
+    var host = el(containerId);
+    if (!host) return "";
+    var pick = pickNextMirror();
+    if (pick.done) {
+      host.className = "codex-guide done";
+      host.innerHTML = "🪞 十面镜子已走遍——每一种下场，你都亲手照过一遍了。";
+      return "";
+    }
+    // 隐藏结局不给指引（否则就不叫「藏」了）：向导只点常规下场，把隐藏面单独留白
+    if (pick.onlyHidden) {                 // 只剩藏得最深那面没照过——给一句留白，不泄走法
+      host.className = "codex-guide";
+      host.innerHTML =
+        '<span class="cg-seal">？</span>' +
+        '<span class="cg-left">常规九面都照过了，还剩<b> 一面藏得极深的镜子 </b>——它不给指引，得你自己走到那一步。</span>';
+      return "";
+    }
+    var e = ENDINGS[pick.key] || {};
+    host.className = "codex-guide";
+    host.innerHTML =
+      '<span class="cg-seal">' + esc(e.seal || "？") + "</span>" +
+      '<span class="cg-left">还差「</span><b>' + esc(e.title || "") + '</b><span class="cg-left">」　·　' +
+      esc(e.guide || "换个走法试试。") +
+      "　（图鉴还剩 " + pick.locked + " 面镜子）</span>";
+    return e.title || "";
+  }
+
+  // ---- 标题页开局引导：「今天想照哪面镜子」-------------------------------------
+  //   开局前就把陈列顺序里下一面还没照过的镜子（及一句走法）指给回头客，替完形
+  //   玩家先立个本局小目标。与结局页向导同源（pickNextMirror），纯读图鉴，不动
+  //   RNG/牌序/结局判定；只在标题页多一句引导。
+  function renderTitleGuide(containerId) {
+    var host = el(containerId);
+    if (!host) return;
+    var pick = pickNextMirror();
+    if (pick.done) {                       // 十面都照过了——放开手随便玩
+      host.className = "codex-guide done";
+      host.innerHTML = "🪞 十面镜子都照过了——今天随手挑副牌，想重照哪面都随你。";
+      return;
+    }
+    if (pick.onlyHidden) {                 // 只剩藏得最深那面——同样不泄走法，只给个念想
+      host.className = "codex-guide";
+      host.innerHTML =
+        '<span class="cg-seal">？</span>' +
+        '<span class="cg-left">🪞 常规九面都照过了，只剩<b> 一面藏得极深的镜子 </b>——它不给指引，今天就看你能否自己走到那一步。</span>';
+      return;
+    }
+    var e = ENDINGS[pick.key] || {};
+    host.className = "codex-guide";
+    host.innerHTML =
+      '<span class="cg-seal">' + esc(e.seal || "？") + "</span>" +
+      '<span class="cg-left">🪞 今天想照哪面镜子？不妨去照「</span><b>' + esc(e.title || "") + '</b>' +
+      '<span class="cg-left">」　·　' + esc(e.guide || "换个走法试试。") +
+      "　（图鉴还剩 " + pick.locked + " 面）</span>";
+  }
+
   // ---- 官声成就 & 每日同题连胜：多周目里程碑，跨局累积存进浏览器 -----------
   var ACH_KEY = "daming_wangchao_ach_v1";
   var STREAK_KEY = "daming_wangchao_streak_v1";
   var playedAsDaily = false;      // 本局是否走的「今日同题」（连胜只认它）
+
+  // 本局高光：结局时记下「这一任」独有的成果——初次照见的镜子、新解锁的成就、
+  //   刷新的生涯纪录——供「晒出下场」文字与结局图卡引用，让分享带上本局的骄傲。
+  var lastHL = { newEnding: null, ach: [], records: [] };
+  function runHighlights() {
+    var h = [];
+    if (lastHL.newEnding) h.push("初次照见「" + lastHL.newEnding + "」");
+    if (lastHL.ach.length) h.push("解锁成就「" + lastHL.ach.join("」「") + "」");
+    if (lastHL.records.length) h.push("刷新" + lastHL.records.join("／") + "纪录");
+    return h;
+  }
 
   // 成就在结局时评定：check(ctx) 取本局的下场/属性/走法与跨局的图鉴、连胜
   var ACH = [
@@ -694,6 +802,8 @@
       check: function (c) { return c.codexCount >= ENDING_ORDER.length; } },
     { id: "rare_ev",   seal: "奇", name: "官场奇遇", desc: "任内撞上一桩罕见的隐事（血酬 / 诡寄 / 京债）——不是谁都遇得到。",
       check: function (c) { return c.history.some(function (h) { return h.rare; }); } },
+    { id: "saint",     seal: "青", name: "青天在世", desc: "走出那面藏得最深的镜子——一文不取、清誉民心俱近圆满的清官圣人。",
+      check: function (c) { return c.key === "saint"; } },
     { id: "streak3",   seal: "勤", name: "三日勤勉", desc: "连续三天接下「今日同题」并走完。",
       check: function (c) { return c.streak >= 3; } },
     { id: "streak7",   seal: "恒", name: "七日不辍", desc: "连续七天接下「今日同题」并走完——好定力。",
@@ -749,9 +859,17 @@
   function loadStats() {
     try { return JSON.parse(localStorage.getItem(STATS_KEY)) || {}; } catch (e) { return {}; }
   }
-  // 每走完一局，把这一任并进生涯账：任数、存亡、各下场次数、生涯之最
+  // 每走完一局，把这一任并进生涯账：任数、存亡、各下场次数、生涯之最。
+  // 返回 { stats, newHigh }——newHigh 标出本局有没有创下各维的生涯新纪录（供结局页对照）。
   function bumpStats(key, dead, st, streak) {
     var s = loadStats();
+    var firstRun = !(s.runs > 0);               // 头一任无「旧纪录」可破，不算创新高
+    var prev = {                                 // 并入之前的生涯之最，用来判断这一任破没破纪录
+      minxin: s.bestMinxin || 0,
+      qingyu: s.bestQingyu || 0,
+      silver: (s.bestSilver == null) ? null : s.bestSilver,
+      streak: s.bestStreak || 0
+    };
     s.runs = (s.runs || 0) + 1;
     if (dead) s.dead = (s.dead || 0) + 1; else s.survived = (s.survived || 0) + 1;
     s.byEnding = s.byEnding || {};
@@ -761,9 +879,17 @@
     s.bestSilver = (s.bestSilver == null) ? st.silver : Math.max(s.bestSilver, st.silver);
     s.bestStreak = Math.max(s.bestStreak || 0, streak || 0);
     try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch (e) {}
-    return s;
+    var newHigh = {                              // 须严格超过旧纪录才算新高（连胜还须本局确有连胜）
+      minxin: !firstRun && st.minxin > prev.minxin,
+      qingyu: !firstRun && st.qingyu > prev.qingyu,
+      silver: !firstRun && prev.silver != null && st.silver > prev.silver,
+      streak: !firstRun && (streak || 0) > 0 && (streak || 0) > prev.streak
+    };
+    return { stats: s, newHigh: newHigh };
   }
-  function renderLedger(containerId) {
+  // runInfo（仅结局页传入）：{ S:{minxin,qingyu,silver}, newHigh, daily, streak }
+  //   有它就在生涯账下方多摆一行「本局 vs 生涯之最」逐项对照，破了纪录的挂「🏅新高」。
+  function renderLedger(containerId, runInfo) {
     var s = loadStats();
     var runs = s.runs || 0;
     if (!runs) { el(containerId).innerHTML = ""; return; }
@@ -787,7 +913,31 @@
         '　·　家财 <b>' + bestSilver + '</b> 两' +
         '　·　同题连胜 <b>' + (s.bestStreak || 0) + '</b> 天' +
         (runs >= 2 ? '<br>最常走的下场 ——「<b>' + esc(topTitle) + '</b>」' + topN + " 回" : "") +
-      '</div>';
+      '</div>' +
+      (runInfo ? renderRunCompare(s, runInfo) : "");
+  }
+  // 本局逐项对照生涯之最（此刻 s 里的 best* 已并入本局，故新高项的「之最」正等于本局值）
+  function renderRunCompare(s, ri) {
+    var nh = ri.newHigh || {};
+    var badge = function (on) { return on ? '<span class="nh-badge">🏅新高</span>' : ""; };
+    var line = function (label, val, unit, best, isNew) {
+      return label + ' <b>' + val + '</b>' + unit +
+        '<span class="best">（之最 ' + best + unit + '）</span>' + badge(isNew);
+    };
+    var items = [
+      line("民心", ri.S.minxin, "", (s.bestMinxin || 0), nh.minxin),
+      line("清誉", ri.S.qingyu, "", (s.bestQingyu || 0), nh.qingyu),
+      line("家财", ri.S.silver, " 两", ((s.bestSilver == null) ? 0 : s.bestSilver), nh.silver)
+    ];
+    // 同题连胜只在本局确是「今日同题」时才有意义，才列出对照
+    if (ri.daily && (ri.streak || 0) > 0) {
+      items.push(line("同题连胜", ri.streak, " 天", (s.bestStreak || 0), nh.streak));
+    }
+    var anyNew = nh.minxin || nh.qingyu || nh.silver || nh.streak;
+    var head = anyNew ? "🏅 本局刷新了生涯纪录" : "本局战绩 · 对照生涯之最";
+    return '<div class="ledger-run' + (anyNew ? " hit" : "") + '">' +
+      '<span class="ledger-run-head">' + head + "</span>" +
+      items.join("　·　") + "</div>";
   }
 
   // ---- 施政轨迹：把玩家这一局走过的选择回放出来（只叙事，不评判）----------
@@ -821,14 +971,13 @@
   //   与「施政轨迹」清单互补：清单是一步步的叙事，这里是一眼可见的整段起落曲线。
   var SPARK_COL = { wusha: "#a83232", minxin: "#c79a2c", qingyu: "#3f9e9e", silver: "#4a6b8a" };
   var SPARK_NAME = { wusha: "🎏乌纱", minxin: "🧑‍🌾民心", qingyu: "⚖️清誉", silver: "💰库银" };
-  function renderSpark() {
-    var host = el("end-spark");
-    if (!history || !history.length) { host.innerHTML = ""; return; }
-    // 从起点按 fx 逐坎累积，重建四维轨迹（上限/下限的 clamp 与游戏内一致）
+  // 从起点按 history.fx 逐坎累积，重建四维轨迹（clamp 规则与游戏内一致）。
+  //   结局页 sparkline 与 canvas 结局图卡共用它，保证两处画出的走势一模一样。
+  function buildRunSeries() {
     var run = { wusha: START.wusha, minxin: START.minxin, qingyu: START.qingyu, silver: START.silver };
     var series = { wusha: [run.wusha], minxin: [run.minxin], qingyu: [run.qingyu], silver: [run.silver] };
     var climaxAt = -1;
-    history.forEach(function (h, i) {
+    (history || []).forEach(function (h, i) {
       var fx = h.fx || {};
       run.wusha  = clamp(run.wusha  + (fx.wusha  || 0));
       run.minxin = clamp(run.minxin + (fx.minxin || 0));
@@ -838,7 +987,14 @@
       series.qingyu.push(run.qingyu); series.silver.push(run.silver);
       if (h.climax) climaxAt = i + 1;     // 点序：起点是 0，第 i 坎落在点 i+1
     });
-    var n = series.wusha.length;          // 起点 + 每坎 = n 个点
+    return { series: series, climaxAt: climaxAt, n: series.wusha.length };
+  }
+  function renderSpark() {
+    var host = el("end-spark");
+    if (!history || !history.length) { host.innerHTML = ""; return; }
+    // 从起点按 fx 逐坎累积，重建四维轨迹（上限/下限的 clamp 与游戏内一致）
+    var built = buildRunSeries();
+    var series = built.series, climaxAt = built.climaxAt, n = built.n;
     var X0 = 44, X1 = 306;
     var xAt = function (i) { return n <= 1 ? (X0 + X1) / 2 : X0 + i / (n - 1) * (X1 - X0); };
     var poly = function (arr, yf) {
@@ -1385,6 +1541,10 @@
   // ---- 结局判定 -----------------------------------------------------------
   function finalEnding() {
     // 任满存活：按品性/家财分流
+    // 隐藏面「青天在世」：全程一文不取（无一坎令库银净增），且清誉、民心都近乎圆满——
+    //   比「异数」更严的一条窄路，故先于它判定。纯看本局走法与终值，不动种子/牌序。
+    var cleanRun = history.length > 0 && history.every(function (h) { return !(h.fx && h.fx.silver > 0); });
+    if (cleanRun && S.qingyu >= 82 && S.minxin >= 78) return "saint";  // 隐藏结局
     if (S.qingyu >= 60 && S.wusha >= 38) return "rare";        // 异数·全身而退的清官
     if (S.qingyu <= 32 && S.silver >= 55) return "winner";     // 同流合污·系统赢家
     if (S.qingyu <= 32) return "cynic";                         // 老于世故
@@ -1398,55 +1558,72 @@
         "你守住了良心，却没守住乌纱。一封接一封的参劾、一次又一次「不谙政体」的差评，把你磨到了任满之前——你被参倒了。",
         "没有谁存心害你。只是当所有人都心照不宣，那个唯一「不合群」的，迟早要被挤出去。这一回，被挤出去的是你。"
       ],
-      map: "你亲历了 <b>淘汰清官机制</b>：系统不需要坏人来对付好人，只需要「大家都这样，就你不一样」。海瑞式的清官之所以稀有，正因为这套规则会主动把他们筛出去。" },
+      map: "你亲历了 <b>淘汰清官机制</b>：系统不需要坏人来对付好人，只需要「大家都这样，就你不一样」。海瑞式的清官之所以稀有，正因为这套规则会主动把他们筛出去。",
+      guide: "清誉守得很高，却把乌纱耗到见底——任满前，做个宁折不弯、被参倒的清官。" },
     downfall: { seal: "败", title: "众叛落马", kick: "任期未满 · 失了圣眷，墙倒众人推",
       body: [
         "你既没干净到问心无愧，也没经营出足够的靠山。风向一变，昔日「自己人」翻脸比谁都快，把你推出去顶了缸。",
         "在没有真制衡的地方，安全从不来自规矩，只来自关系。你两头都没抓牢，于是两头都不肯保你。"
       ],
-      map: "你撞上了 <b>陋规 × 委托代理</b> 的另一面：入了局却站不稳，就成了随时可被牺牲的一环。系统对半吊子的惩罚，往往比对清官更冷酷。" },
+      map: "你撞上了 <b>陋规 × 委托代理</b> 的另一面：入了局却站不稳，就成了随时可被牺牲的一环。系统对半吊子的惩罚，往往比对清官更冷酷。",
+      guide: "清誉不上不下，又把乌纱耗尽——两头不靠，最先被推出去顶缸。" },
     revolt: { seal: "乱", title: "民变四起", kick: "任期未满 · 官逼民反，你成了替罪羊",
       body: [
         "钱粮一层层加码，最后全压在了跑不掉的百姓身上。终于，有人揭竿而起。乱起之后，上宪要的第一个人头，是你的。",
         "你只是链条上尽职传递压力的一环——可当死弯崩断时，最末端的执行者，永远是第一个被推出来问罪的人。"
       ],
-      map: "你走完了 <b>崇祯死弯</b> 与 <b>老百姓是个冤大头</b>：委托代理链每传一道就加一次码，越是「勤政催逼」，末端崩得越快。坏结果不需要坏人，只需要每个人都理性地把锅往下传。" },
+      map: "你走完了 <b>崇祯死弯</b> 与 <b>老百姓是个冤大头</b>：委托代理链每传一道就加一次码，越是「勤政催逼」，末端崩得越快。坏结果不需要坏人，只需要每个人都理性地把锅往下传。",
+      guide: "一味把担子往下压，让民心归零——官逼民反的那种收场。" },
     prison: { seal: "囚", title: "亏空案发",  kick: "任期未满 · 库银穿底，下狱抄家",
       body: [
         "账终究做不平了。府库的窟窿越挖越大，寅吃卯粮撑到了尽头，一朝清查，铁证如山。你从知县变成了阶下囚。",
         "击鼓传花的游戏里，你成了接到最后一棒的那个人——前任们挪空的、你又没能移交出去的窟窿，最后由你一个人来填。"
       ],
-      map: "你尝到了 <b>做账 / 亏空</b> 的结构性代价：陋规体系把窟窿一任任往后传，账面太平之下是无人认领的亏空。总有人接最后一棒。" },
+      map: "你尝到了 <b>做账 / 亏空</b> 的结构性代价：陋规体系把窟窿一任任往后传，账面太平之下是无人认领的亏空。总有人接最后一棒。",
+      guide: "只顾做账捞银，让库银亏空穿底（跌破 -40 两）——一朝清查，下狱抄家。" },
     winner: { seal: "达", title: "同流合污 · 步步高升", kick: "任满 · 你成了这台机器最顺手的零件",
       body: [
         "你活下来了，而且活得很好。家财万贯，上下逢源，考语年年是「谙练老成」。所有人都说你是个能吏。",
         "回望上任那天退过的礼、动过的念头，你几乎记不清自己是从哪一步开始，变成了当年最看不惯的那种人。"
       ],
-      map: "你抵达了 <b>第二等公平</b> 的稳定均衡：人人都在这套规则里交费、也在其中获利，没人愿意、也没人敢第一个退出。你是系统的赢家——也是它得以自我维持的原因。" },
+      map: "你抵达了 <b>第二等公平</b> 的稳定均衡：人人都在这套规则里交费、也在其中获利，没人愿意、也没人敢第一个退出。你是系统的赢家——也是它得以自我维持的原因。",
+      guide: "任满时清誉压得很低、家财却攒到 55 两以上——做这台机器最顺手的赢家。" },
     cynic: { seal: "熟", title: "老于世故", kick: "任满 · 一个「懂规矩」的平庸官僚",
       body: [
         "你没大贪，也没清高；该送的送，该收的收，棱角早被磨平。任满考绩平平，既不出彩，也没出事。",
         "你学会了这套游戏的所有潜台词，并且不再为此感到任何不安——这或许才是系统最成功的产品。"
       ],
-      map: "你被 <b>陋规 / 淘汰清官</b> 驯化成了「正常人」：系统真正的胜利，不是制造巨贪，而是让绝大多数普通人心安理得地随大流。" },
+      map: "你被 <b>陋规 / 淘汰清官</b> 驯化成了「正常人」：系统真正的胜利，不是制造巨贪，而是让绝大多数普通人心安理得地随大流。",
+      guide: "任满时清誉压到很低，家财却不算丰——一个懂规矩、无功无过的老油子。" },
     worn: { seal: "倦", title: "清白而疲惫", kick: "任满 · 守住了底线，也交足了买路钱",
       body: [
         "你没同流合污，也没被彻底掀翻。三年下来，你守住了不撒谎、不害人的底线，代价是仕途原地踏步、家底见薄、身心俱疲。",
         "你没能改变什么，但至少，你没成为你所厌恶的那种人。在这套系统里，这已经是一种昂贵的胜利。"
       ],
-      map: "你卡在了 <b>第二等公平</b> 的夹缝里：还想干净的人，多数就停在这个既不彻底堕落、也无力改造结构的位置——诊断清楚了病，却没有单独退出的选项。" },
+      map: "你卡在了 <b>第二等公平</b> 的夹缝里：还想干净的人，多数就停在这个既不彻底堕落、也无力改造结构的位置——诊断清楚了病，却没有单独退出的选项。",
+      guide: "任满时清誉守得较高，乌纱却没剩多少——清白而疲惫地卸任。" },
     rare: { seal: "异", title: "异数 · 全身而退的清官", kick: "任满 · 罕见地既守住了良心，又保住了身位",
       body: [
         "你走了一条几乎走不通的钢丝：既没被参倒，也没激起民变，账面干净，民间有声，任满全身而退。",
         "但你心里清楚，这更多靠的是运气、时机和你个人的隐忍，而不是制度给了清官一条活路。你是那个「证明规则的例外」。"
       ],
-      map: "你成了 <b>淘汰清官机制</b> 里罕见的漏网之鱼——像海瑞那样。系统容忍一两个例外存在，恰恰是为了证明「规矩本身没错」。真正的问题从不是没有好人，而是好结果为什么必须靠这么小概率的好人。" },
+      map: "你成了 <b>淘汰清官机制</b> 里罕见的漏网之鱼——像海瑞那样。系统容忍一两个例外存在，恰恰是为了证明「规矩本身没错」。真正的问题从不是没有好人，而是好结果为什么必须靠这么小概率的好人。",
+      guide: "任满时清誉与乌纱俱高——一条几乎走不通的钢丝，最难照见的一面镜子。" },
     survivor: { seal: "存", title: "庸常幸存者", kick: "任满 · 随波逐流，侥幸下庄",
       body: [
         "谈不上清，也谈不上巨贪；随大流地交费、随大流地捞点，跌跌撞撞混到了任满。",
         "你没想明白这套游戏，却也糊里糊涂地活了下来——这大概是绝大多数人在系统里的真实下场。"
       ],
-      map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。" }
+      map: "你是 <b>第二等公平</b> 里沉默的大多数：不推动、也不反抗，用一次次「大家都这样」的选择，投票维持了整个均衡。",
+      guide: "任满时清誉不高不低（约在三到五成间）——随大流地跌撞到卸任。" },
+    saint: { seal: "青", title: "青天在世 · 载入方志", hidden: true,
+      kick: "任满 · 一文不取、万民称颂，却无人再问：为何非得靠青天",
+      body: [
+        "你走了一条几乎不存在的路：三年知县，一文不取，账目清白，民心归附。离任那日，百姓夹道相送，万民伞、去思碑，你的名字被写进了方志。",
+        "可你比谁都清楚，这靠的不是规矩松了口，而是你把自己逼到了极处、又恰好没撞上那道死弯。他们记住的是「青天」，不是「制度」——而只要还盼着青天，就没人肯去想那道弯本可以不必存在。"
+      ],
+      map: "你照见了最深、也最叫人止步的一面镜子——<b>青天神话</b>：这套系统偶尔容得下一个海瑞，恰恰因为「盼清官」悄悄替换掉了「改规则」。百姓把指望押在下一个好官身上，而不是那套会主动淘汰好官的规矩上。你越是耀眼，越是替这套规矩延了寿——这正是它最舍得供奉你的原因。",
+      guide: "藏得最深的一面：全程一文不取，还要让清誉与民心都近乎圆满。" }
   };
 
   var END_HINT = "🔎 这一局，你亲历了哪条潜规则？";
@@ -1482,6 +1659,7 @@
     renderTrail();
     renderSpark();
     renderCodex("end-codex", isNew ? key : null);
+    var nextMirror = renderCodexGuide("end-codex-guide");   // 下一面还没照过的镜子
     // 连胜（只认「今日同题」）→ 评定官声成就 → 渲染成就墙、记下本局新解锁
     var streakRec = playedAsDaily ? bumpDailyStreak() : loadStreak();
     var codexCount = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
@@ -1490,9 +1668,27 @@
       streak: streakRec.streak || 0, codexCount: codexCount
     });
     renderAch("end-ach", freshAch.map(function (a) { return a.id; }));
-    // 生涯清算：把这一任并进总账，再把「历任 / 善终率 / 生涯之最」摆出来
-    bumpStats(key, !!DEAD_ENDINGS[key], S, streakRec.streak || 0);
-    renderLedger("end-ledger");
+    // 生涯清算：把这一任并进总账，摆出「历任 / 善终率 / 生涯之最」，并对照本局是否创纪录
+    var ledgerInfo = bumpStats(key, !!DEAD_ENDINGS[key], S, streakRec.streak || 0);
+    var nh = ledgerInfo.newHigh;
+    // 连胜是「今日同题」专属；非同题局的 streak 只是沿用旧值，不算本局的连胜新高
+    if (!playedAsDaily) nh.streak = false;
+    var anyNewHigh = nh.minxin || nh.qingyu || nh.silver || nh.streak;
+    renderLedger("end-ledger", {
+      S: { minxin: S.minxin, qingyu: S.qingyu, silver: S.silver },
+      newHigh: nh, daily: playedAsDaily, streak: streakRec.streak || 0
+    });
+    var recNames = [];
+    if (nh.minxin) recNames.push("民心");
+    if (nh.qingyu) recNames.push("清誉");
+    if (nh.silver) recNames.push("家财");
+    if (nh.streak) recNames.push("同题连胜");
+    // 记下本局高光，供分享文字 / 结局图卡引用（初次照见的镜子取结局名的核心词）
+    lastHL = {
+      newEnding: isNew ? e.title.split(" · ")[0] : null,
+      ach: freshAch.map(function (a) { return a.name; }),
+      records: recNames.slice()
+    };
     // 同题较量：亮出本局牌序，让人拿同一副牌来比
     el("end-seedline").innerHTML =
       "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
@@ -1503,8 +1699,11 @@
     var achNames = freshAch.map(function (a) { return a.name; }).join("、");
     announce("这一局落幕：" + e.title + "。" + e.kick + "。乌纱 " + S.wusha +
              "，民心 " + S.minxin + "，清誉 " + S.qingyu + "，白银 " + S.silver + " 两。" +
-             (freshAch.length ? "解锁新成就：" + achNames + "。" : ""));
+             (recNames.length ? "刷新生涯纪录：" + recNames.join("、") + "。" : "") +
+             (freshAch.length ? "解锁新成就：" + achNames + "。" : "") +
+             (nextMirror ? "图鉴里下一面还没照过的镜子是「" + nextMirror + "」。" : ""));
     if (freshAch.length) showToast("🏅 解锁成就：" + achNames);
+    else if (anyNewHigh) showToast("🏅 本局刷新生涯纪录：" + recNames.join("、"));
     window.scrollTo({ top: 0, behavior: "smooth" });
     // 无障碍：把焦点落到结局标题，屏幕阅读器随即读出下场
     try { el("end-title").focus({ preventScroll: true }); } catch (e2) { try { el("end-title").focus(); } catch (e3) {} }
@@ -1519,9 +1718,11 @@
     var title = el("end-title").textContent;
     var got = loadCodex();
     var n = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
+    var hl = runHighlights();
     return "《大明王朝·潜规则生存模拟》\n" +
       "我的下场：" + title + "\n" +
       "🎏乌纱 " + S.wusha + "　🧑‍🌾民心 " + S.minxin + "　⚖️清誉 " + S.qingyu + "　💰白银 " + S.silver + " 两\n" +
+      (hl.length ? "🏅本局高光：" + hl.join("　·　") + "\n" : "") +
       "结局图鉴 " + n + "/" + ENDING_ORDER.length + " —— 你能走出哪个下场？\n" +
       "🎯 敢接同一副牌（牌序 " + currentSeed + "）就点这里：\n" +
       "▶ " + challengeUrl();
@@ -1582,10 +1783,90 @@
     lines.forEach(function (ln, i) { ctx.fillText(ln, cx, y + i * lh); });
     return y + lines.length * lh;
   }
+  // 把结局页的四维走势缩画进图卡：与 renderSpark 共用 buildRunSeries，故曲线完全一致。
+  //   上格三维（乌纱/民心/清誉）共用 0–100 轴、死线在 0；库银自成一档画于下方窄带；
+  //   崇祯死弯那一坎标淡红竖线。从 top 开始画，返回画完后的下沿 y。
+  function drawCardSpark(ctx, W, top) {
+    var built = buildRunSeries();
+    var series = built.series, n = built.n, climaxAt = built.climaxAt;
+    var COL = { wusha: "#a83232", minxin: "#c79a2c", qingyu: "#3f9e9e", silver: "#4a6b8a" };
+    var px0 = 60, px1 = W - 46;
+    var xAt = function (i) { return n <= 1 ? (px0 + px1) / 2 : px0 + i / (n - 1) * (px1 - px0); };
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '12px "Noto Serif SC", serif';
+    ctx.fillText("四维走势 · 这一任的起落", W / 2, top);
+
+    // 上格：乌纱/民心/清誉 三者共用 0–100 轴
+    var upT = top + 14, upB = top + 66;
+    var y100 = function (v) { return upB - Math.max(0, Math.min(100, v)) / 100 * (upB - upT); };
+    ctx.textAlign = "right"; ctx.font = '8px "Noto Serif SC", serif'; ctx.lineWidth = 1;
+    [100, 50, 0].forEach(function (v) {
+      var yy = y100(v);
+      ctx.strokeStyle = v === 0 ? "rgba(178,59,46,0.35)" : "rgba(120,90,50,0.18)";
+      ctx.setLineDash(v === 0 ? [3, 3] : []);
+      ctx.beginPath(); ctx.moveTo(px0, yy); ctx.lineTo(px1, yy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = v === 0 ? "#b23b2e" : "#6b5b48";
+      ctx.fillText(v === 0 ? "死线" : String(v), px0 - 4, yy + 3);
+    });
+    if (climaxAt > 0) {
+      var cxx = xAt(climaxAt);
+      ctx.strokeStyle = "rgba(178,59,46,0.3)"; ctx.setLineDash([2, 3]);
+      ctx.beginPath(); ctx.moveTo(cxx, upT); ctx.lineTo(cxx, upB); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ["wusha", "minxin", "qingyu"].forEach(function (k) {
+      ctx.strokeStyle = COL[k]; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.lineCap = "round";
+      ctx.beginPath();
+      series[k].forEach(function (v, i) { var xx = xAt(i), yy = y100(v); if (i === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); });
+      ctx.stroke();
+      ctx.fillStyle = COL[k];
+      ctx.beginPath(); ctx.arc(xAt(n - 1), y100(series[k][n - 1]), 2.4, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // 下格：库银自成一档（可为负，死线在 -40），以自身量程画于窄带
+    var sv = series.silver;
+    var lo = Math.min.apply(null, sv), hi = Math.max.apply(null, sv);
+    var pad = Math.max(6, (hi - lo) * 0.18);
+    var dmin = Math.min(lo, 0) - pad, dmax = Math.max(hi, START.silver) + pad;
+    var sT = upB + 12, sB = upB + 30;
+    var ySil = function (v) { return sB - (v - dmin) / (dmax - dmin) * (sB - sT); };
+    ctx.textAlign = "right"; ctx.font = '8px "Noto Serif SC", serif';
+    ctx.fillStyle = "#6b5b48"; ctx.fillText("库银", px0 - 4, sT + 3);
+    if (dmin <= LOSE_SILVER && dmax >= LOSE_SILVER) {
+      var dl = ySil(LOSE_SILVER);
+      ctx.strokeStyle = "rgba(162,51,31,0.4)"; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(px0, dl); ctx.lineTo(px1, dl); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.strokeStyle = COL.silver; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.beginPath();
+    sv.forEach(function (v, i) { var xx = xAt(i), yy = ySil(v); if (i === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); });
+    ctx.stroke();
+    ctx.fillStyle = COL.silver;
+    ctx.beginPath(); ctx.arc(xAt(n - 1), ySil(sv[n - 1]), 2.4, 0, Math.PI * 2); ctx.fill();
+
+    // 图例：四维「起→终」各着其色，一行四项
+    var legendY = sB + 20;
+    ctx.textAlign = "center"; ctx.font = '10px "Noto Serif SC", serif';
+    var order = ["wusha", "minxin", "qingyu", "silver"];
+    var nm = { wusha: "乌纱", minxin: "民心", qingyu: "清誉", silver: "库银" };
+    var xs = [0.155, 0.385, 0.615, 0.845];
+    order.forEach(function (k, i) {
+      var a = series[k][0], b = series[k][n - 1];
+      var arr = b > a ? "↗" : (b < a ? "↘" : "→");
+      ctx.fillStyle = COL[k];
+      ctx.fillText(nm[k] + " " + a + "→" + b + arr, W * xs[i], legendY);
+    });
+    ctx.textAlign = "center";
+    return legendY + 8;
+  }
+
   function drawEndCard() {
     var key = el("end-seal").dataset.key;
     var e = ENDINGS[key] || ENDINGS.survivor;
-    var scale = 2, W = 380, H = 620;
+    var hl = runHighlights();
+    var HL_H = hl.length ? 72 : 0;      // 有本局高光时，为「本局高光」带预留一段高度
+    var scale = 2, W = 380, H = 756 + HL_H;
     var cv = document.createElement("canvas");
     cv.width = W * scale; cv.height = H * scale;
     var ctx = cv.getContext("2d");
@@ -1620,6 +1901,19 @@
     ctx.fillStyle = "#6b5b48"; ctx.font = '12.5px "Noto Serif SC", serif';
     var y = wrapText(ctx, e.kick, W / 2, 224, W - 90, 18, 2);
 
+    // 本局高光：初次照见的镜子 / 新解锁的成就 / 刷新的生涯纪录——这一任独有的成果
+    if (hl.length) {
+      y += 12;
+      var boxH = 52;
+      ctx.fillStyle = "rgba(184,145,47,0.10)"; roundRect(ctx, 40, y, W - 80, boxH, 10); ctx.fill();
+      ctx.strokeStyle = "#b8912f"; ctx.lineWidth = 1; roundRect(ctx, 40, y, W - 80, boxH, 10); ctx.stroke();
+      ctx.fillStyle = "#8b1e1e"; ctx.font = '11px "Noto Serif SC", serif';
+      ctx.fillText("本局高光", W / 2, y + 17);
+      ctx.fillStyle = "#2a211a"; ctx.font = '12px "Noto Serif SC", serif';
+      wrapText(ctx, hl.join("　·　"), W / 2, y + 36, W - 104, 16, 2);
+      y += boxH + 8;
+    }
+
     // 分隔线
     y += 8;
     ctx.strokeStyle = "rgba(184,145,47,0.6)"; ctx.lineWidth = 1;
@@ -1648,6 +1942,10 @@
     ctx.fillStyle = "#2a211a"; ctx.font = '12.5px "Noto Serif SC", serif';
     wrapText(ctx, takeaway, W / 2, y + 44, W - 108, 18, 3);
     y += 96 + 30;
+
+    // 四维走势：把结局页的 sparkline 缩画进图卡（与页面走势同源，一模一样）
+    y = drawCardSpark(ctx, W, y);
+    y += 26;
 
     // 图鉴 / 成就进度
     var codex = loadCodex(), ach = loadAch();
@@ -1837,6 +2135,13 @@
     if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
     el("title-codex").classList.remove("hidden");
     renderCodex("title-codex", null);
+  })();
+
+  // ---- 初始化：标题页开局引导「今天想照哪面镜子」（走过一局后才显示）--------
+  (function initTitleGuide() {
+    if (Object.keys(loadCodex()).length === 0) return;   // 头一回来，不打扰
+    el("title-guide").classList.remove("hidden");
+    renderTitleGuide("title-guide");
   })();
 
   // ---- 初始化：标题页亮出官声成就墙（走过一局后才显示，勾引集齐）----------

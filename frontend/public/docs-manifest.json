@@ -1,16 +1,30 @@
 [
   {
-    "id": "daming-wangchao",
-    "title": "大明王朝：潜规则生存模拟（网页游戏）",
-    "href": "/docs/daming-wangchao.html",
+    "id": "us-iran-war",
+    "title": "美伊战争 · 分析总览 (2026)",
+    "href": "/docs/us-iran-war.html",
     "deletable": true,
-    "file": "docs/daming-wangchao.md",
-    "updatedAt": "2026-07-18T12:49:23.034Z",
+    "file": null,
+    "updatedAt": "2026-07-19T05:27:11.842Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "docs/daming-wangchao.md",
-      "frontend/public/docs/daming-wangchao.html"
+      "research/us-iran-war",
+      "frontend/public/docs/us-iran-war.html"
+    ]
+  },
+  {
+    "id": "architecture",
+    "title": "Kanban architecture — topology",
+    "href": "/docs/architecture.html",
+    "deletable": true,
+    "file": "docs/architecture.md",
+    "updatedAt": "2026-07-19T05:27:11.835Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/architecture.md",
+      "frontend/public/docs/architecture.html"
     ]
   },
   {
@@ -19,7 +33,7 @@
     "href": "/docs/kechuang-forecast-2026-07-16-review.html",
     "deletable": true,
     "file": "docs/kechuang-forecast-2026-07-16-review.md",
-    "updatedAt": "2026-07-18T12:49:23.034Z",
+    "updatedAt": "2026-07-19T05:27:11.835Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -33,7 +47,7 @@
     "href": "/docs/kechuang-forecast-2026-07-16.html",
     "deletable": true,
     "file": "docs/kechuang-forecast-2026-07-16.md",
-    "updatedAt": "2026-07-18T12:49:23.034Z",
+    "updatedAt": "2026-07-19T05:27:11.835Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -47,7 +61,7 @@
     "href": "/docs/kechuang-investment-guide.html",
     "deletable": true,
     "file": "docs/kechuang-investment-guide.md",
-    "updatedAt": "2026-07-18T12:49:23.034Z",
+    "updatedAt": "2026-07-19T05:27:11.835Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -61,7 +75,7 @@
     "href": "/docs/public-tunnel.html",
     "deletable": true,
     "file": "docs/public-tunnel.md",
-    "updatedAt": "2026-07-18T12:49:23.034Z",
+    "updatedAt": "2026-07-19T05:27:11.835Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -70,54 +84,12 @@
     ]
   },
   {
-    "id": "architecture",
-    "title": "Kanban architecture — topology",
-    "href": "/docs/architecture.html",
-    "deletable": true,
-    "file": "docs/architecture.md",
-    "updatedAt": "2026-07-18T12:49:23.033Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/architecture.md",
-      "frontend/public/docs/architecture.html"
-    ]
-  },
-  {
-    "id": "daming-jingying",
-    "title": "大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）",
-    "href": "/docs/daming-jingying.html",
-    "deletable": true,
-    "file": "docs/daming-jingying.md",
-    "updatedAt": "2026-07-18T11:49:47.823Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/daming-jingying.md",
-      "frontend/public/docs/daming-jingying.html"
-    ]
-  },
-  {
-    "id": "qianguize-haowanban",
-    "title": "潜规则·好玩版：一句话能转发的中国官场生存游戏",
-    "href": "/docs/qianguize-haowanban.html",
-    "deletable": true,
-    "file": "docs/qianguize-haowanban.md",
-    "updatedAt": "2026-07-18T07:30:25.135Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/qianguize-haowanban.md",
-      "frontend/public/docs/qianguize-haowanban.html"
-    ]
-  },
-  {
     "id": "qianguize-wusi",
     "title": "潜规则：中国历史中的真实游戏 — 分析文档",
     "href": "/docs/qianguize-wusi.html",
     "deletable": true,
     "file": "docs/qianguize-wusi.md",
-    "updatedAt": "2026-07-18T07:28:28.667Z",
+    "updatedAt": "2026-07-19T03:06:20.171Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -126,17 +98,45 @@
     ]
   },
   {
-    "id": "us-iran-war",
-    "title": "美伊战争 · 分析总览 (2026)",
-    "href": "/docs/us-iran-war.html",
+    "id": "daming-wangchao",
+    "title": "大明王朝：潜规则生存模拟（网页游戏）",
+    "href": "/docs/daming-wangchao.html",
     "deletable": true,
-    "file": null,
-    "updatedAt": "2026-07-18T06:04:49.150Z",
+    "file": "docs/daming-wangchao.md",
+    "updatedAt": "2026-07-19T03:06:20.160Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "research/us-iran-war",
-      "frontend/public/docs/us-iran-war.html"
+      "docs/daming-wangchao.md",
+      "frontend/public/docs/daming-wangchao.html"
+    ]
+  },
+  {
+    "id": "qianguize-haowanban",
+    "title": "潜规则·好玩版：一句话能转发的中国官场生存游戏",
+    "href": "/docs/qianguize-haowanban.html",
+    "deletable": true,
+    "file": "docs/qianguize-haowanban.md",
+    "updatedAt": "2026-07-18T12:54:53.291Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/qianguize-haowanban.md",
+      "frontend/public/docs/qianguize-haowanban.html"
+    ]
+  },
+  {
+    "id": "daming-jingying",
+    "title": "大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）",
+    "href": "/docs/daming-jingying.html",
+    "deletable": true,
+    "file": "docs/daming-jingying.md",
+    "updatedAt": "2026-07-18T12:54:53.288Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/daming-jingying.md",
+      "frontend/public/docs/daming-jingying.html"
     ]
   },
   {

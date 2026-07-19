@@ -7,20 +7,22 @@
 <meta name="description" content="Reports and documents produced by the Kanban board's agent, rendered as web pages." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
 <style>
 :root {
-  --bg: #f6f7f9;
+  --bg: #fdf1ee;
   --card: #ffffff;
-  --ink: #1f2430;
-  --muted: #5b6472;
-  --line: #e5e8ee;
-  --accent: #4f46e5;
-  --accent-soft: #eef0fe;
-  --link: #1f6feb;
-  --source-bg: #f0f7f4;
-  --source-line: #3f9e78;
-  --maxw: 1120px;
+  --ink: #33313a;
+  --muted: #9a939b;
+  --line: #f4e4e0;
+  --accent: #ff2e4d;
+  --accent-2: #ff7a59;
+  --accent-soft: #ffe6ea;
+  --link: #ff2e4d;
+  --source-bg: #fff3ec;
+  --source-line: #ff8a5c;
+  --shadow: 0 10px 30px rgba(255,46,77,0.10);
+  --maxw: 1040px;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -28,62 +30,79 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Inter", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Nunito", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 16px;
-  line-height: 1.75;
+  line-height: 1.78;
 }
 a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .hero {
-  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 55%, #7c9bf5 100%);
+  position: relative;
+  background: linear-gradient(135deg, #ff5b79 0%, #ff2e4d 52%, #ff8a5c 100%);
   color: #fff;
-  padding: 48px 24px 40px;
+  padding: 46px 24px 40px;
   text-align: center;
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 12px 30px rgba(255,46,77,0.22);
 }
 .hero .eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  display: inline-block;
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 4px 14px;
+  border-radius: 999px;
+  letter-spacing: 1px;
   font-size: 12px;
-  opacity: 0.9;
-  margin: 0 0 8px;
+  font-weight: 700;
+  margin: 0 0 12px;
 }
 .hero h1 {
-  font-family: "Space Grotesk", "Inter", "Noto Sans SC", sans-serif;
+  font-family: "Nunito", "Noto Sans SC", sans-serif;
+  font-weight: 800;
   font-size: clamp(26px, 4.5vw, 40px);
   margin: 0 0 10px;
   letter-spacing: 0.3px;
 }
-.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.95; font-size: 15px; }
-.hero .back { display: inline-block; margin-top: 16px; color: #fff; font-size: 14px; opacity: 0.9; }
-.hero .back:hover { opacity: 1; }
+.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.96; font-size: 15px; }
+.hero .back {
+  display: inline-block; margin-top: 18px; color: #ff2e4d; background: #fff;
+  font-size: 14px; font-weight: 700; padding: 7px 18px; border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+.hero .back:hover { text-decoration: none; transform: translateY(-1px); }
 
 .hero p.sub { margin-top: 4px; }
 
-.wrap { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 34px 24px 80px; }
+/* A Xiaohongshu-style "note wall": a masonry-ish grid of soft rounded cards. */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
 .doc-card {
   display: block; background: var(--card); border: 1px solid var(--line);
-  border-radius: 14px; padding: 20px 22px; color: var(--ink);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  border-radius: 20px; padding: 20px 22px; color: var(--ink);
+  box-shadow: 0 8px 22px rgba(255,46,77,0.07);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
 }
-.doc-card:hover { text-decoration: none; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(31,36,48,0.08); border-color: #c9cff5; }
-.doc-card.featured { border-color: #c9cff5; background: linear-gradient(180deg, #fbfbff 0%, #ffffff 100%); }
-.doc-card h2 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 19px; margin: 0 0 8px; }
-.doc-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.doc-card .meta { margin-top: 12px; font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0.3px; }
-.doc-card .badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; vertical-align: middle; }
+.doc-card:hover { text-decoration: none; transform: translateY(-3px); box-shadow: 0 16px 34px rgba(255,46,77,0.16); border-color: var(--accent-soft); }
+.doc-card.featured { border-color: var(--accent-soft); background: linear-gradient(180deg, #fff6f3 0%, #ffffff 60%); }
+.doc-card h2 { font-family: "Nunito","Noto Sans SC",sans-serif; font-weight: 800; font-size: 18px; margin: 0 0 8px; }
+.doc-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.doc-card .meta {
+  margin-top: 14px; display: inline-block; font-size: 13px; color: #fff; font-weight: 800;
+  background: linear-gradient(135deg, #ff5b79, #ff2e4d); padding: 5px 14px; border-radius: 999px;
+}
+.doc-card .badge { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 700; vertical-align: middle; }
 .empty { color: var(--muted); text-align: center; padding: 40px; }
 .card-wrap { position: relative; display: flex; }
 .card-wrap .doc-card { flex: 1; }
 /* "Recently created/updated" marker (task #319): a red badge pinned to the
    card's top-right corner. The whole card also gets a subtle red-tinted border
    so fresh docs — which sort to the front — read as new at a glance. */
-.card-wrap.is-new .doc-card { border-color: #f3c0c0; }
+.card-wrap.is-new .doc-card { border-color: #ffc2cc; }
 .new-dot {
   position: absolute; top: -8px; right: -8px; z-index: 3;
-  background: #e5484d; color: #fff; font-size: 10px; font-weight: 800;
-  letter-spacing: 0.6px; line-height: 1; padding: 4px 7px; border-radius: 999px;
-  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(229,72,77,0.45);
+  background: var(--accent); color: #fff; font-size: 10px; font-weight: 800;
+  letter-spacing: 0.6px; line-height: 1; padding: 4px 8px; border-radius: 999px;
+  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(255,46,77,0.5);
   pointer-events: none;
 }
 .doc-del {
@@ -187,30 +206,40 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </head>
 <body>
 <header class="hero">
-<p class="eyebrow">Kanban</p>
+<p class="eyebrow">📔 笔记墙</p>
 <h1>Documents &amp; Results</h1>
-<p class="sub">Reports and guides the board's agent produced, rendered from the repo's Markdown as browsable web pages.</p>
-<a class="back" href="/">← Back to the board</a>
+<p class="sub">看板 agent 产出的报告与攻略，像小红书笔记一样一张张摊开 · 点开任意一张即可阅读全文。</p>
+<a class="back" href="/">← 回到看板</a>
 </header>
 <div class="wrap">
 <div class="grid">
-<div class="card-wrap is-new" data-id="daming-wangchao" data-private="false">
-  <a class="doc-card" href="/docs/daming-wangchao.html">
-  <h2>大明王朝：潜规则生存模拟（网页游戏）</h2>
-  <p>这是《潜规则》系列的第 6 步、也是收官之作：把前五步梳理出的六大机制，做成一款可以真正玩的网页游戏。你扮演崇祯元年放了外任的一位知县，在约 11 个抉择里争取「任满全身而退」——保住乌纱、填平亏空、别激起民变。至于要不要守住良心，是你的选择；而系统会用它的方式，回答这个选择的代价。</p>
-  <div class="meta">Read →</div>
+<div class="card-wrap is-new" data-id="us-iran-war" data-private="false">
+  <a class="doc-card featured" href="/docs/us-iran-war.html">
+  <h2>美伊战争 · 分析总览 (2026)<span class="badge">Featured</span></h2>
+  <p>六部分深度研究：背景与结构性根源、当前局势快照、军力对比与升级情景、地缘影响、市场与能源冲击、情景推演与前景研判。</p>
+  <div class="meta">打开笔记 →</div>
 </a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 大明王朝：潜规则生存模拟（网页游戏）" data-id="daming-wangchao" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 大明王朝：潜规则生存模拟（网页游戏）" data-id="daming-wangchao" data-title="大明王朝：潜规则生存模拟（网页游戏）">✕</button>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 美伊战争 · 分析总览 (2026)" data-id="us-iran-war" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 美伊战争 · 分析总览 (2026)" data-id="us-iran-war" data-title="美伊战争 · 分析总览 (2026)">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="architecture" data-private="false">
+  <a class="doc-card" href="/docs/architecture.html">
+  <h2>Kanban architecture — topology</h2>
+  <p>A visual map of how the Claude Code Kanban is put together, rendered with Mermaid. GitHub renders these diagrams inline; in an editor use a Mermaid preview extension.</p>
+  <div class="meta">打开笔记 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Kanban architecture — topology" data-id="architecture" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Kanban architecture — topology" data-id="architecture" data-title="Kanban architecture — topology">✕</button>
 </div>
 <div class="card-wrap is-new" data-id="kechuang-forecast-2026-07-16-review" data-private="false">
   <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16-review.html">
   <h2>预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）</h2>
   <p>预测文档同时写了两句话：</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）" data-id="kechuang-forecast-2026-07-16-review" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）" data-id="kechuang-forecast-2026-07-16-review" data-title="预测复盘：今天的科创板预测对了吗？（2026-07-16 收盘核对）">✕</button>
 </div>
@@ -218,9 +247,9 @@ body:not(.is-owner) .doc-priv { display: none !important; }
   <a class="doc-card" href="/docs/kechuang-forecast-2026-07-16.html">
   <h2>预测今天科创板走势（2026-07-16）</h2>
   <p>步骤 3、4 使用的是盘中/收盘瞬时快照，与最终收盘定格不一致。以日 K 接口为准：</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 预测今天科创板走势（2026-07-16）" data-id="kechuang-forecast-2026-07-16" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 预测今天科创板走势（2026-07-16）" data-id="kechuang-forecast-2026-07-16" data-title="预测今天科创板走势（2026-07-16）">✕</button>
 </div>
@@ -228,9 +257,9 @@ body:not(.is-owner) .doc-priv { display: none !important; }
   <a class="doc-card" href="/docs/kechuang-investment-guide.html">
   <h2>科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）</h2>
   <p>重灾区是前期涨幅最大、筹码最集中的方向：存储芯片、CPO、光纤、算力硬件、PCB、接口芯片。这些正是 6 月末暴涨的品种，高位获利盘集中止盈。上周涨幅第一的板块，隔周就成跌幅第一——典型的抱团瓦解。</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）" data-id="kechuang-investment-guide" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）" data-id="kechuang-investment-guide" data-title="科创板投资详细文档（2026 年 7 月去抱团行情 · 完整复盘与投资框架）">✕</button>
 </div>
@@ -238,67 +267,57 @@ body:not(.is-owner) .doc-priv { display: none !important; }
   <a class="doc-card" href="/docs/public-tunnel.html">
   <h2>Exposing the dashboard as a public website</h2>
   <p>How to put this locally-running app on a public URL, gated by a password. Two options: a quick tunnel (zero setup, ephemeral URL — the current default) and a named tunnel…</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Exposing the dashboard as a public website" data-id="public-tunnel" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Exposing the dashboard as a public website" data-id="public-tunnel" data-title="Exposing the dashboard as a public website">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="architecture" data-private="false">
-  <a class="doc-card" href="/docs/architecture.html">
-  <h2>Kanban architecture — topology</h2>
-  <p>A visual map of how the Claude Code Kanban is put together, rendered with Mermaid. GitHub renders these diagrams inline; in an editor use a Mermaid preview extension.</p>
-  <div class="meta">Read →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Kanban architecture — topology" data-id="architecture" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Kanban architecture — topology" data-id="architecture" data-title="Kanban architecture — topology">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="daming-jingying" data-private="false">
-  <a class="doc-card" href="/docs/daming-jingying.html">
-  <h2>大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）</h2>
-  <p>这是《潜规则》系列的收官续作——一款以「潜规则」为主题的模拟经营网页游戏。你执掌清河县六年，逐年调度四条杠杆，在上意、民心、清誉、库银、私囊之间求存。和本系列的抉择版游戏不同：那是一局一局的两难抉择，这一款让你像经营者一样管理一整套衙门财政——看着账本上每一笔钱的去向，亲手推动那台"不需要坏人也能自我运转"的机器。</p>
-  <div class="meta">Read →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）" data-id="daming-jingying" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）" data-id="daming-jingying" data-title="大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="qianguize-haowanban" data-private="false">
-  <a class="doc-card" href="/docs/qianguize-haowanban.html">
-  <h2>潜规则·好玩版：一句话能转发的中国官场生存游戏</h2>
-  <p>想象你打开一款叫《大明王朝：生存模拟》的游戏。屏幕上写着规则说明书（王法、律例、 圣贤教诲），你照着玩，几分钟就死了。老玩家凑过来低声说一句：</p>
-  <div class="meta">Read →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 潜规则·好玩版：一句话能转发的中国官场生存游戏" data-id="qianguize-haowanban" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 潜规则·好玩版：一句话能转发的中国官场生存游戏" data-id="qianguize-haowanban" data-title="潜规则·好玩版：一句话能转发的中国官场生存游戏">✕</button>
 </div>
 <div class="card-wrap is-new" data-id="qianguize-wusi" data-private="false">
   <a class="doc-card" href="/docs/qianguize-wusi.html">
   <h2>潜规则：中国历史中的真实游戏 — 分析文档</h2>
   <p>对吴思《潜规则：中国历史中的真实游戏》(2001) 的系统性梳理与再分析。本文档是整篇分析的</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>
-  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 潜规则：中国历史中的真实游戏 — 分析文档" data-id="qianguize-wusi" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 潜规则：中国历史中的真实游戏 — 分析文档" data-id="qianguize-wusi" data-title="潜规则：中国历史中的真实游戏 — 分析文档">✕</button>
 </div>
-<div class="card-wrap is-new" data-id="us-iran-war" data-private="false">
-  <a class="doc-card featured" href="/docs/us-iran-war.html">
-  <h2>美伊战争 · 分析总览 (2026)<span class="badge">Featured</span></h2>
-  <p>六部分深度研究：背景与结构性根源、当前局势快照、军力对比与升级情景、地缘影响、市场与能源冲击、情景推演与前景研判。</p>
-  <div class="meta">Read →</div>
+<div class="card-wrap is-new" data-id="daming-wangchao" data-private="false">
+  <a class="doc-card" href="/docs/daming-wangchao.html">
+  <h2>大明王朝：潜规则生存模拟（网页游戏）</h2>
+  <p>这是《潜规则》系列的第 6 步、也是收官之作：把前五步梳理出的六大机制，做成一款可以真正玩的网页游戏。你扮演崇祯元年放了外任的一位知县，在约 11 个抉择里争取「任满全身而退」——保住乌纱、填平亏空、别激起民变。至于要不要守住良心，是你的选择；而系统会用它的方式，回答这个选择的代价。</p>
+  <div class="meta">打开笔记 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-19" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 大明王朝：潜规则生存模拟（网页游戏）" data-id="daming-wangchao" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 大明王朝：潜规则生存模拟（网页游戏）" data-id="daming-wangchao" data-title="大明王朝：潜规则生存模拟（网页游戏）">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="qianguize-haowanban" data-private="false">
+  <a class="doc-card" href="/docs/qianguize-haowanban.html">
+  <h2>潜规则·好玩版：一句话能转发的中国官场生存游戏</h2>
+  <p>想象你打开一款叫《大明王朝：生存模拟》的游戏。屏幕上写着规则说明书（王法、律例、 圣贤教诲），你照着玩，几分钟就死了。老玩家凑过来低声说一句：</p>
+  <div class="meta">打开笔记 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 美伊战争 · 分析总览 (2026)" data-id="us-iran-war" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 美伊战争 · 分析总览 (2026)" data-id="us-iran-war" data-title="美伊战争 · 分析总览 (2026)">✕</button>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 潜规则·好玩版：一句话能转发的中国官场生存游戏" data-id="qianguize-haowanban" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 潜规则·好玩版：一句话能转发的中国官场生存游戏" data-id="qianguize-haowanban" data-title="潜规则·好玩版：一句话能转发的中国官场生存游戏">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="daming-jingying" data-private="false">
+  <a class="doc-card" href="/docs/daming-jingying.html">
+  <h2>大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）</h2>
+  <p>这是《潜规则》系列的收官续作——一款以「潜规则」为主题的模拟经营网页游戏。你执掌清河县六年，逐年调度四条杠杆，在上意、民心、清誉、库银、私囊之间求存。和本系列的抉择版游戏不同：那是一局一局的两难抉择，这一款让你像经营者一样管理一整套衙门财政——看着账本上每一笔钱的去向，亲手推动那台"不需要坏人也能自我运转"的机器。</p>
+  <div class="meta">打开笔记 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）" data-id="daming-jingying" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）" data-id="daming-jingying" data-title="大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）">✕</button>
 </div>
 <div class="card-wrap is-new" data-id="singapore-travel-guide" data-private="false">
   <a class="doc-card featured" href="/singapore.html">
   <h2>新加坡旅游攻略<span class="badge">Featured</span></h2>
   <p>!新加坡中央商务区与滨海湾天际线夜景</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-07-18" aria-label="Recently updated">NEW</span>
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 新加坡旅游攻略" data-id="singapore-travel-guide" data-private="false">🌐</button>
@@ -308,7 +327,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
   <a class="doc-card" href="/docs/ai-supply-chain.html">
   <h2>AI supply chain — topology</h2>
   <p>A visual map of the global AI supply chain: everything that has to line up so a prompt you type in a browser can be answered by a large model. Rendered with Mermaid — GitHub…</p>
-  <div class="meta">Read →</div>
+  <div class="meta">打开笔记 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-07-15" aria-label="Recently updated">NEW</span>
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: AI supply chain — topology" data-id="ai-supply-chain" data-private="false">🌐</button>
