@@ -279,6 +279,33 @@
     overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
 
+  /* --- 稀有 / 隐事：中段小概率掺入的特殊坎 --- */
+  .concept.rare {
+    background: linear-gradient(180deg,#6d3b7a,#552a66); color: #fff;
+    box-shadow: 0 0 0 2px rgba(184,145,47,0.45), 0 2px 8px rgba(85,42,102,0.3);
+  }
+  .trail-row.rare::before { background: #6d3b7a; }
+  .trail-row.rare .trail-cx { color: #7a4a86; }
+
+  /* --- 结局图卡：canvas 生成、可长按保存/下载的分享卡 --- */
+  .cardmodal {
+    position: fixed; inset: 0; background: rgba(20,14,8,0.62); z-index: 60;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .cardmodal-inner {
+    position: relative; background: var(--paper); border-radius: 14px; padding: 16px;
+    max-width: 360px; width: 100%; max-height: 92vh; overflow: auto; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.42);
+  }
+  .cardmodal-inner img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .cardmodal-hint { font-size: 12px; color: var(--ink-soft); margin: 10px 0 12px; letter-spacing: .3px; }
+  .cardmodal-close {
+    position: absolute; top: 6px; right: 10px; background: none; border: none;
+    font-size: 18px; line-height: 1; color: var(--ink-soft); cursor: pointer;
+  }
+  .cardmodal-close:hover { color: var(--red); }
+  a.btn.dl { text-decoration: none; display: inline-block; }
+
   .hidden { display: none !important; }
   @media (prefers-reduced-motion: reduce){ *{ transition: none !important; animation: none !important; } }
 </style>
@@ -386,6 +413,7 @@
       <button class="btn" id="btn-restart">再世为官 · 换副牌重开 ↺</button>
       <button class="btn ghost" id="btn-replay" type="button">🎯 同题再来 · 同一副牌</button>
       <button class="btn ghost" id="btn-share" type="button">📋 晒出我的下场</button>
+      <button class="btn ghost" id="btn-card" type="button">🖼️ 生成结局图卡</button>
       <a class="btn ghost" href="/docs/qianguize-wusi.html">想拆开来看 · 深度分析 →</a>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -393,6 +421,16 @@
       <a href="/docs/qianguize-haowanban.html">好玩版</a> ·
       <a href="/docs/qianguize-wusi.html">学术版</a> 分析。</p>
   </section>
+
+  <!-- ============ 结局图卡（canvas 生成，长按保存/下载分享）============ -->
+  <div class="cardmodal hidden" id="cardmodal" role="dialog" aria-modal="true" aria-label="结局图卡">
+    <div class="cardmodal-inner">
+      <button class="cardmodal-close" id="cardmodal-close" type="button" aria-label="关闭">✕</button>
+      <img id="card-img" alt="本局结局图卡" />
+      <p class="cardmodal-hint">长按图片可保存到相册 · 或点下方下载分享</p>
+      <a class="btn dl" id="card-download" download="daming-wangchao-结局.png">⬇ 下载图片</a>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -582,6 +620,8 @@
       check: function (c) { return c.S.minxin >= 85; } },
     { id: "collector", seal: "镜", name: "十面镜子", desc: "集齐全部下场，把每条潜规则都亲手走了一遍。",
       check: function (c) { return c.codexCount >= ENDING_ORDER.length; } },
+    { id: "rare_ev",   seal: "奇", name: "官场奇遇", desc: "任内撞上一桩罕见的隐事（血酬 / 诡寄 / 京债）——不是谁都遇得到。",
+      check: function (c) { return c.history.some(function (h) { return h.rare; }); } },
     { id: "streak3",   seal: "勤", name: "三日勤勉", desc: "连续三天接下「今日同题」并走完。",
       check: function (c) { return c.streak >= 3; } },
     { id: "streak7",   seal: "恒", name: "七日不辍", desc: "连续七天接下「今日同题」并走完——好定力。",
@@ -645,9 +685,9 @@
         mv = '<span class="mv ' + (v >= 0 ? "up" : "down") + '">' +
              STAT_META[top] + " " + (v >= 0 ? "+" : "") + v + "</span>";
       }
-      return '<div class="trail-row' + (h.climax ? " climax" : "") + '">' +
+      return '<div class="trail-row' + (h.climax ? " climax" : "") + (h.rare ? " rare" : "") + '">' +
                '<span class="trail-lab">' + (i + 1) + "、" + esc(h.lab) + mv + "</span>" +
-               '<span class="trail-cx">' + esc(h.concept) + "</span>" +
+               '<span class="trail-cx">' + (h.rare ? "✦ " : "") + esc(h.concept) + "</span>" +
              "</div>";
     }).join("");
     el("end-trail").innerHTML =
@@ -866,6 +906,50 @@
       ] }
   ];
 
+  // ---- 稀有 / 隐事：中段以小概率掺入一桩不常见的坎（由种子决定，同题可复现）--
+  //   每桩点到《潜规则》里相对冷门的机制：血酬、诡寄、京债——遇到即触发「奇遇」成就
+  var RARE_POOL = [
+    { rare: true, concept: "血酬 · 私枭火并",
+      title: "私盐枭火并出了人命，苦主抬着尸首堵衙门",
+      text: "两股私盐贩子为争地盘火并，死了人。为首的盐枭却半点不慌——他手里有刀有人，真逼急了，敢烧敢抢。师爷压低嗓子：「大人，这号人，惹不得。」",
+      choices: [
+        { lab: "秉公缉凶，硬碰到底", fx: { qingyu: +12, wusha: -8, minxin: +6, silver: -6 },
+          outcome: "你调民壮下乡拿人。盐枭不是善茬，半路劫了差役，撂下话要「拼个鱼死网破」。案子拖成烂账，你也惹了一身腥。",
+          note: "在刀锋面前，「合法」二字很轻。谁敢豁出命，谁就在暗里定了价——这就是吴思说的<b>血酬</b>。<span class='tag'>〔血酬定律 · 暴力地基〕</span>" },
+        { lab: "私下和解，各打五十板了事", fx: { silver: +10, qingyu: -10, minxin: -8 },
+          outcome: "你把两造叫来「私了」，盐枭塞了厚礼，命案就此含糊过去。街面太平了，只是谁都记住了——在这县，敢拼命的人，官府让三分。",
+          note: "官府对敢动刀的人退了一步，等于承认：暴力也是一种能入账的本钱。<span class='tag'>〔血酬 · 潜规则的地基〕</span>" },
+        { lab: "上报请兵，把烫手山芋交出去", fx: { wusha: -4, minxin: -4, silver: -2 },
+          outcome: "你一纸文书把案子捅给上头请调营兵。公文在衙门间来回踢了几个月，盐枭早没了踪影——烫手山芋，谁都不想接。",
+          note: "击鼓传花的又一种玩法：难办的、要命的，都往别处推。<span class='tag'>〔委托代理 · 推诿〕</span>" }
+      ] },
+    { rare: true, concept: "诡寄 · 士绅投献",
+      title: "本地大绅上门，要把田产「诡寄」到功名名下",
+      text: "有功名的乡绅按例免赋。城里王举人登门陪笑：「几户薄田，想挂在举人名下图个免役，街坊都这么办，大人通融通融。」——他名下的田，早已多得离谱。",
+      choices: [
+        { lab: "照旧默许，收礼成人之美", fx: { silver: +12, wusha: +4, minxin: -14, qingyu: -8 },
+          outcome: "你收了王举人一份厚礼，睁只眼闭只眼。士绅的田越挂越多，可县里钱粮定额一分不少——省下的赋税，最后摊到了没功名的小户头上。",
+          note: "有权免赋的人越免，跑不掉的人就越重。负担不会凭空消失，只会滑向链条最末端。<span class='tag'>〔诡寄 · 老百姓是个冤大头〕</span>" },
+        { lab: "清丈田亩，追回诡寄", fx: { minxin: +12, qingyu: +12, wusha: -12, silver: -6 },
+          outcome: "你要把诡寄的田追回入册。小户拍手称快，可全城有功名、有靠山的，一夜之间成了你的对头——弹章已在路上。",
+          note: "你想把负担搬回本该承担的人身上，等于动了整个士绅集团的奶酪。张居正做过，人亡政息。<span class='tag'>〔清丈 · 淘汰清官〕</span>" },
+        { lab: "只收孝敬，暗中限个数目", fx: { silver: +6, minxin: -4, qingyu: -2 },
+          outcome: "你收了礼，却私下给诡寄划了条线，不许挂得太离谱。两头没得罪，也两头没做绝——账面的窟窿被你悄悄压小了一圈。",
+          note: "夹缝里和稀泥，是多数人的活法：既不肯全烂，也无力扳正。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { rare: true, concept: "京债 · 印子钱",
+      title: "当年补缺借的「京债」，债主找上门了",
+      text: "你这顶乌纱，是当年在京里借「印子钱」打点来的。如今债主的伙计寻到县衙，把利滚利的数目递到你面前，笑里藏刀：「大人官运亨通，也该给个准信了。」",
+      choices: [
+        { lab: "加紧盘剥治下，先还了这笔债", fx: { silver: -4, minxin: -16, qingyu: -10, wusha: +4 },
+          outcome: "为填这个利滚利的窟窿，你把各项陋规都加了码，衙役下乡的次数密了起来。债是快还上了，治下民力也被抽薄了一层。",
+          note: "买官的本钱要连本带利从百姓身上刨回来——这条债，最终是治下的人替你还的。<span class='tag'>〔京债 · 陋规自我循环〕</span>" },
+        { lab: "拖延赖账，赌债主奈何不得", fx: { silver: +2, wusha: -10, qingyu: -4 },
+          outcome: "你想赖过去。债主没吵没闹，转身把你的短处递到了该递的人手里。没过多久，一封没头没脑的参劾，落到了你的考语上。",
+          note: "在这张网里，债主要你的命，未必动刀——递一句话到对的人耳边就够了。<span class='tag'>〔制衡缺失 · 把柄〕</span>" }
+      ] }
+  ];
+
   // ---- 洗牌，组一局的事件序列 ---------------------------------------------
   function shuffle(a) {
     a = a.slice();
@@ -877,6 +961,12 @@
   }
   function buildQueue() {
     var mid = shuffle(POOL).slice(0, TERM - 2);   // 中段随机
+    // 稀有事件：以小概率把一桩「隐事」掺进中段（用本局种子决定，保证同题可复现）
+    if (RARE_POOL.length && rng() < 0.42) {
+      var rare = RARE_POOL[Math.floor(rng() * RARE_POOL.length)];
+      var at = 1 + Math.floor(rng() * (mid.length - 1));   // 不占开局第一坎
+      mid[at] = rare;
+    }
     return [INTRO].concat(mid, [CLIMAX]);          // 首：陋规入局；尾：崇祯死弯
   }
 
@@ -924,7 +1014,9 @@
   // ---- 展示一个事件 -------------------------------------------------------
   function showEvent() {
     current = queue[turn];
-    el("ev-concept").textContent = current.concept;
+    var conceptEl = el("ev-concept");
+    conceptEl.textContent = (current.rare ? "✦ 稀有 · " : "") + current.concept;
+    conceptEl.classList.toggle("rare", !!current.rare);
     el("ev-title").textContent = current.title;
     el("ev-text").textContent = current.text;
     el("ev-verdict").classList.add("hidden");
@@ -963,7 +1055,7 @@
     renderHUD(fx);
 
     // 记下这一步走法，任满/出局时回放成「施政轨迹」
-    history.push({ concept: current.concept, lab: c.lab, fx: fx, climax: current === CLIMAX });
+    history.push({ concept: current.concept, lab: c.lab, fx: fx, climax: current === CLIMAX, rare: !!current.rare });
 
     // 影响条
     var chips = Object.keys(fx).map(function (k) {
@@ -1187,6 +1279,137 @@
     copyText(shareText())
       .then(function () { showToast("下场已复制，去粘给你的群 📋"); })
       .catch(function () { showToast("复制失败，可手动选中分享"); });
+  });
+
+  // ---- 结局图卡：用 canvas 画一张可长按保存 / 下载的分享图 ----------------
+  function stripTags(s) { return String(s).replace(/<[^>]+>/g, ""); }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  // 居中折行，返回画完后下一行的 y
+  function wrapText(ctx, text, cx, y, maxW, lh, maxLines) {
+    var chars = String(text).split(""), line = "", lines = [];
+    for (var i = 0; i < chars.length; i++) {
+      var test = line + chars[i];
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = chars[i]; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    if (maxLines && lines.length > maxLines) {
+      lines = lines.slice(0, maxLines);
+      lines[maxLines - 1] = lines[maxLines - 1].replace(/.$/, "…");
+    }
+    lines.forEach(function (ln, i) { ctx.fillText(ln, cx, y + i * lh); });
+    return y + lines.length * lh;
+  }
+  function drawEndCard() {
+    var key = el("end-seal").dataset.key;
+    var e = ENDINGS[key] || ENDINGS.survivor;
+    var scale = 2, W = 380, H = 620;
+    var cv = document.createElement("canvas");
+    cv.width = W * scale; cv.height = H * scale;
+    var ctx = cv.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.textAlign = "center";
+
+    // 纸底 + 顶光
+    ctx.fillStyle = "#f3e9d2"; ctx.fillRect(0, 0, W, H);
+    var g = ctx.createRadialGradient(W / 2, -40, 20, W / 2, -40, 340);
+    g.addColorStop(0, "rgba(247,239,219,0.9)"); g.addColorStop(1, "rgba(247,239,219,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // 双线金框
+    ctx.strokeStyle = "#b8912f"; ctx.lineWidth = 2; ctx.strokeRect(14, 14, W - 28, H - 28);
+    ctx.strokeStyle = "rgba(184,145,47,0.5)"; ctx.lineWidth = 1; ctx.strokeRect(20, 20, W - 40, H - 40);
+
+    // 抬头
+    ctx.fillStyle = "#6b5b48"; ctx.font = '13px "Noto Serif SC", serif';
+    ctx.fillText("大明王朝 · 潜规则生存模拟", W / 2, 48);
+
+    // 印章方框（旋转 -6°）
+    ctx.save();
+    ctx.translate(W / 2, 118); ctx.rotate(-6 * Math.PI / 180);
+    ctx.fillStyle = "rgba(178,59,46,0.06)"; roundRect(ctx, -34, -34, 68, 68, 10); ctx.fill();
+    ctx.strokeStyle = "#b23b2e"; ctx.lineWidth = 3; roundRect(ctx, -34, -34, 68, 68, 10); ctx.stroke();
+    ctx.fillStyle = "#b23b2e"; ctx.font = '40px "Ma Shan Zheng", serif';
+    ctx.textBaseline = "middle"; ctx.fillText(e.seal, 0, 3);
+    ctx.restore(); ctx.textBaseline = "alphabetic";
+
+    // 结局名 + 副题
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '26px "Ma Shan Zheng", serif';
+    ctx.fillText(e.title, W / 2, 200);
+    ctx.fillStyle = "#6b5b48"; ctx.font = '12.5px "Noto Serif SC", serif';
+    var y = wrapText(ctx, e.kick, W / 2, 224, W - 90, 18, 2);
+
+    // 分隔线
+    y += 8;
+    ctx.strokeStyle = "rgba(184,145,47,0.6)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(W - 50, y); ctx.stroke();
+
+    // 四维属性（2×2）
+    y += 30;
+    var stats = [["乌纱（仕途）", S.wusha], ["民心", S.minxin], ["清誉（良心）", S.qingyu], ["家财（库银）", S.silver + " 两"]];
+    var cx0 = W / 2 - 76, cx1 = W / 2 + 76;
+    stats.forEach(function (st, i) {
+      var x = i % 2 === 0 ? cx0 : cx1, ry = y + Math.floor(i / 2) * 46;
+      ctx.fillStyle = "#6b5b48"; ctx.font = '12px "Noto Serif SC", serif';
+      ctx.fillText(st[0], x, ry);
+      ctx.fillStyle = "#2a211a"; ctx.font = '19px "Noto Serif SC", serif';
+      ctx.fillText(String(st[1]), x, ry + 23);
+    });
+    y += 46 + 34;
+
+    // 「潜规则一课」——这局结局的一句话内核
+    var takeaway = stripTags(e.map).replace(/^你[^：:]*[：:]\s*/, "");
+    ctx.fillStyle = "rgba(255,255,255,0.55)"; roundRect(ctx, 40, y, W - 80, 96, 10); ctx.fill();
+    ctx.strokeStyle = "#cdbb93"; ctx.lineWidth = 1;
+    roundRect(ctx, 40, y, W - 80, 96, 10); ctx.stroke();
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '12px "Noto Serif SC", serif';
+    ctx.fillText("潜规则一课", W / 2, y + 22);
+    ctx.fillStyle = "#2a211a"; ctx.font = '12.5px "Noto Serif SC", serif';
+    wrapText(ctx, takeaway, W / 2, y + 44, W - 108, 18, 3);
+    y += 96 + 30;
+
+    // 图鉴 / 成就进度
+    var codex = loadCodex(), ach = loadAch();
+    var cn = ENDING_ORDER.filter(function (k) { return codex[k]; }).length;
+    var an = ACH.filter(function (a) { return ach[a.id]; }).length;
+    ctx.fillStyle = "#6b5b48"; ctx.font = '12.5px "Noto Serif SC", serif';
+    ctx.fillText("结局图鉴 " + cn + "/" + ENDING_ORDER.length + "　·　官声成就 " + an + "/" + ACH.length, W / 2, y);
+    y += 22;
+    ctx.fillStyle = "#8b1e1e"; ctx.font = '13px "Noto Sans SC", monospace';
+    ctx.fillText("牌序 " + currentSeed + "　·　敢接同一副牌？", W / 2, y);
+
+    // 页脚
+    ctx.fillStyle = "#6b5b48"; ctx.font = '11px "Noto Serif SC", serif';
+    ctx.fillText("▶ " + location.host + location.pathname, W / 2, H - 30);
+
+    return cv.toDataURL("image/png");
+  }
+  function openCard() {
+    var url;
+    try { url = drawEndCard(); }
+    catch (err) { showToast("图卡生成失败，可用「晒出我的下场」复制文字"); return; }
+    el("card-img").src = url;
+    el("card-download").href = url;
+    el("cardmodal").classList.remove("hidden");
+  }
+  function closeCard() { el("cardmodal").classList.add("hidden"); }
+  el("btn-card").addEventListener("click", function () {
+    // 等字体就绪再画，免得印章字体没加载到位
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(openCard, openCard);
+    } else { openCard(); }
+  });
+  el("cardmodal-close").addEventListener("click", closeCard);
+  el("cardmodal").addEventListener("click", function (ev) { if (ev.target === this) closeCard(); });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && !el("cardmodal").classList.contains("hidden")) closeCard();
   });
 
   el("end-reveal").addEventListener("click", function () {
