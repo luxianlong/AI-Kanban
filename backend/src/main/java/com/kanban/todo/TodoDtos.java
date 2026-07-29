@@ -1,5 +1,6 @@
 package com.kanban.todo;
 
+import com.kanban.attachment.AttachmentDtos.AttachmentView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,12 +17,15 @@ public final class TodoDtos {
     /**
      * Body for creating a todo. {@code projectImprovement} marks the task as one
      * that improves the Kanban project itself; it is optional and defaults to
-     * {@code false} (a general task) when omitted.
+     * {@code false} (a general task) when omitted. {@code attachmentIds} are ids
+     * returned by {@code POST /api/attachments} — images the user uploaded for
+     * this task; they are claimed by the new task and handed to the agent.
      */
     public record CreateTodoRequest(
             @NotBlank @Size(max = 200) String title,
             @Size(max = 10_000) String description,
-            Boolean projectImprovement) {
+            Boolean projectImprovement,
+            @Size(max = 10) List<String> attachmentIds) {
     }
 
     /** One step of a story chain. */
@@ -123,9 +127,19 @@ public final class TodoDtos {
             String storyName,
             Integer storyOrder,
             boolean storyPlanner,
-            boolean unread) {
+            boolean unread,
+            List<AttachmentView> attachments) {
 
+        /**
+         * View without attachments. Used where the caller doesn't load them (a
+         * freshly-created planner, a story listing); the field is an empty list
+         * rather than null so clients can always iterate it.
+         */
         public static TodoResponse from(Todo t) {
+            return from(t, List.of());
+        }
+
+        public static TodoResponse from(Todo t, List<AttachmentView> attachments) {
             return new TodoResponse(
                     t.getId(),
                     t.getTitle(),
@@ -142,7 +156,8 @@ public final class TodoDtos {
                     t.getStoryName(),
                     t.getStoryOrder(),
                     t.isStoryPlanner(),
-                    t.isUnread());
+                    t.isUnread(),
+                    attachments == null ? List.of() : attachments);
         }
     }
 }

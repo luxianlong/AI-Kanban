@@ -1,10 +1,14 @@
 package com.kanban.worker;
 
+import com.kanban.attachment.Attachment;
+import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.Todo;
 import com.kanban.todo.TodoRepository;
 import com.kanban.todo.TodoStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,11 +19,14 @@ import static org.mockito.Mockito.when;
  * Unit tests for the prompt the worker hands to the Claude CLI. A plain
  * (non-story) task never touches the repository/props/liveLog collaborators in
  * {@link ClaudeWorkerService#buildPrompt}, so we can construct the service with
- * nulls and assert on the generated prompt directly.
+ * nulls (plus a stubbed attachment store) and assert on the generated prompt
+ * directly.
  */
 class ClaudeWorkerServiceTest {
 
-    private final ClaudeWorkerService service = new ClaudeWorkerService(null, null, null, null);
+    private final AttachmentService attachments = mock(AttachmentService.class);
+    private final ClaudeWorkerService service =
+            new ClaudeWorkerService(null, null, null, null, attachments);
 
     private Todo task(String title, boolean projectImprovement) {
         Todo t = new Todo();
@@ -62,6 +69,43 @@ class ClaudeWorkerServiceTest {
         assertThat(prompt).doesNotContain("do NOT run scripts/deploy.sh");
     }
 
+    // --- attached images (the agent must be told where the real files are) ---
+
+    private Attachment image(String id, String fileName) {
+        Attachment a = new Attachment();
+        a.setId(id);
+        a.setFileName(fileName);
+        a.setContentType("image/png");
+        a.setStoredName(id + ".png");
+        return a;
+    }
+
+    @Test
+    void attachedImagesArePassedToTheAgentAsReadablePaths() {
+        Todo t = task("Rebuild this screen", false);
+        ReflectionTestUtils.setField(t, "id", 42L);
+        Attachment a = image("abc", "screenshot.png");
+        when(attachments.listFor(42L)).thenReturn(List.of(a));
+        when(attachments.pathOf(a)).thenReturn(Path.of("/srv/data/attachments/abc.png"));
+
+        String prompt = service.buildPrompt(t);
+
+        assertThat(prompt).contains("ATTACHED IMAGES (1)");
+        // The absolute server-side path is the whole point: the session opens it.
+        assertThat(prompt).contains("/srv/data/attachments/abc.png");
+        assertThat(prompt).contains("screenshot.png");
+        assertThat(prompt).contains("Read tool");
+    }
+
+    @Test
+    void taskWithoutImagesGetsNoAttachmentSection() {
+        Todo t = task("Write a haiku", false);
+        ReflectionTestUtils.setField(t, "id", 7L);
+        when(attachments.listFor(7L)).thenReturn(List.of());
+
+        assertThat(service.buildPrompt(t)).doesNotContain("ATTACHED IMAGES");
+    }
+
     // --- orphan re-queue cap (why an already-run task must not be re-executed forever) ---
 
     private Todo inProgress(int attempts) {
@@ -79,7 +123,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null).requeueOrphans();
 
         // One automatic recovery retry is still allowed after a genuine crash.
         assertThat(t.getStatus()).isEqualTo(TodoStatus.PENDING);
@@ -93,7 +137,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
         assertThat(t.getResult()).contains("Interrupted by a backend restart");
@@ -109,7 +153,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
     }

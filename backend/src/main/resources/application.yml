@@ -26,9 +26,23 @@ spring:
     console:
       enabled: true
       path: /h2-console
+  servlet:
+    multipart:
+      # Task attachments are images; keep the request cap in step with
+      # attachments.max-bytes below (a little headroom for the multipart frame).
+      max-file-size: 10MB
+      max-request-size: 12MB
 
 server:
   port: 8080
+
+# --- Task attachments (images a user adds as input for the agent) ---
+# Files live next to the live H2 database so one data directory holds all user
+# state; only their metadata is stored in the database. The worker hands the
+# agent the absolute path of each file, so the session can open the image.
+attachments:
+  dir: ${KANBAN_DATA_DIR:${user.home}/Dashboard/data}/attachments
+  max-bytes: 10485760
 
 # --- Claude Code worker ---
 worker:

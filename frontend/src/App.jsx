@@ -268,8 +268,8 @@ export default function App() {
     return () => clearInterval(t)
   }, [fetchLog])
 
-  async function createTodo(title, description, projectImprovement) {
-    await api.createTodo(title, description, projectImprovement)
+  async function createTodo(title, description, projectImprovement, attachmentIds) {
+    await api.createTodo(title, description, projectImprovement, attachmentIds)
     await refresh()
     broadcastMutation()
     setShowComposer(false)
@@ -906,11 +906,16 @@ function Composer({ onCreate }) {
   // Whether this task is about improving the Kanban project itself. Off by
   // default: a plain task is a general task, not aimed at the project.
   const [projectImprovement, setProjectImprovement] = useState(false)
+  // Images already uploaded for this (not yet created) task. Each was stored
+  // server-side the moment it was picked, so we have a real URL to preview and
+  // an id to hand to createTodo. See useImageUploads.
+  const images = useImageUploads()
 
   function clear() {
     setTitle('')
     setDesc('')
     setProjectImprovement(false)
+    images.reset()
     setOpen(false)
   }
 
@@ -923,7 +928,9 @@ function Composer({ onCreate }) {
     if (!t || busy) return
     setBusy(true)
     try {
-      await onCreate(t, desc.trim(), projectImprovement)
+      await onCreate(t, desc.trim(), projectImprovement, images.ids())
+      // The task now owns the uploads — forget them without deleting the files.
+      images.forget()
       clear()
     } finally {
       setBusy(false)
@@ -931,7 +938,13 @@ function Composer({ onCreate }) {
   }
 
   return (
-    <form className="composer" onSubmit={submit}>
+    <form
+      className={`composer ${images.dragging ? 'dropping' : ''}`}
+      onSubmit={submit}
+      onDragOver={images.onDragOver}
+      onDragLeave={images.onDragLeave}
+      onDrop={(e) => { setOpen(true); images.onDrop(e) }}
+    >
       <input
         className="composer-title"
         placeholder="Add a task…"
@@ -944,11 +957,13 @@ function Composer({ onCreate }) {
         <>
           <textarea
             className="composer-desc"
-            placeholder="Details / context for the agent (optional)"
+            placeholder="Details / context for the agent (optional) — you can paste a screenshot here"
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
+            onPaste={images.onPaste}
             rows={3}
           />
+          <ImageAttacher images={images} />
           <label className="composer-flag" title="Mark this task as one that improves the Kanban project itself (its code, docs, tests). Off = a general task.">
             <input
               type="checkbox"
@@ -958,8 +973,8 @@ function Composer({ onCreate }) {
             Improves this Kanban project itself
           </label>
           <div className="composer-actions">
-            <button type="submit" className="btn primary" disabled={!title.trim() || busy}>
-              {busy ? 'Adding…' : 'Add task'}
+            <button type="submit" className="btn primary" disabled={!title.trim() || busy || images.uploading}>
+              {busy ? 'Adding…' : images.uploading ? 'Uploading…' : 'Add task'}
             </button>
             <button
               type="button"
@@ -967,6 +982,7 @@ function Composer({ onCreate }) {
               onClick={() => {
                 setOpen(false)
                 setDesc('')
+                images.reset()
               }}
             >
               Cancel
@@ -975,6 +991,176 @@ function Composer({ onCreate }) {
         </>
       )}
     </form>
+  )
+}
+
+// Uploading images for a task that doesn't exist yet.
+//
+// Each picked file is sent to the server straight away (POST /api/attachments),
+// which stores it on disk and returns an id + url. That's what lets the composer
+// show a real thumbnail, and it's what the agent later opens — the point of the
+// feature is that the image is readable *server-side*, not just in the browser.
+// Submitting the task claims the uploads by id; cancelling deletes them again so
+// abandoned picks don't pile up.
+function useImageUploads() {
+  const [items, setItems] = useState([]) // [{ id, fileName, url, sizeBytes }]
+  const [uploading, setUploading] = useState(false)
+  const [dragging, setDragging] = useState(false)
+  const [error, setError] = useState(null)
+
+  const MAX = 10 // matches the server's per-task cap
+
+  async function add(fileList) {
+    const files = Array.from(fileList || []).filter((f) => f.type.startsWith('image/'))
+    if (!files.length) return
+    setError(null)
+    setUploading(true)
+    try {
+      for (const file of files) {
+        let full = false
+        setItems((prev) => {
+          full = prev.length >= MAX
+          return prev
+        })
+        if (full) {
+          setError(`At most ${MAX} images per task.`)
+          break
+        }
+        try {
+          const saved = await api.uploadAttachment(file)
+          setItems((prev) => (prev.length >= MAX ? prev : [...prev, saved]))
+        } catch (e) {
+          setError(uploadError(e, file))
+        }
+      }
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function remove(id) {
+    setItems((prev) => prev.filter((i) => i.id !== id))
+    try {
+      await api.deleteAttachment(id)
+    } catch {
+      // The thumbnail is gone from the composer either way; a stray file is
+      // swept up by the server's unclaimed-upload cleanup.
+    }
+  }
+
+  // Cancelled composer: drop the uploads server-side too.
+  function reset() {
+    setItems((prev) => {
+      prev.forEach((i) => api.deleteAttachment(i.id).catch(() => {}))
+      return []
+    })
+    setError(null)
+  }
+
+  // Submitted: the task owns the files now, so just clear our list.
+  function forget() {
+    setItems([])
+    setError(null)
+  }
+
+  function onPaste(e) {
+    const files = Array.from(e.clipboardData?.files || [])
+    if (files.some((f) => f.type.startsWith('image/'))) {
+      e.preventDefault()
+      add(files)
+    }
+  }
+
+  function onDragOver(e) {
+    if (!Array.from(e.dataTransfer?.types || []).includes('Files')) return
+    e.preventDefault()
+    setDragging(true)
+  }
+
+  function onDragLeave() {
+    setDragging(false)
+  }
+
+  function onDrop(e) {
+    if (!e.dataTransfer?.files?.length) return
+    e.preventDefault()
+    setDragging(false)
+    add(e.dataTransfer.files)
+  }
+
+  return {
+    items,
+    uploading,
+    dragging,
+    error,
+    add,
+    remove,
+    reset,
+    forget,
+    onPaste,
+    onDragOver,
+    onDragLeave,
+    onDrop,
+    ids: () => items.map((i) => i.id),
+  }
+}
+
+// The server answers a rejected upload with a plain-text reason (wrong type, too
+// big); surface that rather than a bare status line.
+function uploadError(e, file) {
+  const detail = String(e?.message || '')
+  const match = detail.match(/"message"\s*:\s*"([^"]+)"/)
+  return `${file.name}: ${match ? match[1] : detail || 'upload failed'}`
+}
+
+// Thumbnail strip + "Attach image" button shown inside the composer.
+function ImageAttacher({ images }) {
+  const inputRef = useRef(null)
+  return (
+    <div className="attach">
+      <div className="attach-row">
+        <button
+          type="button"
+          className="btn ghost attach-btn"
+          onClick={() => inputRef.current?.click()}
+          title="Attach an image the agent should look at (or paste / drop one here)"
+        >
+          <Icon name="image" size={14} /> Attach image
+        </button>
+        <span className="attach-hint">or paste / drop a screenshot</span>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(e) => {
+            images.add(e.target.files)
+            e.target.value = '' // let the same file be picked again
+          }}
+        />
+      </div>
+      {images.error && <p className="attach-error">{images.error}</p>}
+      {(images.items.length > 0 || images.uploading) && (
+        <ul className="attach-thumbs">
+          {images.items.map((img) => (
+            <li key={img.id} className="attach-thumb">
+              <img src={img.url} alt={img.fileName} />
+              <button
+                type="button"
+                className="attach-remove"
+                onClick={() => images.remove(img.id)}
+                aria-label={`Remove ${img.fileName}`}
+                title="Remove"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+          {images.uploading && <li className="attach-thumb pending">…</li>}
+        </ul>
+      )}
+    </div>
   )
 }
 
@@ -1105,6 +1291,11 @@ function Card({ todo, tail, story, onOpen }) {
       {todo.projectImprovement && (
         <span className="card-tag project" title="This task improves the Kanban project itself">
           <Icon name="project" size={12} /> Project
+        </span>
+      )}
+      {todo.attachments?.length > 0 && (
+        <span className="card-tag image" title={`${todo.attachments.length} attached image(s) the agent will read`}>
+          <Icon name="image" size={12} /> {todo.attachments.length}
         </span>
       )}
       <div className="card-title">{todo.title}</div>
@@ -1256,6 +1447,25 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
           <div className="drawer-section">
             <div className="section-label">Details</div>
             <p className="drawer-desc">{todo.description}</p>
+          </div>
+        )}
+
+        {todo.attachments?.length > 0 && (
+          <div className="drawer-section">
+            <div className="section-label">
+              Attached images ({todo.attachments.length})
+            </div>
+            <ul className="attach-thumbs">
+              {todo.attachments.map((img) => (
+                <li key={img.id} className="attach-thumb">
+                  {/* Full size in a new tab — the thumbnail is only a preview. */}
+                  <a href={img.url} target="_blank" rel="noreferrer" title={img.fileName}>
+                    <img src={img.url} alt={img.fileName} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="attach-note">The agent reads these files as part of the task.</p>
           </div>
         )}
 

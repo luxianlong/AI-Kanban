@@ -1,5 +1,7 @@
 package com.kanban.todo;
 
+import com.kanban.attachment.AttachmentDtos.AttachmentView;
+import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.TodoDtos.CreateTodoRequest;
 import com.kanban.todo.TodoDtos.SetStoryRequest;
 import com.kanban.todo.TodoDtos.TodoResponse;
@@ -39,28 +41,35 @@ public class TodoController {
     private final RunningSessionRegistry sessions;
     private final StoryClassifier classifier;
     private final AiStoryClassifier aiClassifier;
+    private final AttachmentService attachments;
 
     public TodoController(TodoRepository repository, StoryRepository storyRepository,
                           LiveLogRegistry liveLog, RunningSessionRegistry sessions,
-                          StoryClassifier classifier, AiStoryClassifier aiClassifier) {
+                          StoryClassifier classifier, AiStoryClassifier aiClassifier,
+                          AttachmentService attachments) {
         this.repository = repository;
         this.storyRepository = storyRepository;
         this.liveLog = liveLog;
         this.sessions = sessions;
         this.classifier = classifier;
         this.aiClassifier = aiClassifier;
+        this.attachments = attachments;
     }
 
     @GetMapping
     public List<TodoResponse> list() {
-        return repository.findAllByOrderByCreatedAtDesc().stream()
-                .map(TodoResponse::from)
+        List<Todo> todos = repository.findAllByOrderByCreatedAtDesc();
+        // One query for every task's attachments rather than one per card.
+        Map<Long, List<AttachmentView>> byTodo =
+                attachments.viewsForAll(todos.stream().map(Todo::getId).toList());
+        return todos.stream()
+                .map(t -> TodoResponse.from(t, byTodo.get(t.getId())))
                 .toList();
     }
 
     @GetMapping("/{id}")
     public TodoResponse get(@PathVariable Long id) {
-        return TodoResponse.from(find(id));
+        return withAttachments(find(id));
     }
 
     /**
@@ -99,7 +108,7 @@ public class TodoController {
         liveLog.append(id, "● Stop requested by user — terminating the session…");
         // The worker flips the task to FAILED once the killed process is reaped;
         // return the current (still IN_PROGRESS) row and let the UI poll it through.
-        return TodoResponse.from(todo);
+        return withAttachments(todo);
     }
 
     @PostMapping
@@ -137,10 +146,15 @@ public class TodoController {
             todo.setClassifying(true);
         }
         Todo saved = repository.save(todo);
+        // Bind any images the user uploaded while composing to this task, now that
+        // it has an id. The worker hands their paths to the agent, so the session
+        // resolving the task can actually open them.
+        List<AttachmentView> attached = attachments.attach(req.attachmentIds(), saved.getId())
+                .stream().map(AttachmentView::from).toList();
         if (smartPass) {
             aiClassifier.fileAsync(saved.getId(), text);
         }
-        return TodoResponse.from(saved);
+        return TodoResponse.from(saved, attached);
     }
 
     @PatchMapping("/{id}")
@@ -168,7 +182,7 @@ public class TodoController {
         if (req.result() != null) {
             todo.setResult(req.result());
         }
-        return TodoResponse.from(repository.save(todo));
+        return withAttachments(repository.save(todo));
     }
 
     /**
@@ -185,7 +199,7 @@ public class TodoController {
             todo.setUnread(false);
             todo = repository.save(todo);
         }
-        return TodoResponse.from(todo);
+        return withAttachments(todo);
     }
 
     /** Clear every unread finished-task notification ("mark all read"). */
@@ -228,7 +242,7 @@ public class TodoController {
             todo.setStoryName(name);
             todo.setStoryOrder(classifier.nextOrder(steps)); // append at the chain's end
         }
-        return TodoResponse.from(repository.save(todo));
+        return withAttachments(repository.save(todo));
     }
 
     @DeleteMapping("/{id}")
@@ -238,7 +252,14 @@ public class TodoController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Todo not found: " + id);
         }
         repository.deleteById(id);
+        // The task's uploaded images go with it — nothing else references them.
+        attachments.deleteForTodo(id);
         liveLog.clear(id);
+    }
+
+    /** Response for a single task, with its attachments loaded. */
+    private TodoResponse withAttachments(Todo todo) {
+        return TodoResponse.from(todo, attachments.viewsFor(todo.getId()));
     }
 
     private Todo find(Long id) {
