@@ -575,6 +575,40 @@ body {
 .composer-flag input { cursor: pointer; }
 .composer-actions { display: flex; gap: var(--s-2); margin-top: var(--s-2); }
 
+/* ---------- Image attachments (composer + drawer) ---------- */
+/* Dropping a file anywhere on the composer attaches it, so the whole form
+   highlights while a drag is over it. */
+.composer.dropping { outline: 2px dashed var(--brand); outline-offset: 3px; border-radius: var(--r-md); }
+.attach { margin-top: var(--s-2); }
+.attach-row { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.attach-btn { display: inline-flex; align-items: center; gap: 6px; }
+.attach-hint { font-size: var(--f-xs); color: var(--faint); }
+.attach-error { margin: var(--s-2) 0 0; font-size: var(--f-xs); color: var(--danger, #c0392b); }
+.attach-note { margin: var(--s-2) 0 0; font-size: var(--f-xs); color: var(--muted); }
+.attach-thumbs {
+  display: flex; flex-wrap: wrap; gap: var(--s-2);
+  margin: var(--s-2) 0 0; padding: 0; list-style: none;
+}
+.attach-thumb {
+  position: relative;
+  width: 72px; height: 72px;
+  border: 1px solid var(--hair); border-radius: var(--r-md);
+  overflow: hidden; background: var(--card);
+}
+.attach-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.attach-thumb.pending {
+  display: grid; place-items: center;
+  color: var(--faint); font-size: var(--f-sm);
+}
+.attach-remove {
+  position: absolute; top: 2px; right: 2px;
+  width: 20px; height: 20px; line-height: 18px;
+  padding: 0; border: 0; border-radius: 50%;
+  background: rgba(15, 23, 42, 0.72); color: #fff;
+  font-size: 15px; cursor: pointer;
+}
+.attach-remove:hover { background: rgba(15, 23, 42, 0.9); }
+
 /* ---------- Story composer ---------- */
 .story-add {
   width: 100%;
@@ -614,6 +648,7 @@ body {
 }
 .card-tag.project { color: var(--project-ink); background: var(--project-bg); border: 1px solid var(--project-border); }
 .card-tag.planner { color: var(--brand-ink); background: var(--brand-100); border: 1px solid var(--brand-200); }
+.card-tag.image { color: var(--muted); background: var(--surface, #f4f6fb); border: 1px solid var(--hair); }
 
 /* ---------- Story badge (on cards + drawer) ---------- */
 .story-badge {

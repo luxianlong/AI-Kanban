@@ -8,6 +8,10 @@ backend/data/
 *.trace.db
 *.lock.db
 
+# Uploaded task attachments (user data, lives beside the live database)
+data/attachments/
+backend/data/attachments/
+
 # Node / Vite
 frontend/node_modules/
 frontend/dist/

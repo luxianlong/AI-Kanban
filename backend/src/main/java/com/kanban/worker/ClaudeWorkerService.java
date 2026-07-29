@@ -1,5 +1,7 @@
 package com.kanban.worker;
 
+import com.kanban.attachment.Attachment;
+import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.Todo;
 import com.kanban.todo.TodoRepository;
 import com.kanban.todo.TodoStatus;
@@ -47,15 +49,18 @@ public class ClaudeWorkerService {
     private final WorkerProperties props;
     private final LiveLogRegistry liveLog;
     private final RunningSessionRegistry sessions;
+    private final AttachmentService attachments;
     private final ObjectMapper mapper = new ObjectMapper();
     private final ReentrantLock tickLock = new ReentrantLock();
 
     public ClaudeWorkerService(TodoRepository repository, WorkerProperties props,
-                               LiveLogRegistry liveLog, RunningSessionRegistry sessions) {
+                               LiveLogRegistry liveLog, RunningSessionRegistry sessions,
+                               AttachmentService attachments) {
         this.repository = repository;
         this.props = props;
         this.liveLog = liveLog;
         this.sessions = sessions;
+        this.attachments = attachments;
     }
 
     /**
@@ -267,7 +272,33 @@ public class ClaudeWorkerService {
         if (todo.getDescription() != null && !todo.getDescription().isBlank()) {
             sb.append("DETAILS:\n").append(todo.getDescription()).append('\n');
         }
+        appendAttachments(sb, todo);
         return sb.toString();
+    }
+
+    /**
+     * If the user attached images to the task, point the agent at the real files.
+     * They are stored on this machine by the backend, so the session can open them
+     * directly with its Read tool — the picture is part of the task's input, not
+     * just decoration on the card.
+     */
+    private void appendAttachments(StringBuilder sb, Todo todo) {
+        if (attachments == null || todo.getId() == null) {
+            return;
+        }
+        List<Attachment> files = attachments.listFor(todo.getId());
+        if (files.isEmpty()) {
+            return;
+        }
+        sb.append("\nATTACHED IMAGES (").append(files.size())
+                .append("): the user attached the following image file(s) to this task. ")
+                .append("They are saved on this machine — open each one with the Read tool ")
+                .append("(it renders images) before you start, and treat what they show as part ")
+                .append("of the task's instructions:\n");
+        for (Attachment a : files) {
+            sb.append("  - ").append(attachments.pathOf(a).toString())
+                    .append("  (original name: ").append(a.getFileName()).append(")\n");
+        }
     }
 
     /** Base URL the worker's agent uses to call back into this API. */

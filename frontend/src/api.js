@@ -13,13 +13,27 @@ export const api = {
   listTodos: () => fetch(`${BASE}/todos`).then(json),
 
   // `projectImprovement` marks the task as one that improves the Kanban project
-  // itself; it defaults to false (a general task) when omitted.
-  createTodo: (title, description, projectImprovement = false) =>
+  // itself; it defaults to false (a general task) when omitted. `attachmentIds`
+  // are ids from uploadAttachment — images the new task claims as agent input.
+  createTodo: (title, description, projectImprovement = false, attachmentIds = []) =>
     fetch(`${BASE}/todos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description, projectImprovement }),
+      body: JSON.stringify({ title, description, projectImprovement, attachmentIds }),
     }).then(json),
+
+  // Upload one image for a task-to-be. The file is stored server-side right away
+  // (so the composer can show a thumbnail); the returned id is passed to
+  // createTodo, which binds it to the task the agent then receives.
+  uploadAttachment: (file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return fetch(`${BASE}/attachments`, { method: 'POST', body: form }).then(json)
+  },
+
+  // Drop an uploaded image again (removed in the composer, or no longer wanted).
+  deleteAttachment: (id) =>
+    fetch(`${BASE}/attachments/${id}`, { method: 'DELETE' }).then(json),
 
   // Create a story from a single one-line goal (plus optional description). The
   // server files one planner task; the worker decomposes the goal into step tasks
