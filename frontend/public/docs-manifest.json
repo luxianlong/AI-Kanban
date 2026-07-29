@@ -1,16 +1,45 @@
 [
   {
+    "id": "singapore-travel-guide",
+    "title": "新加坡旅游攻略",
+    "href": "/singapore.html",
+    "deletable": true,
+    "file": "docs/singapore-travel-guide.md",
+    "updatedAt": "2026-07-18T06:04:49.141Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "docs/singapore-travel-guide.md",
+      "frontend/public/singapore.html",
+      "frontend/public/img/singapore"
+    ]
+  },
+  {
     "id": "us-iran-war",
     "title": "美伊战争 · 分析总览 (2026)",
     "href": "/docs/us-iran-war.html",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-07-19T05:27:11.842Z",
-    "isNew": true,
+    "isNew": false,
     "private": false,
     "paths": [
       "research/us-iran-war",
       "frontend/public/docs/us-iran-war.html"
+    ]
+  },
+  {
+    "id": "ai-supply-chain",
+    "title": "AI supply chain — topology",
+    "href": "/docs/ai-supply-chain.html",
+    "deletable": true,
+    "file": "docs/ai-supply-chain.md",
+    "updatedAt": "2026-07-15T13:23:06.183Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "docs/ai-supply-chain.md",
+      "frontend/public/docs/ai-supply-chain.html"
     ]
   },
   {
@@ -20,7 +49,7 @@
     "deletable": true,
     "file": "docs/daming-wangchao.md",
     "updatedAt": "2026-07-19T03:06:20.160Z",
-    "isNew": true,
+    "isNew": false,
     "private": false,
     "paths": [
       "docs/daming-wangchao.md",
@@ -34,54 +63,11 @@
     "deletable": true,
     "file": "docs/qianguize-haowanban.md",
     "updatedAt": "2026-07-18T12:54:53.291Z",
-    "isNew": true,
+    "isNew": false,
     "private": false,
     "paths": [
       "docs/qianguize-haowanban.md",
       "frontend/public/docs/qianguize-haowanban.html"
-    ]
-  },
-  {
-    "id": "daming-jingying",
-    "title": "大明王朝·衙门经营：一个知县的六年（模拟经营网页游戏）",
-    "href": "/docs/daming-jingying.html",
-    "deletable": true,
-    "file": "docs/daming-jingying.md",
-    "updatedAt": "2026-07-18T12:54:53.288Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/daming-jingying.md",
-      "frontend/public/docs/daming-jingying.html"
-    ]
-  },
-  {
-    "id": "singapore-travel-guide",
-    "title": "新加坡旅游攻略",
-    "href": "/singapore.html",
-    "deletable": true,
-    "file": "docs/singapore-travel-guide.md",
-    "updatedAt": "2026-07-18T06:04:49.141Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/singapore-travel-guide.md",
-      "frontend/public/singapore.html",
-      "frontend/public/img/singapore"
-    ]
-  },
-  {
-    "id": "ai-supply-chain",
-    "title": "AI supply chain — topology",
-    "href": "/docs/ai-supply-chain.html",
-    "deletable": true,
-    "file": "docs/ai-supply-chain.md",
-    "updatedAt": "2026-07-15T13:23:06.183Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/ai-supply-chain.md",
-      "frontend/public/docs/ai-supply-chain.html"
     ]
   }
 ]
