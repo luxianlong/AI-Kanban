@@ -63,6 +63,39 @@ class PageUploadServiceTest {
     }
 
     @Test
+    void injectsTheMermaidRendererIntoAPageThatDrawsDiagrams() throws IOException {
+        Path repo = Files.createTempDirectory("pages-mermaid");
+        PageUploadService service = service(repo, new PagesProperties());
+
+        service.store("<html><body><pre class=\"mermaid\">graph TD; A--&gt;B;</pre></body></html>",
+                "ddd", null, null, "1.2.3.4");
+
+        String stored = Files.readString(repo.resolve("frontend/public/p/ddd.html"));
+        assertThat(stored).contains("/vendor/mermaid.min.js", "/vendor/mermaid-init.js");
+        // Injected inside the document, before </body>, so the diagram is parsed
+        // by the time the deferred scripts run.
+        assertThat(stored.indexOf("mermaid-init.js")).isLessThan(stored.indexOf("</body>"));
+        assertThat(stored).contains("graph TD; A--&gt;B;");
+    }
+
+    @Test
+    void leavesPagesWithoutMermaidOrWithTheirOwnCopyUntouched() {
+        String plain = "<html><body><p>No diagrams here.</p></body></html>";
+        assertThat(PageUploadService.withMermaidSupport(plain)).isEqualTo(plain);
+
+        String own = "<body><div class='mermaid'>graph TD; A-->B;</div>"
+                + "<script src='https://cdn.example/mermaid.min.js'></script></body>";
+        assertThat(PageUploadService.withMermaidSupport(own)).isEqualTo(own);
+
+        // Markdown-rendered fences count as diagrams too, and a page with no
+        // </body> still gets the tags (appended at the end).
+        String fenced = "<code class=\"language-mermaid\">graph TD; A-->B;</code>";
+        assertThat(PageUploadService.withMermaidSupport(fenced))
+                .startsWith(fenced)
+                .contains("/vendor/mermaid-init.js");
+    }
+
+    @Test
     void reportsTheFilesBackingAPageSoTheDocsDeleteCanRemoveThem() throws IOException {
         Path repo = Files.createTempDirectory("pages-paths");
         PageUploadService service = service(repo, new PagesProperties());

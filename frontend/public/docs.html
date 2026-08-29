@@ -238,6 +238,19 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </header>
 <div class="wrap">
 <div class="grid">
+<!--PRIVATE-CARD:public-api-->
+<div class="card-wrap is-new is-private" data-id="public-api" data-private="true">
+  <a class="doc-card" href="/docs/public-api.html">
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <h2>公开接口（Public API）总览<span class="badge lock">🔒 Private</span></h2>
+  <p>这块看板整体是私有的：站点挂在 cloudflared 隧道后面，前面有一道口令门 （frontend/vite.config.js 里的中间件）。但有几条路径是故意放开的 —— 不需要任何账号、 口令或 token，任何能访问到域名的人都能直接调用。</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-08-29" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make public" aria-label="Make public: 公开接口（Public API）总览" data-id="public-api" data-private="true">🔒</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 公开接口（Public API）总览" data-id="public-api" data-title="公开接口（Public API）总览">✕</button>
+</div>
+<!--/PRIVATE-CARD-->
 <!--PRIVATE-CARD:upload-task-76-arbitrage-->
 <div class="card-wrap is-new is-private" data-id="upload-task-76-arbitrage" data-private="true">
   <a class="doc-card" href="/p/task-76-arbitrage.html">
@@ -319,19 +332,6 @@ body:not(.is-owner) .doc-priv { display: none !important; }
   <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 景甜昨天发了四行字,热搜只给你看了前两行" data-id="upload-jing-tian-four-lines" data-private="false">🌐</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 景甜昨天发了四行字,热搜只给你看了前两行" data-id="upload-jing-tian-four-lines" data-title="景甜昨天发了四行字,热搜只给你看了前两行">✕</button>
 </div>
-<!--PRIVATE-CARD:public-api-->
-<div class="card-wrap is-new is-private" data-id="public-api" data-private="true">
-  <a class="doc-card" href="/docs/public-api.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
-  <h2>公开接口（Public API）总览<span class="badge lock">🔒 Private</span></h2>
-  <p>这块看板整体是私有的：站点挂在 cloudflared 隧道后面，前面有一道口令门 （frontend/vite.config.js 里的中间件）。但有几条路径是故意放开的 —— 不需要任何账号、 口令或 token，任何能访问到域名的人都能直接调用。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-08-29" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make public" aria-label="Make public: 公开接口（Public API）总览" data-id="public-api" data-private="true">🔒</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 公开接口（Public API）总览" data-id="public-api" data-title="公开接口（Public API）总览">✕</button>
-</div>
-<!--/PRIVATE-CARD-->
 </div>
 </div>
 

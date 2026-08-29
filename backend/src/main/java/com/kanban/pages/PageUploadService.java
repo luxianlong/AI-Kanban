@@ -67,6 +67,33 @@ public class PageUploadService {
             Pattern.compile("<h1[^>]*>(.*?)</h1>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern TAG = Pattern.compile("<[^>]*>");
 
+    /**
+     * Markup that means "there is a Mermaid diagram here": mermaid's own
+     * {@code <pre class="mermaid">}/{@code <div class="mermaid">}, or the
+     * {@code <code class="language-mermaid">} a markdown renderer emits.
+     */
+    private static final Pattern MERMAID_BLOCK = Pattern.compile(
+            "class\\s*=\\s*[\"'][^\"']*\\b(?:lang(?:uage)?-)?mermaid\\b",
+            Pattern.CASE_INSENSITIVE);
+
+    /** A page that already loads mermaid itself (CDN or its own copy) is left alone. */
+    private static final Pattern MERMAID_SCRIPT = Pattern.compile(
+            "<script[^>]*\\bmermaid[^>]*>|\\bmermaid\\.(?:min\\.js|esm|initialize|run)\\b",
+            Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern BODY_END = Pattern.compile("</body\\s*>", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * What gets appended to a page that draws diagrams: the vendored library
+     * plus the bootstrap that normalises the blocks and renders them. Both are
+     * same-origin static files under /vendor/, which the docs gate serves
+     * without the site password — an uploaded page runs in a CSP sandbox
+     * (opaque origin) and could never reach a gated URL or our API.
+     */
+    static final String MERMAID_TAGS =
+            "\n<script src=\"/vendor/mermaid.min.js\" defer></script>"
+            + "\n<script src=\"/vendor/mermaid-init.js\" defer></script>\n";
+
     private final Path pagesDir;
     private final PagesProperties props;
     private final ObjectMapper mapper = new ObjectMapper()
@@ -94,6 +121,7 @@ public class PageUploadService {
         if (html == null || html.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No HTML content in the request");
         }
+        html = withMermaidSupport(html);
         byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
         if (bytes.length > props.getMaxBytes()) {
             throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
@@ -185,6 +213,29 @@ public class PageUploadService {
     /** The repo-relative files backing a page — what a delete has to remove. */
     public List<String> pathsFor(String slug) {
         return List.of(PAGES_REL + "/" + slug + ".html", PAGES_REL + "/" + slug + ".meta.json");
+    }
+
+    /**
+     * Give a page that contains Mermaid markup the two script tags that render
+     * it (task #81 — "can we support mermaid in /p/ dir"). Uploaders — usually
+     * an LLM asked for "a diagram" — write the {@code <pre class="mermaid">}
+     * block but rarely the loader, so without this the diagram reaches the
+     * reader as raw {@code graph TD} source. Pages with no mermaid markup, and
+     * pages that already load mermaid themselves, are returned untouched.
+     */
+    static String withMermaidSupport(String html) {
+        if (html == null
+                || !MERMAID_BLOCK.matcher(html).find()
+                || MERMAID_SCRIPT.matcher(html).find()) {
+            return html;
+        }
+        Matcher body = BODY_END.matcher(html);
+        int at = -1;
+        while (body.find()) {
+            at = body.start();
+        }
+        return at < 0 ? html + MERMAID_TAGS
+                : html.substring(0, at) + MERMAID_TAGS + html.substring(at);
     }
 
     // --- internals -----------------------------------------------------------
