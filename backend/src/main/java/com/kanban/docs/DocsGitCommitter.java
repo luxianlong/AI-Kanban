@@ -60,32 +60,46 @@ public class DocsGitCommitter {
      * @param deletedPaths the repo-relative paths that were removed from disk
      */
     public void commitDeletion(String id, List<String> deletedPaths) {
+        commitPaths("docs: delete '" + id + "' via web UI", deletedPaths);
+    }
+
+    /**
+     * Stage the given paths (plus the regenerated index) and commit them under
+     * {@code message}. Used for any web-triggered change to the docs tree — a
+     * delete, or a page published through the public upload API (task #470),
+     * which faces the same resurrection/rollback trap. No-op when the working
+     * directory isn't a git repo or nothing ends up staged.
+     *
+     * @param message the commit message
+     * @param paths   the repo-relative paths that were added or removed on disk
+     */
+    public void commitPaths(String message, List<String> paths) {
         try {
             if (!isGitRepo()) {
-                log.info("Skipping git commit of docs delete — {} is not a git work tree", repoRoot);
+                log.info("Skipping git commit of docs change — {} is not a git work tree", repoRoot);
                 return;
             }
             // Stage ONLY the affected paths + the regenerated index — never a bare
             // `git add -A`, which would sweep unrelated working-tree changes (e.g.
-            // an in-flight edit elsewhere in the repo) into the delete commit.
+            // an in-flight edit elsewhere in the repo) into the commit.
             List<String> add = new ArrayList<>(List.of("git", "add", "-A", "--"));
-            if (deletedPaths != null) {
-                add.addAll(deletedPaths);
+            if (paths != null) {
+                add.addAll(paths);
             }
             add.addAll(INDEX_FILES);
             if (run(add) != 0) {
                 return; // run() already logged the failure
             }
-            // Nothing staged (the doc's files were already absent from git) -> no commit.
+            // Nothing staged (e.g. the files were already absent from git) -> no commit.
             if (run(List.of("git", "diff", "--cached", "--quiet")) == 0) {
-                log.info("No git changes to commit for docs delete '{}'", id);
+                log.info("No git changes to commit for: {}", message);
                 return;
             }
-            if (run(List.of("git", "commit", "--no-verify", "-m", "docs: delete '" + id + "' via web UI")) == 0) {
-                log.info("Committed docs delete '{}' to git", id);
+            if (run(List.of("git", "commit", "--no-verify", "-m", message)) == 0) {
+                log.info("Committed to git: {}", message);
             }
         } catch (Exception e) {
-            log.warn("Failed to commit docs delete '{}' to git (delete already applied on disk)", id, e);
+            log.warn("Failed to commit docs change to git ({}) — already applied on disk", message, e);
         }
     }
 

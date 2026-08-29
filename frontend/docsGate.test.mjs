@@ -10,6 +10,8 @@ import {
   stripPrivateCards,
   stripPrivateManifest,
   isDocAssetPath,
+  isUploadedPagePath,
+  isPublicApiPath,
 } from './docsGate.mjs'
 
 const manifest = {
@@ -90,6 +92,29 @@ check('stripPrivateManifest drops private entries', () => {
 
 check('stripPrivateManifest passes through non-array/invalid JSON', () => {
   assert.equal(stripPrivateManifest('not json'), 'not json')
+})
+
+check('uploaded pages under /p/ classify as public doc pages (task #470)', () => {
+  assert.equal(isUploadedPagePath('/p/my-page.html'), true)
+  assert.equal(classifyDoc('/p/my-page.html', manifest), 'page')
+  // Only the sanitised shape the upload API can produce — no traversal, no
+  // nested segments, no sidecar metadata.
+  assert.equal(isUploadedPagePath('/p/../src/App.jsx'), false)
+  assert.equal(isUploadedPagePath('/p/nested/deep.html'), false)
+  assert.equal(isUploadedPagePath('/p/my-page.meta.json'), false)
+  assert.equal(classifyDoc('/p/my-page.meta.json', manifest), null)
+})
+
+check('publishing an uploaded page needs no password; deleting one does', () => {
+  assert.equal(isPublicApiPath('/api/pages', 'POST'), true)
+  assert.equal(isPublicApiPath('/api/pages', 'GET'), true)
+  assert.equal(isPublicApiPath('/api/pages/my-page', 'GET'), true)
+  // Everything else on the API stays behind the gate.
+  assert.equal(isPublicApiPath('/api/pages', 'DELETE'), false)
+  assert.equal(isPublicApiPath('/api/pages/my-page', 'DELETE'), false)
+  assert.equal(isPublicApiPath('/api/pages/my-page', 'PUT'), false)
+  assert.equal(isPublicApiPath('/api/todos', 'POST'), false)
+  assert.equal(isPublicApiPath('/api/docs/upload-my-page', 'DELETE'), false)
 })
 
 if (failed) {

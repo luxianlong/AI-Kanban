@@ -36,6 +36,15 @@ const MANIFEST_OUT = path.join(ROOT, 'frontend', 'public', 'docs-manifest.json')
 // here (to stamp the manifest/index) and by the Vite auth gate (to enforce it).
 // Absent/unreadable => nothing is private.
 const VISIBILITY_FILE = path.join(ROOT, 'frontend', '.doc-visibility.json')
+// Static pages published through the unauthenticated upload API (task #470):
+// POST /api/pages writes frontend/public/p/<slug>.html plus a <slug>.meta.json
+// sidecar (title/summary/createdAt). Vite serves them straight from the web root
+// at /p/<slug>.html — public, no password (see docsGate.mjs) — and they get a
+// card here so an uploaded page is listed on /docs.html like any other document.
+const UPLOADS_DIR = path.join(ROOT, 'frontend', 'public', 'p')
+// Manifest ids for uploaded pages are namespaced so they can never collide with
+// a docs/*.md slug. The backend derives the same id (PageUploadService).
+const UPLOAD_ID_PREFIX = 'upload-'
 
 function readPrivateIds() {
   try {
@@ -882,6 +891,35 @@ function build() {
       paths: [`research/${report.dir}`, `frontend/public/docs/${slug}.html`],
     })
     generated++
+  }
+
+  // Uploaded static pages -> one card each (the HTML is already the page).
+  if (fs.existsSync(UPLOADS_DIR)) {
+    const uploaded = fs
+      .readdirSync(UPLOADS_DIR)
+      .filter((f) => f.endsWith('.html'))
+      .sort()
+    for (const file of uploaded) {
+      const slug = file.replace(/\.html$/, '')
+      let meta = {}
+      try {
+        meta = JSON.parse(fs.readFileSync(path.join(UPLOADS_DIR, `${slug}.meta.json`), 'utf8')) || {}
+      } catch {
+        /* no/unreadable sidecar — fall back to the slug */
+      }
+      cards.push({
+        id: `${UPLOAD_ID_PREFIX}${slug}`,
+        title: meta.title || humanize(slug),
+        href: `/p/${file}`,
+        excerpt: meta.summary || '通过 POST /api/pages 上传的静态网页。',
+        featured: false,
+        file: null,
+        // Removable from the web UI (owner only): drop the page and its sidecar.
+        deletable: true,
+        mtime: newestMtime([path.join(UPLOADS_DIR, file)]),
+        paths: [`frontend/public/p/${file}`, `frontend/public/p/${slug}.meta.json`],
+      })
+    }
   }
 
   // Flag docs whose source Markdown changed within the freshness window, and
