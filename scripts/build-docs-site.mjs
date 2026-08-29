@@ -123,6 +123,12 @@ function humanize(slug) {
   return slug.replace(/[-_]+/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
 }
 
+// The date an entry wears in the archive list: its source mtime as YYYY.MM.DD,
+// stable regardless of the reader's locale (the list is set in mono type).
+function formatDate(iso) {
+  return String(iso).slice(0, 10).replace(/-/g, '.')
+}
+
 // A short plain-text summary for the index cards: the first real paragraph of
 // the doc (skipping headings, blockquotes, lists, tables, rules and blanks).
 function excerpt(md) {
@@ -152,26 +158,35 @@ function excerpt(md) {
 }
 
 // --- shared page shell -------------------------------------------------------
-// Visual language: a Xiaohongshu (小红书 / RED) "note" look rather than a formal
-// wiki (task #462). Warm blush canvas, coral brand accent, rounded chunky cards
-// with soft pink shadows, and pill-shaped tags — the friendly, mobile-first feel
-// of a RED note. Only the CSS/markup changes; the generated DOM (classes, TOC,
-// controls) is untouched so every existing behaviour still works.
+// Visual language: a personal blog (task #519), replacing the Xiaohongshu / RED
+// note look that came before it (task #462). The reference is someone's own
+// writing site — a masthead with a voice, an archive of dated entries in one
+// column, and an article page set for long reading. Warm paper, ink-blue links,
+// Fraunces for display, Newsreader + Noto Serif SC for prose, IBM Plex Mono for
+// the small utility type (dates, labels, tags). Nothing is a "card" any more,
+// and the one loud element is the red rubber-stamp NEW marker on a fresh entry.
+// Only CSS, copy and the new entry-date line change — the generated DOM
+// (classes, data attributes, TOC, delete/privacy controls, PRIVATE-CARD
+// markers) is untouched so every existing behaviour still works.
 const THEME = `
 :root {
-  --bg: #fdf1ee;
-  --card: #ffffff;
-  --ink: #33313a;
-  --muted: #9a939b;
-  --line: #f4e4e0;
-  --accent: #ff2e4d;
-  --accent-2: #ff7a59;
-  --accent-soft: #ffe6ea;
-  --link: #ff2e4d;
-  --source-bg: #fff3ec;
-  --source-line: #ff8a5c;
-  --shadow: 0 10px 30px rgba(255,46,77,0.10);
-  --maxw: 1040px;
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -179,154 +194,163 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Nunito", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: 16px;
-  line-height: 1.78;
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
 }
 a { color: var(--link); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
 .hero {
-  position: relative;
-  background: linear-gradient(135deg, #ff5b79 0%, #ff2e4d 52%, #ff8a5c 100%);
-  color: #fff;
-  padding: 46px 24px 40px;
-  text-align: center;
-  border-radius: 0 0 28px 28px;
-  box-shadow: 0 12px 30px rgba(255,46,77,0.22);
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
 }
 .hero .eyebrow {
-  display: inline-block;
-  background: rgba(255,255,255,0.22);
-  border: 1px solid rgba(255,255,255,0.35);
-  padding: 4px 14px;
-  border-radius: 999px;
-  letter-spacing: 1px;
-  font-size: 12px;
-  font-weight: 700;
-  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
 }
 .hero h1 {
-  font-family: "Nunito", "Noto Sans SC", sans-serif;
-  font-weight: 800;
-  font-size: clamp(26px, 4.5vw, 40px);
-  margin: 0 0 10px;
-  letter-spacing: 0.3px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
 }
-.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.96; font-size: 15px; }
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
 .hero .back {
-  display: inline-block; margin-top: 18px; color: #ff2e4d; background: #fff;
-  font-size: 14px; font-weight: 700; padding: 7px 18px; border-radius: 999px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
 }
-.hero .back:hover { text-decoration: none; transform: translateY(-1px); }
+.hero .back:hover { color: var(--accent); }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
 `
 
 const CONTENT_CSS = `
 .layout {
   max-width: var(--maxw);
-  margin: -20px auto 0;
-  position: relative;
-  padding: 32px 24px 80px;
+  margin: 0 auto;
+  padding: 34px 24px 96px;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 30px;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
   align-items: start;
 }
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
 .toc {
   position: sticky;
-  top: 20px;
-  max-height: calc(100vh - 40px);
+  top: 28px;
+  max-height: calc(100vh - 56px);
   overflow-y: auto;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 18px 16px;
-  font-size: 14px;
-  box-shadow: var(--shadow);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
 }
 .toc-title {
-  font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
-  color: var(--accent); margin-bottom: 10px;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+  padding-bottom: 9px; border-bottom: 1px solid var(--line);
 }
-.toc-title::before { content: "📌 "; }
 .toc ul { list-style: none; margin: 0; padding: 0; }
-.toc li { margin: 1px 0; }
-.toc li a {
-  display: block; padding: 5px 10px; border-radius: 999px; color: var(--ink);
-}
-.toc li a:hover { background: var(--accent-soft); color: var(--accent); text-decoration: none; }
-.toc li.lv2 a { font-weight: 700; margin-top: 6px; }
-.toc li.lv3 a { padding-left: 22px; color: var(--muted); font-size: 13px; }
-.content {
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: 22px; padding: 12px 42px 44px; min-width: 0;
-  box-shadow: var(--shadow);
-}
-.content h1 { font-family: "Nunito","Noto Sans SC",sans-serif; font-weight: 800; font-size: 30px; margin: 24px 0 12px; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
 .content h2, .content h3, .content h4, .content h5, .content h6 {
-  font-family: "Nunito", "Noto Sans SC", sans-serif; font-weight: 800;
-  line-height: 1.4; scroll-margin-top: 16px; position: relative;
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
 }
-.content h2 { font-size: 24px; margin: 40px 0 16px; padding-left: 14px; border-left: 6px solid var(--accent); }
-.content h3 { font-size: 19px; margin: 28px 0 10px; }
-.content h3::before { content: "🌸 "; font-size: 0.85em; }
-.content h4 { font-size: 17px; margin: 22px 0 8px; color: var(--accent); }
-.content p { margin: 12px 0; }
-.content ul, .content ol { margin: 12px 0; padding-left: 24px; }
-.content li { margin: 6px 0; }
-.content ul li::marker { color: var(--accent); }
-.content li > ul, .content li > ol { margin: 5px 0; }
-.content strong { color: var(--accent); }
-.anchor { opacity: 0; margin-left: 8px; color: var(--accent); font-weight: 400; text-decoration: none; }
-h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.55; }
-code { background: var(--accent-soft); color: #d61f3c; border-radius: 6px; padding: 1px 6px; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size: 0.9em; }
-blockquote.quote { margin: 18px 0; padding: 14px 20px; border-left: 5px solid var(--accent-2); background: var(--source-bg); border-radius: 0 16px 16px 0; color: #6f5a52; }
-blockquote.source { background: var(--source-bg); border-left-color: var(--source-line); }
-blockquote.source::before { content: "🔎 来源与时效"; display: block; font-weight: 800; font-size: 13px; color: var(--source-line); margin-bottom: 4px; }
-blockquote p { margin: 4px 0; font-size: 14px; }
-.figure { margin: 22px 0; text-align: center; }
-.figure img { max-width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 10px 26px rgba(255,46,77,0.12); }
-.figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
-.content p img { max-width: 100%; height: auto; border-radius: 16px; }
-.table-wrap { overflow-x: auto; margin: 18px 0; border-radius: 16px; border: 1px solid var(--line); }
-table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 420px; }
-th, td { border-bottom: 1px solid var(--line); padding: 10px 14px; text-align: left; vertical-align: top; }
-thead th { background: var(--accent-soft); color: var(--accent); font-weight: 800; border-bottom: none; }
-tbody tr:nth-child(even) { background: #fff7f5; }
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
 tbody tr:last-child td { border-bottom: none; }
-hr { border: none; border-top: 2px dashed var(--line); margin: 28px 0; }
-pre.code { background: #33202a; color: #ffe7ec; border-radius: 16px; padding: 16px 18px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
 pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
-pre.mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; overflow-x: auto; }
+pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; }
 .backtop {
-  position: fixed; right: 22px; bottom: 22px; width: 46px; height: 46px;
-  border-radius: 50%; background: var(--accent); color: #fff; border: none;
-  font-size: 20px; cursor: pointer; box-shadow: 0 8px 20px rgba(255,46,77,0.45);
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
   opacity: 0; pointer-events: none; transition: opacity 0.2s;
 }
 .backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
 .mobile-toc-toggle { display: none; }
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
   .toc { position: static; max-height: none; }
   .mobile-toc-toggle {
-    display: block; width: 100%; background: var(--card); border: 1px solid var(--line);
-    border-radius: 16px; padding: 12px 16px; font: inherit; font-weight: 700; text-align: left; cursor: pointer;
-    box-shadow: var(--shadow);
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
   }
   .toc.collapsed { display: none; }
-  .content { padding: 12px 22px 30px; }
+  .content { max-width: none; }
 }
 `
 
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />`
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />`
 
 function renderDocPage({ id, title, body, toc, hasMermaid }) {
   const sidebar = toc.length
-    ? `<nav class="toc" aria-label="On this page">
-<div class="toc-title">On this page</div>
+    ? `<nav class="toc" aria-label="目录">
+<div class="toc-title">目录</div>
 <ul>
 ${toc.map((h) => `<li class="lv${h.level}"><a href="#${h.id}">${esc(h.text)}</a></li>`).join('\n')}
 </ul>
@@ -337,18 +361,18 @@ ${toc.map((h) => `<li class="lv${h.level}"><a href="#${h.id}">${esc(h.text)}</a>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>${esc(title)} · Kanban docs</title>
+<title>${esc(title)} · 写在看板边上</title>
 ${FONTS}
 <style>${THEME}${CONTENT_CSS}</style>
 </head>
 <body>
 <header class="hero">
-<p class="eyebrow">📔 笔记详情</p>
+<p class="eyebrow">文章</p>
 <h1>${esc(title)}</h1>
-<a class="back" href="/docs.html">← 回到笔记墙</a>
+<a class="back" href="/docs.html">← 回到文章列表</a>
 </header>
 <div class="layout">
-<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ On this page</button>
+<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ 目录</button>
 ${sidebar}
 <main class="content">
 ${body}
@@ -389,112 +413,125 @@ ${hasMermaid ? `<script type="module">
 }
 
 const INDEX_CSS = `
-.wrap { max-width: 980px; margin: 0 auto; padding: 34px 24px 80px; }
-/* A Xiaohongshu-style "note wall": a masonry-ish grid of soft rounded cards. */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
-.doc-card {
-  display: block; background: var(--card); border: 1px solid var(--line);
-  border-radius: 20px; padding: 20px 22px; color: var(--ink);
-  box-shadow: 0 8px 22px rgba(255,46,77,0.07);
-  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 6px 24px 96px; }
+/* The archive: one column of dated entries, not a wall of cards. Each entry is
+   a date, a title, a paragraph and a link — the shape of a blog index. */
+.grid { display: block; }
+.card-wrap { position: relative; display: block; padding: 30px 0 28px; border-bottom: 1px solid var(--line); }
+/* Hovering an entry inks a rule in the left margin instead of lifting a card. */
+.card-wrap::before {
+  content: ""; position: absolute; left: -20px; top: 30px; bottom: 28px; width: 2px;
+  background: var(--accent); transform: scaleY(0); transform-origin: top;
+  transition: transform 0.22s ease;
 }
-.doc-card:hover { text-decoration: none; transform: translateY(-3px); box-shadow: 0 16px 34px rgba(255,46,77,0.16); border-color: var(--accent-soft); }
-.doc-card.featured { border-color: var(--accent-soft); background: linear-gradient(180deg, #fff6f3 0%, #ffffff 60%); }
-.doc-card h2 { font-family: "Nunito","Noto Sans SC",sans-serif; font-weight: 800; font-size: 18px; margin: 0 0 8px; }
-.doc-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.card-wrap:hover::before { transform: scaleY(1); }
+.doc-card { display: block; color: var(--ink); }
+.doc-card:hover { text-decoration: none; }
+.entry-date {
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em;
+  color: var(--muted); margin-bottom: 9px;
+}
+.doc-card h2 {
+  font-family: var(--display); font-weight: 600; font-size: 25px; line-height: 1.32;
+  letter-spacing: -0.005em; margin: 0 0 9px;
+}
+.doc-card:hover h2 { color: var(--accent); }
+.doc-card p { margin: 0; max-width: 68ch; color: var(--muted); font-size: 16px; line-height: 1.72; text-wrap: pretty; }
 .doc-card .meta {
-  margin-top: 14px; display: inline-block; font-size: 13px; color: #fff; font-weight: 800;
-  background: linear-gradient(135deg, #ff5b79, #ff2e4d); padding: 5px 14px; border-radius: 999px;
+  display: inline-block; margin-top: 13px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; color: var(--accent);
 }
-.doc-card .badge { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 700; vertical-align: middle; }
-.empty { color: var(--muted); text-align: center; padding: 40px; }
-.card-wrap { position: relative; display: flex; }
-.card-wrap .doc-card { flex: 1; }
-/* "Recently created/updated" marker (task #319): a red badge pinned to the
-   card's top-right corner. The whole card also gets a subtle red-tinted border
-   so fresh docs — which sort to the front — read as new at a glance. */
-.card-wrap.is-new .doc-card { border-color: #ffc2cc; }
+.doc-card:hover .meta { text-decoration: underline; text-underline-offset: 3px; }
+.doc-card .badge {
+  display: inline-block; margin-left: 10px; padding: 2px 8px; vertical-align: 4px;
+  font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 2px;
+}
+.doc-card.featured .badge { color: var(--accent); border-color: #c2cdde; }
+.empty { color: var(--muted); text-align: center; padding: 70px 0; font-style: italic; }
+/* "Recently created/updated" marker (task #319): a red rubber stamp in the
+   entry's right margin. Fresh docs already sort to the front, so the stamp is
+   the only thing that has to shout — everything else on the page stays quiet. */
 .new-dot {
-  position: absolute; top: -8px; right: -8px; z-index: 3;
-  background: var(--accent); color: #fff; font-size: 10px; font-weight: 800;
-  letter-spacing: 0.6px; line-height: 1; padding: 4px 8px; border-radius: 999px;
-  border: 2px solid var(--bg); box-shadow: 0 3px 10px rgba(255,46,77,0.5);
+  position: absolute; top: 22px; right: 0; z-index: 3;
+  font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.2em;
+  line-height: 1; padding: 5px 7px 5px 9px;
+  color: var(--stamp); background: transparent;
+  border: 1.5px solid var(--stamp); border-radius: 2px;
+  transform: rotate(-6deg); opacity: 0.9;
   pointer-events: none;
 }
-.doc-del {
-  position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
-  border-radius: 8px; border: 1px solid var(--line); background: var(--card);
-  color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
+/* Owner-only controls sit in the entry's bottom-right corner, out of the way of
+   the stamp, and only surface on hover/focus. */
+.doc-del, .doc-priv {
+  position: absolute; bottom: 24px; width: 28px; height: 28px;
+  border-radius: 3px; border: 1px solid var(--line); background: var(--sheet);
+  color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
-.card-wrap:hover .doc-del { opacity: 1; }
-.card-wrap:focus-within .doc-del { opacity: 1; }
-.doc-del:hover { background: #fdecec; color: #d63939; border-color: #f3c0c0; }
-.doc-del:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
-.doc-del:disabled { cursor: default; opacity: 0.5; }
-@media (hover: none) { .doc-del { opacity: 1; } }
-/* Privacy toggle (task #268): a public/private switch sitting left of delete.
-   A private doc reads as such via a lock badge on its title + a warm border. */
-.doc-card .badge.lock { background: #fdecec; color: #d63939; }
-.card-wrap.is-private .doc-card { border-color: #f0d3a6; }
-.doc-priv {
-  position: absolute; top: 10px; right: 44px; width: 28px; height: 28px;
-  border-radius: 8px; border: 1px solid var(--line); background: var(--card);
-  color: var(--muted); font-size: 14px; line-height: 1; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.12s ease, background 0.12s ease, border-color 0.12s ease;
-}
-.card-wrap:hover .doc-priv { opacity: 1; }
-.card-wrap:focus-within .doc-priv { opacity: 1; }
-.doc-priv:hover { background: var(--accent-soft); border-color: #c9cff5; }
-.doc-priv:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
-.doc-priv:disabled { cursor: default; opacity: 0.5; }
-@media (hover: none) { .doc-priv { opacity: 1; } }
+.doc-del { right: 0; }
+.doc-priv { right: 34px; }
+.card-wrap:hover .doc-del, .card-wrap:hover .doc-priv { opacity: 1; }
+.card-wrap:focus-within .doc-del, .card-wrap:focus-within .doc-priv { opacity: 1; }
+.doc-del:hover { background: #f6e9e6; color: var(--stamp); border-color: #ddbdb6; }
+.doc-priv:hover { background: var(--accent-soft); color: var(--accent); border-color: #c2cdde; }
+.doc-del:focus-visible, .doc-priv:focus-visible { opacity: 1; }
+.doc-del:disabled, .doc-priv:disabled { cursor: default; opacity: 0.5; }
+@media (hover: none) { .doc-del, .doc-priv { opacity: 1; } }
+/* Privacy state (task #268): a lock tag on the title, in stamp red. */
+.doc-card .badge.lock { color: var(--stamp); border-color: #ddbdb6; }
 /* Owner-only controls stay hidden until the /__auth/whoami probe confirms the
    viewer is the authenticated owner. Anonymous public visitors never see the
    delete or privacy switch — and their private cards were stripped by the gate. */
 body:not(.is-owner) .doc-del,
 body:not(.is-owner) .doc-priv { display: none !important; }
-/* Card removal animation: collapse smoothly instead of vanishing abruptly. */
+/* Entry removal animation: collapse smoothly instead of vanishing abruptly. */
 .card-wrap { transition: opacity 0.25s ease, transform 0.25s ease; }
-.card-wrap.removing { opacity: 0; transform: scale(0.94); pointer-events: none; }
+.card-wrap.removing { opacity: 0; transform: scale(0.98); pointer-events: none; }
+@media (max-width: 700px) {
+  .wrap { padding: 6px 20px 70px; }
+  .card-wrap::before { display: none; }
+  .doc-card h2 { font-size: 22px; }
+}
 
 /* Confirmation modal — replaces the native window.confirm() with a styled,
    accessible dialog (backdrop, focus trap, Esc to cancel). */
 .modal-backdrop {
-  position: fixed; inset: 0; background: rgba(31,36,48,0.45);
+  position: fixed; inset: 0; background: rgba(33,29,26,0.42);
   display: flex; align-items: center; justify-content: center; padding: 20px;
   opacity: 0; pointer-events: none; transition: opacity 0.18s ease; z-index: 50;
 }
 .modal-backdrop.open { opacity: 1; pointer-events: auto; }
 .modal {
-  background: var(--card); border-radius: 16px; max-width: 420px; width: 100%;
-  padding: 26px 26px 22px; box-shadow: 0 24px 60px rgba(31,36,48,0.28);
+  background: var(--sheet); border: 1px solid var(--line); border-radius: 6px;
+  max-width: 420px; width: 100%; padding: 26px 26px 22px;
+  box-shadow: 0 26px 60px rgba(33,29,26,0.24);
   transform: translateY(12px) scale(0.98); transition: transform 0.18s ease;
 }
 .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
 .modal .modal-icon {
-  width: 44px; height: 44px; border-radius: 50%; background: #fdecec; color: #d63939;
-  display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px;
+  width: 40px; height: 40px; border-radius: 50%; background: #f6e9e6; color: var(--stamp);
+  display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px;
 }
-.modal h3 { font-family: "Space Grotesk","Inter",sans-serif; font-size: 19px; margin: 0 0 8px; }
-.modal p { margin: 0 0 6px; color: var(--muted); font-size: 14.5px; }
+.modal h3 { font-family: var(--display); font-weight: 600; font-size: 21px; margin: 0 0 8px; }
+.modal p { margin: 0 0 6px; color: var(--muted); font-size: 15px; }
 .modal .doc-name { color: var(--ink); font-weight: 600; word-break: break-word; }
-.modal .note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.modal .note { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
 .btn {
-  font: inherit; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 10px;
-  cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.06em;
+  padding: 9px 16px; border-radius: 3px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--sheet); color: var(--ink);
   transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
 }
-.btn:hover { background: #f3f4f8; }
-.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.btn-danger { background: #d63939; border-color: #d63939; color: #fff; }
-.btn-danger:hover { background: #c02c2c; border-color: #c02c2c; }
+.btn:hover { background: #f0ece3; }
+.btn-danger { background: var(--stamp); border-color: var(--stamp); color: #fffdf9; }
+.btn-danger:hover { background: #9a3527; border-color: #9a3527; }
 .btn-danger:disabled { opacity: 0.6; cursor: default; }
 .btn .spinner {
-  display: inline-block; width: 13px; height: 13px; margin-right: 7px; vertical-align: -1px;
+  display: inline-block; width: 12px; height: 12px; margin-right: 7px; vertical-align: -1px;
   border: 2px solid rgba(255,255,255,0.5); border-top-color: #fff; border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -506,16 +543,16 @@ body:not(.is-owner) .doc-priv { display: none !important; }
   display: flex; flex-direction: column; gap: 10px; z-index: 60; width: max-content; max-width: 92vw;
 }
 .toast {
-  display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px;
-  background: var(--ink); color: #fff; font-size: 14px; font-weight: 500;
-  box-shadow: 0 10px 30px rgba(31,36,48,0.3);
+  display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-radius: 4px;
+  background: var(--ink); color: #f7f5f0; font-family: var(--mono); font-size: 12.5px;
+  box-shadow: 0 12px 30px rgba(33,29,26,0.28);
   opacity: 0; transform: translateY(10px); transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast.error { background: #b02525; }
-.toast .toast-icon { font-size: 16px; line-height: 1; }
+.toast.error { background: var(--stamp); }
+.toast .toast-icon { font-size: 15px; line-height: 1; }
 @media (prefers-reduced-motion: reduce) {
-  .card-wrap, .modal-backdrop, .modal, .toast { transition: none; }
+  .card-wrap, .card-wrap::before, .modal-backdrop, .modal, .toast { transition: none; }
   .btn .spinner { animation: none; }
 }
 `
@@ -525,9 +562,9 @@ function renderIndex(cards) {
     .map((c) => {
       const card = `<div class="card-wrap${c.isNew ? ' is-new' : ''}${c.private ? ' is-private' : ''}" data-id="${esc(c.id)}" data-private="${c.private ? 'true' : 'false'}">
   <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
-  <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
-  <p>${esc(c.excerpt || 'Open to read the full document.')}</p>
-  <div class="meta">打开笔记 →</div>
+${c.updatedAt ? `  <div class="entry-date">${formatDate(c.updatedAt)}</div>\n` : ''}  <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
+  <p>${esc(c.excerpt || '点开读全文。')}</p>
+  <div class="meta">阅读全文 →</div>
 </a>${
         c.isNew
           ? `\n  <span class="new-dot"${c.updatedAt ? ` title="Updated ${esc(c.updatedAt.slice(0, 10))}"` : ''} aria-label="Recently updated">NEW</span>`
@@ -549,8 +586,8 @@ function renderIndex(cards) {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Documents & Results · Kanban</title>
-<meta name="description" content="Reports and documents produced by the Kanban board's agent, rendered as web pages." />
+<title>写在看板边上 · 文章存档</title>
+<meta name="description" content="看板 agent 干活时留下的报告、攻略和笔记，按更新时间排列。" />
 ${FONTS}
 <style>${THEME}
 .hero p.sub { margin-top: 4px; }
@@ -558,13 +595,13 @@ ${INDEX_CSS}</style>
 </head>
 <body>
 <header class="hero">
-<p class="eyebrow">📔 笔记墙</p>
-<h1>Documents &amp; Results</h1>
-<p class="sub">看板 agent 产出的报告与攻略，像小红书笔记一样一张张摊开 · 点开任意一张即可阅读全文。</p>
-<a class="back" href="/">← 回到看板</a>
+<p class="eyebrow">文章存档</p>
+<h1>写在看板边上</h1>
+<p class="sub">看板 agent 干活时留下的报告、攻略和笔记。新写的排在最前面，点标题读全文。</p>
+<a class="back" href="/">← 回看板</a>
 </header>
 <div class="wrap">
-${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">No documents yet.</p>'}
+${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">还没有文章。</p>'}
 </div>
 
 <div class="modal-backdrop" id="del-modal" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" aria-describedby="del-modal-desc" hidden>
@@ -641,7 +678,7 @@ ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">N
     var finish = function () {
       wrap.remove();
       if (grid && !grid.querySelector('.card-wrap') && wrapEl) {
-        wrapEl.innerHTML = '<p class="empty">No documents yet.</p>';
+        wrapEl.innerHTML = '<p class="empty">还没有文章。</p>';
       }
     };
     if (prefersReduced) finish();
