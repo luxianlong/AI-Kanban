@@ -42,20 +42,6 @@
     ]
   },
   {
-    "id": "upload-three-hidden-numbers-summary",
-    "title": "三家电商各自在藏一个数字",
-    "href": "/p/three-hidden-numbers-summary.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T15:36:09.574Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/three-hidden-numbers-summary.html",
-      "frontend/public/p/three-hidden-numbers-summary.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-diagrams-v2-fixed",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-diagrams-v2-fixed.html",
