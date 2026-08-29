@@ -275,6 +275,17 @@ body {
   overflow: hidden;
   animation: toast-in 0.16s ease-out;
 }
+/* Anchoring the panel to the bell only works while the bell has 340px of room
+   to its left. `.topbar` is `flex-wrap: wrap`, so between ~720px and ~810px the
+   status group drops onto its own row and the bell lands at the FAR LEFT — the
+   panel then started at x = -278px. That band covers real devices (iPhone 8
+   Plus landscape 736px, iPad mini portrait 744px), so below 900px anchor to
+   `.topbar` instead (it's `position: relative`): the panel drops clear of the
+   whole bar, one row or two, and right-aligns to the bar's padding edge. */
+@media (max-width: 900px) {
+  .notif { position: static; }
+  .notif-panel { right: var(--s-6); }
+}
 .notif-head {
   flex: none;
   display: flex; align-items: center; justify-content: space-between;
@@ -1064,7 +1075,8 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .toast-stack {
   position: fixed;
   right: var(--s-5);
-  bottom: var(--s-5);
+  /* Clear of the iPhone home indicator, same guard the drawer uses. */
+  bottom: calc(var(--s-5) + env(safe-area-inset-bottom));
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -1226,6 +1238,19 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   .notify-toggle, .docs-link { padding: 0; width: var(--tap); height: var(--tap); justify-content: center; gap: 0; }
   .notify-toggle .label, .docs-link .label { display: none; }
   .notif-btn { width: var(--tap); height: var(--tap); }
+
+  /* The "Finished tasks" popup anchored its RIGHT edge to the bell, because
+     `.notif` was its offset parent. The bell is the leftmost of the four
+     topbar buttons, so on a 390px iPhone the 340px-wide panel began at
+     x = -122px — a third of it hung off the left edge, clipped (the page
+     doesn't scroll horizontally) and unreachable. Drop `.notif` out of the
+     positioning chain so the panel anchors to `.topbar` (already
+     `position: relative`) instead: it then drops straight down from the bar
+     and spans the viewport, inset by the bar's own side padding. Its
+     `top: calc(100% + 8px)` now reads as "8px below the topbar", which is
+     how it already looked on desktop. */
+  .notif { position: static; }
+  .notif-panel { left: var(--s-4); right: var(--s-4); width: auto; }
 
   .board-toolbar { padding: var(--s-3) var(--s-4) var(--s-1); gap: var(--s-2); }
   .board-toolbar .composer { flex-basis: 100%; min-width: 0; }
