@@ -8,6 +8,7 @@ import com.kanban.todo.TodoStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -52,6 +53,18 @@ public class ClaudeWorkerService {
     private final AttachmentService attachments;
     private final ObjectMapper mapper = new ObjectMapper();
     private final ReentrantLock tickLock = new ReentrantLock();
+
+    /**
+     * Set once the Spring context starts closing.
+     *
+     * <p>A worker tick can sit inside {@link Process#waitFor} for up to
+     * {@code worker.timeout-seconds} (30 minutes by default). That used to stall JVM
+     * shutdown far past the restart script's kill grace, so every deploy fell back to
+     * SIGKILL — and a SIGKILL landing in the middle of H2's shutdown compaction is what
+     * truncates and corrupts kanban.mv.db. Aborting the session lets shutdown finish in
+     * seconds, which keeps the restart on the clean SIGTERM path.
+     */
+    private volatile boolean shuttingDown = false;
 
     public ClaudeWorkerService(TodoRepository repository, WorkerProperties props,
                                LiveLogRegistry liveLog, RunningSessionRegistry sessions,
@@ -124,10 +137,28 @@ public class ClaudeWorkerService {
         }
     }
 
+    /**
+     * Abort any in-flight Claude session so the JVM can shut down promptly.
+     *
+     * <p>The interrupted todos are deliberately left {@link TodoStatus#IN_PROGRESS}:
+     * {@link #requeueOrphans()} puts them back on the queue at the next start, honouring
+     * the max-attempts cap. That is already the right recovery path for a run killed by
+     * a restart, so shutdown reuses it rather than inventing a new terminal state.
+     */
+    @PreDestroy
+    void shutdown() {
+        shuttingDown = true;
+        int aborted = sessions.abortAll();
+        if (aborted > 0) {
+            log.info("Shutting down: aborted {} running Claude session(s); their todos stay "
+                    + "IN_PROGRESS and are requeued on the next start.", aborted);
+        }
+    }
+
     @Scheduled(fixedDelayString = "${worker.poll-interval-ms:15000}",
             initialDelayString = "${worker.initial-delay-ms:10000}")
     public void poll() {
-        if (!props.isEnabled()) {
+        if (!props.isEnabled() || shuttingDown) {
             return;
         }
         if (!tickLock.tryLock()) {
@@ -211,6 +242,16 @@ public class ClaudeWorkerService {
             }
             if (r.durationMs() != null) {
                 todo.setDurationMs(r.durationMs());
+            }
+            if (shuttingDown) {
+                // Shutdown killed this session — it neither failed nor timed out, so don't
+                // record a terminal status. Leaving it IN_PROGRESS hands it to
+                // requeueOrphans() on the next start.
+                sessions.consumeStopRequested(todo.getId());
+                liveLog.append(todo.getId(),
+                        "■ Backend shutting down — this task will be requeued on restart.");
+                log.info("Shutdown interrupted todo #{}; left IN_PROGRESS for requeue.", todo.getId());
+                return;
             }
             if (sessions.consumeStopRequested(todo.getId())) {
                 // The user asked to stop this session: the process was killed

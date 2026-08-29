@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>区域财务·内控岗位工作梳理报告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#1c2530;
+  --ink-2:#3d4b5c;
+  --muted:#7b8898;
+  --line:#e2e7ee;
+  --line-soft:#eef1f6;
+  --bg:#f6f7f9;
+  --card:#ffffff;
+  --brand:#1f4e79;      /* 主色：深靛蓝 */
+  --brand-2:#2f6fa8;
+  --brand-soft:#eaf1f8;
+  --gold:#a5762f;       /* 强调：提示 / 风险 */
+  --gold-soft:#fbf3e6;
+  --red:#b3352f;
+  --red-soft:#fbecea;
+  --green:#2f6b4f;
+  --green-soft:#eaf4ef;
+  --maxw:1120px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  font-size:15.5px;line-height:1.85;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.serif{font-family:"Noto Serif SC","Songti SC",serif;}
+a{color:var(--brand-2);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* ---------- 封面 ---------- */
+.cover{
+  background:linear-gradient(150deg,#12304c 0%,#1f4e79 55%,#2f6fa8 100%);
+  color:#fff;padding:56px 24px 64px;position:relative;overflow:hidden;
+}
+.cover::after{
+  content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;
+  border-radius:50%;background:rgba(255,255,255,.05);
+}
+.cover .wrap{max-width:var(--maxw);margin:0 auto;position:relative;}
+.eyebrow{
+  display:inline-block;font-size:12.5px;letter-spacing:3px;font-weight:500;
+  border:1px solid rgba(255,255,255,.4);border-radius:2px;padding:4px 12px;margin-bottom:20px;
+  color:rgba(255,255,255,.92);
+}
+.cover h1{font-size:clamp(28px,4.4vw,44px);font-weight:900;margin:0 0 12px;letter-spacing:1px;line-height:1.35;}
+.cover .sub{font-size:16px;max-width:720px;color:rgba(255,255,255,.86);margin:0 0 26px;font-weight:300;}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px 34px;font-size:13.5px;color:rgba(255,255,255,.78);border-top:1px solid rgba(255,255,255,.18);padding-top:18px;}
+.meta-row b{color:#fff;font-weight:500;}
+
+/* ---------- 布局 ---------- */
+.shell{max-width:var(--maxw);margin:-28px auto 0;padding:0 24px 90px;position:relative;}
+nav.toc{
+  position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+  border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:30px;
+  display:flex;flex-wrap:wrap;gap:6px 4px;box-shadow:0 6px 22px rgba(28,37,48,.07);
+}
+nav.toc a{font-size:13.5px;color:var(--ink-2);padding:5px 11px;border-radius:6px;font-weight:500;}
+nav.toc a:hover{background:var(--brand-soft);color:var(--brand);text-decoration:none;}
+
+section{margin:0 0 46px;}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid var(--ink);}
+.sec-head .num{font-family:"Noto Serif SC",serif;font-size:13px;font-weight:700;color:#fff;background:var(--brand);
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;flex:none;}
+.sec-head h2{font-size:21px;margin:0;font-weight:700;letter-spacing:.5px;}
+.sec-head .en{font-size:12px;color:var(--muted);letter-spacing:1.5px;margin-left:auto;font-weight:400;}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 24px;}
+.lead{font-size:16px;color:var(--ink-2);}
+.lead b{color:var(--brand);font-weight:700;}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--brand);border-radius:8px;padding:16px 18px;}
+.kpi .n{font-family:"Noto Serif SC",serif;font-size:32px;font-weight:900;color:var(--brand);line-height:1.1;}
+.kpi .n small{font-size:14px;font-weight:500;margin-left:3px;color:var(--ink-2);}
+.kpi .l{font-size:13px;color:var(--muted);margin-top:4px;}
+.kpi.warn{border-top-color:var(--gold);} .kpi.warn .n{color:var(--gold);}
+.kpi.alert{border-top-color:var(--red);} .kpi.alert .n{color:var(--red);}
+
+/* ---------- 要点 ---------- */
+.points{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:12px;}
+.points li{background:var(--brand-soft);border-left:3px solid var(--brand-2);border-radius:0 6px 6px 0;padding:12px 16px;font-size:15px;}
+.points li b{color:var(--brand);}
+
+/* ---------- 频率图 ---------- */
+.bars{display:grid;gap:11px;margin-top:6px;}
+.bar-row{display:grid;grid-template-columns:78px 1fr 96px;align-items:center;gap:12px;font-size:13.5px;}
+.bar-row .name{color:var(--ink-2);font-weight:500;text-align:right;}
+.bar-track{background:var(--line-soft);border-radius:3px;height:22px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--brand),var(--brand-2));}
+.bar-row .val{color:var(--muted);font-size:12.5px;}
+.bar-row.na .bar-fill{background:linear-gradient(90deg,#b9a06a,#cdb98d);}
+.chart-note{font-size:13px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);}
+
+/* ---------- 模块卡 ---------- */
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;}
+.mod{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;}
+.mod h3{margin:0 0 4px;font-size:16.5px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.mod .cnt{font-size:11.5px;font-weight:500;color:var(--brand);background:var(--brand-soft);border-radius:20px;padding:1px 9px;font-family:"Noto Sans SC",sans-serif;}
+.mod p{margin:6px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.7;}
+.mod .tags{margin-top:9px;display:flex;flex-wrap:wrap;gap:5px;}
+
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:3px;border:1px solid transparent;white-space:nowrap;}
+.t-月度{background:var(--brand-soft);color:var(--brand);border-color:#cddff0;}
+.t-周度{background:var(--green-soft);color:var(--green);border-color:#c9e2d5;}
+.t-季度{background:#f0edf7;color:#5b4b8a;border-color:#ddd5ee;}
+.t-半年度{background:#f0edf7;color:#5b4b8a;border-color:#ddd5ee;}
+.t-年度{background:#f0edf7;color:#5b4b8a;border-color:#ddd5ee;}
+.t-不定时{background:var(--gold-soft);color:var(--gold);border-color:#efdfc2;}
+.t-未标注{background:#f1f3f6;color:var(--muted);border-color:var(--line);}
+
+/* ---------- 表格 ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px;align-items:center;}
+.filters .lbl{font-size:13px;color:var(--muted);margin-right:4px;}
+.fbtn{font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink-2);
+  padding:5px 13px;border-radius:20px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.fbtn:hover{border-color:var(--brand-2);color:var(--brand);}
+.fbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+.tbl-wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:auto;}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px;}
+thead th{background:var(--brand);color:#fff;font-weight:500;text-align:left;padding:11px 14px;font-size:13px;
+  letter-spacing:.5px;position:sticky;top:0;}
+tbody td{padding:10px 14px;border-top:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2);}
+tbody tr:hover td{background:#fafcfe;}
+tbody td.mod-cell{font-weight:700;color:var(--ink);white-space:nowrap;}
+tbody td.item{font-weight:500;color:var(--ink);white-space:nowrap;}
+tbody tr.mod-start td{border-top:1px solid var(--line);}
+td .warnmark{color:var(--red);font-weight:700;}
+.tbl-note{font-size:12.5px;color:var(--muted);margin-top:10px;}
+
+/* ---------- 风险 ---------- */
+.risks{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+.risk{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:15px 18px;}
+.risk h3{margin:0 0 6px;font-size:15.5px;font-weight:700;color:var(--red);}
+.risk p{margin:0;font-size:13.5px;color:var(--ink-2);}
+.risk .src{display:block;margin-top:8px;font-size:12px;color:var(--muted);}
+
+/* ---------- 缺口 ---------- */
+.gap{background:var(--gold-soft);border:1px solid #efdfc2;border-radius:8px;padding:18px 22px;margin-bottom:14px;}
+.gap h3{margin:0 0 6px;font-size:16px;color:var(--gold);}
+.gap p{margin:0;font-size:14px;color:#6b5426;}
+.gap ul{margin:8px 0 0;padding-left:20px;font-size:13.5px;color:#6b5426;}
+
+/* ---------- 建议 ---------- */
+.recs{counter-reset:rec;display:grid;gap:14px;}
+.rec{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 22px 18px 62px;position:relative;}
+.rec::before{
+  counter-increment:rec;content:counter(rec);position:absolute;left:20px;top:17px;
+  font-family:"Noto Serif SC",serif;font-size:20px;font-weight:900;color:var(--brand);opacity:.35;
+}
+.rec h3{margin:0 0 5px;font-size:16px;font-weight:700;}
+.rec p{margin:0;font-size:14px;color:var(--ink-2);}
+.rec .ask{display:inline-block;margin-top:9px;font-size:12.5px;background:var(--brand-soft);color:var(--brand);
+  border-radius:4px;padding:3px 10px;font-weight:500;}
+
+footer{border-top:1px solid var(--line);margin-top:20px;padding-top:18px;font-size:12.5px;color:var(--muted);}
+
+@media (max-width:640px){
+  .cover{padding:40px 20px 48px;}
+  .shell{padding:0 16px 60px;}
+  .bar-row{grid-template-columns:64px 1fr 60px;}
+  .rec{padding-left:52px;}
+}
+@media print{
+  body{background:#fff;font-size:12px;}
+  nav.toc,.filters{display:none;}
+  .cover{background:#1f4e79 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  section{break-inside:avoid;}
+  table{min-width:0;font-size:10.5px;}
+}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="wrap">
+    <div class="eyebrow">工 作 汇 报 · CONFIDENTIAL</div>
+    <h1>区域财务 · 内控岗位<br />工作梳理报告</h1>
+    <p class="sub">依据现行《工作模块 — 细项 — 具体内容 — 频率》台账，对本岗位承担的全部常规工作做一次完整盘点：工作构成、频次结构、风险控制要点，以及当前台账仍存在的空白与后续建议。</p>
+    <div class="meta-row">
+      <span>汇报对象：<b>上级管理层</b></span>
+      <span>覆盖模块：<b>11 个</b></span>
+      <span>工作细项：<b>35 项</b></span>
+      <span>数据来源：<b>岗位工作梳理表（截图台账）</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+
+<nav class="toc">
+  <a href="#s1">一、摘要</a>
+  <a href="#s2">二、工作全景</a>
+  <a href="#s3">三、频次结构</a>
+  <a href="#s4">四、明细台账</a>
+  <a href="#s5">五、风险管控要点</a>
+  <a href="#s6">六、台账空白</a>
+  <a href="#s7">七、建议与请示</a>
+</nav>
+
+<!-- ============ 1 ============ -->
+<section id="s1">
+  <div class="sec-head"><span class="num">1</span><h2>一页看懂</h2><span class="en">EXECUTIVE SUMMARY</span></div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n">11</div><div class="l">工作模块</div></div>
+    <div class="kpi"><div class="n">35</div><div class="l">常规工作细项</div></div>
+    <div class="kpi"><div class="n">11<small>项</small></div><div class="l">月度刚性工作</div></div>
+    <div class="kpi warn"><div class="n">9<small>项</small></div><div class="l">不定时 / 被动响应</div></div>
+    <div class="kpi alert"><div class="n">0<small>/35</small></div><div class="l">已填报工时</div></div>
+  </div>
+
+  <div class="card">
+    <p class="lead" style="margin-top:0">本岗位工作由 <b>门店结算（扣点店 / 租金店）</b>、<b>内控（稽核盘点 / 应收 / 培训）</b>、<b>资金与保险</b>、<b>流程与临时性支持</b> 四条主线构成，合计 35 项常规细项。三个结论：</p>
+    <ul class="points">
+      <li><b>工作量高度集中在门店结算与内控稽核。</b>租金店（10 项）与内控-稽核盘点（6 项）两个模块占全部细项的 <b>46%</b>，且几乎全部为月度及以上刚性周期，是本岗位排期的主干。</li>
+      <li><b>近三成工作不可预排。</b>9 项标注"不定时"，另有 3 项临时性工作（上级交办、终端管理、业务答疑）无固定频率——合计约 <b>34%</b> 的工作属于被动响应，是当前排期冲突与加班的主要来源。</li>
+      <li><b>台账的"工时"与"流程指引"两列 100% 为空。</b>意味着目前既无法量化人力投入，也没有可交接的标准作业口径；这是本次梳理暴露的最大管理缺口，也是下一步补齐的重点（详见第六、七部分）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="s2">
+  <div class="sec-head"><span class="num">2</span><h2>工作全景：11 个模块</h2><span class="en">WORK MAP</span></div>
+  <div class="mods">
+
+    <div class="mod">
+      <h3>扣点店 <span class="cnt">4 项</span></h3>
+      <p>商场信息维护（MDP）、开票申请、回款跟踪、账扣到票。核心是按合同约定审核结算单与非合同扣费的审批。</p>
+      <div class="tags"><span class="tag t-月度">月度 ×3</span><span class="tag t-未标注">未标注 ×1</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>租金店 <span class="cnt">10 项</span></h3>
+      <p>对账月结、企微维护与明细拆分、手续费跟踪还票、回款跟踪、顾客开票、税务申报（工商年报 / 分公司税务 / 个税）、新开与闭店注销。模块最重。</p>
+      <div class="tags"><span class="tag t-月度">月度 ×2</span><span class="tag t-周度">周度 ×3</span><span class="tag t-年度">年度 ×1</span><span class="tag t-不定时">不定时 ×2</span><span class="tag t-未标注">未标注 ×2</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>内控 — 稽核盘点 <span class="cnt">6 项</span></h3>
+      <p>门店月自盘计划收集与入账、突击盘计划与财务监盘（结合智慧风控系统锁定高中风险店铺）、稽核套表、门店小票收集稽核存储。</p>
+      <div class="tags"><span class="tag t-月度">月度 ×5</span><span class="tag t-不定时">不定时 ×1</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>内控 — 应收 <span class="cnt">2 项</span></h3>
+      <p>总部下发应收账龄汇总的跟进；欠票的常规催收跟进。</p>
+      <div class="tags"><span class="tag t-月度">月度 ×1</span><span class="tag t-不定时">不定时 ×1</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>内控 — 培训 <span class="cnt">3 项</span></h3>
+      <p>新店长入职培训、终端及办公室职能半年度内控培训并签到、按季度收集各门店财务制度学习单。</p>
+      <div class="tags"><span class="tag t-半年度">半年度 ×1</span><span class="tag t-不定时">不定时 ×2</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>工服销账 <span class="cnt">1 项</span></h3>
+      <p>根据审批明细及时销账。</p>
+      <div class="tags"><span class="tag t-季度">季度</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>资金管理 <span class="cnt">2 项</span></h3>
+      <p>资金工具申请与 POS 管理；分公司银行账户的申请、办理、变更、对账与注销。</p>
+      <div class="tags"><span class="tag t-不定时">不定时 ×2</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>门店保险 <span class="cnt">2 项</span></h3>
+      <p>店铺新增／挪位／续签仓库明细及撤店情况反馈总部，及时购买或退保；季度按总部更新保额。</p>
+      <div class="tags"><span class="tag t-季度">季度 ×1</span><span class="tag t-不定时">不定时 ×1</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>闭转店 <span class="cnt">1 项</span></h3>
+      <p>根据各区实际情况执行，内容尚未在台账中细化。</p>
+      <div class="tags"><span class="tag t-未标注">未标注</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>流程审核 <span class="cnt">1 项</span></h3>
+      <p>BPM 流程审核，台账中未填写具体内容与频率。</p>
+      <div class="tags"><span class="tag t-未标注">未标注</span></div>
+    </div>
+
+    <div class="mod">
+      <h3>临时性工作 <span class="cnt">3 项</span></h3>
+      <p>上级交办的任务、门店遇到的临时性问题（终端管理）、业务提出的相关问题解答。</p>
+      <div class="tags"><span class="tag t-未标注">按需响应 ×3</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="s3">
+  <div class="sec-head"><span class="num">3</span><h2>频次结构：刚性 vs 弹性</h2><span class="en">CADENCE</span></div>
+  <div class="card">
+    <div class="bars">
+      <div class="bar-row"><span class="name">月度</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="val">11 项 · 31%</span></div>
+      <div class="bar-row"><span class="name">不定时</span><div class="bar-track"><div class="bar-fill" style="width:81.8%"></div></div><span class="val">9 项 · 26%</span></div>
+      <div class="bar-row na"><span class="name">未标注</span><div class="bar-track"><div class="bar-fill" style="width:72.7%"></div></div><span class="val">8 项 · 23%</span></div>
+      <div class="bar-row"><span class="name">周度</span><div class="bar-track"><div class="bar-fill" style="width:27.3%"></div></div><span class="val">3 项 · 9%</span></div>
+      <div class="bar-row"><span class="name">季度</span><div class="bar-track"><div class="bar-fill" style="width:18.2%"></div></div><span class="val">2 项 · 6%</span></div>
+      <div class="bar-row"><span class="name">半年度</span><div class="bar-track"><div class="bar-fill" style="width:9.1%"></div></div><span class="val">1 项 · 3%</span></div>
+      <div class="bar-row"><span class="name">年度</span><div class="bar-track"><div class="bar-fill" style="width:9.1%"></div></div><span class="val">1 项 · 3%</span></div>
+    </div>
+    <p class="chart-note">
+      <b>读法：</b>可预排的刚性工作（周度＋月度＋季度以上）合计 18 项，占 51%；不定时与未标注合计 17 项，占 49%。
+      也就是说，每月约有一半的工作无法提前锁定时间——这解释了为什么月结、盘点与突击稽核集中期容易与临时任务撞车。
+      建议后续把"未标注"的 8 项逐一定频（详见第六部分），把这一比例压到 30% 以内。
+    </p>
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="s4">
+  <div class="sec-head"><span class="num">4</span><h2>明细台账（35 项）</h2><span class="en">FULL INVENTORY</span></div>
+
+  <div class="filters">
+    <span class="lbl">按频率筛选：</span>
+    <button class="fbtn on" data-f="all">全部 35</button>
+    <button class="fbtn" data-f="月度">月度 11</button>
+    <button class="fbtn" data-f="周度">周度 3</button>
+    <button class="fbtn" data-f="季度">季度 2</button>
+    <button class="fbtn" data-f="半年度">半年度 1</button>
+    <button class="fbtn" data-f="年度">年度 1</button>
+    <button class="fbtn" data-f="不定时">不定时 9</button>
+    <button class="fbtn" data-f="未标注">未标注 8</button>
+  </div>
+
+  <div class="tbl-wrap">
+  <table id="tbl">
+    <thead>
+      <tr><th style="width:110px">工作模块</th><th style="width:110px">细项</th><th>具体内容</th><th style="width:78px">频率</th><th style="width:270px">原因 / 注意事项</th></tr>
+    </thead>
+    <tbody>
+      <tr class="mod-start" data-f="未标注"><td class="mod-cell" rowspan="4">扣点店</td><td class="item">MDP</td><td>商场信息维护</td><td><span class="tag t-未标注">未标注</span></td><td></td></tr>
+      <tr data-f="月度"><td class="item">开票申请</td><td>核对扣点店结算单，审核结算单非合同扣费是否有审批</td><td><span class="tag t-月度">月度</span></td><td>依据合同约定去审核开票申请</td></tr>
+      <tr data-f="月度"><td class="item">回款跟踪</td><td>跟踪扣点店回款进度</td><td><span class="tag t-月度">月度</span></td><td></td></tr>
+      <tr data-f="月度"><td class="item">账扣到票</td><td>账扣发票还票</td><td><span class="tag t-月度">月度</span></td><td></td></tr>
+
+      <tr class="mod-start" data-f="周度"><td class="mod-cell" rowspan="10">租金店</td><td class="item">对账及月结</td><td>根据租金店属性，核对现金、刷卡、企微等是否正确</td><td><span class="tag t-周度">周度</span></td><td></td></tr>
+      <tr data-f="不定时"><td class="item">企微</td><td>企微门店维护</td><td><span class="tag t-不定时">不定时</span></td><td>根据门店人员变动或新开店需求</td></tr>
+      <tr data-f="周度"><td class="item">企微</td><td>将总部下发的企微明细拆分至门店</td><td><span class="tag t-周度">周度</span></td><td>总部下发企微明细与新零售数据一致</td></tr>
+      <tr data-f="月度"><td class="item">手续费跟踪</td><td>非集团 POS 手续费发票跟踪还票</td><td><span class="tag t-月度">月度</span></td><td><span class="warnmark">及时还票，不产生税务风险金</span></td></tr>
+      <tr data-f="未标注"><td class="item">回款跟踪</td><td>租金店回款跟踪</td><td><span class="tag t-未标注">未标注</span></td><td></td></tr>
+      <tr data-f="周度"><td class="item">开票</td><td>顾客开票</td><td><span class="tag t-周度">周度</span></td><td></td></tr>
+      <tr data-f="年度"><td class="item">税务</td><td>工商年报</td><td><span class="tag t-年度">年度</span></td><td></td></tr>
+      <tr data-f="月度"><td class="item">税务</td><td>分公司税务申报、税务局对接、个税申报</td><td><span class="tag t-月度">月度</span></td><td></td></tr>
+      <tr data-f="不定时"><td class="item">新开</td><td>新开、注销、银行及工商年检等事宜</td><td><span class="tag t-不定时">不定时</span></td><td></td></tr>
+      <tr data-f="未标注"><td class="item">闭店</td><td>注销</td><td><span class="tag t-未标注">未标注</span></td><td></td></tr>
+
+      <tr class="mod-start" data-f="月度"><td class="mod-cell" rowspan="6">内控 — 稽核盘点</td><td class="item">门店自盘</td><td>门店月自盘计划收集</td><td><span class="tag t-月度">月度</span></td><td></td></tr>
+      <tr data-f="月度"><td class="item">门店自盘</td><td>日常店铺盘点入账，整理店铺盘点情况</td><td><span class="tag t-月度">月度</span></td><td></td></tr>
+      <tr data-f="月度"><td class="item">门店突击</td><td>突击盘计划安排</td><td><span class="tag t-月度">月度</span></td><td>结合智慧风控系统，盘点高中风险店铺</td></tr>
+      <tr data-f="不定时"><td class="item">门店突击</td><td>突击盘财务监盘</td><td><span class="tag t-不定时">不定时</span></td><td>下店稽核</td></tr>
+      <tr data-f="月度"><td class="item">稽核套表</td><td>—</td><td><span class="tag t-月度">月度</span></td><td></td></tr>
+      <tr data-f="月度"><td class="item">小票整理</td><td>门店小票收集、稽核、存储</td><td><span class="tag t-月度">月度</span></td><td>月度全区抽查三家小票</td></tr>
+
+      <tr class="mod-start" data-f="月度"><td class="mod-cell" rowspan="2">内控 — 应收</td><td class="item">应收账龄</td><td>总部下发应收账龄汇总</td><td><span class="tag t-月度">月度</span></td><td></td></tr>
+      <tr data-f="不定时"><td class="item">欠票</td><td>常规跟进催票</td><td><span class="tag t-不定时">不定时</span></td><td></td></tr>
+
+      <tr class="mod-start" data-f="不定时"><td class="mod-cell" rowspan="3">内控 — 培训</td><td class="item">店长培训</td><td>新店长入职培训</td><td><span class="tag t-不定时">不定时</span></td><td></td></tr>
+      <tr data-f="半年度"><td class="item">半年培训</td><td>对终端及办公室职能半年度进行内控培训并签到</td><td><span class="tag t-半年度">半年度</span></td><td></td></tr>
+      <tr data-f="不定时"><td class="item">管理规范</td><td>按季度收集各门店财务制度学习单（<span class="warnmark">全店签字，不允许代签及请假，原件邮寄至公司保管</span>）</td><td><span class="tag t-不定时">不定时</span></td><td></td></tr>
+
+      <tr class="mod-start" data-f="季度"><td class="mod-cell">工服销账</td><td class="item">—</td><td>根据审批明细及时销账</td><td><span class="tag t-季度">季度</span></td><td></td></tr>
+
+      <tr class="mod-start" data-f="不定时"><td class="mod-cell" rowspan="2">资金管理</td><td class="item">资金工具管理</td><td>资金工具申请、POS 管理</td><td><span class="tag t-不定时">不定时</span></td><td>资金工具申请、POS 管理</td></tr>
+      <tr data-f="不定时"><td class="item">资金开销户</td><td>分公司银行账户申请、办理、变更、对账、注销</td><td><span class="tag t-不定时">不定时</span></td><td>分公司银行账户申请、办理、变更、对账、注销</td></tr>
+
+      <tr class="mod-start" data-f="不定时"><td class="mod-cell" rowspan="2">门店保险</td><td class="item">保险</td><td>店铺新增／挪位、续签仓库明细、<span class="warnmark">撤店</span>，反馈总部及时购买或退保险</td><td><span class="tag t-不定时">不定时</span></td><td>根据所管理区域门店实际需求提报</td></tr>
+      <tr data-f="季度"><td class="item">保险</td><td>—</td><td><span class="tag t-季度">季度</span></td><td>总部每季度更新保额</td></tr>
+
+      <tr class="mod-start" data-f="未标注"><td class="mod-cell">闭转店</td><td class="item">—</td><td>—</td><td><span class="tag t-未标注">未标注</span></td><td>根据各区实际情况执行</td></tr>
+
+      <tr class="mod-start" data-f="未标注"><td class="mod-cell">流程审核</td><td class="item">BPM</td><td>—</td><td><span class="tag t-未标注">未标注</span></td><td></td></tr>
+
+      <tr class="mod-start" data-f="未标注"><td class="mod-cell" rowspan="3">临时性工作</td><td class="item">上级交办</td><td>上级临时交办的任务</td><td><span class="tag t-未标注">按需</span></td><td>上级临时交办的任务</td></tr>
+      <tr data-f="未标注"><td class="item">终端管理</td><td>门店遇到的临时性问题</td><td><span class="tag t-未标注">按需</span></td><td>门店遇到的临时性问题</td></tr>
+      <tr data-f="未标注"><td class="item">业务答疑</td><td>业务提出的相关问题解答</td><td><span class="tag t-未标注">按需</span></td><td>业务提出的相关问题解答</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="tbl-note">注：台账原表中"流程指引"与"工时"两列全部为空，故本表未列示；"—"表示原表该单元格为空。筛选时合并的模块单元格会自动展开为独立行标签。</p>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="s5">
+  <div class="sec-head"><span class="num">5</span><h2>风险管控要点</h2><span class="en">KEY CONTROLS</span></div>
+  <p class="lead" style="margin-top:0">以下 6 条是台账"原因／注意事项"列已经点明、且一旦失守会直接造成资金或税务损失的控制点，建议作为管理层重点关注对象。</p>
+  <div class="risks">
+    <div class="risk">
+      <h3>税务风险金：非集团 POS 手续费还票</h3>
+      <p>非集团 POS 的手续费发票必须及时跟踪还票，逾期将产生税务风险金。属于月度刚性动作，不能因月结繁忙顺延。</p>
+      <span class="src">来源：租金店 · 手续费跟踪</span>
+    </div>
+    <div class="risk">
+      <h3>非合同扣费的审批闭环</h3>
+      <p>扣点店开票申请须依据合同约定核对结算单，重点是识别"非合同扣费"是否走过审批。此处是商场端多扣费用的第一道也是唯一一道拦截。</p>
+      <span class="src">来源：扣点店 · 开票申请</span>
+    </div>
+    <div class="risk">
+      <h3>数据一致性：企微明细 vs 新零售</h3>
+      <p>总部下发的企微明细拆分到门店时，必须与新零售系统数据保持一致，否则周度对账与月结将出现无法归因的差异。</p>
+      <span class="src">来源：租金店 · 企微</span>
+    </div>
+    <div class="risk">
+      <h3>高中风险店铺的突击盘</h3>
+      <p>突击盘计划需结合智慧风控系统筛出的高／中风险店铺安排，并由财务下店监盘；月度全区另抽查三家门店小票。属于舞弊防控的核心手段。</p>
+      <span class="src">来源：内控-稽核盘点 · 门店突击 / 小票整理</span>
+    </div>
+    <div class="risk">
+      <h3>制度学习单：全店签字、禁止代签</h3>
+      <p>季度收集的门店财务制度学习单要求全店签字，不允许代签及请假，原件邮寄至公司保管——这是制度落地留痕的证据链，代签会使整套内控证据失效。</p>
+      <span class="src">来源：内控-培训 · 管理规范</span>
+    </div>
+    <div class="risk">
+      <h3>撤店保险的及时退保</h3>
+      <p>店铺新增／挪位／撤店须及时反馈总部购买或退保；撤店未退保将持续产生无效保费支出，季度还需按总部更新保额。</p>
+      <span class="src">来源：门店保险</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="s6">
+  <div class="sec-head"><span class="num">6</span><h2>当前台账的三处空白</h2><span class="en">GAPS</span></div>
+
+  <div class="gap">
+    <h3>① 工时列 0 / 35 —— 无法做人力测算</h3>
+    <p>全部 35 项细项的"工时"均未填写。这意味着现在无法回答三个管理问题：本岗位是否饱和、增开门店后需不需要加人、哪些工作值得优先自动化。建议先用两个月做工时打点，形成基线。</p>
+  </div>
+
+  <div class="gap">
+    <h3>② 流程指引列 0 / 35 —— 无可交接的标准口径</h3>
+    <p>没有任何一项挂接 SOP 或系统操作指引。人员变动、休假顶岗、新人上手都只能靠口口相传，也难以在稽核时证明"按流程执行"。建议先为风险最高的 6 项（第五部分）补 SOP。</p>
+  </div>
+
+  <div class="gap">
+    <h3>③ 8 项工作未定频 —— 排期无法闭环</h3>
+    <p>以下细项尚无频率标注，建议逐项确认是"按需触发"还是"应有固定周期但漏填"：</p>
+    <ul>
+      <li>扣点店 · MDP 商场信息维护</li>
+      <li>租金店 · 回款跟踪、闭店注销</li>
+      <li>闭转店（内容亦未细化，仅注"根据各区实际情况执行"）</li>
+      <li>流程审核 · BPM（内容未填写）</li>
+      <li>临时性工作 · 上级交办 / 终端管理 / 业务答疑（建议改为记录发生次数与耗时，而非定频）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="s7">
+  <div class="sec-head"><span class="num">7</span><h2>建议与请示事项</h2><span class="en">RECOMMENDATIONS</span></div>
+  <div class="recs">
+
+    <div class="rec">
+      <h3>补齐工时基线，形成人力测算依据</h3>
+      <p>用 2 个月对 35 项工作做简单工时打点（按次×耗时），产出"月度标准工时表"。此后区域增减门店、人员调整都能有量化依据，而不是凭感觉判断饱和度。</p>
+      <span class="ask">请示：能否同意用两个月做工时采集，期间不追加新增事项</span>
+    </div>
+
+    <div class="rec">
+      <h3>为 6 项高风险工作先补 SOP</h3>
+      <p>优先为第五部分的 6 个控制点编写流程指引（触发条件、动作、留痕、时限），挂到台账"流程指引"列。这 6 项覆盖了税务、合同扣费、舞弊防控三类主要敞口，投入产出最高。</p>
+      <span class="ask">请示：SOP 由本岗位起草、内控条线审核后发布</span>
+    </div>
+
+    <div class="rec">
+      <h3>建立月度刚性工作日历，锁定关键窗口</h3>
+      <p>把 11 项月度＋3 项周度工作固化到月历（月结、税务申报、盘点入账、稽核套表、账龄跟进等），并对外公示。临时性任务尽量排在窗口之外，减少与月结、申报的撞车。</p>
+      <span class="ask">请示：月结与税务申报期间的临时任务由上级统一排序</span>
+    </div>
+
+    <div class="rec">
+      <h3>给"不定时"工作设定响应时限（SLA）</h3>
+      <p>9 项不定时工作（新开／注销、开销户、保险增退、突击监盘、催票、企微维护等）目前无时限约定。建议按紧急度分 T+1 / T+3 / T+5 三档，既保证业务侧预期，也让本岗位可以合理排队而非随到随做。</p>
+      <span class="ask">请示：确认三档 SLA 的划分口径</span>
+    </div>
+
+    <div class="rec">
+      <h3>明确 4 项模糊职责的边界</h3>
+      <p>闭转店、BPM 流程审核、MDP 商场信息维护、租金店闭店注销四项，目前内容或频率未细化，容易在跨部门协作时出现职责真空。建议在下次内控例会上逐项确认归属与交付标准。</p>
+      <span class="ask">请示：安排一次 30 分钟的职责边界确认会</span>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>本报告依据现行岗位工作梳理台账整理，内容与频率均以台账原文为准；"资金管理"模块名称为归纳所得（原表该合并单元格为空），如与实际口径不符请指正。报告中的统计口径：细项按台账行数计，一个细项对应一行；未标注频率者单列为"未标注"。</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var btns = document.querySelectorAll('.fbtn');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#tbl tbody tr'));
+  // 合并单元格在筛选后会错位：先把每行的模块名记下来，筛选时按需补一个独立的模块单元格。
+  var modOf = [];
+  var cur = '';
+  rows.forEach(function (tr, i) {
+    var first = tr.querySelector('td.mod-cell');
+    if (first) cur = first.textContent.trim();
+    modOf[i] = cur;
+  });
+
+  function apply(f) {
+    rows.forEach(function (tr, i) {
+      var show = f === 'all' || tr.getAttribute('data-f') === f;
+      tr.style.display = show ? '' : 'none';
+      var cell = tr.querySelector('td.mod-cell');
+      if (f === 'all') {
+        // 还原原始合并布局
+        if (cell) cell.style.display = '';
+        var ghost = tr.querySelector('td.ghost-mod');
+        if (ghost) ghost.remove();
+      } else if (show && !cell) {
+        if (!tr.querySelector('td.ghost-mod')) {
+          var td = document.createElement('td');
+          td.className = 'mod-cell ghost-mod';
+          td.textContent = modOf[i];
+          tr.insertBefore(td, tr.firstElementChild);
+        }
+      }
+    });
+    // 被筛掉的合并首行，其 rowspan 会拖着后面的行——统一把 rowspan 降为 1
+    document.querySelectorAll('#tbl td.mod-cell').forEach(function (td) {
+      td.rowSpan = f === 'all' ? (td.dataset.rs ? +td.dataset.rs : td.rowSpan) : 1;
+    });
+  }
+
+  // 记住原始 rowspan，便于切回"全部"时还原
+  document.querySelectorAll('#tbl td.mod-cell').forEach(function (td) {
+    td.dataset.rs = td.rowSpan;
+  });
+
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      btns.forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      apply(b.dataset.f);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

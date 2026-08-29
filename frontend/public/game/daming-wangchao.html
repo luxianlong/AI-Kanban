@@ -84,6 +84,35 @@
   .role .dsc { color: var(--ink-soft); font-size: 11.5px; }
   .arrow { text-align: center; color: var(--gold); font-size: 12px; letter-spacing: 2px; margin: 4px 0 0; }
 
+  /* --- 开局出身选择 (starting origin picker) --- */
+  .origin-pick { max-width: 640px; margin: 20px auto 4px; }
+  .origin-lead { text-align: center; color: var(--ink-soft); font-size: 13.5px; margin: 0 0 10px; }
+  .origin-lead .origin-hint { color: var(--gold); font-size: 12px; }
+  .origins { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 520px){ .origins { grid-template-columns: repeat(2, 1fr); } }
+  .origin-card { background: rgba(255,255,255,0.5); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 6px; font-size: 13px; cursor: pointer; text-align: center;
+    transition: border-color .12s ease, box-shadow .12s ease, transform .08s ease, background .12s ease; }
+  .origin-card:hover { border-color: var(--red); transform: translateY(-1px); }
+  .origin-card:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+  .origin-card .emo { font-size: 22px; display: block; }
+  .origin-card .nm { font-weight: 700; color: var(--red); display: block; margin-top: 2px; }
+  .origin-card .sub { color: var(--ink-soft); font-size: 11.5px; }
+  .origin-card.sel { border-color: var(--red); background: rgba(255,255,255,0.74);
+    box-shadow: 0 0 0 2px var(--gold-soft), 0 4px 12px rgba(139,30,30,0.18); }
+  .origin-card.sel .sub { color: var(--gold); }
+  .origins.locked .origin-card { cursor: default; opacity: .5; }
+  .origins.locked .origin-card:hover { transform: none; border-color: var(--line); }
+  .origins.locked .origin-card.sel { opacity: 1; }
+  .origin-detail { text-align: center; color: var(--ink-soft); font-size: 12.5px; line-height: 1.75;
+    max-width: 600px; margin: 9px auto 0; min-height: 40px; }
+  .origin-detail .stat-delta { color: var(--ink); font-weight: 600; }
+  .origin-detail .locknote { color: var(--gold); }
+  .origin-detail .up { color: var(--good); }
+  .origin-detail .down { color: var(--bad); }
+  .turnbar .origin-tag { font-family: "Noto Sans SC", sans-serif; color: var(--gold);
+    font-weight: 700; font-size: 12px; margin-right: 8px; }
+
   .btn {
     font-family: inherit; cursor: pointer; border-radius: 10px; font-size: 16px; font-weight: 700;
     padding: 12px 26px; border: 1px solid var(--red); color: #fff;
@@ -175,6 +204,28 @@
   }
   .note b { color: var(--red); }
   .note .tag { color: var(--gold); font-size: 12px; }
+
+  /* --- 官场小词典：事件叙事/结果里的明代专有名词，默认收起，点了才展开一句白话史料注脚 ---
+     纯前端注解，不动牌序/结局判定；与「潜规则标签」互补——标签点主题，词典点名词。 */
+  .term {
+    font-family: inherit; font-size: inherit; line-height: inherit; cursor: pointer;
+    background: none; border: none; padding: 0; color: inherit;
+    border-bottom: 1px dotted var(--gold);
+  }
+  .term::after {
+    content: "\2299"; font-size: .68em; color: var(--gold);
+    vertical-align: super; margin-left: 1px; line-height: 0;
+  }
+  .term:hover { color: var(--red); border-bottom-color: var(--red); }
+  .term:hover::after { color: var(--red); }
+  .term[aria-expanded="true"] { color: var(--red); border-bottom-style: solid; }
+  .termcard {
+    display: block; margin: 6px 0; padding: 8px 12px; font-size: 12.5px; line-height: 1.72;
+    color: var(--ink-soft); background: rgba(184,145,47,0.08);
+    border-left: 3px solid var(--gold); border-radius: 6px;
+  }
+  .termcard b { color: var(--red); font-weight: 700; }
+  .termcard .termsrc { display: block; margin-top: 3px; font-size: 11.5px; color: var(--gold); font-style: normal; }
   .fx-line { margin: 6px 0 8px; font-size: 13px; }
   .fx-chip { display: inline-block; margin: 2px 6px 2px 0; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
   .fx-chip.up { background: #e2f0e6; color: var(--good); }
@@ -350,6 +401,10 @@
     background: linear-gradient(180deg,#6d3b7a,#552a66); color: #fff;
     box-shadow: 0 0 0 2px rgba(184,145,47,0.45), 0 2px 8px rgba(85,42,102,0.3);
   }
+  .concept.callback {
+    background: linear-gradient(180deg,#a8632c,#8a4a1e); color: #fff;
+    box-shadow: 0 0 0 2px rgba(184,145,47,0.4), 0 2px 8px rgba(138,74,30,0.3);
+  }
   .trail-row.rare::before { background: #6d3b7a; }
   .trail-row.rare .trail-cx { color: #7a4a86; }
 
@@ -399,6 +454,12 @@
     <p>你手里有一支笔——它能救人，也能杀人。三年任期，十来个坎，你自己选着走。</p>
     <p>怎么下场，游戏不替你评判。走完这一局，你大概会自己看明白。</p>
 
+    <div class="origin-pick" aria-label="开局出身">
+      <p class="origin-lead">你是怎么走进这座衙门的？<span class="origin-hint">——四种出身，起手四维与际遇各不相同</span></p>
+      <div class="origins" id="origin-cards" role="radiogroup" aria-label="选择开局出身"></div>
+      <p class="origin-detail" id="origin-detail"></p>
+    </div>
+
     <div class="roles" aria-label="委托代理链">
       <div class="role"><span class="emo">👑</span><span class="nm">皇帝</span><span class="dsc">要钱要太平</span></div>
       <div class="role"><span class="emo">🎩</span><span class="nm">上宪/官僚</span><span class="dsc">考成·收陋规</span></div>
@@ -427,6 +488,7 @@
       <div class="turnbar">
         <span id="turn-label">上任伊始</span>
         <span class="right">
+          <span class="origin-tag" id="game-origin" title="本局出身。决定起手四维与个别际遇，已并入牌序/存档。"></span>
           <span class="seed-tag" id="game-seed" title="本局牌序（种子）。同一种子＝同一副牌，可复现，可与人同题较量。"></span>
           <span class="pips" id="pips" aria-hidden="true"></span>
         </span>
@@ -514,8 +576,50 @@
   var START = { wusha: 55, minxin: 50, qingyu: 62, silver: 20 };
   var TERM = 11;                 // 任期回合数
   var LOSE_SILVER = -40;         // 亏空触发线
-  var S, turn, queue, current, history;
+  var S, turn, queue, current, history, flags;   // flags：本局的连锁标记（收礼/善政/贪墨…），由抉择写入，回访事件据此解锁
   var rng, currentSeed;          // 本局的随机数发生器与种子（同种子＝同一副牌）
+  var origin;                    // 本局出身/身份 id（决定起手四维与个别际遇），并入种子/存档
+  var selectedOrigin;            // 标题页当前选中的出身（自由局用；同题/挑战由牌局锁定）
+
+  // ---- 开局出身：四种明代入仕出身，各有不同的起手四维与际遇（丰富重玩变化）--------
+  //   自由局玩家可择一；「今日同题」「同题挑战」则由牌序确定地锁定身份，保证公平可复现。
+  //   delta 是相对基准 START 的起手增减（乌纱/民心/清誉封顶 0–100，库银不封顶）；
+  //   boostConcept 让该出身必撞上某桩隐事（如捐纳出身背京债，必遇「京债 · 印子钱」）。
+  var ORIGINS = [
+    { id: "kejia",  emo: "🎓", name: "科甲正途", sub: "清流新贵",
+      delta: { qingyu: +13, silver: -8, wusha: -3 },
+      bg: "两榜进士，天子门生。清望在身、腰杆最硬，却阮囊羞涩、朝中无人——最想干净，也最经不起这台机器磨。" },
+    { id: "juanna", emo: "💰", name: "捐纳出身", sub: "背了京债",
+      delta: { wusha: +8, qingyu: -14, silver: -6 }, boostConcept: "京债 · 印子钱",
+      bg: "这顶乌纱是拿银子捐来的，补缺的本钱还借着「京债」。上任就欠着印子钱，债主迟早找上门——出身先带了三分原罪。" },
+    { id: "shijia", emo: "🏯", name: "世家荫补", sub: "根基深厚",
+      delta: { wusha: +10, silver: +16, qingyu: -6, minxin: -3 },
+      bg: "官宦世家，荫补入仕。家底厚、门路广、乌纱稳，可这一身体面皆是祖荫，非你自己挣来——清誉与民望，都要另立。" },
+    { id: "xunli",  emo: "🧭", name: "循吏老手", sub: "八面玲珑",
+      delta: { minxin: +12, wusha: +4, qingyu: -4 },
+      bg: "州县里滚了半辈子的老公事。人情练达、上下逢源、深谙民瘼，最会在夹缝里做人——只是那点棱角，早被磨圆了。" }
+  ];
+  var ORIGIN_MAP = {};
+  ORIGINS.forEach(function (o) { ORIGIN_MAP[o.id] = o; });
+  // 由种子确定地推出一种出身（供同题/挑战锁定身份；独立随机流，不扰动牌序 rng）
+  function originFromSeed(seed) {
+    var r = makeRng("DAMING-ORIGIN-" + normalizeSeed(seed || ""));
+    return ORIGINS[Math.floor(r() * ORIGINS.length)].id;
+  }
+  // 本局出身作用后的起手四维（游戏内起手 S 与结局页轨迹重建共用，保证两处一致）
+  function effectiveStart() {
+    var o = ORIGIN_MAP[origin], d = (o && o.delta) || {};
+    return {
+      wusha:  clamp(START.wusha  + (d.wusha  || 0)),
+      minxin: clamp(START.minxin + (d.minxin || 0)),
+      qingyu: clamp(START.qingyu + (d.qingyu || 0)),
+      silver: START.silver + (d.silver || 0)
+    };
+  }
+  function originLabel() {
+    var o = ORIGIN_MAP[origin];
+    return o ? (o.emo + " " + o.name) : "";
+  }
 
   var el = function (id) { return document.getElementById(id); };
   var KEYCAPS = ["①", "②", "③", "④", "⑤"];
@@ -571,8 +675,16 @@
       return s.length >= 3 ? s : "";
     } catch (e) { return ""; }
   })();
+  // 页面若带 ?o=<出身id>，就是下战书的人指定了本局身份（随牌序一并复现）
+  var originParam = (function () {
+    try {
+      var m = /[?&]o=([^&]+)/i.exec(location.search);
+      var id = m ? decodeURIComponent(m[1]).toLowerCase().replace(/[^a-z]/g, "") : "";
+      return ORIGIN_MAP[id] ? id : "";
+    } catch (e) { return ""; }
+  })();
   function challengeUrl() {
-    return location.origin + location.pathname + "?seed=" + currentSeed;
+    return location.origin + location.pathname + "?seed=" + currentSeed + "&o=" + origin;
   }
   // 每日同题：由当天日期确定地推出一副牌，全网同一天拿到同一副（次日换新）
   function dateKey() {
@@ -974,7 +1086,7 @@
   // 从起点按 history.fx 逐坎累积，重建四维轨迹（clamp 规则与游戏内一致）。
   //   结局页 sparkline 与 canvas 结局图卡共用它，保证两处画出的走势一模一样。
   function buildRunSeries() {
-    var run = { wusha: START.wusha, minxin: START.minxin, qingyu: START.qingyu, silver: START.silver };
+    var run = effectiveStart();   // 从本局出身的起手四维起算，与游戏内起手一致
     var series = { wusha: [run.wusha], minxin: [run.minxin], qingyu: [run.qingyu], silver: [run.silver] };
     var climaxAt = -1;
     (history || []).forEach(function (h, i) {
@@ -1081,10 +1193,10 @@
     title: "拜印之日，书吏呈上「常例」清单",
     text: "你刚捧起大印，老书吏便递来一张单子：给上司的炭敬、冰敬，给同僚的印结银，给衙门书办的辛苦钱……「大人，这都是历来的规矩，不成文，但一分都少不得。」",
     choices: [
-      { lab: "照单全收，按例孝敬上下", fx: { wusha: +9, silver: -16, qingyu: -10 },
+      { lab: "照单全收，按例孝敬上下", fx: { wusha: +9, silver: -16, qingyu: -10 }, flag: "ruhuo",
         outcome: "老书吏把单子折好，脸上头一回堆起笑：「大人上道，往后好说话。」消息传得比你想的快——不出半月，上下都拿你当「自己人」了。",
         note: "这第一笔炭敬冰敬，是入伙费。它不写进《大明律》，却是真正在运转的那套规矩。<span class='tag'>〔陋规 · 淘汰清官机制的起点〕</span>" },
-      { lab: "一概拒付，清廉自守", fx: { wusha: -13, qingyu: +12 },
+      { lab: "一概拒付，清廉自守", fx: { wusha: -13, qingyu: +12 }, flag: "jushou",
         outcome: "书吏脸一沉，退了出去。没几天，上司的批文开始变得挑剔，同僚的酒局也「忘了」叫你。没人明说什么，你却分明被挪进了另一册名单。",
         note: "没人下令对付你，只是「大家都这样，就你不一样」。这就是淘汰清官机制启动的样子。<span class='tag'>〔淘汰清官机制〕</span>" },
       { lab: "只给绕不过去的，其余暗中记账", fx: { wusha: +2, silver: -8, qingyu: -2 },
@@ -1154,7 +1266,7 @@
       title: "灾年放赈，赈粮要不要「照例」克扣？",
       text: "上头拨下的赈灾粮款有限，经手的每一层都想揩一点油。轮到你这一环，是原样发下去，还是「照老规矩」先留三成？",
       choices: [
-        { lab: "亲自监放，一粒不取", fx: { minxin: +15, qingyu: +10, silver: -8, wusha: -6 },
+        { lab: "亲自监放，一粒不取", fx: { minxin: +15, qingyu: +10, silver: -8, wusha: -6 }, flag: "shanzheng",
           outcome: "你盯着把每一粒赈粮发到人手里。灾民给你磕头，可经手的胥吏和上头都嫌你多事——你坏了整条链子的「规矩」。",
           note: "你堵住了自己这一环，可这条链子，本就容不下一个不揩油的环节。<span class='tag'>〔冤大头 · 淘汰清官〕</span>" },
         { lab: "照例克扣三成入囊", fx: { silver: +16, minxin: -15, qingyu: -11 },
@@ -1193,7 +1305,7 @@
       title: "境内一个富商，看着就是块肥肉",
       text: "师爷凑近低声：「大人，那盐商家底厚，随便寻个由头——短了牙税也好，僭越也罢——就能敲他一大笔，他不敢不给。」",
       choices: [
-        { lab: "罗织由头，狠敲一笔", fx: { silver: +20, qingyu: -16, minxin: -4 },
+        { lab: "罗织由头，狠敲一笔", fx: { silver: +20, qingyu: -16, minxin: -4 }, flag: "tanmo",
           outcome: "随便寻的由头，盐商不敢不认，乖乖送来一大笔。钱来得太容易了——容易到你开始留意下一个「肥肉」。",
           note: "一旦发现权力能随意加害于人，用它来变现就成了本能。<span class='tag'>〔身怀利器 · 合法伤害权〕</span>" },
         { lab: "依法办事，不无端加罪", fx: { qingyu: +8, wusha: -2 },
@@ -1204,7 +1316,7 @@
       title: "汛期将至，城外河堤该修了",
       text: "修堤要钱要人。你可以从积攒的陋规银里掏钱认真修；也可以层层发包、大吃回扣，糊个豆腐渣工程上报完工。",
       choices: [
-        { lab: "自掏陋规银，认真修固", fx: { minxin: +14, silver: -14, qingyu: +8, wusha: -3 },
+        { lab: "自掏陋规银，认真修固", fx: { minxin: +14, silver: -14, qingyu: +8, wusha: -3 }, flag: "shanzheng",
           outcome: "你把捞来的银子又贴回了河堤，堤修得结结实实。百姓念你的好——可这靠的是你这一任的良心，换个人来就断了。",
           note: "难得的良性回流，靠的是个人良心而非制度，所以随时可能中断。<span class='tag'>〔委托代理 · 制度缺位〕</span>" },
         { lab: "层层发包，大吃回扣", fx: { silver: +16, minxin: -10, qingyu: -12 },
@@ -1279,6 +1391,104 @@
         { lab: "分一杯羹，与其共谋", fx: { silver: +10, minxin: -8, qingyu: -8 },
           outcome: "你和书办们合了流，事情办得顺了，进项也稳了。省心是省心——代价是百姓头上，又多压了一层。",
           note: "省心、进账，换来百姓头上又多一层盘剥。<span class='tag'>〔第二等公平 · 冤大头〕</span>" }
+      ] },
+    { concept: "陋规 · 驿传夫马",
+      title: "过境官员亮出勘合，索派夫马供应",
+      text: "一位赴任的京官带着家眷行李过境，甩出一张勘合，索要数十名夫役、十几匹驿马，沿途还要酒食供给。勘合上写的额数早被超支，多出来的那截，都得摊到本县里甲头上。",
+      choices: [
+        { lab: "照单供应，摊派里甲", fx: { wusha: +6, minxin: -12, qingyu: -6 },
+          outcome: "你如数派了夫马酒食，把过境官员伺候得舒舒服服。他临走留下一句「贤令能干」，可这几十名夫役、几十两供应，全从跑不掉的里甲人家身上出。",
+          note: "勘合是给公务的，派头是给私人的——超出的那截，永远落在链条末端的里甲。<span class='tag'>〔驿传 · 老百姓是个冤大头〕</span>" },
+        { lab: "按勘合核实，多余一概不给", fx: { qingyu: +8, wusha: -10, minxin: +6 },
+          outcome: "你照勘合额数供应，多的一概回绝。过境官员脸一沉，拂袖而去。没几天，一句说你「刁难过客、不谙礼数」的闲话，已经飘进了上司耳朵。",
+          note: "你守的是律，得罪的是官场人情——在这儿，较真本身就是一条罪状。<span class='tag'>〔淘汰清官 · 人情即规矩〕</span>" },
+        { lab: "少派些，其余折银打发", fx: { silver: -6, minxin: -5, qingyu: -2 },
+          outcome: "你减了些夫马，折了点银子塞过去，把人客客气气送出境。两头都没撕破脸——里甲少派了几户，你的私囊也薄了一角。",
+          note: "破财免灾、和光同尘，是夹缝里最省事的活法。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { concept: "做账 · 卫所空额",
+      title: "军户逃亡过半，操江御史要来点验",
+      text: "邻近卫所的军户逃亡了大半，册上满编，营里空空。掌印千户备了厚礼来求你：「上头点验在即，求大人在文书上替弟兄们圆一圆，空额的月粮，自然有大人一份。」",
+      choices: [
+        { lab: "帮着做花名册，分吃空额月粮", fx: { silver: +16, wusha: +4, qingyu: -12 }, flag: "tanmo",
+          outcome: "你在点验的文书上替卫所补齐了逃亡的名字，空额的月粮一分为二。账面上兵强马壮，营里却仍是那几十号老弱——多出来的粮，进了你和千户的私囊。",
+          note: "逃兵的名字还在吃粮，吃粮的却是活人的私囊。边墙的窟窿，就是这么一笔笔做平的。<span class='tag'>〔委托代理 · 吃空额〕</span>" },
+        { lab: "据实点验，揭出逃亡缺额", fx: { qingyu: +10, wusha: -12, minxin: +4 },
+          outcome: "你照实点了验，逃亡的缺额一个不瞒。千户恨你入骨，卫所上下都成了对头，连你自家的考成文书，也开始在他们手里悄悄卡壳。",
+          note: "你捅破了一层大家默认的窗户纸，可这纸后头，站着一整条靠空额吃饭的链子。<span class='tag'>〔淘汰清官 · 结构性合谋〕</span>" },
+        { lab: "睁只眼补几个，不深究", fx: { silver: +6, wusha: +2, qingyu: -4 },
+          outcome: "你替卫所补了几个不打眼的名字，余下的没深问。千户送了份薄礼道谢，点验糊弄了过去——窟窿没补上，只是又往后拖了一任。",
+          note: "不做绝也不揭破，把烫手的窟窿轻轻往下一任推。<span class='tag'>〔击鼓传花〕</span>" }
+      ] },
+    { concept: "寻租 · 盐引开中",
+      title: "盐商纳粮换引，求你在验粮上「高抬贵手」",
+      text: "朝廷行开中法，盐商往边仓纳粮，换取贩盐的盐引。一个大盐商找上门：「大人，纳的粮验个成色、称个斤两，全凭您一句话。松一松，小的多换几张引，短的潮的，自有孝敬。」",
+      choices: [
+        { lab: "松验放水，收足孝敬", fx: { silver: +18, qingyu: -14, minxin: -6 }, flag: "tanmo",
+          outcome: "你在验粮上高抬了贵手，潮粮、短斤都算作足额，盐商欢天喜地多换了引。孝敬入了你的库，边仓的军粮却虚了一大截——将来断粮的，是守边墙的兵。",
+          note: "你笔下松的这一寸，是边关将士嘴里少的那口粮。合法的关口一旦能松紧，就成了明码的价。<span class='tag'>〔合法伤害权 · 寻租〕</span>" },
+        { lab: "秉公验收，分厘不让", fx: { qingyu: +9, wusha: -4, silver: -4 },
+          outcome: "你把粮验得分厘不让，潮的短的一概打回。盐商悻悻改运足粮，边仓是实了，可断了财路的他，转头就去上司那儿说你的「不通融」。",
+          note: "你守住了这道关口，却也让所有想走捷径的人记住了你的名字。<span class='tag'>〔合法伤害权 · 克制无赏〕</span>" },
+        { lab: "略松一线，收些茶水", fx: { silver: +7, qingyu: -4, minxin: -2 },
+          outcome: "你在斤两上略松了一线，收了盐商一份「茶水钱」，大面上还算说得过去。边仓没亏得太狠，你的袖子也没空着——各让一步。",
+          note: "睁一只眼、留一条缝，是这条关口上心照不宣的默契。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { concept: "合法伤害权 · 赃罚银",
+      title: "一笔抄没的赃罚银，该怎么入账",
+      text: "你审结了一桩案子，抄没了被告一大笔赃罚银。按律，这银子该造册解交入官；可师爷提醒：「大人，这笔『没头帐』，报多报少全在文书，历来经手的都要留一手。」",
+      choices: [
+        { lab: "如数解官，一文不留", fx: { qingyu: +11, wusha: -4, silver: -6 },
+          outcome: "你把赃罚银如数造册解了上去，一文没沾。上司收到足额，面上夸你「清慎」，心里却嘀咕这个下属「太实心、不上道」——连自己那份都不给人留。",
+          note: "一笔没有主人的银子，全额上缴反倒成了异类。这套账，默认你该留一手。<span class='tag'>〔淘汰清官 · 潜规则之默认值〕</span>" },
+        { lab: "报少解半，余者入囊", fx: { silver: +16, qingyu: -12, minxin: -4 }, flag: "tanmo",
+          outcome: "你在文书上把赃银报了个零头，大半悄悄留了下来。没人来对这笔「没头帐」，上司也乐得下属懂事——横竖是抄来的钱，神不知鬼不觉。",
+          note: "抄来的钱最好经手，因为没人替它记账。合法加害的刀尖上，还挂着一层可以私吞的油。<span class='tag'>〔合法伤害权 · 冤大头〕</span>" },
+        { lab: "解大半，分润上下", fx: { silver: +8, wusha: +5, qingyu: -6 },
+          outcome: "你解了大半上去，匀出一小份分润了上司和经手的胥吏。人人有份，人人闭嘴，这笔赃银就顺顺当当地「合规」了。",
+          note: "见者有份，是让所有人一起闭嘴的黏合剂。<span class='tag'>〔第二等公平 · 分肥〕</span>" }
+      ] },
+    { concept: "陋规 · 科场关节",
+      title: "乡试在即，一张「关节」条子递到你手上",
+      text: "你被派了乡试同考官。开考前，一位显宦托人送来密条：某某卷中会嵌几个约定的字眼，请你「留意关照」，事成之后，重谢自不必说。",
+      choices: [
+        { lab: "认了关节，取中显宦子弟", fx: { silver: +14, wusha: +8, qingyu: -16 },
+          outcome: "你按条子上的字眼寻到那份卷子，批了「荐」。榜发，显宦子弟高中，重谢如约而至，你也攀上了一门贵人。只是那些寒窗苦读、没有门路的士子，永远不知道自己输在哪儿。",
+          note: "抡才大典成了权门私相授受的账本。最该公平的那道门，也被暗中标了价。<span class='tag'>〔陋规 · 关节〕</span>" },
+        { lab: "拒收关节，凭文取士", fx: { qingyu: +12, wusha: -10 },
+          outcome: "你把密条烧了，一心凭文字优劣去取。显宦子弟落了榜，那位贵人从此把你记在了另一册上——挡了人财路、拂了人脸面，你两样都占全了。",
+          note: "你守住了那道门的干净，却挡了一整张关系网的路。在这儿，认真是要付利息的。<span class='tag'>〔淘汰清官 · 得罪权门〕</span>" },
+        { lab: "佯装不知，把那卷子避开", fx: { qingyu: +4, wusha: -3 },
+          outcome: "你没认那条子，也没声张，只把那份卷子悄悄避到别房去评，两不沾手。显宦那边没等到准信，你这边也没落下把柄——你只求自己这一房干净。",
+          note: "独善其身、不揽是非，是夹缝里保命又保良心的小聪明。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { concept: "崇祯死弯 · 漕粮折色",
+      title: "漕粮兑运，「淋尖踢斛」加征几成",
+      text: "本县漕粮要兑运解京。收粮时，老规矩是把斛堆得冒尖，再猛踢一脚，洒出来的算「损耗」归公；运军还要额外索「使费」。层层加征，最后都压在纳粮的百姓身上。",
+      choices: [
+        { lab: "照旧淋尖踢斛，足征使费", fx: { silver: +12, wusha: +5, minxin: -16, qingyu: -8 },
+          outcome: "斛堆得冒尖，一脚踢下去洒了一地，「损耗」入了公，运军的使费也收得足足的。漕粮如期解京，你交了差，只是纳粮的人家，一石粮要多缴出好几升。",
+          note: "每一环都要「损耗」、要「使费」，加征像滚雪球，滚到最后砸在纳粮户头上——他跑不掉，也没人替他说话。<span class='tag'>〔崇祯死弯 · 冤大头〕</span>" },
+        { lab: "平斛收粮，严禁踢斛索费", fx: { minxin: +13, wusha: -8, qingyu: +8, silver: -6 }, flag: "shanzheng",
+          outcome: "你下令平斛收粮，不许踢斛、不许索使费。百姓千恩万谢，可运军没了油水，兑运时百般刁难拖延，上司也嫌你「坏了漕规、误了解运」。",
+          note: "你想把加征的雪球按住，可整条漕运链子，本就靠层层「损耗」润滑着转。<span class='tag'>〔淘汰清官 · 动了链条的润滑油〕</span>" },
+        { lab: "稍减尖头，使费照旧", fx: { silver: +5, minxin: -6, qingyu: -3 },
+          outcome: "你把斛尖收敛了些，运军的使费却没敢动。百姓的负担轻了一线，大面上的规矩还照旧转着——你只在自己够得着的地方，松了半寸。",
+          note: "在能松的地方松半寸，松不动的地方随大流，是多数人的分寸。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { concept: "老百姓是冤大头 · 里甲编审",
+      title: "十年一次编审黄册，里书要「飞洒」花户",
+      text: "黄册编审，重定各户丁粮等则。经手的里书凑上来：「大人，册子怎么造有讲究——大户的丁粮『飞洒』到穷户、绝户名下，大户领情，册面也好看，大人只管画个押。」",
+      choices: [
+        { lab: "画押认了，由里书飞洒", fx: { silver: +12, wusha: +4, minxin: -15, qingyu: -9 },
+          outcome: "你在里书造好的册子上画了押。大户的负担神不知鬼不觉挪到了穷户、绝户头上，大户送来厚礼道谢，黄册也齐齐整整。只是那些莫名多出丁粮的人家，从此愈发喘不过气。",
+          note: "一支笔把负担从扛得起的挪到扛不起的身上——飞洒诡寄，是把冤大头写进官册的手艺。<span class='tag'>〔飞洒 · 老百姓是个冤大头〕</span>" },
+        { lab: "亲自核实，按丁粮据实编审", fx: { minxin: +12, qingyu: +11, wusha: -11, silver: -5 }, flag: "shanzheng",
+          outcome: "你不信里书那本册，调了鱼鳞图册亲自比对，按实编审。穷户绝户卸了冤枉的担子，可全县大户和世代把持册籍的里书，一夜之间都成了盼你早走的人。",
+          note: "你想把担子放回扛得起的肩上，却动了从大户到里书一整条靠造册吃饭的链子。<span class='tag'>〔清丈编审 · 淘汰清官〕</span>" },
+        { lab: "只压一压，不全信里书", fx: { silver: +5, minxin: -5, qingyu: -2 },
+          outcome: "你收了礼，却把飞洒的数目压了压，不许里书做得太离谱。穷户的担子没轻多少，也没重到出人命——你在两头之间，找了个能过得去的数。",
+          note: "既不肯全烂，也无力扳正，只在里书的手上按下半寸。<span class='tag'>〔第二等公平〕</span>" }
       ] }
   ];
 
@@ -1326,6 +1536,116 @@
       ] }
   ];
 
+  // ---- 连锁回访：先前的某个抉择，会在本局稍后招来一桩专属的清算/回访事件 --------
+  //   机理：触发型抉择带 flag，落笔即写进本局 flags；此后每坎开牌时，pendingCallback
+  //   按 flags 判断有没有「该来找上门的账」，有就用回访事件顶替本坎原牌（只换当坎所见，
+  //   不动 buildQueue 定下的牌序，故同种子＋同抉择必然复现）。回访只发生在中段（不夺开局、
+  //   不夺崇祯死弯终局），且每桩只回访一次。flags 由 history 确定性推出，续玩无需另存。
+  var CALLBACKS = [
+    { chain: "ruhuo", gap: 2, callback: true,
+      concept: "淘汰清官 · 入伙的回请",
+      title: "当日认你「上道」的那帮人，如今拉你入一桩大分肥",
+      text: "还记得上任那天，你照单收下了常例、被上下认作「自己人」。如今府里出了桩大进项——一笔说不清的公帑要「分一分」，正因你是自己人，才特意留了你一份。递话的人笑吟吟：「大人当日既上了道，这回自不会见外。」",
+      choices: [
+        { lab: "深踏一步，坐地分红", fx: { silver: +18, qingyu: -12, wusha: +4 },
+          outcome: "你接了这份「自己人」的红。银子来得又稳又厚，你在这张网里的结也系得更死——从今往后，你想抽身，怕也由不得你了。",
+          note: "第一笔入伙费认下时，你就已经上了这条船。船越走越远，下船的门也一道道焊死了。<span class='tag'>〔陋规 · 越陷越深〕</span>" },
+        { lab: "寻个由头，这单不接", fx: { qingyu: +8, wusha: -9, silver: -3 },
+          outcome: "你陪着笑推了这一单。众人嘴上说「不勉强」，眼里却结了层冰——当日那个「上道」的你，今日忽然「不上道」了，最招人疑。",
+          note: "入了伙又想洁身，比一开始就不入伙更犯忌——你成了圈子里那个「拿了好处还立牌坊」的人。<span class='tag'>〔淘汰清官 · 圈内的叛徒〕</span>" },
+        { lab: "只沾个边，留条退步", fx: { silver: +6, qingyu: -4, wusha: -1 },
+          outcome: "你象征性地沾了一点，大头推说「不便」。既没撕破脸，也没把自己整个搭进去——袖子沾了点油，脚还留在门槛上。",
+          note: "沾一点、留一手，是老于此道者的分寸：既不做绝，也不做尽。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { chain: "jushou", gap: 2, callback: true,
+      concept: "淘汰清官 · 京察算总账",
+      title: "三年京察，你上任那天记下的「另一册」翻到了你名下",
+      text: "还记得上任那天，你一概拒付常例，从此被悄悄挪进了「另一册」。如今三年京察到了，上司捏着你的考成，同僚们默契地想不起你办过的实事，只记得你「不谙政体、孤僻难共事」。那笔当日没交的账，如今连本带利要你还。",
+      choices: [
+        { lab: "临时重礼，四下求转圜", fx: { silver: -18, wusha: +8, qingyu: -6 },
+          outcome: "你赶在评语落定前，四下重礼求告。乌纱算是勉强保住了——只是当日省下的那点清廉，如今加倍赎了回来，还搭上一句「早知今日」。",
+          note: "拒付时省下的每一分，京察时都要连本带利地还。这套账，从不许人白白干净。<span class='tag'>〔淘汰清官 · 迟来的入伙费〕</span>" },
+        { lab: "硬扛清名，不肯低头", fx: { qingyu: +10, wusha: -14 },
+          outcome: "你一步不让，任那「不谙政体」四字落进考语。清名是全了，前程也黯了——你成了同僚口中「宁折不弯、也没什么用」的那种人。",
+          note: "系统留得下一两个硬骨头，正好拿来做「清高者没下场」的标本。<span class='tag'>〔淘汰清官 · 海瑞之为例外〕</span>" },
+        { lab: "托个旧交，居中说合", fx: { silver: -6, wusha: +3, qingyu: -3 },
+          outcome: "你寻了个说得上话的旧交居中缓颊，费了些人情钱，把最重的话磨圆了些。考语平平——不好不坏，正够你再熬一任。",
+          note: "在夹缝里赎身：花一点、低一点头，换一个「过得去」。<span class='tag'>〔第二等公平〕</span>" }
+      ] },
+    { chain: "shanzheng", gap: 2, callback: true,
+      concept: "淘汰清官 · 民望之累",
+      title: "你先前的实政传开了，百姓要为你立生祠、拦轿挽留",
+      text: "你先前那桩为民减负的实政，早在乡里传成了口碑。如今士绅百姓聚在衙门外，要为你立生祠、打万民伞，连你偶尔出行都有人拦轿磕头挽留。声名是甜的，可师爷压低嗓子提醒：「大人，属官在民间的威望，比上司还高——这是最招忌的。」",
+      choices: [
+        { lab: "顺水推舟，受了这份民望", fx: { minxin: +10, qingyu: +6, wusha: -9 },
+          outcome: "生祠立了，万民伞打了，你的好名声传得更远。百姓念你入骨——上司的脸色，也一天沉过一天。你得的每一分民心，都记在了上司猜忌你的那本账上。",
+          note: "在这套秩序里，属下太得民心，本身就是一桩罪。得民心有时比贪墨更危险。<span class='tag'>〔激励错配 · 淘汰清官〕</span>" },
+        { lab: "力辞不受，低调避嫌", fx: { wusha: +4, minxin: -5, qingyu: +2 },
+          outcome: "你婉拒了生祠，劝散了人群，把这份民望压得低低的。百姓有些失落，上司却踏实了——你懂得「木秀于林」的分寸，这一课比办实事更保命。",
+          note: "懂得把功劳和声名藏起来，是官场比善政更要紧的一门生存术。<span class='tag'>〔第二等公平 · 藏锋〕</span>" },
+        { lab: "借这份民望，向上邀功请赏", fx: { wusha: +8, qingyu: -8, minxin: -4 },
+          outcome: "你把百姓的拥戴写进了给上司的禀帖，当成自己「化民成俗」的政绩去邀功。民心成了你升迁的垫脚石——只是那些真心念你的人，并不知道自己的感激被换成了你的考语。",
+          note: "把百姓的真心变现成自己的官声，是善政最隐蔽的一种走样。<span class='tag'>〔委托代理 · 民心变现〕</span>" }
+      ] },
+    { chain: "tanmo", gap: 2, callback: true,
+      concept: "制衡缺失 · 把柄递话",
+      title: "你先前那笔进项，成了别人手里的把柄——有人上门「叙旧」",
+      text: "你先前捞的那一大笔，当时神不知鬼不觉，如今却有人揣着底细找上门来。也许是经手的书办，也许是闻着味的同道——他没吵没闹，只把那桩旧事轻轻点了一句，笑意里藏着刀：「大人的事，我知道的不多，也就那么一两桩……总要大家都好过才是。」像债主一样，来收你欠下的那笔。",
+      choices: [
+        { lab: "破财买静，喂饱这张嘴", fx: { silver: -16, wusha: +3, qingyu: -4 },
+          outcome: "你掏了一笔封口钱，把这张嘴暂且喂饱。事情压下去了——可你也明白，喂过一次的嘴，往后还会再张开。你贪来的那笔，正被一口一口赎回去。",
+          note: "在没有真制衡的地方，你的把柄就是别人的印子钱，利滚利，永远还不清。<span class='tag'>〔制衡缺失 · 把柄即债〕</span>" },
+        { lab: "反咬一口，抢先除了这隐患", fx: { qingyu: -10, wusha: -4, silver: -4 },
+          outcome: "你不愿被人拿捏一辈子，索性罗织由头，抢先把这知情人整了下去。隐患是暂时除了，手上却又添了一桩更脏的事——你从怕把柄的人，变成了制造把柄的人。",
+          note: "为了盖住一桩脏事，只好再做一桩更脏的。合法伤害权最阴的用法，是拿来灭口。<span class='tag'>〔合法伤害权 · 灭口〕</span>" },
+        { lab: "拖着不给，赌他不敢捅", fx: { wusha: -11, qingyu: -2 },
+          outcome: "你把脸一板，赌他不敢真捅出去。那人没再多话，转身把你的旧事，递到了该递的人耳边——没过多久，一封没头没脑的参劾，落到了你的考语上。",
+          note: "在这张网里，攥住你把柄的人要动你，未必靠刀——递一句话到对的人耳边就够了。<span class='tag'>〔制衡缺失 · 把柄反噬〕</span>" }
+      ] }
+  ];
+
+  // 隐事按 concept 索引，供「出身指定必遇某隐事」（如捐纳出身必撞京债）确定性地取用
+  var RARE_BY_CONCEPT = {};
+  RARE_POOL.forEach(function (r) { RARE_BY_CONCEPT[r.concept] = r; });
+
+  // 触发查找表：(concept|lab) → flag，供续玩时从 history 确定性地重建 flags
+  var TRIGGER_MAP = (function () {
+    var m = {};
+    [INTRO].concat(POOL, RARE_POOL).forEach(function (ev) {
+      (ev.choices || []).forEach(function (c) {
+        if (c.flag) m[ev.concept + "|" + c.lab] = c.flag;
+      });
+    });
+    return m;
+  })();
+
+  // 由已走过的 history 确定性地重建 flags（记下每桩首次触发的回合序号）
+  function flagsFromHistory(hist) {
+    var f = {};
+    for (var i = 0; i < hist.length; i++) {
+      var fl = TRIGGER_MAP[hist[i].concept + "|" + hist[i].lab];
+      if (fl && f[fl] === undefined) f[fl] = i;
+    }
+    return f;
+  }
+
+  // 本坎该不该来一桩回访？返回回访事件或 null。只在中段触发；每桩已回访过（其 concept
+  // 已进 history）便不再来；须等到触发之后隔 gap 坎。一坎至多回访一桩，按 CALLBACKS 次序。
+  function pendingCallback(turn) {
+    if (turn <= 0 || turn >= TERM - 1) return null;   // 不夺开局、不夺崇祯死弯终局
+    var paid = {};
+    for (var i = 0; i < history.length; i++) paid[history[i].concept] = 1;
+    for (var j = 0; j < CALLBACKS.length; j++) {
+      var cb = CALLBACKS[j];
+      var t0 = flags[cb.chain];
+      if (t0 === undefined) continue;                 // 未触发
+      if (paid[cb.concept]) continue;                 // 已回访过
+      if (turn < t0 + (cb.gap || 2)) continue;        // 还没到该来的时候
+      return cb;
+    }
+    return null;
+  }
+
   // ---- 洗牌，组一局的事件序列 ---------------------------------------------
   function shuffle(a) {
     a = a.slice();
@@ -1337,8 +1657,14 @@
   }
   function buildQueue() {
     var mid = shuffle(POOL).slice(0, TERM - 2);   // 中段随机
-    // 稀有事件：以小概率把一桩「隐事」掺进中段（用本局种子决定，保证同题可复现）
-    if (RARE_POOL.length && rng() < 0.42) {
+    var o = ORIGIN_MAP[origin];
+    var forced = o && o.boostConcept && RARE_BY_CONCEPT[o.boostConcept];
+    if (forced) {
+      // 出身指定的隐事：必掺进中段某坎（如捐纳出身背京债，必遇「京债 · 印子钱」）
+      var atf = 1 + Math.floor(rng() * (mid.length - 1));   // 不占开局第一坎
+      mid[atf] = forced;
+    } else if (RARE_POOL.length && rng() < 0.42) {
+      // 否则：以小概率把一桩「隐事」掺进中段（用本局种子决定，保证同题可复现）
       var rare = RARE_POOL[Math.floor(rng() * RARE_POOL.length)];
       var at = 1 + Math.floor(rng() * (mid.length - 1));   // 不占开局第一坎
       mid[at] = rare;
@@ -1388,13 +1714,144 @@
   }
 
   // ---- 展示一个事件 -------------------------------------------------------
+  // ---- 官场小词典：为事件里的明代专有名词/框架术语挂一句可点开的白话史料注脚 ---------
+  //   寓教于乐，且务求不打断节奏：默认不展开，玩家点了词才现出一张折叠小卡。
+  //   只作用于叙事/结果/注解的正文文本，不碰四维、牌序、结局判定，也不抢抉择焦点。
+  var GLOSSARY = {
+    // — 明代财政 / 官场制度 —
+    "陋规":   { def: "正俸之外那套不成文、却人人照收的规费。不写进律例，衙门却靠它运转。" },
+    "火耗":   { def: "碎银熔铸成整锭有折损，地方便借「火耗」名义在正税外多征，多出的进了官吏私囊。（火耗归公要到雍正才有）" },
+    "常例":   { def: "「历来都这么办」的惯例规费，本质与陋规同——名为惯例，实为加派。" },
+    "炭敬":   { def: "下级冬天孝敬上司的钱，名义是给上司买炭取暖；夏天那一份则叫「冰敬」。" },
+    "印结银": { def: "京官为同乡赴考、候选出具「保结」时收的酬金，是京官灰色收入的一种。" },
+    "京债":   { def: "外放官员上任前向京城放债者借的高利贷，到任后往往只能加倍盘剥百姓来偿还。" },
+    "印子钱": { def: "按日计息、逐期归还的高利贷，因还款要在折子上打印记而得名；京债多是这种。" },
+    "开中":   { def: "明代盐法：招商人把粮草运到边镇，换取贩盐凭证（盐引），以商养边。" },
+    "盐引":   { def: "官府发给盐商的贩盐许可证，凭引才能合法运销官盐——稀缺，又最能寻租。" },
+    "勘合":   { def: "官方文书凭证，验对骑缝章才生效；驿传的勘合，就是调用驿站夫马的通行证。" },
+    "驿传":   { def: "官办的驿站系统，为公务往来提供食宿、车马、夫役——常被过境官员借势私用。" },
+    "卫所":   { def: "明代世袭军事编制，军户屯田自养、平时耕战；日久逃亡严重，只剩下空册。" },
+    "军户":   { def: "被编入军籍、世代充军的人家：一人当兵，全家不得脱籍，是卫所的兵源。" },
+    "空额":   { def: "军册上还挂着已逃亡或死去者的名字，主官照旧冒领他们的粮饷——这叫「吃空额」。" },
+    "漕粮":   { def: "由大运河北运京师的税粮，是京城的命脉，也是层层揩油的肥缺。" },
+    "折色":   { def: "把该征的实物（粮、布）折算成银钱来收，方便，却也给了加价、克扣的空子。" },
+    "淋尖踢斛": { def: "收粮时把量粮的斛堆到冒尖，再猛踢一脚使粮洒出，洒的算「损耗」归吏役——变相加征。" },
+    "黄册":   { def: "明代户口与赋役总册，十年一大造，因封面用黄纸得名；册子一造假，赋役就乱。" },
+    "里甲":   { def: "明代基层赋役编制，约110户为一里、分十甲轮流当差催征，是官府伸进乡里的末梢。" },
+    "飞洒":   { def: "把自家该纳的田赋暗中拆散、摊到别人（多是无力反抗的小户）名下，自己脱身。" },
+    "诡寄":   { def: "把田产假托、挂靠在有免役特权者（如缙绅）名下，以逃避赋役。" },
+    "胥吏":   { def: "衙门里不入流的办事吏员：不随长官调动、通晓实务、把持文案，是最难拆的一环。" },
+    "京察":   { def: "定期考核京官的制度，本为澄清吏治，却常被拿来党同伐异、借考核整人。" },
+    "考成法": { def: "张居正推行的绩效考核法：给钱粮、刑名等公事定下期限，按完成情况考核官员升黜。" },
+    "赃罚银": { def: "抄没的赃款与罚没银两，因无「原主」记账，最易在经手时被私分侵吞。" },
+    "关节":   { def: "科场舞弊里考生与考官私下约定的暗记或门路，凭「通关节」买通取中。" },
+    "三饷":   { def: "崇祯年间加派的辽饷、剿饷、练饷，压垮了本已交不起钱粮的百姓。" },
+    "生祠":   { def: "为还活着的官员立的祠堂供人祭拜：既是民望的顶点，也最容易招上司猜忌。" },
+    "万民伞": { def: "百姓为送别好官所献、伞面署满姓名的伞，是官声的象征。" },
+    // — 框架术语（多出自吴思《潜规则》《血酬定律》）—
+    "潜规则":   { def: "台面下真正管用、人人心照不宣共同遵守的规矩，往往比明文律例更硬。", src: "吴思《潜规则》" },
+    "合法伤害权": { def: "官吏手里那种可以合法地加害于人的权力——正因为能害你，才有人花钱买它「不害」。", src: "吴思《潜规则》" },
+    "淘汰清官": { def: "一整套让不合群的清官处处碰壁、待不下去，最终被挤出局的机制。", src: "吴思《潜规则》" },
+    "冤大头":   { def: "成本一层层往下转嫁后，最终扛下代价、又跑不掉、还没人替他说话的那个人——多半是百姓。" },
+    "崇祯死弯": { def: "王朝末世越催逼、越催逼越崩坏的死循环；崇祯越是勤政，天下反而垮得越快。", src: "吴思《血酬定律》" },
+    "第二等公平": { def: "人人都吃点亏、却谁也不敢先退出的次优稳定局面——不是最好，却最稳。" },
+    "寻租":   { def: "不靠创造价值，而靠垄断权力设卡、放行来收费牟利。" },
+    "委托代理": { def: "上级委托下级办事，因看不清下级实情，下级便有了替自己捞好处的空子。" }
+  };
+  // 别名 → 词条正名（同一术语的不同写法都点向同一张卡）
+  var TERM_ALIAS = { "冰敬": "炭敬", "吃空额": "空额", "淘汰清官机制": "淘汰清官", "火耗归公": "火耗" };
+  function termCanon(t) { return TERM_ALIAS[t] || t; }
+  // 词典正则：正名 + 别名，一律「长词优先」，免得「淘汰清官机制」被「淘汰清官」抢先截断
+  var TERM_RE = (function () {
+    var list = [];
+    for (var k in GLOSSARY) list.push(k);
+    for (var a in TERM_ALIAS) list.push(a);
+    list.sort(function (x, y) { return y.length - x.length; });
+    return new RegExp(list.join("|"), "g");
+  })();
+
+  // 把一段已渲染的文本里出现的词条包成可点的 .term 按钮（每个词条本事件只挂头一处，免得满屏下划线）。
+  //   走文本节点、跳过 .tag/.term/.termcard 内部，故绝不破坏既有 HTML（如注解里的〔潜规则标签〕）。
+  function annotateTerms(root, seen) {
+    if (!root) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        var p = n.parentNode;
+        while (p && p !== root) {
+          if (p.classList && (p.classList.contains("tag") || p.classList.contains("term") || p.classList.contains("termcard")))
+            return NodeFilter.FILTER_REJECT;
+          p = p.parentNode;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    }, false);
+    var nodes = [], node;
+    while ((node = walker.nextNode())) nodes.push(node);
+    nodes.forEach(function (tn) {
+      var text = tn.nodeValue, m, last = 0, wrapped = false;
+      var frag = document.createDocumentFragment();
+      TERM_RE.lastIndex = 0;
+      while ((m = TERM_RE.exec(text))) {
+        var term = m[0], canon = termCanon(term);
+        if (seen[canon]) continue;            // 本事件已挂过：留作普通文字（并入后续切片）
+        seen[canon] = true;
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "term"; b.textContent = term;
+        b.setAttribute("data-term", canon);
+        b.setAttribute("aria-expanded", "false");
+        b.setAttribute("aria-label", "官场词典：" + term + "，点开释义");
+        frag.appendChild(b);
+        last = m.index + term.length;
+        wrapped = true;
+      }
+      if (!wrapped) return;
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      tn.parentNode.replaceChild(frag, tn);
+    });
+  }
+
+  // 点开/收起一张词条小卡（就地插在词后，像脚注一样）——不影响抉择，纯读注解
+  function toggleTerm(btn) {
+    var nxt = btn.nextSibling;
+    if (nxt && nxt.nodeType === 1 && nxt.classList.contains("termcard")) {
+      nxt.parentNode.removeChild(nxt);
+      btn.setAttribute("aria-expanded", "false");
+      return;
+    }
+    var canon = btn.getAttribute("data-term"), g = GLOSSARY[canon];
+    if (!g) return;
+    var card = document.createElement("span");
+    card.className = "termcard";
+    card.innerHTML = "<b>" + esc(canon) + "</b> " + esc(g.def) +
+      (g.src ? "<span class='termsrc'>—— " + esc(g.src) + "</span>" : "");
+    btn.parentNode.insertBefore(card, btn.nextSibling);
+    btn.setAttribute("aria-expanded", "true");
+    announce(canon + "：" + g.def + (g.src ? "。出处 " + g.src : ""));
+  }
+
+  // 一次点击代理，兜住事件卡里所有词条按钮（叙事、结果、潜规则注解共用）
+  el("event-card").addEventListener("click", function (e) {
+    var t = e.target;
+    while (t && t !== this && !(t.classList && t.classList.contains("term"))) t = t.parentNode;
+    if (t && t !== this && t.classList.contains("term")) toggleTerm(t);
+  });
+
+  var annotSeen = {};   // 当前事件已挂过的词条（叙事阶段与结果阶段共用，一词只挂一处）
+
   function showEvent() {
     current = queue[turn];
+    // 连锁回访：若先前某抉择埋下的账「到期」了，就用专属回访事件顶替本坎所见（不动牌序）
+    var cb = pendingCallback(turn);
+    if (cb) current = cb;
     var conceptEl = el("ev-concept");
-    conceptEl.textContent = (current.rare ? "✦ 稀有 · " : "") + current.concept;
+    conceptEl.textContent = (current.rare ? "✦ 稀有 · " : "") + (current.callback ? "↩ 前情回访 · " : "") + current.concept;
     conceptEl.classList.toggle("rare", !!current.rare);
+    conceptEl.classList.toggle("callback", !!current.callback);
     el("ev-title").textContent = current.title;
     el("ev-text").textContent = current.text;
+    annotSeen = {};                          // 每坎重置：叙事阶段起，为本事件挂词典注脚
+    annotateTerms(el("ev-text"), annotSeen);
     el("ev-verdict").classList.add("hidden");
     var box = el("ev-choices");
     box.innerHTML = "";
@@ -1447,6 +1904,8 @@
 
     // 记下这一步走法，任满/出局时回放成「施政轨迹」
     history.push({ concept: current.concept, lab: c.lab, fx: fx, climax: current === CLIMAX, rare: !!current.rare });
+    // 埋下连锁标记：这一步若是触发型抉择，记下它，稍后招来专属回访（记首次触发的回合）
+    if (c.flag && flags[c.flag] === undefined) flags[c.flag] = turn;
 
     // 影响条
     var chips = Object.keys(fx).map(function (k) {
@@ -1459,10 +1918,12 @@
 
     // 默认只叙事：这一步后世界里发生了什么
     el("ev-outcome").textContent = c.outcome || "";
+    annotateTerms(el("ev-outcome"), annotSeen);   // 结果里的名词也挂上词典注脚（沿用本事件已挂集）
 
     // 「潜规则」注解收起来，想看的人自己点开——不再逢选必说教
     var note = el("ev-note");
     note.innerHTML = c.note || "";
+    annotateTerms(note, annotSeen);               // 注解正文里的名词同样可点（〔潜规则标签〕不动）
     note.classList.add("hidden");
     var rev = el("ev-reveal");
     rev.textContent = REVEAL_HINT;
@@ -1689,10 +2150,11 @@
       ach: freshAch.map(function (a) { return a.name; }),
       records: recNames.slice()
     };
-    // 同题较量：亮出本局牌序，让人拿同一副牌来比
+    // 同题较量：亮出本局出身与牌序，让人拿同一副牌、同一出身来比
     el("end-seedline").innerHTML =
-      "本局牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
-      "「同题再来」或「晒出下场」里的链接，能让别人接到同一副牌。";
+      "本局出身 <span class=\"mono\">" + esc(originLabel()) + "</span>　·　" +
+      "牌序 <span class=\"mono\">" + esc(currentSeed) + "</span>　·　" +
+      "「同题再来」或「晒出下场」里的链接，能让别人接到同一副牌、同一出身。";
     SFX.end(DEAD_ENDINGS[key]);
     // 出局：一串沉重的震；任满：一记短震收束（移动端）
     haptic(DEAD_ENDINGS[key] ? [90, 60, 140] : 40);
@@ -1720,11 +2182,12 @@
     var n = ENDING_ORDER.filter(function (k) { return got[k]; }).length;
     var hl = runHighlights();
     return "《大明王朝·潜规则生存模拟》\n" +
+      "我的出身：" + originLabel() + "\n" +
       "我的下场：" + title + "\n" +
       "🎏乌纱 " + S.wusha + "　🧑‍🌾民心 " + S.minxin + "　⚖️清誉 " + S.qingyu + "　💰白银 " + S.silver + " 两\n" +
       (hl.length ? "🏅本局高光：" + hl.join("　·　") + "\n" : "") +
       "结局图鉴 " + n + "/" + ENDING_ORDER.length + " —— 你能走出哪个下场？\n" +
-      "🎯 敢接同一副牌（牌序 " + currentSeed + "）就点这里：\n" +
+      "🎯 敢接同一副牌、同一出身（牌序 " + currentSeed + "）就点这里：\n" +
       "▶ " + challengeUrl();
   }
   function showToast(msg) {
@@ -1994,19 +2457,19 @@
   //   只存「牌序 + 走到第几坎 + 四维属性 + 走过的选择 + 是否今日同题」。
   //   事件序列本就由牌序确定地推出，所以续玩时用同一牌序重建牌堆即可完全复现，
   //   不另存牌堆、也不动种子/同题语义。快照落在「每坎开局、尚未落笔」这一刻。
-  var SAVE_KEY = "daming_wangchao_save_v1";
+  var SAVE_KEY = "daming_wangchao_save_v2";   // v2：存档加入本局出身 origin
   function loadSave() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || null; } catch (e) { return null; } }
   function writeSave() {
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        ver: 1, seed: currentSeed, turn: turn, S: S, history: history, daily: playedAsDaily
+        ver: 2, seed: currentSeed, origin: origin, turn: turn, S: S, history: history, daily: playedAsDaily
       }));
     } catch (e) { /* 隐私模式等，无所谓 */ }
   }
   function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
   // 有效的续玩存档：版本对、牌序在、已走过至少一坎、尚未任满、属性齐全
   function validSave(sv) {
-    return !!sv && sv.ver === 1 && typeof sv.seed === "string" && sv.seed.length >= 3 &&
+    return !!sv && sv.ver === 2 && typeof sv.seed === "string" && sv.seed.length >= 3 &&
       typeof sv.turn === "number" && sv.turn >= 1 && sv.turn < TERM &&
       sv.S && typeof sv.S.wusha === "number" && Array.isArray(sv.history);
   }
@@ -2015,11 +2478,14 @@
     if (!validSave(sv)) { el("btn-resume").classList.add("hidden"); return; }
     playedAsDaily = !!sv.daily;
     currentSeed = normalizeSeed(sv.seed);
+    origin = (sv.origin && ORIGIN_MAP[sv.origin]) ? sv.origin : originFromSeed(currentSeed);
     rng = makeRng(currentSeed);                 // 同一牌序 → 重建出完全相同的牌堆
     el("game-seed").textContent = "牌序 " + currentSeed;
-    S = Object.assign({}, START, sv.S);
+    el("game-origin").textContent = originLabel();
+    S = Object.assign({}, effectiveStart(), sv.S);
     history = sv.history.slice();
-    queue = buildQueue();
+    flags = flagsFromHistory(history);          // 从已走过的抉择确定性地重建连锁标记
+    queue = buildQueue();                        // 出身已定，京债等指定隐事随之复现
     turn = sv.turn;
     el("screen-title").classList.add("hidden");
     el("screen-end").classList.add("hidden");
@@ -2030,14 +2496,21 @@
   }
 
   // ---- 开局 / 重开 --------------------------------------------------------
-  function startGame(seed) {
+  //   forcedOrigin：同题/挑战/同题再来时锁定身份（由牌序或分享链接指定，保证公平复现）；
+  //   自由局不传，取标题页选中的出身 selectedOrigin，再兜底为牌序推出的身份。
+  function startGame(seed, forcedOrigin) {
     playedAsDaily = false;                 // 默认非「今日同题」；由 btn-daily 覆盖
     currentSeed = (seed && normalizeSeed(seed)) || randomSeed();
+    origin = (forcedOrigin && ORIGIN_MAP[forcedOrigin]) ? forcedOrigin
+           : (selectedOrigin && ORIGIN_MAP[selectedOrigin]) ? selectedOrigin
+           : originFromSeed(currentSeed);
     rng = makeRng(currentSeed);
     el("game-seed").textContent = "牌序 " + currentSeed;
-    S = Object.assign({}, START);
+    el("game-origin").textContent = originLabel();
+    S = Object.assign({}, effectiveStart());   // 起手四维随出身而定
     turn = 0;
     history = [];
+    flags = {};                            // 新局清空连锁标记
     queue = buildQueue();
     el("screen-title").classList.add("hidden");
     el("screen-end").classList.add("hidden");
@@ -2046,13 +2519,21 @@
     showEvent();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  // 从标题页开局：若 URL 带了 ?seed=，就接下那副牌，否则发一副新牌
-  function startFromTitle() { startGame(urlSeed || null); }
+  // 从标题页开局：若 URL 带了 ?seed=（同题挑战），就接下那副牌、并按链接指定的身份开局；
+  // 否则发一副新牌，用玩家选中的出身。
+  function startFromTitle() {
+    if (urlSeed) startGame(urlSeed, originParam || originFromSeed(urlSeed));
+    else startGame(null);
+  }
 
   el("btn-start").addEventListener("click", startFromTitle);
-  el("btn-restart").addEventListener("click", function () { startGame(null); });   // 换一副新牌
-  el("btn-replay").addEventListener("click", function () { startGame(currentSeed); }); // 同一副牌再战
-  el("btn-daily").addEventListener("click", function () { startGame(dailySeed()); playedAsDaily = true; }); // 今日同题（走完计入连胜）
+  el("btn-restart").addEventListener("click", function () { startGame(null); });   // 换一副新牌（用当前选中出身）
+  el("btn-replay").addEventListener("click", function () { startGame(currentSeed, origin); }); // 同一副牌＋同出身再战
+  el("btn-daily").addEventListener("click", function () {   // 今日同题：牌序与身份都由当日牌局锁定，全网一致
+    var s = dailySeed();
+    startGame(s, originFromSeed(s));
+    playedAsDaily = true;
+  });
 
   // ---- 音效开关 -----------------------------------------------------------
   function syncSfxBtn() {
@@ -2119,6 +2600,61 @@
       }
     }
   });
+
+  // ---- 标题页：开局出身选择组件 -------------------------------------------
+  //   自由局可自由择一；同题挑战（?seed=）则锁定为牌局指定的身份，只展示不可改。
+  var ORIGIN_LOCKED = !!urlSeed;   // 接了战书就锁定身份，保证同题公平
+  function fmtOriginDelta(d) {
+    var order = [["wusha", "乌纱"], ["minxin", "民心"], ["qingyu", "清誉"], ["silver", "库银"]];
+    var parts = [];
+    order.forEach(function (p) {
+      var v = d[p[0]] || 0;
+      if (!v) return;
+      parts.push('<span class="' + (v > 0 ? "up" : "down") + '">' + p[1] + (v > 0 ? "+" : "") + v + "</span>");
+    });
+    return parts.join(" · ");
+  }
+  function renderOriginDetail() {
+    var o = ORIGIN_MAP[selectedOrigin] || ORIGINS[0];
+    var lock = ORIGIN_LOCKED ? '<span class="locknote">（本局同题 · 身份由牌局指定）</span><br>' : "";
+    el("origin-detail").innerHTML =
+      lock + esc(o.bg) + '<br><span class="stat-delta">起手：' + fmtOriginDelta(o.delta) + "</span>";
+  }
+  function selectOrigin(id) {
+    if (ORIGIN_LOCKED || !ORIGIN_MAP[id]) return;
+    selectedOrigin = id;
+    var cards = el("origin-cards").children;
+    for (var i = 0; i < cards.length; i++) {
+      var on = ORIGINS[i].id === id;
+      cards[i].classList.toggle("sel", on);
+      cards[i].setAttribute("aria-checked", on ? "true" : "false");
+    }
+    renderOriginDetail();
+  }
+  (function initOriginPicker() {
+    // 同题挑战锁定为牌局指定身份；否则默认选中「科甲正途」，玩家可改
+    selectedOrigin = ORIGIN_LOCKED ? (originParam || originFromSeed(urlSeed)) : ORIGINS[0].id;
+    var wrap = el("origin-cards");
+    if (ORIGIN_LOCKED) wrap.classList.add("locked");
+    ORIGINS.forEach(function (o) {
+      var c = document.createElement("div");
+      c.className = "origin-card" + (o.id === selectedOrigin ? " sel" : "");
+      c.setAttribute("role", "radio");
+      c.setAttribute("aria-checked", o.id === selectedOrigin ? "true" : "false");
+      c.setAttribute("aria-label", o.name + " · " + o.sub);
+      if (!ORIGIN_LOCKED) c.setAttribute("tabindex", "0");
+      c.innerHTML = '<span class="emo">' + o.emo + '</span><span class="nm">' + esc(o.name) +
+        '</span><span class="sub">' + esc(o.sub) + "</span>";
+      if (!ORIGIN_LOCKED) {
+        c.addEventListener("click", function () { selectOrigin(o.id); });
+        c.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); selectOrigin(o.id); }
+        });
+      }
+      wrap.appendChild(c);
+    });
+    renderOriginDetail();
+  })();
 
   // ---- 初始化：上一任没走完，标题页亮出「继续上一任」------------------------
   (function initResume() {
