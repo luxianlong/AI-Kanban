@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>卷宗系统的三张 DDD 图</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#F5F4F0; --surface:#FFFFFF; --plate:#F3F1EA;
+    --ink:#191C20; --ink-2:#4C555F; --ink-3:#79828D;
+    --rule:#DCD9D1; --rule-2:#C7C3B8;
+    --blue:#2C4A7C; --blue-soft:#E4EAF3;
+    --red:#A82730; --red-soft:#F5E3E3;
+    --amber:#8A6A22; --amber-soft:#F4EBD6;
+    --shadow:0 1px 2px rgba(25,28,32,.06),0 8px 24px rgba(25,28,32,.05);
+    --display:"Noto Serif SC",Songti SC,STSong,serif;
+    --body:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#14161A; --surface:#1B1E23; --plate:#EDEBE4;
+      --ink:#E9E7E1; --ink-2:#AAB2BC; --ink-3:#7C858F;
+      --rule:#2A2E35; --rule-2:#3A3F47;
+      --blue:#8FADDD; --blue-soft:#1F2A3B;
+      --red:#E4838A; --red-soft:#33201F;
+      --amber:#D4B463; --amber-soft:#2C2517;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14161A; --surface:#1B1E23; --plate:#EDEBE4;
+    --ink:#E9E7E1; --ink-2:#AAB2BC; --ink-3:#7C858F;
+    --rule:#2A2E35; --rule-2:#3A3F47;
+    --blue:#8FADDD; --blue-soft:#1F2A3B;
+    --red:#E4838A; --red-soft:#33201F;
+    --amber:#D4B463; --amber-soft:#2C2517;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+  }
+
+  body{background:var(--paper);color:var(--ink);font-family:var(--body);
+       line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:78ch;margin:0 auto;padding:clamp(28px,5vw,72px) clamp(18px,4vw,32px) 96px;
+        display:flex;flex-direction:column;gap:0;}
+
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+           color:var(--ink-3);margin:0 0 14px;}
+  h1{font-family:var(--display);font-size:clamp(30px,5.2vw,44px);line-height:1.22;margin:0 0 18px;
+     text-wrap:balance;letter-spacing:-.01em;font-weight:700;}
+  .standfirst{font-size:17.5px;color:var(--ink-2);margin:0;text-wrap:pretty;max-width:62ch;}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:22px;
+        padding-top:16px;border-top:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:6px 20px;}
+
+  section{margin-top:64px;}
+  .lens{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;}
+  .lens-tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+            color:var(--blue);border:1px solid var(--rule-2);border-radius:2px;padding:2px 7px;
+            white-space:nowrap;}
+  h2{font-family:var(--display);font-size:clamp(21px,3.2vw,27px);line-height:1.35;margin:0;
+     font-weight:600;text-wrap:balance;}
+  .subtitle{color:var(--ink-2);font-size:15px;margin:8px 0 0;max-width:64ch;}
+
+  p{margin:16px 0;text-wrap:pretty;}
+  strong{font-weight:600;}
+  code{font-family:var(--mono);font-size:.87em;background:var(--blue-soft);color:var(--ink);
+       padding:1.5px 5px;border-radius:3px;}
+
+  /* 图版:两种主题下都用纸色 —— 这是有意的,图是"附在卷宗里的印张" */
+  .plate{background:var(--plate);border:1px solid var(--rule-2);border-radius:3px;
+         margin:26px 0 10px;overflow-x:auto;box-shadow:var(--shadow);}
+  .plate .mermaid{padding:26px 20px;min-width:560px;display:flex;justify-content:center;}
+  .plate-cap{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin:0 0 26px;
+             padding-left:2px;}
+
+  .finding{border-left:3px solid var(--red);background:var(--red-soft);padding:16px 20px;
+           margin:26px 0;border-radius:0 3px 3px 0;}
+  .finding .flabel{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                   color:var(--red);display:block;margin-bottom:7px;}
+  .finding p{margin:0 0 10px;font-size:15.3px;}
+  .finding p:last-child{margin-bottom:0;}
+
+  .note{border-left:3px solid var(--rule-2);padding:14px 20px;margin:26px 0;color:var(--ink-2);font-size:15px;}
+  .note p{margin:0 0 10px;} .note p:last-child{margin:0;}
+
+  table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14.5px;}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top;}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+     color:var(--ink-3);font-weight:500;border-bottom:1px solid var(--rule-2);}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .tw{overflow-x:auto;}
+
+  /* 核心域图:自己画的散点 */
+  .chart{position:relative;background:var(--surface);border:1px solid var(--rule-2);border-radius:3px;
+         margin:26px 0 10px;padding:30px 30px 46px 62px;box-shadow:var(--shadow);}
+  .grid-box{position:relative;height:330px;border-left:1.5px solid var(--rule-2);
+            border-bottom:1.5px solid var(--rule-2);}
+  .quad{position:absolute;inset:0;pointer-events:none;}
+  .quad span{position:absolute;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
+             color:var(--ink-3);text-transform:uppercase;}
+  .midv{position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed var(--rule);}
+  .midh{position:absolute;top:50%;left:0;right:0;border-top:1px dashed var(--rule);}
+  .dot{position:absolute;transform:translate(-50%,50%);display:flex;align-items:center;gap:8px;
+       max-width:46%;}
+  .dot span{display:flex;flex-direction:column;line-height:1.3;}
+  .dot i{width:13px;height:13px;border-radius:50%;display:block;flex:none;
+         border:2px solid var(--surface);box-shadow:0 0 0 1.5px currentColor;}
+  .dot b{font-size:13.5px;font-weight:600;white-space:nowrap;color:var(--ink);}
+  .dot em{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);font-style:normal;white-space:nowrap;}
+  .c-core{color:var(--red);} .c-core i{background:var(--red);}
+  .c-supp{color:var(--blue);} .c-supp i{background:var(--blue);}
+  .c-gen{color:var(--ink-3);} .c-gen i{background:var(--ink-3);}
+  .ax{position:absolute;font-family:var(--mono);font-size:11px;color:var(--ink-2);letter-spacing:.04em;}
+  .ax-x{bottom:16px;left:50%;transform:translateX(-50%);}
+  .ax-y{left:16px;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:20px;font-size:13px;color:var(--ink-2);}
+  .legend span{display:flex;align-items:center;gap:7px;}
+  .legend i{width:10px;height:10px;border-radius:50%;display:block;}
+
+  ul{padding-left:20px;margin:16px 0;} li{margin:7px 0;}
+  a{color:var(--blue);}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">AI Org · 架构审阅</p>
+    <h1>卷宗系统的三张 DDD 图</h1>
+    <p class="standfirst">上下文映射、核心域图、聚合图 —— 三张图不是同一件事的三种画法,是三个不同的问题:边界在哪、钱该投哪、模型长什么样。全部照着实际代码画,不是照着理想画。</p>
+    <div class="meta">
+      <span>2026-08-29</span><span>代理任务 #80</span>
+      <span>5 个限界上下文 · 2,934 行</span><span>共享内核 300 行</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="lens"><span class="lens-tag">战略 · 边界</span></div>
+    <h2>一、上下文映射图</h2>
+    <p class="subtitle">五个限界上下文,以及它们之间真正的集成方式 —— 不是设想的方式。</p>
+
+    <div class="plate"><pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'background':'#F3F1EA','primaryColor':'#FFFFFF','primaryTextColor':'#191C20','primaryBorderColor':'#8A93A0','lineColor':'#6B7480'}}}%%
+flowchart TB
+  K["共享内核 domain/<br/>Fact · FactGrade · Dossier<br/>SourceAdapter 端口 · events"]
+  X["外部平台<br/>微博 知乎 谷歌 SEC"]
+  D["发现 discovery<br/>热榜 · 新闻 · 全网检索"]
+  S["选题 selection<br/>四道硬门槛"]
+  I["侦查 investigation<br/>原件落盘 · 工作流采集"]
+  Q["质量 quality<br/>引语闸门 · 禁写清单"]
+  V["交付 delivery<br/>渲染 · 发布"]
+
+  X -->|"防腐层 SourceAdapter"| D
+  D -->|"hot.json"| S
+  S -->|"candidates.json"| I
+  I -->|"raw/ 与 facts.jsonl"| Q
+  Q -->|"answer.md"| V
+
+  K -.-> D
+  K -.-> S
+  K -.-> Q
+  K -.-> V
+  K -. "未共享" .-> I
+
+  style K fill:#F4EBD6,stroke:#8A6A22
+  style Q fill:#F5E3E3,stroke:#A82730
+  style I fill:#FFFFFF,stroke:#A82730,stroke-dasharray:4 3
+  style X fill:#E9E7E2,stroke:#8A93A0
+    </pre></div>
+    <p class="plate-cap">图版一 · 实线=交接物(文件名即契约),虚线=依赖共享内核,侦查那条虚线是「未共享」</p>
+
+    <p>三件事值得单独说,因为它们和「标准 DDD 图」长得不一样,而且都是实测出来的:</p>
+
+    <p><strong>上下文之间零代码耦合。</strong>全项目 <code>grep</code> 跨上下文 import,结果是 0 ——
+    每个上下文只 import 自己和共享内核。集成**全部通过文件**:<code>hot.json</code>、
+    <code>candidates.json</code>、<code>raw/</code>、<code>facts.jsonl</code>、<code>answer.md</code>。
+    这不是缺陷,是这个系统的真实形态:交接物即契约,而且交接物在磁盘上,冷启动后还在。</p>
+
+    <p><strong>防腐层是 <code>SourceAdapter</code>。</strong>微博、知乎、谷歌各有各的字段,
+    适配器把它们归一成 <code>Item</code>,外部模型进不了内部。端口在共享内核,实现在各上下文的
+    <code>infrastructure/</code> —— 端口在内、适配器在外。</p>
+
+    <div class="finding">
+      <span class="flabel">审阅发现 · 共享内核没共享给最该共享的那个</span>
+      <p><strong>侦查上下文 import 共享内核的次数是 0。</strong>但它恰恰是 <code>facts.jsonl</code> 的生产者 ——
+      而那份文件是整条分级红线的载体,质量上下文的禁写清单完全建立在它上面。</p>
+      <p>侦查写事实用的是裸 dict 字面量,不是 <code>Fact</code> 类型。于是**词表漂移没有任何拦截点**。
+      它已经真的发生了:侦查提示词里写了「倒推的数一律标【推算】」,agent 照做,
+      内核不认识这个词,两条事实的 <code>grade</code> 静默变成 <code>None</code>。</p>
+      <p>幸运的是失败方向是安全的(<code>grade=None</code> → 不可引用),但那是运气,不是设计。</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="lens"><span class="lens-tag">投资 · 优先级</span></div>
+    <h2>二、核心域图</h2>
+    <p class="subtitle">把五个子域按「业务差异化」和「复杂度」摆开,回答一个问题:工程精力该投哪。</p>
+
+    <div class="chart">
+      <div class="grid-box">
+        <div class="midv"></div><div class="midh"></div>
+        <div class="quad">
+          <span style="left:8px;top:-20px;">核心域 ↑ 自己造</span>
+          <span style="right:8px;top:8px;">投入最大</span>
+          <span style="left:8px;bottom:-4px;">通用域 ↓ 能买就买</span>
+          
+        </div>
+        <div class="dot c-core" style="left:34%;bottom:88%;"><i></i><span><b>侦查</b><em>领域层 0 行 ⚠</em></span></div>
+        <div class="dot c-core" style="left:62%;bottom:72%;"><i></i><span><b>质量</b><em>领域层 231 行</em></span></div>
+        <div class="dot c-supp" style="left:30%;bottom:58%;"><i></i><span><b>选题</b><em>领域层 126 行</em></span></div>
+        <div class="dot c-supp" style="left:46%;bottom:34%;"><i></i><span><b>发现</b><em>领域层 150 行</em></span></div>
+        <div class="dot c-gen" style="left:24%;bottom:12%;"><i></i><span><b>交付</b><em>领域层 0 行</em></span></div>
+        <div class="ax ax-x">复杂度 →</div>
+        <div class="ax ax-y">业务差异化 →</div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--red)"></i>核心域</span>
+        <span><i style="background:var(--blue)"></i>支撑域</span>
+        <span><i style="background:var(--ink-3)"></i>通用域</span>
+      </div>
+    </div>
+    <p class="plate-cap">图版二 · 位置是判断,不是测量;括号里的行数是实测</p>
+
+    <p>差异化这一轴的判据是:<strong>换成任何一个通用工具,这件事会不会立刻塌掉。</strong>
+    引语闸门会——没有别的工具会拿成稿里每一处引号去和原件做子串比对。
+    发布会渲染 HTML 的东西满地都是,所以交付在最下面。</p>
+
+    <div class="finding">
+      <span class="flabel">审阅发现 · 核心域投资不足</span>
+      <p><strong>侦查是差异化最高的子域,但它在代码里有 0 行领域层。</strong>
+      整个系统的教义是「质量来自一手材料的独占性」,而实现这条教义的载体回溯清单 ——
+      读原文首尾三行、展开每个 URL、跟 301、取平台原生 JSON、拿提交历史、读导航栏目 ——
+      那 12 条穷举规则**一条都不在代码里**,它们住在技能文档和提示词里。</p>
+      <p>代码里的侦查只剩 391 行纯基础设施:curl、PDF 抽取、工作流采集。
+      换句话说,<strong>最值钱的那部分领域知识,目前靠 agent 每次自觉照做。</strong>
+      这正是「破例」发生的地方——选题上曾因为规则不在代码里而破例 5 次、5 次颗粒无收,
+      后来把四道门槛写进 <code>scout.py</code> 才止住。侦查还没走到那一步。</p>
+    </div>
+
+    <div class="note">
+      <p>这张图也解释了为什么<strong>侦查和交付整体落在基础设施层是诚实的、但不是终点</strong>:
+      交付本来就该是通用域,永远不长领域层没关系;侦查不长,是欠账。</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="lens"><span class="lens-tag">战术 · 模型</span></div>
+    <h2>三、聚合图</h2>
+    <p class="subtitle">单个边界内部的模型:卷宗聚合、它的不变式,以及分级红线的唯一定义处。</p>
+
+    <div class="plate"><pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'background':'#F3F1EA','primaryColor':'#FFFFFF','primaryTextColor':'#191C20','primaryBorderColor':'#8A93A0','lineColor':'#6B7480'}}}%%
+classDiagram
+  class Dossier {
+    聚合根
+    +Path path
+    +facts()
+    +forbidden()
+  }
+  class Fact {
+    值对象 frozen
+    +claim
+    +grade
+    +verbatim
+    +usable_in_draft
+    +derived
+    +quotable()
+  }
+  class FactGrade {
+    枚举 红线定义处
+    实 / 实·单方
+    网 / 传 / 假
+    +writable()
+    +needs_attribution()
+  }
+  class Item {
+    值对象 frozen
+    +source +title
+    +heat +url
+  }
+  class SourceAdapter {
+    端口 ABC
+    +emit_js()
+    +normalize()
+  }
+  Dossier "1" *-- "0..*" Fact
+  Fact --> FactGrade
+  SourceAdapter ..> Item
+    </pre></div>
+    <p class="plate-cap">图版三 · 每个类的第一行是构造型;<code>Draft</code> 与四条 <code>Spec</code> 属质量上下文,不在本图</p>
+
+    <p>这个聚合只有一条真正的不变式,但它是整个系统里最重要的一行代码:</p>
+
+    <div class="tw"><table>
+      <tr><th>不变式</th><th>在哪</th><th>为什么是它</th></tr>
+      <tr><td>【网】【传】【假】不得进成稿</td><td class="num">FactGrade.writable</td>
+          <td>红线只在这里定义一次。规格只做判断,不重新解释分级。</td></tr>
+      <tr><td>禁写清单 = 有原话且不可引</td><td class="num">Dossier.forbidden()</td>
+          <td>判据是 <code>quotable</code>(分级+禁写双条件),不是 <code>usable_in_draft</code> 单条。</td></tr>
+      <tr><td>【实·单方】只能写「他说」</td><td class="num">needs_attribution</td>
+          <td>核实的是「他说了」,不是「这是真的」。</td></tr>
+    </table></div>
+
+    <div class="note">
+      <p><strong>为什么没有仓储层。</strong>持久化就是文件系统,<code>runs/&lt;id&gt;/</code> 本身就是聚合边界。
+      加一层 Repository 只会让「卷宗即记忆」这件事更难验证 —— 冷启动后能不能靠目录本身恢复上下文,
+      是这个系统的硬指标。</p>
+      <p><strong>为什么没有事件总线。</strong><code>events</code> 是一条 append-only JSONL,没有订阅者、没有重放。
+      它存在的唯一理由:过规格和发布这两个时刻以前只 print 不落盘,
+      导致「哪些成稿过了规格却没发」根本答不出来。</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="lens"><span class="lens-tag">本次审阅</span></div>
+    <h2>四、改了什么,还欠什么</h2>
+
+    <p><strong>已改:把「分级」和「推导方式」分开。</strong>
+    <code>推算</code> 被当成分级词写进了卷宗,而它根本不是可信度等级 ——
+    分级问「这条信息可信到什么程度」,推导问「这个数是抄来的还是算出来的」。
+    两件事正交:一个倒推值完全可以是从【实】原件里算出来的。
+    现在 <code>Fact</code> 有独立的 <code>derived</code> 字段,
+    <code>parse()</code> 认得那几个推导词并给出说得清的报错,历史写法自动兼容。</p>
+
+    <div class="tw"><table>
+      <tr><th>欠账</th><th>影响</th><th>下一步</th></tr>
+      <tr><td>侦查不用共享内核,裸 dict 写事实</td><td>词表漂移无拦截点(已发生一次)</td>
+          <td>让 <code>harvest_flow</code> 经 <code>Fact</code> 落盘</td></tr>
+      <tr><td>核心域 0 行领域层</td><td>载体回溯靠 agent 自觉,会破例</td>
+          <td>把回溯清单里可判定的部分写成代码</td></tr>
+      <tr><td>选题门槛已停用但仍在算</td><td>判定写进 <code>ok/reject</code> 供人工看</td>
+          <td>按需恢复,不动模型</td></tr>
+    </table></div>
+
+    <p class="plate-cap" style="margin-top:34px;border-top:1px solid var(--rule);padding-top:16px;">
+      三张图均由 <code>domain/</code> 与 <code>contexts/</code> 实际代码取数 · 行数与 import 关系为 grep 实测 ·
+      配套 <code>contexts/README.md</code> 记录分层约定</p>
+  </section>
+
+</div>
+
+
+<script src="/vendor/mermaid.min.js" defer></script>
+<script src="/vendor/mermaid-init.js" defer></script>
+</body>
+</html>
