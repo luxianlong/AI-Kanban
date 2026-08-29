@@ -69,19 +69,5 @@
       "docs/daming-wangchao.md",
       "frontend/public/docs/daming-wangchao.html"
     ]
-  },
-  {
-    "id": "qianguize-haowanban",
-    "title": "潜规则·好玩版：一句话能转发的中国官场生存游戏",
-    "href": "/docs/qianguize-haowanban.html",
-    "deletable": true,
-    "file": "docs/qianguize-haowanban.md",
-    "updatedAt": "2026-07-18T12:54:53.291Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "docs/qianguize-haowanban.md",
-      "frontend/public/docs/qianguize-haowanban.html"
-    ]
   }
 ]
