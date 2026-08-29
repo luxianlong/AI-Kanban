@@ -32,13 +32,14 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Creates <em>stories</em> — a high-level goal the worker decomposes into an
- * ordered chain of tasks. Creating a story files one {@code storyPlanner} seed
- * (see {@link #create}); when the worker runs it, the agent appends concrete step
- * tasks via {@link #addStep}, each tagged with the shared {@code storyId} and its
- * position in the chain. The worker then runs the steps one at a time, in order (a
- * step waits until every earlier step in its story is RESOLVED). Everything else
- * (listing, live logs, delete, retry) reuses the existing todo API.
+ * Creates <em>stories</em> — a named category tasks are filed under. Creating one
+ * writes nothing but the story itself (see {@link #create}): no task is generated,
+ * so a brand-new story starts empty. Tasks join it afterwards — auto-classified on
+ * creation, filed by hand from the drawer, or appended via {@link #addStep} — each
+ * tagged with the shared {@code storyId} and its position in the chain. The worker
+ * then runs the steps one at a time, in order (a step waits until every earlier
+ * step in its story is RESOLVED). Everything else (listing, live logs, delete,
+ * retry) reuses the existing todo API.
  */
 @RestController
 @RequestMapping("/api/stories")
@@ -147,30 +148,19 @@ public class StoryController {
     }
 
     /**
-     * Create a story from a single one-line goal. Instead of taking pre-written
-     * steps, this files ONE planner task: a seed tagged with a fresh storyId and
-     * marked {@code storyPlanner}. It's queued (PENDING) immediately, so the worker
-     * picks it up on its next poll and decomposes the goal into concrete step tasks
-     * (filed under the same storyId, queued and run in chain order).
+     * Create a story from its name alone. A story is <em>just a category</em>: this
+     * creates NO task — not a step, not a planner seed — it only persists the story
+     * container, so the new story shows up on the board empty and costs nothing to
+     * declare. Tasks arrive later (auto-classified into it on creation, filed by
+     * hand, or appended via {@link #addStep}). Returns the new, step-less story.
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TodoResponse create(@Valid @RequestBody CreateStoryRequest req) {
+    public StoryResponse create(@Valid @RequestBody CreateStoryRequest req) {
         String storyId = UUID.randomUUID().toString();
         String name = req.name().trim();
-        // Persist the story container first, so the story exists in its own right
-        // (and survives with no tasks) independently of the planner/step todos.
-        storyRepository.save(new Story(storyId, name));
-        Todo planner = new Todo();
-        planner.setTitle(name);
-        planner.setDescription(req.description());
-        planner.setStoryId(storyId);
-        planner.setStoryName(name);
-        planner.setStoryPlanner(true);
-        // No storyOrder: the planner is the seed, not a numbered step. Queue it so
-        // the worker plans the story right away.
-        planner.setStatus(TodoStatus.PENDING);
-        return TodoResponse.from(repository.save(planner));
+        Story story = storyRepository.save(new Story(storyId, name));
+        return StoryResponse.from(storyId, name, story.getCreatedAt(), List.of());
     }
 
     /**
