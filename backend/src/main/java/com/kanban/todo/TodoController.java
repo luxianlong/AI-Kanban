@@ -123,6 +123,10 @@ public class TodoController {
         todo.setStatus(TodoStatus.PENDING);
         // Optional flag; a plain task defaults to a general (non-project) task.
         todo.setProjectImprovement(Boolean.TRUE.equals(req.projectImprovement()));
+        // A delegated (代理) task is queued like any other, but the worker never
+        // picks it up: it waits in To Do until an outside worker finds it through
+        // the public API and reports the outcome back.
+        todo.setDelegated(Boolean.TRUE.equals(req.delegated()));
         // If the user has declared stories, classify this new task against them:
         // file it under the story it most clearly belongs to, or leave it
         // standalone when nothing fits. A story-tagged task queues (PENDING) and

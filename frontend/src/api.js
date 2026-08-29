@@ -15,11 +15,13 @@ export const api = {
   // `projectImprovement` marks the task as one that improves the Kanban project
   // itself; it defaults to false (a general task) when omitted. `attachmentIds`
   // are ids from uploadAttachment — images the new task claims as agent input.
-  createTodo: (title, description, projectImprovement = false, attachmentIds = []) =>
+  // `delegated` marks a 代理 task: the worker never runs it; it is published on
+  // the public /api/public/tasks feed for an outside worker to do and report on.
+  createTodo: (title, description, projectImprovement = false, attachmentIds = [], delegated = false) =>
     fetch(`${BASE}/todos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description, projectImprovement, attachmentIds }),
+      body: JSON.stringify({ title, description, projectImprovement, attachmentIds, delegated }),
     }).then(json),
 
   // Upload one image for a task-to-be. The file is stored server-side right away

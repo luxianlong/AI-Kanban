@@ -117,6 +117,19 @@ check('publishing an uploaded page needs no password; deleting one does', () => 
   assert.equal(isPublicApiPath('/api/docs/upload-my-page', 'DELETE'), false)
 })
 
+check('the delegated-task API is public to read and report on (task #471)', () => {
+  assert.equal(isPublicApiPath('/api/public/tasks', 'GET'), true)
+  assert.equal(isPublicApiPath('/api/public/tasks/42', 'GET'), true)
+  assert.equal(isPublicApiPath('/api/public/tasks/42/claim', 'POST'), true)
+  assert.equal(isPublicApiPath('/api/public/tasks/42/status', 'POST'), true)
+  // Only read + report: a stranger can never delete or overwrite wholesale.
+  assert.equal(isPublicApiPath('/api/public/tasks/42', 'DELETE'), false)
+  assert.equal(isPublicApiPath('/api/public/tasks/42', 'PATCH'), false)
+  // And the private board's own task API stays gated, however it's spelled.
+  assert.equal(isPublicApiPath('/api/todos', 'GET'), false)
+  assert.equal(isPublicApiPath('/api/publications', 'GET'), false)
+})
+
 if (failed) {
   console.error(`\n${failed} docsGate test(s) failed`)
   process.exit(1)

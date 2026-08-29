@@ -151,7 +151,46 @@ enabling this — the session will run tools without prompting.
 | `POST` | `/api/stories` | Create a story `{ "name": "...", "steps": [{ "title": "...", "description": "..." }] }`. |
 | `GET` | `/api/worker/status` | Worker config (enabled, interval, ...). |
 
+**Public (no password) — delegated tasks:**
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/public/tasks` | Open delegated tasks. `?status=` takes `open` (default), `all`, or one state. |
+| `GET` | `/api/public/tasks/{id}` | One delegated task. |
+| `POST` | `/api/public/tasks/{id}/claim` | Take it: `{ "worker": "my-bot" }` → the task plus a `token`. |
+| `POST` | `/api/public/tasks/{id}/status` | Report it: `{ "status": "RESOLVED", "result": "...", "token": "..." }`. |
+
 H2 console (dev): <http://localhost:8080/h2-console> (JDBC URL from `application.yml`).
+
+### Delegated ("代理") tasks — work handed to an outside worker
+
+Tick **Delegate to an outside worker** when adding a task (or `POST /api/todos` with
+`"delegated": true`) and this server will never run it. The Claude worker skips it
+entirely; instead it is published on the `/api/public/tasks` API above, which is the
+one task surface exempt from the site password, so anyone who can reach the board can
+poll for work:
+
+```bash
+# 1. find open work
+curl https://<host>/api/public/tasks
+
+# 2. take it (optional, but it stops two workers doing the same job)
+curl -X POST https://<host>/api/public/tasks/42/claim \
+     -H 'Content-Type: application/json' -d '{"worker":"my-bot"}'
+# -> { "task": {...}, "token": "…" }   keep the token
+
+# 3. report the outcome — it lands on the board like any other result
+curl -X POST https://<host>/api/public/tasks/42/status \
+     -H 'Content-Type: application/json' \
+     -d '{"status":"RESOLVED","result":"here is the answer","token":"…"}'
+```
+
+Only tasks explicitly flagged `delegated` exist on that API — every other id answers
+`404`, so the private board never leaks through it, and nothing there can create or
+delete a task. Claiming mints a one-time token that is then required to report the
+outcome, so a passer-by can't overwrite the claimer's answer; an *unclaimed* task
+accepts a report from anyone. Reporting `PENDING` hands the task back and releases the
+claim for the next worker.
 
 ### Stories — chaining tasks
 

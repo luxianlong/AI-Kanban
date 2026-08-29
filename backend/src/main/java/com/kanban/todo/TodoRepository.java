@@ -20,6 +20,14 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
     /** Every task that belongs to some story, newest chains first. */
     List<Todo> findByStoryIdIsNotNullOrderByCreatedAtDesc();
 
+    /** Every delegated (代理) task, oldest first — the public feed an outside
+     * worker polls. The server itself never runs these. */
+    List<Todo> findByDelegatedTrueOrderByCreatedAtAsc();
+
+    /** Delegated tasks in one lifecycle state, oldest first (the public feed's
+     * {@code ?status=} filter; unclaimed work is the PENDING slice). */
+    List<Todo> findByDelegatedTrueAndStatusOrderByCreatedAtAsc(TodoStatus status);
+
     /** Tasks still held by the async story classifier — used to clear stale holds
      * on startup, since the async classification pass doesn't survive a restart. */
     List<Todo> findByClassifyingTrue();

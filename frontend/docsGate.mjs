@@ -27,14 +27,22 @@ export function isUploadedPagePath(urlPath) {
   return /^\/p\/[a-z0-9][a-z0-9-]*\.html$/.test(urlPath)
 }
 
-// The one API surface that is deliberately reachable WITHOUT the site password
-// (task #470): publishing a static page, and reading back what's published.
+// The API surfaces that are deliberately reachable WITHOUT the site password.
 // Everything else under /api stays behind the gate — in particular DELETE, so a
 // stranger can publish a page but never unpublish someone else's.
+//
+//   /api/pages        (task #470) publishing a static page + reading it back
+//   /api/public/...   (task #471) the delegated-task API: an outside worker
+//                     lists 代理 tasks, claims one, and reports the outcome.
+//                     The backend only ever exposes tasks explicitly flagged
+//                     `delegated` there, so the private board can't leak through.
 export function isPublicApiPath(urlPath, method) {
   const m = (method || 'GET').toUpperCase()
   if (urlPath === '/api/pages') return m === 'POST' || m === 'GET'
   if (/^\/api\/pages\/[^/]+$/.test(urlPath)) return m === 'GET'
+  if (urlPath === '/api/public' || urlPath.startsWith('/api/public/')) {
+    return m === 'GET' || m === 'POST'
+  }
   return false
 }
 

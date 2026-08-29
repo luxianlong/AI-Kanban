@@ -49,6 +49,37 @@ public class Todo {
     @ColumnDefault("false")
     private boolean projectImprovement = false;
 
+    /**
+     * Whether this is a <em>delegated</em> ("代理") task: a task this server
+     * deliberately never runs. The worker skips it entirely; instead it is
+     * published through the unauthenticated {@code /api/public/tasks} API so an
+     * outside agent (another bot, a colleague, a script) can find it, do the
+     * work wherever it lives, and report the outcome back through the same
+     * public API. Defaults to {@code false} — a normal task is still resolved by
+     * this server's own Claude sessions.
+     */
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean delegated = false;
+
+    /**
+     * Name the outside worker gave when it claimed this delegated task, or
+     * {@code null} while nobody has claimed it. Purely informational — claiming
+     * is optional, and the name is self-reported (the endpoint is anonymous).
+     */
+    private String delegatedTo;
+
+    /** When an outside worker claimed this delegated task, if it did. */
+    private Instant delegateClaimedAt;
+
+    /**
+     * Secret minted when a delegated task is claimed and returned only to the
+     * claimer. Once set, reporting the outcome requires it, so a second passer-by
+     * can't overwrite the status of work somebody else is already doing. Null
+     * while unclaimed, in which case anyone may report the outcome directly.
+     */
+    private String delegateToken;
+
     /** Free-form output the Claude Code session produced for this item. */
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -251,6 +282,38 @@ public class Todo {
 
     public void setDurationMs(Long durationMs) {
         this.durationMs = durationMs;
+    }
+
+    public boolean isDelegated() {
+        return delegated;
+    }
+
+    public void setDelegated(boolean delegated) {
+        this.delegated = delegated;
+    }
+
+    public String getDelegatedTo() {
+        return delegatedTo;
+    }
+
+    public void setDelegatedTo(String delegatedTo) {
+        this.delegatedTo = delegatedTo;
+    }
+
+    public Instant getDelegateClaimedAt() {
+        return delegateClaimedAt;
+    }
+
+    public void setDelegateClaimedAt(Instant delegateClaimedAt) {
+        this.delegateClaimedAt = delegateClaimedAt;
+    }
+
+    public String getDelegateToken() {
+        return delegateToken;
+    }
+
+    public void setDelegateToken(String delegateToken) {
+        this.delegateToken = delegateToken;
     }
 
     public String getStoryId() {
