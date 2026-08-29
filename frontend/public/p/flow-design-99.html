@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>把今天的流程意见固化进系统</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#F5F4F0; --surface:#FFFFFF; --plate:#F3F1EA;
+    --ink:#191C20; --ink-2:#4C555F; --ink-3:#79828D;
+    --rule:#DCD9D1; --rule-2:#C7C3B8;
+    --blue:#2C4A7C; --blue-soft:#E4EAF3;
+    --red:#A82730; --red-soft:#F5E3E3;
+    --green:#2F6B4F; --green-soft:#E2EEE7;
+    --shadow:0 1px 2px rgba(25,28,32,.06),0 8px 24px rgba(25,28,32,.05);
+    --display:"Noto Serif SC",Songti SC,serif;
+    --body:"PingFang SC","Hiragino Sans GB",-apple-system,sans-serif;
+    --mono:"JetBrains Mono",SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --paper:#14161A; --surface:#1B1E23; --plate:#EDEBE4;
+    --ink:#E9E7E1; --ink-2:#AAB2BC; --ink-3:#7C858F;
+    --rule:#2A2E35; --rule-2:#3A3F47;
+    --blue:#8FADDD; --blue-soft:#1F2A3B;
+    --red:#E4838A; --red-soft:#33201F;
+    --green:#7FBF9C; --green-soft:#1B2B22;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);}}
+  :root[data-theme="dark"]{
+    --paper:#14161A; --surface:#1B1E23; --plate:#EDEBE4;
+    --ink:#E9E7E1; --ink-2:#AAB2BC; --ink-3:#7C858F;
+    --rule:#2A2E35; --rule-2:#3A3F47;
+    --blue:#8FADDD; --blue-soft:#1F2A3B;
+    --red:#E4838A; --red-soft:#33201F;
+    --green:#7FBF9C; --green-soft:#1B2B22;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);}
+  body{background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.75;font-size:16px;}
+  .wrap{max-width:76ch;margin:0 auto;padding:clamp(28px,5vw,68px) clamp(18px,4vw,32px) 92px;}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 14px;}
+  h1{font-family:var(--display);font-size:clamp(28px,5vw,40px);line-height:1.24;margin:0 0 16px;text-wrap:balance;font-weight:700;}
+  .standfirst{font-size:17px;color:var(--ink-2);margin:0;max-width:62ch;text-wrap:pretty;}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:20px;padding-top:14px;
+        border-top:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:6px 18px;}
+  section{margin-top:56px;}
+  h2{font-family:var(--display);font-size:clamp(20px,3vw,26px);line-height:1.35;margin:0 0 6px;font-weight:600;}
+  .subtitle{color:var(--ink-2);font-size:15px;margin:0 0 4px;}
+  h3{font-family:var(--display);font-size:18px;margin:30px 0 0;font-weight:600;}
+  p{margin:15px 0;text-wrap:pretty;}
+  code{font-family:var(--mono);font-size:.87em;background:var(--blue-soft);padding:1.5px 5px;border-radius:3px;}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14.5px;}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--rule);vertical-align:top;}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+     font-weight:500;border-bottom:1px solid var(--rule-2);}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .tw{overflow-x:auto;}
+  .box{border-left:3px solid var(--rule-2);padding:14px 18px;margin:22px 0;font-size:15px;color:var(--ink-2);}
+  .box p{margin:0 0 10px;} .box p:last-child{margin:0;}
+  .kill{border-left-color:var(--red);background:var(--red-soft);color:var(--ink);}
+  .keep{border-left-color:var(--green);background:var(--green-soft);color:var(--ink);}
+  .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px;}
+  .kill .lbl{color:var(--red);} .keep .lbl{color:var(--green);}
+  .plate{background:var(--plate);border:1px solid var(--rule-2);border-radius:3px;margin:22px 0 8px;
+         overflow-x:auto;box-shadow:var(--shadow);}
+  .plate .mermaid{padding:24px 18px;min-width:520px;display:flex;justify-content:center;}
+  .cap{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin:0 0 22px;}
+  ul{padding-left:20px;} li{margin:6px 0;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">AI Org · 设计方案 · 待批准</p>
+    <h1>把今天的流程意见固化进系统</h1>
+    <p class="standfirst">今天七条意见改的都是同一篇稿子,但它们不属于同一类问题。这份方案先把它们分开,再回答:领域模型要怎么调,代码放哪里。<strong>没有动任何代码 —— 等你点头。</strong></p>
+    <div class="meta"><span>2026-08-29</span><span>代理任务 #99</span><span>校准样本 13 篇已发成稿</span></div>
+  </header>
+
+  <section>
+    <h2>一、七条意见,三种类型</h2>
+    <p class="subtitle">混在一起就会做错:有的该写进代码,有的写进代码反而有害。</p>
+
+    <div class="tw"><table>
+      <tr><th>意见</th><th>类型</th><th>现状</th></tr>
+      <tr><td>#88 不用比喻</td><td>可判定</td><td>已进 <code>style.py</code></td></tr>
+      <tr><td>#91 术语堆叠、数字太密</td><td>可判定</td><td><strong>未做</strong></td></tr>
+      <tr><td>#94 #97 图要裁、配中文图注、高亮点名的行</td><td>可判定</td><td><strong>未做</strong></td></tr>
+      <tr><td>#91 标题不要纯名词体</td><td>弱信号</td><td>未做</td></tr>
+      <tr><td>#93 论证在前、每段要有「所以呢」</td><td>弱信号</td><td>未做</td></tr>
+      <tr><td>#95 复杂关系用图说</td><td>判断题</td><td>渲染器已支持,规则不该入码</td></tr>
+      <tr><td>#96 动机、目的、利益</td><td>判断题</td><td>已进侦查 schema 与技能</td></tr>
+    </table></div>
+
+    <div class="box kill">
+      <span class="lbl">先说不做什么</span>
+      <p><strong>不做「洞见评分」,也不做「因果关系检查」。</strong>这两样最像有用,而且最危险 ——
+      它们会给出一个数字,让人以为查过了。</p>
+      <p>下一节的校准数据直接否掉了我本来打算加的那个指标。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>二、校准:哪些指标真的分得开</h2>
+    <p class="subtitle">拿 13 篇已发成稿实测。没有数据支撑的阈值不进代码 —— 这是这个项目已有的规矩。</p>
+
+    <div class="tw"><table>
+      <tr><th>指标</th><th>已发 13 篇中位</th><th>电商财报那篇</th><th>结论</th></tr>
+      <tr><td>数字 / 段</td><td class="num">0.01</td><td class="num">1.06</td><td>高 100 倍,<strong>离群明显,可用</strong></td></tr>
+      <tr><td>财经术语 / 千字</td><td class="num">0.0</td><td class="num">3.0</td><td>唯一有术语的一篇,<strong>可用</strong></td></tr>
+      <tr><td>因果连接词 / 段</td><td class="num">0.10</td><td class="num">0.15</td><td><strong>高于中位 —— 测不出问题</strong></td></tr>
+    </table></div>
+
+    <div class="box kill">
+      <span class="lbl">校准推翻了一个设计</span>
+      <p>我本来打算加「因果连接词密度」来抓 #93 说的「因果关系不顺」。
+      实测:那篇被批评结构混乱的稿子,因果连接词密度<strong>高于中位数</strong>。</p>
+      <p>原因很简单:#93 说的是<strong>论证的顺序</strong>(28 段事实堆完才给结论),
+      不是「所以」这个词用得够不够。数一数连接词,只会给一个假的通过。</p>
+      <p>所以这条不进代码。它进的是技能文档的自查清单。</p>
+    </div>
+
+    <div class="box">
+      <p><strong>还有一个诚实的限制。</strong>这个号已发的 13 篇全是故事/八卦类,
+      电商财报是第一篇硬核数据类。所以「数字密度离群 100 倍」有可能只是<strong>题材不同</strong>,
+      不一定是毛病。</p>
+      <p>因此:<strong>不设全局阈值,只报「相对已发基线的位置」</strong>,让人判断 ——
+      和 <code>pickstats</code> 的就绪门槛同一个处理方式。样本够了再谈阈值。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>三、领域模型要调什么</h2>
+    <p class="subtitle">一句话:现在的模型里没有「图」这个概念,所以图的规则无处可挂。</p>
+
+    <p>质量上下文现在的聚合是 <code>Draft</code>,它只有两样东西:成稿正文,和它所属的卷宗。
+    但<strong>实际交付物不是 answer.md,是 blocks.json 渲染出来的那一页</strong> ——
+    文本、证据图、图注、关系图交替。</p>
+
+    <p>于是 #94 #97 那三条规则(图要裁、要有中文图注、要高亮点名的行)
+    <strong>在现在的模型里根本没有地方可查</strong>,因为 <code>Draft</code> 不知道图的存在。
+    这是今天七条意见里唯一一条需要动领域模型的。</p>
+
+    <div class="plate"><pre class="mermaid">
+%%{init:{'theme':'base','themeVariables':{'background':'#F3F1EA','primaryColor':'#FFFFFF','primaryTextColor':'#191C20','primaryBorderColor':'#8A93A0','lineColor':'#6B7480'}}}%%
+classDiagram
+  class Draft {
+    聚合根
+    +text 成稿正文
+    +dossier 所属卷宗
+    +blocks 交付形态 新增
+    +figures() 图与图注 新增
+  }
+  class Block {
+    值对象 新增
+    +kind text/image/mermaid
+    +value
+    +cap 图注
+  }
+  class FactSafety {
+    规格族 已有
+    引语闸门 红线 禁写清单
+    问 会不会写错
+  }
+  class Style {
+    规格族 已有
+    套话 比喻 节奏
+    问 像不像套话
+  }
+  class Readability {
+    规格族 新增
+    术语密度 数字密度
+    图注齐备
+    问 读者读得懂吗
+  }
+  Draft "1" *-- "0..*" Block
+  FactSafety ..> Draft
+  Style ..> Draft
+  Readability ..> Draft
+    </pre></div>
+    <p class="cap">图版 · 灰底为已有,标「新增」的三处是这次要动的</p>
+
+    <p>三个规格族的分工是清楚的,各自回答一个不同的问题:</p>
+    <ul>
+      <li><code>specs.py</code> 问:<strong>会不会写错?</strong>(引语能不能在原件里找到、有没有踩红线)</li>
+      <li><code>style.py</code> 问:<strong>像不像套话?</strong>(转折套话、比喻、节奏)</li>
+      <li><code>readability.py</code> 问:<strong>读者读得懂吗?</strong>(术语、数字、图注)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>四、代码怎么组织</h2>
+    <p class="subtitle">分层不变,只加一个规格族和一个装配点。</p>
+
+    <div class="tw"><table>
+      <tr><th>文件</th><th>动作</th><th>内容</th></tr>
+      <tr><td><code>quality/domain/readability.py</code></td><td>新增</td>
+          <td>纯函数。吃「文本 + 图块快照」,出提示。术语表在这里,和红线词表同一个风格。</td></tr>
+      <tr><td><code>quality/domain/specs.py</code></td><td>加一条</td>
+          <td><code>FigureSpec</code>:每张图必须有图注。<strong>这条能硬判</strong>,没有图注就是没有。</td></tr>
+      <tr><td><code>quality/infrastructure/corpus.py</code></td><td>改</td>
+          <td><code>Draft</code> 装配时把 blocks.json 一起读进来(读不到就是空,不报错)。</td></tr>
+      <tr><td><code>quality/application/gate.py</code></td><td>不动</td>
+          <td>规格族是列表,加一条自动生效。</td></tr>
+      <tr><td><code>quality/polish.py</code></td><td>加参数</td>
+          <td><code>--baseline</code>:把这篇的密度和已发 13 篇的分布并排打出来。</td></tr>
+    </table></div>
+
+    <div class="box keep">
+      <span class="lbl">保持不变的三条</span>
+      <p>一、<strong>领域层零 I/O</strong>。<code>readability.py</code> 收的是已经装好的纯数据,
+      读 blocks.json 的活在基础设施层。</p>
+      <p>二、<strong>不打总分</strong>。三个规格族各报各的,不合成一个「质量分」——
+      合成之后没人知道扣在哪。</p>
+      <p>三、<strong>不设没有证据的阈值</strong>。这次只有图注齐备是硬判(有就是有),
+      密度类一律只报位置。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>五、这套东西能防住今天哪几次返工</h2>
+
+    <div class="tw"><table>
+      <tr><th>今天发生的</th><th>新机制会不会拦住</th></tr>
+      <tr><td>#88 通篇用「尺子」做比喻</td><td>会 —— 已经拦住了(比喻载体词表)</td></tr>
+      <tr><td>#91 术语堆叠、每段 1.8 个数字</td><td>会 —— 密度对照会把它显示成离群</td></tr>
+      <tr><td>#94 四张图全是没图注的英文截图</td><td>会 —— <code>FigureSpec</code> 硬判</td></tr>
+      <tr><td>#97 高亮画错了位置</td><td><strong>不会。</strong>代码判不了高亮对不对,只能靠亲眼看</td></tr>
+      <tr><td>#93 论证顺序不对</td><td><strong>不会。</strong>见第二节,连接词密度测不出来</td></tr>
+      <tr><td>#96 全篇没有动机</td><td>会 —— 已经改在侦查那侧(motive 路 + schema 字段)</td></tr>
+    </table></div>
+
+    <p><strong>六条里能拦住四条,两条拦不住。</strong>拦不住的那两条我不打算硬做 ——
+    做出来只会给一个假的通过。它们进技能文档的自查清单:落笔前先列段落首句看骨架,
+    高亮画完必须逐张亲眼看。</p>
+  </section>
+
+  <section>
+    <h2>六、要你定的三件事</h2>
+    <ul>
+      <li><strong>领域模型加不加 <code>blocks</code>?</strong>加了才能查图注,
+      代价是 <code>Draft</code> 从「一篇文本」变成「一件交付物」,概念变重一点。</li>
+      <li><strong>图注要不要硬判?</strong>我倾向硬判 —— 没有图注的证据图对中文读者等于一堵墙,
+      而这条判起来毫无歧义。</li>
+      <li><strong>密度只报位置、不设阈值,行不行?</strong>样本 13 篇且全是同一题材,
+      现在定阈值就是拍脑袋。</li>
+    </ul>
+    <p class="cap" style="margin-top:30px;border-top:1px solid var(--rule);padding-top:14px;">
+      校准数据由 <code>runs/</code> 下 13 篇已发成稿实测 · 本方案未改动任何代码</p>
+  </section>
+</div>
+
+
+<script src="/vendor/mermaid.min.js" defer></script>
+<script src="/vendor/mermaid-init.js" defer></script>
+</body>
+</html>
