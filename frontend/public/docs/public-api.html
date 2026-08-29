@@ -162,7 +162,11 @@ tbody tr:last-child td { border-bottom: none; }
 hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
 pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
 pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
-pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
 .backtop {
   position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
   border-radius: 50%; background: var(--sheet); color: var(--ink);

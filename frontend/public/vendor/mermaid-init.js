@@ -42,18 +42,28 @@
     document.head.appendChild(style)
   }
 
+  // Which mermaid theme to draw with. A host page that has a fixed palette can
+  // pin one with <script src="/vendor/mermaid-init.js" data-theme="neutral">
+  // (the docs archive does — task #82); everything else follows the OS setting,
+  // which is what an uploaded page with no styling of its own wants.
+  function theme() {
+    var tag = document.querySelector('script[data-theme][src*="mermaid-init"]')
+    if (tag) return tag.getAttribute('data-theme')
+    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    return dark ? 'dark' : 'default'
+  }
+
   function render() {
     normalise()
     var nodes = document.querySelectorAll('.mermaid')
     if (!nodes.length || !window.mermaid) return
     addStyles()
-    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
     window.mermaid.initialize({
       startOnLoad: false,
       // The page is untrusted HTML from an anonymous uploader; keep mermaid's
       // own sanitiser on and its click handlers off.
       securityLevel: 'strict',
-      theme: dark ? 'dark' : 'default',
+      theme: theme(),
     })
     // suppressErrors: one malformed diagram must not stop the rest of the page
     // from rendering. The failed block keeps showing its source text.

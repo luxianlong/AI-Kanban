@@ -325,7 +325,11 @@ tbody tr:last-child td { border-bottom: none; }
 hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
 pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
 pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
-pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
 .backtop {
   position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
   border-radius: 50%; background: var(--sheet); color: var(--ink);
@@ -396,10 +400,13 @@ ${body}
     if (toc) toc.classList.add('collapsed');
   }
 </script>
-${hasMermaid ? `<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'strict' });
-</script>` : ''}${id ? `
+${hasMermaid ? `<!-- A doc that draws diagrams loads the same vendored renderer as an
+     uploaded /p/ page (task #82): same-origin static files, so the diagram
+     still shows up when jsdelivr is slow, blocked or the box is offline.
+     'neutral' pins the theme — the archive is a fixed light paper design, so
+     mermaid-init's follow-the-OS dark default would clash. -->
+<script src="/vendor/mermaid.min.js" defer></script>
+<script src="/vendor/mermaid-init.js" data-theme="neutral" defer></script>` : ''}${id ? `
 <script>
   // Opening this document marks it "read" (task #357): the index's red "NEW" dot
   // and the board's Docs badge mean "recently updated AND not yet opened by you",
