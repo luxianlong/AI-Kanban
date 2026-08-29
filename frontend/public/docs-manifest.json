@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-probe-summary-check",
-    "title": "探针",
-    "href": "/p/probe-summary-check.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T15:34:24.794Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/probe-summary-check.html",
-      "frontend/public/p/probe-summary-check.meta.json"
-    ]
-  },
-  {
     "id": "upload-three-hidden-numbers-en-first",
     "title": "三家电商各自在藏一个数字",
     "href": "/p/three-hidden-numbers-en-first.html",
