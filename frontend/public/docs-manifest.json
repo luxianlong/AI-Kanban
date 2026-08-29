@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-three-hidden-numbers",
+    "title": "三家电商各自在躲一个数字",
+    "href": "/p/three-hidden-numbers.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T15:11:48.661Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/three-hidden-numbers.html",
+      "frontend/public/p/three-hidden-numbers.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-diagrams",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-diagrams.html",
