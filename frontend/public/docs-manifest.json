@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-highrise-only-70-percent",
-    "title": "从6层盖到26层,只多七成面积",
-    "href": "/p/highrise-only-70-percent.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T16:29:27.464Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/highrise-only-70-percent.html",
-      "frontend/public/p/highrise-only-70-percent.meta.json"
-    ]
-  },
-  {
     "id": "upload-jd-one-point",
     "title": "京东外卖亏了多少?那个数字京东从没公布过",
     "href": "/p/jd-one-point.html",
