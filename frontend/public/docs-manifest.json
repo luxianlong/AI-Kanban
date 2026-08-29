@@ -70,20 +70,6 @@
     ]
   },
   {
-    "id": "upload-task-76-arbitrage",
-    "title": "代理任务 #76 · 新选题思路:信息套利",
-    "href": "/p/task-76-arbitrage.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T11:43:12.608Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/task-76-arbitrage.html",
-      "frontend/public/p/task-76-arbitrage.meta.json"
-    ]
-  },
-  {
     "id": "upload-why-cz-could-stop-sun",
     "title": "赵长鹏那条推里,没有孙宇晨",
     "href": "/p/why-cz-could-stop-sun.html",
