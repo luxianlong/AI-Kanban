@@ -7,38 +7,10 @@
     "file": null,
     "updatedAt": "2026-08-29T12:45:53.325Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/ddd-diagrams.html",
       "frontend/public/p/ddd-diagrams.meta.json"
-    ]
-  },
-  {
-    "id": "upload-ddd-graphs-2",
-    "title": "卷宗系统的三张 DDD 图",
-    "href": "/p/ddd-graphs-2.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T12:45:33.185Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ddd-graphs-2.html",
-      "frontend/public/p/ddd-graphs-2.meta.json"
-    ]
-  },
-  {
-    "id": "upload-ddd-graphs",
-    "title": "卷宗系统的三张 DDD 图",
-    "href": "/p/ddd-graphs.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T12:45:33.185Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ddd-graphs.html",
-      "frontend/public/p/ddd-graphs.meta.json"
     ]
   },
   {

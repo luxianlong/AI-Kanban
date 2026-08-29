@@ -102,10 +102,13 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em;
   color: var(--muted); margin-bottom: 9px;
 }
-/* The visit tally sits with the date; a middot separates them when both show. */
+/* The visit tally sits with the date. The two are the same mono grey, so
+   without a mark between them "2026.08.29" and "12 次阅读" read as one run of
+   figures (task #83) — hence an explicit middot, drawn only when a date really
+   precedes the tally. The date needs its own element for that: a :first-child
+   rule ignores text nodes, so a bare date never suppressed the mark itself. */
 .entry-date .views { font-size: 11.5px; letter-spacing: 0.14em; }
-.entry-date .views::before { content: "·"; margin: 0 8px; }
-.entry-date .views:first-child::before { content: none; }
+.entry-date .date + .views::before { content: "·"; margin: 0 8px; }
 .doc-card h2 {
   font-family: var(--display); font-weight: 600; font-size: 25px; line-height: 1.32;
   letter-spacing: -0.005em; margin: 0 0 9px;
@@ -238,43 +241,23 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </header>
 <div class="wrap">
 <div class="grid">
-<div class="card-wrap is-new" data-id="upload-ddd-diagrams" data-private="false">
+<!--PRIVATE-CARD:upload-ddd-diagrams-->
+<div class="card-wrap is-new is-private" data-id="upload-ddd-diagrams" data-private="true">
   <a class="doc-card" href="/p/ddd-diagrams.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
-  <h2>卷宗系统的三张 DDD 图</h2>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
+  <h2>卷宗系统的三张 DDD 图<span class="badge lock">🔒 Private</span></h2>
   <p>通过 POST /api/pages 上传的静态网页。</p>
   <div class="meta">阅读全文 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-08-29" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 卷宗系统的三张 DDD 图" data-id="upload-ddd-diagrams" data-private="false">🌐</button>
+  <button class="doc-priv" type="button" title="Make public" aria-label="Make public: 卷宗系统的三张 DDD 图" data-id="upload-ddd-diagrams" data-private="true">🔒</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 卷宗系统的三张 DDD 图" data-id="upload-ddd-diagrams" data-title="卷宗系统的三张 DDD 图">✕</button>
 </div>
-<div class="card-wrap is-new" data-id="upload-ddd-graphs-2" data-private="false">
-  <a class="doc-card" href="/p/ddd-graphs-2.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
-  <h2>卷宗系统的三张 DDD 图</h2>
-  <p>通过 POST /api/pages 上传的静态网页。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-08-29" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 卷宗系统的三张 DDD 图" data-id="upload-ddd-graphs-2" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 卷宗系统的三张 DDD 图" data-id="upload-ddd-graphs-2" data-title="卷宗系统的三张 DDD 图">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-ddd-graphs" data-private="false">
-  <a class="doc-card" href="/p/ddd-graphs.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
-  <h2>卷宗系统的三张 DDD 图</h2>
-  <p>通过 POST /api/pages 上传的静态网页。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-08-29" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 卷宗系统的三张 DDD 图" data-id="upload-ddd-graphs" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 卷宗系统的三张 DDD 图" data-id="upload-ddd-graphs" data-title="卷宗系统的三张 DDD 图">✕</button>
-</div>
+<!--/PRIVATE-CARD-->
 <!--PRIVATE-CARD:upload-ddd-domain-map-->
 <div class="card-wrap is-new is-private" data-id="upload-ddd-domain-map" data-private="true">
   <a class="doc-card" href="/p/ddd-domain-map.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>看板的 DDD 领域图（Mermaid 示例）<span class="badge lock">🔒 Private</span></h2>
   <p>用 Mermaid 画出看板的限界上下文与一次自动改进的生命周期；同时是 /p/ 页面的 mermaid 支持示例</p>
   <div class="meta">阅读全文 →</div>
@@ -287,7 +270,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 <!--PRIVATE-CARD:public-api-->
 <div class="card-wrap is-new is-private" data-id="public-api" data-private="true">
   <a class="doc-card" href="/docs/public-api.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>公开接口（Public API）总览<span class="badge lock">🔒 Private</span></h2>
   <p>这块看板整体是私有的：站点挂在 cloudflared 隧道后面，前面有一道口令门 （frontend/vite.config.js 里的中间件）。但有几条路径是故意放开的 —— 不需要任何账号、 口令或 token，任何能访问到域名的人都能直接调用。</p>
   <div class="meta">阅读全文 →</div>
@@ -300,7 +283,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 <!--PRIVATE-CARD:upload-task-76-arbitrage-->
 <div class="card-wrap is-new is-private" data-id="upload-task-76-arbitrage" data-private="true">
   <a class="doc-card" href="/p/task-76-arbitrage.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>代理任务 #76 · 新选题思路:信息套利<span class="badge lock">🔒 Private</span></h2>
   <p>通过 POST /api/pages 上传的静态网页。</p>
   <div class="meta">阅读全文 →</div>
@@ -313,7 +296,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 <!--PRIVATE-CARD:upload-structure-->
 <div class="card-wrap is-new is-private" data-id="upload-structure" data-private="true">
   <a class="doc-card" href="/p/structure.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>项目结构报告:战略 / 战术 / 实现三层<span class="badge lock">🔒 Private</span></h2>
   <p>按 DDD 三个层次描述:领域怎么切、构件怎么建、文件在哪。含三条不变式及其当前强制状态。</p>
   <div class="meta">阅读全文 →</div>
@@ -325,7 +308,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 <!--/PRIVATE-CARD-->
 <div class="card-wrap is-new" data-id="upload-why-cz-could-stop-sun" data-private="false">
   <a class="doc-card" href="/p/why-cz-could-stop-sun.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>赵长鹏那条推里,没有孙宇晨</h2>
   <p>他要停的动作 29 小时前就停了。赵长鹏没有让他停 —— 是让他的停能被叫作听劝,而不是顶不住。</p>
   <div class="meta">阅读全文 →</div>
@@ -336,7 +319,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-jing-tian-symbolized" data-private="false">
   <a class="doc-card" href="/p/jing-tian-symbolized.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>只有一个人在决定这件事以什么形式被记住</h2>
   <p>十五年五个身份,没有一个是她自己起的。一段感情的结束变成了一个有版本号、有官网栏目的开源项目。</p>
   <div class="meta">阅读全文 →</div>
@@ -347,7 +330,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-sun-objective-evaluation" data-private="false">
   <a class="doc-card" href="/p/sun-objective-evaluation.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>「客观评价孙宇晨」:前排答案没有一个在回答客观</h2>
   <p>全文不用一个形容词描述他,只用他自己说过的话和可查证的记录。附亚洲周刊两期封面等原件。</p>
   <div class="meta">阅读全文 →</div>
@@ -358,7 +341,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-jing-tian-career-penalty" data-private="false">
   <a class="doc-card" href="/p/jing-tian-career-penalty.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>464 万那笔罚款,和她的演艺事业是两件事</h2>
   <p>2022 年天河区市场监管局依《广告法》六十一条的行政处罚,和今天这件事该分开看。附中演协十五项原件。</p>
   <div class="meta">阅读全文 →</div>
@@ -369,7 +352,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-jing-tian-four-lines" data-private="false">
   <a class="doc-card" href="/p/jing-tian-four-lines.html">
-  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <div class="entry-date"><span class="date">2026.08.29</span><span class="views" hidden></span></div>
   <h2>景甜昨天发了四行字,热搜只给你看了前两行</h2>
   <p>四行声明,热搜截走了前两行。三份东西在 17 分 23 秒里连着落地,附时间戳证据图。</p>
   <div class="meta">阅读全文 →</div>
