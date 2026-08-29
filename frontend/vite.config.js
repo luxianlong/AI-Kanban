@@ -5,6 +5,7 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import {
   classifyDoc,
+  isDocsReadStatePath,
   isPublicApiPath,
   isUploadedPagePath,
   stripPrivateCards,
@@ -286,6 +287,26 @@ function basicAuthGate() {
 
         if (!creds) return next() // no file -> frictionless local dev
         const token = authToken(creds)
+
+        // Read-state probe from a PUBLIC docs page (task #472). /docs.html and
+        // the doc pages are readable without the password, but they fetch
+        // /api/docs/reads on load to dim their "NEW" badges. Challenging that
+        // request makes the browser show its native Basic-Auth dialog on a page
+        // that is meant to need no verification. Answer an anonymous visitor
+        // with a no-op — nothing read, nothing recorded — so the prompt never
+        // appears and the owner's read state stays theirs alone.
+        if (isDocsReadStatePath(urlPath) && !isAuthenticated(req, creds)) {
+          res.setHeader('Cache-Control', 'no-store')
+          if (req.method === 'GET') {
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            return res.end('[]')
+          }
+          if (req.method === 'POST') {
+            res.statusCode = 204
+            return res.end()
+          }
+        }
 
         // --- Public documents (task #268) -----------------------------------
         // A document is readable WITHOUT the password unless it's marked private.

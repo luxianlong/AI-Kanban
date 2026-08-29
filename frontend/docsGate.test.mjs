@@ -12,6 +12,7 @@ import {
   isDocAssetPath,
   isUploadedPagePath,
   isPublicApiPath,
+  isDocsReadStatePath,
 } from './docsGate.mjs'
 
 const manifest = {
@@ -128,6 +129,19 @@ check('the delegated-task API is public to read and report on (task #471)', () =
   // And the private board's own task API stays gated, however it's spelled.
   assert.equal(isPublicApiPath('/api/todos', 'GET'), false)
   assert.equal(isPublicApiPath('/api/publications', 'GET'), false)
+})
+
+check('the docs read-state probe is recognised so a public page never prompts (task #472)', () => {
+  assert.equal(isDocsReadStatePath('/api/docs/reads'), true)
+  // Nothing else on /api/docs is exempt — delete and visibility stay owner-only.
+  assert.equal(isDocsReadStatePath('/api/docs'), false)
+  assert.equal(isDocsReadStatePath('/api/docs/reads/all'), false)
+  assert.equal(isDocsReadStatePath('/api/docs/some-id'), false)
+  assert.equal(isDocsReadStatePath('/api/docs/some-id/visibility'), false)
+  assert.equal(isDocsReadStatePath('/api/todos'), false)
+  // It is NOT a blanket public API path: the exemption is a no-op answer in the
+  // gate, not a pass-through to the backend.
+  assert.equal(isPublicApiPath('/api/docs/reads', 'GET'), false)
 })
 
 if (failed) {

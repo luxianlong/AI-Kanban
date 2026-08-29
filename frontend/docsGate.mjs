@@ -46,6 +46,17 @@ export function isPublicApiPath(urlPath, method) {
   return false
 }
 
+// Per-doc read state (task #357) lives server-side at /api/docs/reads: the docs
+// index and each doc page probe it on load to dim the "NEW" badges. Those pages
+// are public (task #268), so an anonymous visitor hits a gated endpoint on a
+// page that never asked for a password — and the 401's `WWW-Authenticate: Basic`
+// header makes the browser pop its native login dialog (task #472). The gate
+// answers this one path anonymously with a benign no-op instead. Only the read
+// tracker: every other /api/docs verb (delete, visibility) stays owner-only.
+export function isDocsReadStatePath(urlPath) {
+  return urlPath === '/api/docs/reads'
+}
+
 // Classify a request path for the public-docs gate:
 //   'index'    -> the docs listing (/docs.html); filtered for anonymous
 //   'manifest' -> the docs manifest (/docs-manifest.json); filtered for anonymous
