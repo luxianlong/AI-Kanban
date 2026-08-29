@@ -105,24 +105,10 @@
     "file": "docs/public-api.md",
     "updatedAt": "2026-08-29T06:21:54.148Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "docs/public-api.md",
       "frontend/public/docs/public-api.html"
-    ]
-  },
-  {
-    "id": "upload-publish-api-smoke-test",
-    "title": "发布接口验收记录",
-    "href": "/p/publish-api-smoke-test.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T05:57:55.552Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/publish-api-smoke-test.html",
-      "frontend/public/p/publish-api-smoke-test.meta.json"
     ]
   }
 ]
