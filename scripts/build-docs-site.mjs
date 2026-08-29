@@ -368,7 +368,7 @@ ${toc.map((h) => `<li class="lv${h.level}"><a href="#${h.id}">${esc(h.text)}</a>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>${esc(title)} · 写在看板边上</title>
+<title>${esc(title)} · 文章存档</title>
 ${FONTS}
 <style>${THEME}${CONTENT_CSS}</style>
 </head>
@@ -612,19 +612,15 @@ function renderIndex(cards) {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>写在看板边上 · 文章存档</title>
-<meta name="description" content="看板 agent 干活时留下的报告、攻略和笔记，按更新时间排列。" />
+<title>文章存档</title>
+<meta name="description" content="随手写下的报告、攻略和笔记，按更新时间排列。" />
 ${FONTS}
 <style>${THEME}
-.hero p.sub { margin-top: 4px; }
 ${INDEX_CSS}</style>
 </head>
 <body>
 <header class="hero">
-<p class="eyebrow">文章存档</p>
-<h1>写在看板边上</h1>
-<p class="sub">看板 agent 干活时留下的报告、攻略和笔记。新写的排在最前面，点标题读全文。</p>
-<a class="back" href="/">← 回看板</a>
+<h1>文章存档</h1>
 </header>
 <div class="wrap">
 ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">还没有文章。</p>'}
