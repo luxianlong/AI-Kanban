@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Org 架构</title>
+<style>
+  :root{
+    --paper:#fbfbfc; --ink:#1a1c20; --ink-soft:#3c4148; --muted:#6b717c;
+    --rule:#e3e5ea; --card:#fff; --accent:#2f6fd0; --accent-soft:#eef3fb;
+    --live:#1a7f4b; --live-soft:#e8f4ed; --frozen:#7a8290; --frozen-soft:#f1f2f5;
+    --warn:#a35200; --warn-soft:#fff3e4; --code:#f4f5f7;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#14161a; --ink:#e9ebef; --ink-soft:#c3c8d1; --muted:#98a0ac;
+      --rule:#282c34; --card:#1a1d22; --accent:#7aa8ee; --accent-soft:#1a222e;
+      --live:#5fd39a; --live-soft:#13291f; --frozen:#8a92a0; --frozen-soft:#1d2026;
+      --warn:#ffbe76; --warn-soft:#2e2313; --code:#1e2127;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Segoe UI",sans-serif;
+    line-height:1.75; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:52rem; margin:0 auto; padding:4rem 1.4rem 6rem}
+  header{border-bottom:1px solid var(--rule); padding-bottom:1.8rem; margin-bottom:2.4rem}
+  h1{font-size:2.2rem; line-height:1.25; margin:0 0 .7rem; letter-spacing:-.01em}
+  .lead{font-size:1.06rem; color:var(--ink-soft); margin:0}
+  .stamp{font-size:.78rem; color:var(--muted); margin:1rem 0 0; font-variant-numeric:tabular-nums}
+  h2{font-size:1.22rem; margin:3rem 0 1rem; padding-bottom:.5rem; border-bottom:1px solid var(--rule)}
+  h3{font-size:.97rem; margin:1.8rem 0 .6rem; color:var(--ink)}
+  p{margin:0 0 1.1rem; color:var(--ink-soft)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.86em;
+    background:var(--code); border:1px solid var(--rule); padding:.08em .35em; border-radius:4px}
+
+  /* 两套系统 */
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.6rem 0}
+  @media(max-width:640px){.split{grid-template-columns:1fr}}
+  .sys{border:1px solid var(--rule); border-radius:12px; padding:1.1rem 1.2rem; background:var(--card)}
+  .sys.live{border-color:var(--live); background:var(--live-soft)}
+  .sys.frozen{background:var(--frozen-soft)}
+  .tag{display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.08em;
+    padding:.22rem .6rem; border-radius:99px; margin-bottom:.6rem}
+  .tag.live{background:var(--live); color:var(--paper)}
+  .tag.frozen{background:var(--frozen); color:var(--paper)}
+  .sys h4{margin:.1rem 0 .5rem; font-size:1.02rem}
+  .sys p{font-size:.9rem; margin:0 0 .5rem}
+  .sys ul{margin:.4rem 0 0; padding-left:1.1rem; font-size:.88rem; color:var(--ink-soft)}
+  .sys li{margin:.25rem 0}
+
+  /* 流水线 */
+  .pipe{display:flex; flex-wrap:wrap; gap:.45rem; margin:1.2rem 0 1.6rem; align-items:stretch}
+  .stage{flex:1 1 8.5rem; border:1px solid var(--rule); border-radius:9px;
+    padding:.6rem .7rem; background:var(--card); min-width:8rem}
+  .stage .n{font-size:.68rem; color:var(--muted); font-weight:700; letter-spacing:.06em}
+  .stage .s{font-size:.94rem; font-weight:600; margin:.15rem 0 .25rem}
+  .stage .t{font-size:.75rem; color:var(--muted); font-family:ui-monospace,Menlo,monospace;
+    word-break:break-all; line-height:1.45}
+
+  table{width:100%; border-collapse:collapse; font-size:.9rem; margin:.6rem 0 1.2rem}
+  th,td{text-align:left; padding:.55rem .6rem; border-bottom:1px solid var(--rule); vertical-align:top}
+  th{color:var(--muted); font-weight:600; font-size:.8rem; letter-spacing:.03em}
+  td:first-child{white-space:nowrap; font-family:ui-monospace,Menlo,monospace; font-size:.82rem}
+  tr:last-child td{border-bottom:0}
+
+  .note{border-left:3px solid var(--accent); background:var(--accent-soft);
+    padding:.85rem 1.1rem; border-radius:0 9px 9px 0; margin:1.3rem 0; font-size:.93rem}
+  .warn{border-left:3px solid var(--warn); background:var(--warn-soft);
+    padding:.85rem 1.1rem; border-radius:0 9px 9px 0; margin:1.3rem 0; font-size:.93rem}
+  .note p:last-child,.warn p:last-child{margin-bottom:0}
+  .note b,.warn b{color:var(--ink)}
+
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(7rem,1fr)); gap:.7rem; margin:1.2rem 0}
+  .stat{border:1px solid var(--rule); border-radius:10px; padding:.75rem .85rem; background:var(--card)}
+  .stat .v{font-size:1.5rem; font-weight:700; font-variant-numeric:tabular-nums; line-height:1.2}
+  .stat .k{font-size:.76rem; color:var(--muted); margin-top:.15rem}
+
+  footer{margin-top:3.5rem; padding-top:1.3rem; border-top:1px solid var(--rule);
+    font-size:.8rem; color:var(--muted)}
+  svg{display:block; width:100%; height:auto; margin:1.4rem 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>AI Org 架构</h1>
+  <p class="lead">一句话:<b>两套系统,一套在产、一套已冻结。</b>在产的是答题线,冻结的是四角色 Python 管线。</p>
+  <p class="stamp">2026-08-29 核对 · 依据 <code>COMPANY.md</code> / <code>ai_org/FROZEN.md</code></p>
+</header>
+
+<div class="split">
+  <div class="sys live">
+    <span class="tag live">在产</span>
+    <h4>答题线</h4>
+    <p>唯一到达读者的那条。主 agent 编排,<b>不分角色</b>,靠确定性工具兜底。</p>
+    <ul>
+      <li>入口技能 <code>hot-event-answer</code></li>
+      <li>发布技能 <code>publish-page</code></li>
+      <li>侦查<b>工作流</b> <code>investigate.js</code></li>
+      <li>六件确定性工具</li>
+    </ul>
+  </div>
+  <div class="sys frozen">
+    <span class="tag frozen">冻结</span>
+    <h4>系统 A · <code>ai_org/</code></h4>
+    <p>总监 / 高级 / 初级 / 答题员四角色 Python 管线,14 个模块。只读,不再维护。</p>
+    <ul>
+      <li>分权靠 <code>policies.py</code> 白名单</li>
+      <li>文章线转归档</li>
+      <li>细则见 <code>FROZEN.md</code></li>
+    </ul>
+  </div>
+</div>
+
+<div class="note">
+  <p><b>分权方式换了。</b>系统 A 靠角色白名单(<code>can_use_tool</code>),随 A 一起冻结。
+  在产的答题线不分角色,靠<b>确定性工具</b>兜底 —— 规矩写在代码里,不写在 prompt 里。
+  上一轮 14 次选题有 5 次靠自觉破了例,5 次全部颗粒无收。</p>
+</div>
+
+<h2>在产:答题线的七段</h2>
+
+<div class="pipe">
+  <div class="stage"><div class="n">01</div><div class="s">选题</div><div class="t">scout.py</div></div>
+  <div class="stage"><div class="n">02</div><div class="s">侦查</div><div class="t">investigate.js</div></div>
+  <div class="stage"><div class="n">03</div><div class="s">原件</div><div class="t">fetch_raw.py</div></div>
+  <div class="stage"><div class="n">04</div><div class="s">成稿</div><div class="t">hot-event-answer</div></div>
+  <div class="stage"><div class="n">05</div><div class="s">闸门</div><div class="t">gate.py</div></div>
+  <div class="stage"><div class="n">06</div><div class="s">交付</div><div class="t">render.py</div></div>
+  <div class="stage"><div class="n">07</div><div class="s">发布</div><div class="t">publish_page.py</div></div>
+</div>
+
+<table>
+  <tr><th>段</th><th>干什么</th></tr>
+  <tr><td>scout.py</td><td>批量取候选题的四个数字,硬过滤 + 排序</td></tr>
+  <tr><td>investigate.js</td><td>载体回溯 → 多路取证 → 图像取证 → 双重对抗核查 → 卷宗落盘。<code>fast</code>(≤25min)/ <code>deep</code></td></tr>
+  <tr><td>fetch_raw.py</td><td>原件落盘:API JSON / PDF / 源码 —— Chrome 只拿得到渲染后的文本</td></tr>
+  <tr><td>hot-event-answer</td><td>成稿。冷启动入口,照着走即可</td></tr>
+  <tr><td>gate.py</td><td>三道闸:引语必须是原件子串 / 红线 / 未落盘断言</td></tr>
+  <tr><td>render.py</td><td><code>blocks.json</code> → 单文件 HTML,图片 base64 内嵌</td></tr>
+  <tr><td>publish_page.py</td><td>发公开页,发前强制过闸</td></tr>
+  <tr><td>harvest_flow.py</td><td>把工作流产出并进卷宗(横跨各段)</td></tr>
+</table>
+
+<h3>侦查为什么是工作流,不是一个 agent</h3>
+<p>单 agent 会漏检索模态,而且<b>无法自我证伪</b>。上一轮对抗核查提出 123 处更正,拦下多个致命错误 ——
+最典型的是「某人当面骂他是骗子」流传极广,唯一信源竟是被指控者本人的回忆。没有核查,这句一定会被写进稿子。</p>
+
+<h2>交接件:卷宗即记忆</h2>
+<svg viewBox="0 0 700 132" role="img" aria-label="卷宗结构:runs 下每个 run 目录含 raw、images、facts 三个子目录与简报、补漏清单、分级台账三份文件">
+  <g font-family="ui-monospace,Menlo,monospace" font-size="12.5">
+    <rect x="1" y="1" width="698" height="130" rx="10" fill="none" stroke="currentColor" stroke-opacity=".18"/>
+    <text x="20" y="27" fill="currentColor" font-size="13" font-weight="700">runs/&lt;run-id&gt;/dossier/</text>
+    <g stroke="currentColor" stroke-opacity=".28" fill="none">
+      <rect x="20"  y="44" width="140" height="30" rx="6"/>
+      <rect x="176" y="44" width="140" height="30" rx="6"/>
+      <rect x="332" y="44" width="140" height="30" rx="6"/>
+      <rect x="20"  y="86" width="140" height="30" rx="6"/>
+      <rect x="176" y="86" width="140" height="30" rx="6"/>
+      <rect x="332" y="86" width="140" height="30" rx="6"/>
+    </g>
+    <g fill="currentColor" fill-opacity=".85">
+      <text x="34" y="64">raw/ 原件</text>
+      <text x="190" y="64">images/ 证据图</text>
+      <text x="346" y="64">facts/ 分级</text>
+      <text x="34" y="106">BRIEF.md</text>
+      <text x="190" y="106">GAPS.md</text>
+      <text x="346" y="106">facts.jsonl</text>
+    </g>
+    <text x="492" y="66" fill="currentColor" fill-opacity=".6" font-size="11.5">clear 之后只读卷宗,</text>
+    <text x="492" y="84" fill="currentColor" fill-opacity=".6" font-size="11.5">不依赖对话历史。</text>
+  </g>
+</svg>
+
+<h2>两条交付路径</h2>
+<table>
+  <tr><th>路径</th><th>怎么走</th></tr>
+  <tr><td>知乎</td><td><b>人工</b>。HTML 出来后复制粘贴,规程见 <code>sop/answer-delivery.md</code></td></tr>
+  <tr><td>看板公开页</td><td><code>publish_page.py</code> → <code>/p/&lt;slug&gt;.html</code></td></tr>
+</table>
+<p>知乎那条曾经想自动化:Draft.js 只认真实输入事件,AppleScript 要辅助功能权限且会掉,
+CDP 要算截图坐标系,插图还得绕 Chrome 的 Private Network Access。三条路各有各的坑,
+单次成功率低 —— 所以砍掉了,改出 HTML。</p>
+
+<div class="warn">
+  <p><b>冻结 ≠ 可删。</b><code>ai_org/quiet_browser.py</code> 被在产的
+  <code>tools/scout.py:21</code> import。删掉它,选题侦察一跑就 ImportError,而且是静默断掉。
+  它是共享基建,不是 legacy —— 清理那个包时唯独绕开它。</p>
+</div>
+
+<h2>规模</h2>
+<div class="stats">
+  <div class="stat"><div class="v">6</div><div class="k">确定性工具</div></div>
+  <div class="stat"><div class="v">2</div><div class="k">技能</div></div>
+  <div class="stat"><div class="v">1</div><div class="k">工作流</div></div>
+  <div class="stat"><div class="v">14</div><div class="k">冻结模块</div></div>
+  <div class="stat"><div class="v">86</div><div class="k">有产出的 run</div></div>
+</div>
+
+<footer>
+  架构全文 <code>COMPANY.md</code> · 冻结细则 <code>ai_org/FROZEN.md</code> ·
+  诊断过程 <code>ORG-AUDIT-2026-08-29.md</code><br />
+  本页只讲结构,不含战略口径与运营数据。
+</footer>
+
+</div>
+</body>
+</html>
