@@ -56,20 +56,6 @@
     ]
   },
   {
-    "id": "upload-structure",
-    "title": "项目结构报告:战略 / 战术 / 实现三层",
-    "href": "/p/structure.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T11:27:34.345Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/structure.html",
-      "frontend/public/p/structure.meta.json"
-    ]
-  },
-  {
     "id": "upload-why-cz-could-stop-sun",
     "title": "赵长鹏那条推里,没有孙宇晨",
     "href": "/p/why-cz-could-stop-sun.html",
