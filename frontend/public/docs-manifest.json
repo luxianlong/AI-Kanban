@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-hot-event-line-ddd",
+    "title": "热点线 DDD 模型",
+    "href": "/p/hot-event-line-ddd.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T07:27:35.792Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/hot-event-line-ddd.html",
+      "frontend/public/p/hot-event-line-ddd.meta.json"
+    ]
+  },
+  {
     "id": "upload-hot-event-line",
     "title": "热点线架构",
     "href": "/p/hot-event-line.html",

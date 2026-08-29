@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>热点线 DDD 模型</title>
+<style>
+  :root{
+    --paper:#fbfbfc; --ink:#1a1c20; --ink-soft:#3c4148; --muted:#6b717c;
+    --rule:#e3e5ea; --card:#fff; --accent:#2f6fd0; --accent-soft:#eef3fb;
+    --core:#1a7f4b; --core-soft:#e8f4ed; --warn:#a35200; --warn-soft:#fff3e4;
+    --ext:#8a8f99; --code:#f4f5f7;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#14161a; --ink:#e9ebef; --ink-soft:#c3c8d1; --muted:#98a0ac;
+      --rule:#282c34; --card:#1a1d22; --accent:#7aa8ee; --accent-soft:#1a222e;
+      --core:#5fd39a; --core-soft:#13291f; --warn:#ffbe76; --warn-soft:#2e2313;
+      --ext:#7b828d; --code:#1e2127;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Segoe UI",sans-serif;
+    line-height:1.75; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:52rem; margin:0 auto; padding:4rem 1.4rem 6rem}
+  header{border-bottom:1px solid var(--rule); padding-bottom:1.8rem; margin-bottom:2rem}
+  h1{font-size:2.1rem; line-height:1.25; margin:0 0 .7rem; letter-spacing:-.01em}
+  .lead{font-size:1.04rem; color:var(--ink-soft); margin:0}
+  .stamp{font-size:.78rem; color:var(--muted); margin:1rem 0 0}
+  h2{font-size:1.2rem; margin:2.8rem 0 1rem; padding-bottom:.5rem; border-bottom:1px solid var(--rule)}
+  h3{font-size:.98rem; margin:1.7rem 0 .5rem}
+  p{margin:0 0 1.05rem; color:var(--ink-soft)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.85em;
+    background:var(--code); border:1px solid var(--rule); padding:.08em .35em; border-radius:4px}
+  table{width:100%; border-collapse:collapse; font-size:.89rem; margin:.6rem 0 1.2rem}
+  th,td{text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--rule); vertical-align:top}
+  th{color:var(--muted); font-weight:600; font-size:.79rem}
+  tr:last-child td{border-bottom:0}
+  .ctx{border:1px solid var(--rule); border-radius:12px; padding:1rem 1.2rem;
+    background:var(--card); margin:0 0 .9rem}
+  .ctx.core{border-color:var(--core); background:var(--core-soft)}
+  .ctx h4{margin:0 0 .2rem; font-size:1rem}
+  .ctx .impl{font-size:.76rem; color:var(--muted); font-family:ui-monospace,Menlo,monospace;
+    margin:0 0 .6rem}
+  .ctx dl{margin:.4rem 0 0; font-size:.88rem}
+  .ctx dt{color:var(--muted); font-size:.76rem; letter-spacing:.03em; margin-top:.5rem}
+  .ctx dd{margin:.1rem 0 0; color:var(--ink-soft)}
+  .inv{border-left:3px solid var(--warn); background:var(--warn-soft);
+    padding:.6rem .85rem; border-radius:0 7px 7px 0; margin:.6rem 0 0; font-size:.86rem}
+  .inv b{color:var(--ink)}
+  .note{border-left:3px solid var(--accent); background:var(--accent-soft);
+    padding:.85rem 1.1rem; border-radius:0 9px 9px 0; margin:1.3rem 0; font-size:.92rem}
+  .note p:last-child{margin-bottom:0} .note b{color:var(--ink)}
+  ul{margin:.4rem 0 1rem; padding-left:1.2rem} li{margin:.35rem 0; color:var(--ink-soft); font-size:.92rem}
+  svg{display:block; width:100%; height:auto; margin:1.4rem 0}
+  footer{margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--rule);
+    font-size:.79rem; color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>热点线 DDD 模型</h1>
+  <p class="lead">用领域驱动设计的那套词汇,把这条流水线重新描述一遍:<b>六个限界上下文、
+  五个聚合、三条不变式</b>。</p>
+  <p class="stamp">2026-08-29 · 对应 COMPANY.md 的八段流水线</p>
+</header>
+
+<p>这个项目本来就有一套<b>统一语言</b>(Ubiquitous Language)—— 卷宗、原件、闸门、分级、留痕。
+这些词在代码、文档、对话里指的是同一件事,没有翻译层。DDD 里最难的那一步,这里是现成的。</p>
+
+<h2>统一语言</h2>
+<table>
+  <tr><th>术语</th><th>含义</th><th>落在哪</th></tr>
+  <tr><td><b>卷宗</b> Dossier</td><td>一次事件调查的全部材料,也是 clear 之后唯一的记忆</td><td><code>runs/&lt;id&gt;/dossier/</code></td></tr>
+  <tr><td><b>原件</b> Raw Artifact</td><td>一手材料本身,不是转述。引语闸门比对的对象</td><td><code>dossier/raw/</code></td></tr>
+  <tr><td><b>闸门</b> Gate</td><td>确定性检查,不过不许发。不是建议,是拒绝</td><td><code>tools/gate.py</code></td></tr>
+  <tr><td><b>硬门槛</b> Hard Threshold</td><td>写死在代码里的准入线,agent 无权协商</td><td><code>tools/scout.py</code></td></tr>
+  <tr><td><b>分级</b> Fact Grade</td><td>实 / 实·单方 / 网 / 传 —— 决定能不能写进成稿</td><td><code>dossier/facts/</code></td></tr>
+  <tr><td><b>留痕</b> Trace</td><td>每一步的可检查产物,不是日志是资产</td><td><code>runs/</code></td></tr>
+</table>
+
+<h2>上下文映射</h2>
+
+<svg viewBox="0 0 760 660" role="img" aria-label="上下文映射图:外部平台经防腐层进入选题与信源发现上下文,再以客户-供应商关系进入侦查上下文,侦查与成稿共享卷宗内核,成稿以遵奉者关系服从质量闸门,过闸后进入发布上下文">
+ <defs>
+   <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+     <path d="M0,0 L10,5 L0,10 z" fill="currentColor" fill-opacity=".55"/>
+   </marker>
+ </defs>
+ <g font-family="-apple-system,PingFang SC,sans-serif" font-size="13">
+
+  <rect x="180" y="8" width="400" height="46" rx="9" fill="none"
+        stroke="currentColor" stroke-opacity=".35" stroke-dasharray="5 4"/>
+  <text x="380" y="27" text-anchor="middle" fill="currentColor" fill-opacity=".65" font-size="12">外部平台(上游,模型各不相同)</text>
+  <text x="380" y="45" text-anchor="middle" fill="currentColor" fill-opacity=".85" font-size="12.5">知乎 · 微博 · X · Google News</text>
+
+  <line x1="250" y1="54" x2="230" y2="104" stroke="currentColor" stroke-opacity=".45" marker-end="url(#a)"/>
+  <line x1="510" y1="54" x2="530" y2="104" stroke="currentColor" stroke-opacity=".45" marker-end="url(#a)"/>
+  <text x="380" y="80" text-anchor="middle" fill="currentColor" fill-opacity=".75" font-size="11.5" font-weight="700">防腐层 ACL —— 每个平台一个适配器</text>
+
+  <rect x="60" y="106" width="290" height="62" rx="10" fill="none" stroke="currentColor" stroke-opacity=".5"/>
+  <text x="76" y="128" fill="currentColor" font-size="13.5" font-weight="700">选题上下文</text>
+  <text x="76" y="147" fill="currentColor" fill-opacity=".62" font-size="11.5">聚合 Candidate · 四道硬门槛</text>
+  <text x="76" y="162" fill="currentColor" fill-opacity=".45" font-size="10.5">scout.py</text>
+
+  <rect x="410" y="106" width="290" height="62" rx="10" fill="none" stroke="currentColor" stroke-opacity=".5"/>
+  <text x="426" y="128" fill="currentColor" font-size="13.5" font-weight="700">信源发现上下文</text>
+  <text x="426" y="147" fill="currentColor" fill-opacity=".62" font-size="11.5">聚合 SourceItem · 免登录</text>
+  <text x="426" y="162" fill="currentColor" fill-opacity=".45" font-size="10.5">newsfind.py</text>
+
+  <line x1="205" y1="168" x2="300" y2="212" stroke="currentColor" stroke-opacity=".45" marker-end="url(#a)"/>
+  <line x1="555" y1="168" x2="460" y2="212" stroke="currentColor" stroke-opacity=".45" marker-end="url(#a)"/>
+  <text x="380" y="192" text-anchor="middle" fill="currentColor" fill-opacity=".7" font-size="11.5">客户-供应商 Customer / Supplier</text>
+
+  <rect x="110" y="214" width="540" height="104" rx="12" fill="currentColor" fill-opacity=".05"
+        stroke="currentColor" stroke-opacity=".65" stroke-width="1.6"/>
+  <text x="130" y="238" fill="currentColor" font-size="14" font-weight="700">侦查上下文 —— 核心域 Core Domain</text>
+  <text x="130" y="259" fill="currentColor" fill-opacity=".72" font-size="12">聚合根 Dossier;实体 RawArtifact / EvidenceImage;值对象 Fact(四级)</text>
+  <text x="130" y="278" fill="currentColor" fill-opacity=".72" font-size="12">领域服务:载体回溯(12 步穷举)· 对抗核查(自我证伪)</text>
+  <text x="130" y="299" fill="currentColor" fill-opacity=".45" font-size="10.5">investigate.js · fetch_raw.py · harvest_flow.py</text>
+
+  <line x1="380" y1="318" x2="380" y2="362" stroke="currentColor" stroke-opacity=".45" marker-end="url(#a)"/>
+  <text x="392" y="344" fill="currentColor" fill-opacity=".7" font-size="11.5">共享内核 Shared Kernel —— 卷宗</text>
+
+  <rect x="150" y="364" width="460" height="58" rx="10" fill="none" stroke="currentColor" stroke-opacity=".5"/>
+  <text x="168" y="386" fill="currentColor" font-size="13.5" font-weight="700">成稿上下文</text>
+  <text x="168" y="405" fill="currentColor" fill-opacity=".62" font-size="11.5">聚合 Draft;值对象 Quote(必须可追溯到 RawArtifact)</text>
+
+  <line x1="380" y1="422" x2="380" y2="466" stroke="currentColor" stroke-opacity=".45" marker-end="url(#a)"/>
+  <text x="392" y="448" fill="currentColor" fill-opacity=".7" font-size="11.5">遵奉者 Conformist —— 作者不能与闸门协商</text>
+
+  <rect x="150" y="468" width="460" height="58" rx="10" fill="none" stroke="currentColor" stroke-opacity=".5"/>
+  <text x="168" y="490" fill="currentColor" font-size="13.5" font-weight="700">质量闸门上下文</text>
+  <text x="168" y="509" fill="currentColor" fill-opacity=".62" font-size="11.5">规格模式:引语闸门 ∧ 红线 ∧ 未落盘断言,三条全过</text>
+
+  <line x1="380" y1="526" x2="380" y2="570" stroke="currentColor" stroke-opacity=".45" marker-end="url(#a)"/>
+  <text x="392" y="552" fill="currentColor" fill-opacity=".7" font-size="11.5">过闸才放行</text>
+
+  <rect x="150" y="572" width="460" height="62" rx="10" fill="none" stroke="currentColor" stroke-opacity=".65" stroke-width="1.6"/>
+  <text x="168" y="594" fill="currentColor" font-size="13.5" font-weight="700">发布上下文 —— 不可逆边界</text>
+  <text x="168" y="613" fill="currentColor" fill-opacity=".62" font-size="11.5">聚合根 PublishedPage;匿名写、站长才能删</text>
+  <text x="168" y="629" fill="currentColor" fill-opacity=".45" font-size="10.5">render.py · publish_page.py</text>
+ </g>
+</svg>
+
+<h2>三条不变式</h2>
+<p>DDD 里聚合的意义是<b>守住不变式</b>。这条线上真正有约束力的只有三条,每一条都有代码在守:</p>
+
+<div class="ctx">
+  <h4>① 卷宗自洽</h4>
+  <p class="impl">Dossier · gate.py 引语闸门</p>
+  <div class="inv"><b>成稿里每一处引号内的文字,必须是本卷宗 <code>raw/</code> 下某个原件的子串。</b>
+  不是「应该有出处」,是逐字比对。外文材料因为译文不可能是原文的子串,必须原文译文同时出现。</div>
+</div>
+
+<div class="ctx">
+  <h4>② 候选题不可协商</h4>
+  <p class="impl">Candidate · scout.py</p>
+  <div class="inv"><b>四道门槛不过的题,根本不进 <code>candidates.json</code>。</b>
+  agent 只能交一个 index,不能交一道题。上一轮 14 次选题破例 5 次、5 次全部颗粒无收 ——
+  规则没错,错在会破例,所以把它做成物理约束。</div>
+</div>
+
+<div class="ctx">
+  <h4>③ 发布不可逆</h4>
+  <p class="impl">PublishedPage · publish_page.py</p>
+  <div class="inv"><b>公开页接口匿名写、站长才能删 —— 发出去自己撤不回来。</b>
+  所以闸门不是发布之后的检查,是发布之前的守卫;<code>publish_page.py</code> 默认强制过闸。</div>
+</div>
+
+<h2>两个值得单说的建模决定</h2>
+
+<div class="note">
+  <p><b>一、防腐层解释了「门槛为什么不能通用」。</b>
+  知乎的问题有「浏览 / 回答数 / 首答赞数 / ID 位数」,这套量纲是知乎答案排序特有的;
+  微博热搜是「热度值 / 榜位 / 在榜时长」,X 是「post 数 / 榜位」——
+  <b>两边都没有「我还能不能排进去」这个概念</b>。所以每个平台要一个自己的适配器、
+  自己的门槛。把知乎那四个数硬套到微博上,不是复用,是把上游的模型污染进核心域。</p>
+</div>
+
+<div class="note">
+  <p><b>二、约束放在出口,不放在读模型上。</b>
+  防编造的直觉做法是限制作者能看什么 —— 只给摘要、不给原件。这里反过来:
+  <b>作者能看到 <code>raw/</code> 下的全部原件,这是刻意的。</b>
+  因为最锋利的发现恰恰诞生于把材料摊在一个上下文里的时刻(上一篇最好的一句是
+  「整个封面唯一被标红的是『请随意转发分享』」—— 任何抽取器都拿不到,只能靠眼睛看)。
+  代价由第 5 步的闸门承担:<b>视野不设限,出口设守卫。</b></p>
+</div>
+
+<h2>领域事件</h2>
+<table>
+  <tr><th>事件</th><th>触发</th><th>后果</th></tr>
+  <tr><td>候选题已入围</td><td>四道门槛全过</td><td>进入 <code>candidates.json</code>,成为可选项</td></tr>
+  <tr><td>原件已落盘</td><td><code>fetch_raw.py</code> 写入 <code>raw/</code></td><td>该原件成为引语闸门的比对基准</td></tr>
+  <tr><td>事实已分级</td><td>对抗核查定级</td><td>【网】【传】自动失去进入成稿的资格</td></tr>
+  <tr><td>成稿已过闸</td><td>三条规格全过</td><td>解锁发布</td></tr>
+  <tr><td><b>页面已发布</b></td><td>POST 成功</td><td><b>不可逆</b> —— 只有站长能删</td></tr>
+</table>
+
+<h2>这个模型没有什么</h2>
+<ul>
+  <li><b>没有仓储层。</b>持久化就是文件系统,<code>runs/&lt;id&gt;/</code> 本身就是聚合的边界。
+      加一层 Repository 抽象只会让「卷宗即记忆」这件事变难验证。</li>
+  <li><b>没有防腐层之外的分层。</b>九件工具都是单文件脚本,没有 service/domain/infra 三层目录 ——
+      这个规模下分层的成本高于收益。</li>
+  <li><b>没有角色对象。</b>2026-08-29 删掉了四角色管线:分权改由确定性工具承担,
+      不再由「谁能调什么」承担。</li>
+</ul>
+
+<footer>本页只讲结构,不含战略口径与运营数据。对应实现见 <code>COMPANY.md</code>。</footer>
+
+</div>
+</body>
+</html>
