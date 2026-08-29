@@ -14,9 +14,12 @@
 import fs from 'node:fs'
 
 // Images and other binary assets backing a doc live under /img/ — always public
-// so a public doc's figures load for anonymous visitors.
+// so a public doc's figures load for anonymous visitors. /vendor/ holds the
+// libraries a doc page loads for itself (mermaid, task #81); a diagram must
+// render for an anonymous reader, so that directory is public on the same
+// grounds. Both are read-only static files — nothing of the board lives there.
 export function isDocAssetPath(urlPath) {
-  return urlPath.startsWith('/img/')
+  return urlPath.startsWith('/img/') || urlPath.startsWith('/vendor/')
 }
 
 // Static pages published through POST /api/pages (task #470) are written to
@@ -305,6 +308,9 @@ export function buildRobotsTxt(manifest, origin) {
     'Allow: /docs/',
     'Allow: /p/',
     'Allow: /img/',
+    // Mermaid & friends: a crawler that cannot fetch them renders a doc's
+    // diagrams as raw text (task #81).
+    'Allow: /vendor/',
     ...rootDocs.map((loc) => `Allow: ${loc}`),
     'Disallow: /api/',
     'Disallow: /__auth/',

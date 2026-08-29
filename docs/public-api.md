@@ -27,6 +27,7 @@
 | `GET` | `/p/{slug}.html` | 某张上传的静态网页 | #470 |
 | `GET` | `/docs-manifest.json` | 文档清单 JSON（私有条目已剔除） | #268 |
 | `GET` | `/img/**` | 文档配图等静态资源 | #268 |
+| `GET` | `/vendor/**` | 文档页自用的前端库（mermaid） | #81 |
 | `GET`/`POST` | `/api/docs/reads` | 已读状态；**匿名访问是空操作**（见 §4） | #472 |
 | `GET` | `/__auth/whoami` | 探测当前访客是不是站长 | #268 |
 
@@ -81,6 +82,30 @@ curl -X POST http://localhost:8080/api/pages -F 'file=@index.html'
 | `409` | 已达页面总数上限（默认 200 张） |
 | `413` | 单页超过大小上限（默认 5 MB） |
 | `429` | 同一来源一小时内上传次数超限（默认 30 次） |
+
+### 画图：页面里可以直接写 Mermaid（#81）
+
+上传的 HTML 里只要有 mermaid 代码块，后端在保存时会自动补上渲染器，页面打开就是图 ——
+**不用**自己引 CDN，也不用管沙箱：
+
+```html
+<pre class="mermaid">
+graph TD
+  Board[看板 Board] -->|派发| Worker[Worker]
+  Worker -->|发布| Page[/p/*.html/]
+</pre>
+```
+
+三种写法都认（大小写不敏感）：`<pre class="mermaid">`、`<div class="mermaid">`，以及
+markdown 转 HTML 常见的 ` ```mermaid ` → `<code class="language-mermaid">`。
+
+细节：
+
+- 注入的是两个同源静态脚本 `/vendor/mermaid.min.js`（vendored mermaid 11，无第三方请求）
+  和 `/vendor/mermaid-init.js`；`/vendor/**` 和 `/img/**` 一样免口令，匿名读者也能看到图。
+- 页面**自己**已经引了 mermaid（CDN 或自带一份）时，后端原样保存，不会重复注入。
+- 渲染用 `securityLevel: 'strict'`，跟随系统深色模式；某一张图语法写错只会保留它的源码，
+  不影响页面其余部分。
 
 ---
 
@@ -184,7 +209,7 @@ curl -X POST http://localhost:8080/api/public/tasks/42/status \
 - `/docs-manifest.json` 同样会滤掉私有条目；
 - 私有文档的直链对匿名访客会跳登录页。
 
-公开的路径有四类：
+公开的路径有五类：
 
 | 路径 | 是什么 |
 | --- | --- |
@@ -192,6 +217,7 @@ curl -X POST http://localhost:8080/api/public/tasks/42/status \
 | `/docs/<name>.html` | 由 `docs/<name>.md` 生成的文档页 |
 | `/p/<slug>.html` | 通过 §1 的接口上传的静态网页 |
 | `/img/**` | 文档里的配图等资源 |
+| `/vendor/**` | 文档页自用的前端库（目前只有 mermaid） |
 
 另外，清单里显式登记了 `.html` 地址的**定制页**（例如 `/singapore.html`）也算公开文档。
 

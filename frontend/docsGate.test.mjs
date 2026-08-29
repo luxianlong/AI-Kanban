@@ -63,6 +63,15 @@ check('doc assets under /img/ classify as asset', () => {
   assert.equal(isDocAssetPath('/img/x.png'), true)
 })
 
+check('vendored libraries under /vendor/ are public assets (mermaid, task #81)', () => {
+  assert.equal(classifyDoc('/vendor/mermaid.min.js', manifest), 'asset')
+  assert.equal(classifyDoc('/vendor/mermaid-init.js', manifest), 'asset')
+  assert.equal(isDocAssetPath('/vendor/mermaid.min.js'), true)
+  // Not a blanket bypass: a neighbouring path stays behind the password.
+  assert.equal(isDocAssetPath('/vendors.js'), false)
+  assert.equal(classifyDoc('/src/App.jsx', manifest), null)
+})
+
 check('non-doc paths (board/api/vite) are not doc requests', () => {
   assert.equal(classifyDoc('/', manifest), null)
   assert.equal(classifyDoc('/api/todos', manifest), null)
@@ -268,7 +277,7 @@ check('robots.txt allows the doc surfaces, denies the board, points at the sitem
   const txt = buildRobotsTxt(crawlManifest, 'https://www.example.com')
   assert.match(txt, /^# /)
   assert.ok(txt.includes('User-agent: *'))
-  for (const rule of ['Allow: /docs.html', 'Allow: /docs/', 'Allow: /p/', 'Allow: /img/']) {
+  for (const rule of ['Allow: /docs.html', 'Allow: /docs/', 'Allow: /p/', 'Allow: /img/', 'Allow: /vendor/']) {
     assert.ok(txt.includes(rule), 'missing ' + rule)
   }
   // Bespoke root-level docs need their own Allow — no prefix rule covers them.

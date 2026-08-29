@@ -201,6 +201,7 @@ pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-ra
 <ul>
 <li class="lv2"><a href="#0-一张表看完">0. 一张表看完</a></li>
 <li class="lv2"><a href="#1-发布静态网页apipages">1. 发布静态网页：`/api/pages`</a></li>
+<li class="lv3"><a href="#画图页面里可以直接写-mermaid81">画图：页面里可以直接写 Mermaid（#81）</a></li>
 <li class="lv2"><a href="#2-代理任务apipublictasks">2. 代理任务：`/api/public/tasks`</a></li>
 <li class="lv3"><a href="#get-apipublictasks">`GET /api/public/tasks`</a></li>
 <li class="lv3"><a href="#post-apipublictasksidclaim">`POST /api/public/tasks/{id}/claim`</a></li>
@@ -233,6 +234,7 @@ pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-ra
 <tr><td><code>GET</code></td><td><code>/p/{slug}.html</code></td><td>某张上传的静态网页</td><td>#470</td></tr>
 <tr><td><code>GET</code></td><td><code>/docs-manifest.json</code></td><td>文档清单 JSON（私有条目已剔除）</td><td>#268</td></tr>
 <tr><td><code>GET</code></td><td><code>/img/**</code></td><td>文档配图等静态资源</td><td>#268</td></tr>
+<tr><td><code>GET</code></td><td><code>/vendor/**</code></td><td>文档页自用的前端库（mermaid）</td><td>#81</td></tr>
 <tr><td><code>GET</code>/<code>POST</code></td><td><code>/api/docs/reads</code></td><td>已读状态；<strong>匿名访问是空操作</strong>（见 §4）</td><td>#472</td></tr>
 <tr><td><code>GET</code></td><td><code>/__auth/whoami</code></td><td>探测当前访客是不是站长</td><td>#268</td></tr>
 </tbody>
@@ -274,6 +276,20 @@ curl -X POST http://localhost:8080/api/pages -F 'file=@index.html'</code></pre>
 <tr><td><code>429</code></td><td>同一来源一小时内上传次数超限（默认 30 次）</td></tr>
 </tbody>
 </table></div>
+<h3 id="画图页面里可以直接写-mermaid81">画图：页面里可以直接写 Mermaid（#81）<a class="anchor" href="#画图页面里可以直接写-mermaid81" aria-label="链接到本节">#</a></h3>
+<p>上传的 HTML 里只要有 mermaid 代码块，后端在保存时会自动补上渲染器，页面打开就是图 ——<br /><strong>不用</strong>自己引 CDN，也不用管沙箱：</p>
+<pre class="code"><code class="language-html">&lt;pre class="mermaid"&gt;
+graph TD
+  Board[看板 Board] --&gt;|派发| Worker[Worker]
+  Worker --&gt;|发布| Page[/p/*.html/]
+&lt;/pre&gt;</code></pre>
+<p>三种写法都认（大小写不敏感）：<code>&lt;pre class="mermaid"&gt;</code>、<code>&lt;div class="mermaid"&gt;</code>，以及<br />markdown 转 HTML 常见的 <code> </code>`<code>mermaid </code> → <code>&lt;code class="language-mermaid"&gt;</code>。</p>
+<p>细节：</p>
+<ul>
+<li>注入的是两个同源静态脚本 <code>/vendor/mermaid.min.js</code>（vendored mermaid 11，无第三方请求）<br />和 <code>/vendor/mermaid-init.js</code>；<code>/vendor/<strong></code> 和 <code>/img/</strong></code> 一样免口令，匿名读者也能看到图。</li>
+<li>页面<strong>自己</strong>已经引了 mermaid（CDN 或自带一份）时，后端原样保存，不会重复注入。</li>
+<li>渲染用 <code>securityLevel: 'strict'</code>，跟随系统深色模式；某一张图语法写错只会保留它的源码，<br />不影响页面其余部分。</li>
+</ul>
 <hr />
 <h2 id="2-代理任务apipublictasks">2. 代理任务：<code>/api/public/tasks</code><a class="anchor" href="#2-代理任务apipublictasks" aria-label="链接到本节">#</a></h2>
 <p>看板上的任务默认由本机的 Claude worker 去做。被标成<strong>代理（delegated）</strong>的任务是个例外：<br />worker 会跳过它，转而把它发布在这条公开接口上，让<strong>外部的</strong>执行者 —— 另一个 bot、一位同事、<br />一个 cron 脚本 —— 发现它、在别处做完、再把结果写回看板。</p>
@@ -352,7 +368,7 @@ curl -X POST http://localhost:8080/api/public/tasks/42/status \
 <li><code>/docs-manifest.json</code> 同样会滤掉私有条目；</li>
 <li>私有文档的直链对匿名访客会跳登录页。</li>
 </ul>
-<p>公开的路径有四类：</p>
+<p>公开的路径有五类：</p>
 <div class="table-wrap"><table>
 <thead><tr><th>路径</th><th>是什么</th></tr></thead>
 <tbody>
@@ -360,6 +376,7 @@ curl -X POST http://localhost:8080/api/public/tasks/42/status \
 <tr><td><code>/docs/&lt;name&gt;.html</code></td><td>由 <code>docs/&lt;name&gt;.md</code> 生成的文档页</td></tr>
 <tr><td><code>/p/&lt;slug&gt;.html</code></td><td>通过 §1 的接口上传的静态网页</td></tr>
 <tr><td><code>/img/**</code></td><td>文档里的配图等资源</td></tr>
+<tr><td><code>/vendor/**</code></td><td>文档页自用的前端库（目前只有 mermaid）</td></tr>
 </tbody>
 </table></div>
 <p>另外，清单里显式登记了 <code>.html</code> 地址的<strong>定制页</strong>（例如 <code>/singapore.html</code>）也算公开文档。</p>
