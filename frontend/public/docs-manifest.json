@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-three-hidden-numbers-summary",
+    "title": "三家电商各自在藏一个数字",
+    "href": "/p/three-hidden-numbers-summary.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T15:36:09.574Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/three-hidden-numbers-summary.html",
+      "frontend/public/p/three-hidden-numbers-summary.meta.json"
+    ]
+  },
+  {
     "id": "upload-probe-summary-check",
     "title": "探针",
     "href": "/p/probe-summary-check.html",
