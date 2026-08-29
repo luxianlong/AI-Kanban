@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-topic-review-2",
+    "title": "选题候选 · 待确认",
+    "href": "/p/topic-review-2.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T09:59:18.739Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/topic-review-2.html",
+      "frontend/public/p/topic-review-2.meta.json"
+    ]
+  },
+  {
     "id": "upload-architecture",
     "title": "热点线架构说明",
     "href": "/p/architecture.html",
