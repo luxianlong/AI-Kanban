@@ -44,6 +44,16 @@ attachments:
   dir: ${KANBAN_DATA_DIR:${user.home}/Dashboard/data}/attachments
   max-bytes: 10485760
 
+# --- Public static-page uploads (task #470) ---
+# POST /api/pages accepts a self-contained HTML file WITHOUT any credential and
+# publishes it at /p/<slug>.html. Nobody signs in, so these caps are the only
+# abuse control: keep them conservative. Set max-uploads-per-hour to 0 to turn
+# publishing off entirely (the GET endpoints keep working).
+pages:
+  max-bytes: 5242880
+  max-pages: 200
+  max-uploads-per-hour: 30
+
 # --- Claude Code worker ---
 worker:
   enabled: true

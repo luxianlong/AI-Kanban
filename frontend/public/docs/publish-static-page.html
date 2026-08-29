@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>上传静态网页并公开展示（免鉴权 API） · Kanban docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #fdf1ee;
+  --card: #ffffff;
+  --ink: #33313a;
+  --muted: #9a939b;
+  --line: #f4e4e0;
+  --accent: #ff2e4d;
+  --accent-2: #ff7a59;
+  --accent-soft: #ffe6ea;
+  --link: #ff2e4d;
+  --source-bg: #fff3ec;
+  --source-line: #ff8a5c;
+  --shadow: 0 10px 30px rgba(255,46,77,0.10);
+  --maxw: 1040px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Nunito", system-ui, -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.78;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #ff5b79 0%, #ff2e4d 52%, #ff8a5c 100%);
+  color: #fff;
+  padding: 46px 24px 40px;
+  text-align: center;
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 12px 30px rgba(255,46,77,0.22);
+}
+.hero .eyebrow {
+  display: inline-block;
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 4px 14px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+.hero h1 {
+  font-family: "Nunito", "Noto Sans SC", sans-serif;
+  font-weight: 800;
+  font-size: clamp(26px, 4.5vw, 40px);
+  margin: 0 0 10px;
+  letter-spacing: 0.3px;
+}
+.hero p.sub { margin: 0 auto; max-width: 680px; opacity: 0.96; font-size: 15px; }
+.hero .back {
+  display: inline-block; margin-top: 18px; color: #ff2e4d; background: #fff;
+  font-size: 14px; font-weight: 700; padding: 7px 18px; border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+.hero .back:hover { text-decoration: none; transform: translateY(-1px); }
+
+.layout {
+  max-width: var(--maxw);
+  margin: -20px auto 0;
+  position: relative;
+  padding: 32px 24px 80px;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 30px;
+  align-items: start;
+}
+.toc {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 18px 16px;
+  font-size: 14px;
+  box-shadow: var(--shadow);
+}
+.toc-title {
+  font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+  color: var(--accent); margin-bottom: 10px;
+}
+.toc-title::before { content: "📌 "; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 1px 0; }
+.toc li a {
+  display: block; padding: 5px 10px; border-radius: 999px; color: var(--ink);
+}
+.toc li a:hover { background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { font-weight: 700; margin-top: 6px; }
+.toc li.lv3 a { padding-left: 22px; color: var(--muted); font-size: 13px; }
+.content {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 22px; padding: 12px 42px 44px; min-width: 0;
+  box-shadow: var(--shadow);
+}
+.content h1 { font-family: "Nunito","Noto Sans SC",sans-serif; font-weight: 800; font-size: 30px; margin: 24px 0 12px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: "Nunito", "Noto Sans SC", sans-serif; font-weight: 800;
+  line-height: 1.4; scroll-margin-top: 16px; position: relative;
+}
+.content h2 { font-size: 24px; margin: 40px 0 16px; padding-left: 14px; border-left: 6px solid var(--accent); }
+.content h3 { font-size: 19px; margin: 28px 0 10px; }
+.content h3::before { content: "🌸 "; font-size: 0.85em; }
+.content h4 { font-size: 17px; margin: 22px 0 8px; color: var(--accent); }
+.content p { margin: 12px 0; }
+.content ul, .content ol { margin: 12px 0; padding-left: 24px; }
+.content li { margin: 6px 0; }
+.content ul li::marker { color: var(--accent); }
+.content li > ul, .content li > ol { margin: 5px 0; }
+.content strong { color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--accent); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.55; }
+code { background: var(--accent-soft); color: #d61f3c; border-radius: 6px; padding: 1px 6px; font-family: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size: 0.9em; }
+blockquote.quote { margin: 18px 0; padding: 14px 20px; border-left: 5px solid var(--accent-2); background: var(--source-bg); border-radius: 0 16px 16px 0; color: #6f5a52; }
+blockquote.source { background: var(--source-bg); border-left-color: var(--source-line); }
+blockquote.source::before { content: "🔎 来源与时效"; display: block; font-weight: 800; font-size: 13px; color: var(--source-line); margin-bottom: 4px; }
+blockquote p { margin: 4px 0; font-size: 14px; }
+.figure { margin: 22px 0; text-align: center; }
+.figure img { max-width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 10px 26px rgba(255,46,77,0.12); }
+.figure figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; border-radius: 16px; }
+.table-wrap { overflow-x: auto; margin: 18px 0; border-radius: 16px; border: 1px solid var(--line); }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 10px 14px; text-align: left; vertical-align: top; }
+thead th { background: var(--accent-soft); color: var(--accent); font-weight: 800; border-bottom: none; }
+tbody tr:nth-child(even) { background: #fff7f5; }
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 2px dashed var(--line); margin: 28px 0; }
+pre.code { background: #33202a; color: #ffe7ec; border-radius: 16px; padding: 16px 18px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+pre.mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; text-align: center; overflow-x: auto; }
+.backtop {
+  position: fixed; right: 22px; bottom: 22px; width: 46px; height: 46px;
+  border-radius: 50%; background: var(--accent); color: #fff; border: none;
+  font-size: 20px; cursor: pointer; box-shadow: 0 8px 20px rgba(255,46,77,0.45);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.mobile-toc-toggle { display: none; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 16px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; padding: 12px 16px; font: inherit; font-weight: 700; text-align: left; cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+  .toc.collapsed { display: none; }
+  .content { padding: 12px 22px 30px; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">📔 笔记详情</p>
+<h1>上传静态网页并公开展示（免鉴权 API）</h1>
+<a class="back" href="/docs.html">← 回到笔记墙</a>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ On this page</button>
+<nav class="toc" aria-label="On this page">
+<div class="toc-title">On this page</div>
+<ul>
+<li class="lv2"><a href="#一句话上传">一句话上传</a></li>
+<li class="lv2"><a href="#如何展示给公众">如何展示给公众</a></li>
+<li class="lv2"><a href="#其它接口">其它接口</a></li>
+<li class="lv2"><a href="#参数">参数</a></li>
+<li class="lv2"><a href="#边界与安全">边界与安全</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>看板提供一个<strong>不需要任何鉴权</strong>的接口：把一个自包含的 HTML 文件 POST 上来，立刻拿到一个<br /><strong>公开可访问</strong>的网址，并且它会自动出现在公开的文档墙 <code>/docs.html</code> 上。</p>
+<p>任务 #470：「创建一个 api 不需校验就可以上传静态网页到这个看板，如何展示给公众」。</p>
+<h2 id="一句话上传">一句话上传<a class="anchor" href="#一句话上传" aria-label="链接到本节">#</a></h2>
+<pre class="code"><code class="language-bash"># 1) 直接传文件（最常用）
+curl -X POST 'http://localhost:8080/api/pages?title=我的报告' \
+     -H 'Content-Type: text/html' \
+     --data-binary @index.html
+
+# 2) JSON
+curl -X POST http://localhost:8080/api/pages \
+     -H 'Content-Type: application/json' \
+     -d '{"title":"我的报告","summary":"一句话简介","html":"&lt;h1&gt;hi&lt;/h1&gt;"}'
+
+# 3) 表单 / multipart（网页里的 &lt;input type=file&gt; 也能直接提交）
+curl -X POST http://localhost:8080/api/pages -F 'file=@index.html'</code></pre>
+<p>返回：</p>
+<pre class="code"><code class="language-json">{
+  "slug": "page-3f9a12bc",
+  "docId": "upload-page-3f9a12bc",
+  "title": "我的报告",
+  "summary": "一句话简介",
+  "url": "/p/page-3f9a12bc.html",
+  "bytes": 147582,
+  "createdAt": "2026-08-29T05:00:00Z"
+}</code></pre>
+<p><code>url</code> 就是公开地址。本机是 <code>http://localhost/p/&lt;slug&gt;.html</code>；把站点通过 cloudflared 隧道<br />对外暴露之后就是 <code>https://&lt;你的域名&gt;/p/&lt;slug&gt;.html</code>。</p>
+<h2 id="如何展示给公众">如何展示给公众<a class="anchor" href="#如何展示给公众" aria-label="链接到本节">#</a></h2>
+<p>上传后有<strong>两条</strong>公开入口，都不需要密码：</p>
+<ol>
+<li><strong>直链</strong> <code>https://&lt;域名&gt;/p/&lt;slug&gt;.html</code> — 把这个链接发给任何人即可。<br />Vite 的鉴权中间件把 <code>/p/*.html</code> 归类为「公开文档」，和 <code>docs/</code> 下的文章一样绕过登录页。</li>
+<li><strong>文档墙</strong> <code>https://&lt;域名&gt;/docs.html</code> — 上传时后端会重跑文档站生成器<br />（<code>scripts/build-docs-site.mjs</code>），把这张页面作为一张卡片插进索引，标题/简介取自上传时<br />给的 <code>title</code> / <code>summary</code>。7 天内的新页面还会带红色 NEW 角标排在最前面。</li>
+</ol>
+<p>看板本体（<code>/</code>）、<code>/api</code> 的其余接口仍然在密码后面 —— 公众只能看到你公开的页面，看不到任务板。</p>
+<p>整站怎么对外暴露（cloudflared 隧道 + 域名 + Basic-Auth 门）不在本文范围内：门本身是<br /><code>frontend/vite.config.js</code> 里的中间件，凭据放在被 gitignore 的 <code>frontend/.public-auth.json</code>。</p>
+<h2 id="其它接口">其它接口<a class="anchor" href="#其它接口" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>方法</th><th>路径</th><th>鉴权</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><code>POST</code></td><td><code>/api/pages</code></td><td>❌ 不需要</td><td>发布一张静态网页</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/pages</code></td><td>❌ 不需要</td><td>列出已发布的页面（新的在前）</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/pages/{slug}</code></td><td>❌ 不需要</td><td>单张页面的元信息</td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/docs/upload-{slug}</code></td><td>✅ 需要（站长）</td><td>下架某张页面</td></tr>
+</tbody>
+</table></div>
+<p><strong>发布是匿名的，下架不是。</strong> 删除走文档墙上原有的「✕」按钮 / <code>DELETE /api/docs/{docId}</code>，<br />这条路径依旧在密码门后面 —— 陌生人可以发布，但不能删掉别人的页面。</p>
+<h2 id="参数">参数<a class="anchor" href="#参数" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>字段</th><th>位置</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><code>html</code></td><td>JSON 字段 / 请求体 / 上传文件</td><td>页面内容，必填</td></tr>
+<tr><td><code>title</code></td><td>JSON 字段或 query</td><td>卡片标题；不给就取文档里的 <code>&lt;title&gt;</code>，再不行取第一个 <code>&lt;h1&gt;</code></td></tr>
+<tr><td><code>slug</code></td><td>JSON 字段或 query</td><td>想要的网址名；会被清洗成 <code>[a-z0-9-]</code></td></tr>
+<tr><td><code>summary</code></td><td>JSON 字段或 query</td><td>文档墙卡片上的一句话简介</td></tr>
+</tbody>
+</table></div>
+<p>关于 <code>slug</code>：中文标题清洗后为空，会退化成随机的 <code>page-&lt;8位十六进制&gt;</code>；想要好看的网址就显式传<br /><code>slug=my-report</code>。<strong>已存在的 slug 永远不会被覆盖</strong> —— 重名会自动变成 <code>-2</code>、<code>-3</code>，所以匿名调用者<br />无法靠猜名字替换掉别人的页面。</p>
+<h2 id="边界与安全">边界与安全<a class="anchor" href="#边界与安全" aria-label="链接到本节">#</a></h2>
+<p>这是一个匿名写接口，请了解它的取舍：</p>
+<ul>
+<li><strong>必须是单文件。</strong> 页面要自包含（内联 CSS/JS，图片用 data: URI 或外链）。不支持上传<br />一个目录或附带资源文件。</li>
+<li><strong>配额</strong>（<code>application.yml</code> 的 <code>pages.*</code>）：单页 ≤ 5 MB、总数 ≤ 200 张、同一来源<br />每小时 ≤ 30 次上传，超出分别返回 <code>413</code> / <code>409</code> / <code>429</code>。把 <code>max-uploads-per-hour</code><br />设成 <code>0</code> 可以彻底关掉发布（GET 仍然可用）。</li>
+<li><strong>上传的 HTML 被沙箱化。</strong> 它是陌生人写的代码，却跑在看板自己的域名下，所以服务这些页面时<br />会带上 <code>Content-Security-Policy: sandbox …</code>（不含 <code>allow-same-origin</code>）。页面自己的<br />脚本、表单、下载都照常工作，但拿不到看板的 Cookie / localStorage，也无法冒充已登录的站长<br />去调 <code>/api</code>。</li>
+<li><strong>落盘位置</strong> <code>frontend/public/p/&lt;slug&gt;.html</code>（外加 <code>&lt;slug&gt;.meta.json</code> 边车文件），上传后<br />由后端提交进 git —— 否则下一次 <code>deploy.sh</code> 的 <code>git checkout main</code> 会把它冲掉<br />（和任务 #463 里「删掉的文档又冒出来」是同一类坑）。</li>
+<li>页面内容是<strong>公开</strong>的。上传后如果想收起来，站长可以在文档墙上把它标成 🔒 Private，<br />之后只有登录者能打开。</li>
+</ul>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    var toc = document.querySelector('.toc');
+    if (toc) toc.classList.add('collapsed');
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["publish-static-page"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+</script>
+</body>
+</html>

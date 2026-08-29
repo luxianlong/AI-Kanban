@@ -1,5 +1,19 @@
 [
   {
+    "id": "publish-static-page",
+    "title": "上传静态网页并公开展示（免鉴权 API）",
+    "href": "/docs/publish-static-page.html",
+    "deletable": true,
+    "file": "docs/publish-static-page.md",
+    "updatedAt": "2026-08-29T05:35:28.837Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/publish-static-page.md",
+      "frontend/public/docs/publish-static-page.html"
+    ]
+  },
+  {
     "id": "singapore-travel-guide",
     "title": "新加坡旅游攻略",
     "href": "/singapore.html",

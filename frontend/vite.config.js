@@ -5,6 +5,8 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import {
   classifyDoc,
+  isPublicApiPath,
+  isUploadedPagePath,
   stripPrivateCards,
   stripPrivateManifest,
   readDocsManifest,
@@ -241,6 +243,21 @@ function readCreds(cache) {
   return cache.creds
 }
 
+// Uploaded pages are arbitrary HTML from an unauthenticated stranger, served
+// from the board's own origin. The CSP sandbox drops them into an opaque origin
+// (no `allow-same-origin`), so their scripts can't read the board's cookies or
+// localStorage or call /api as the signed-in owner — while everything a
+// self-contained page actually needs (inline scripts/styles, forms, links,
+// downloads) keeps working.
+const UPLOADED_PAGE_CSP =
+  'sandbox allow-scripts allow-forms allow-modals allow-popups allow-downloads ' +
+  'allow-top-navigation-by-user-activation'
+
+function sandboxUploadedPage(res) {
+  res.setHeader('Content-Security-Policy', UPLOADED_PAGE_CSP)
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+}
+
 function basicAuthGate() {
   const cache = { mtimeMs: -1, creds: null }
   const manifestCache = { mtimeMs: -1, data: null }
@@ -261,6 +278,12 @@ function basicAuthGate() {
           return res.end(JSON.stringify({ authed: isAuthenticated(req, creds) }))
         }
 
+        // Public static-page upload API (task #470): POST /api/pages must work
+        // for anonymous visitors, so it is exempt from the password. Only the
+        // publish/read verbs are exempt — every other /api route, DELETE
+        // included, stays gated below.
+        if (isPublicApiPath(urlPath, req.method)) return next()
+
         if (!creds) return next() // no file -> frictionless local dev
         const token = authToken(creds)
 
@@ -276,7 +299,10 @@ function basicAuthGate() {
             if (privatePage) {
               // Private doc: owner only. Authed -> serve it; otherwise fall
               // through to the normal challenge (login form for an HTML nav).
-              if (authed) return next()
+              if (authed) {
+                if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
+                return next()
+              }
             } else if (!authed && kind === 'index') {
               // Anonymous listing -> serve the index with private cards removed.
               try {
@@ -301,6 +327,7 @@ function basicAuthGate() {
               }
             } else {
               // Public page/asset, or an authed listing -> serve, no password.
+              if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
               return next()
             }
           }

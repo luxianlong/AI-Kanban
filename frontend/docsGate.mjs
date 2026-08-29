@@ -19,6 +19,25 @@ export function isDocAssetPath(urlPath) {
   return urlPath.startsWith('/img/')
 }
 
+// Static pages published through POST /api/pages (task #470) are written to
+// frontend/public/p/<slug>.html and served from the web root at /p/<slug>.html.
+// The slug is sanitised server-side to [a-z0-9-], so a legitimate uploaded page
+// never contains a further path segment.
+export function isUploadedPagePath(urlPath) {
+  return /^\/p\/[a-z0-9][a-z0-9-]*\.html$/.test(urlPath)
+}
+
+// The one API surface that is deliberately reachable WITHOUT the site password
+// (task #470): publishing a static page, and reading back what's published.
+// Everything else under /api stays behind the gate — in particular DELETE, so a
+// stranger can publish a page but never unpublish someone else's.
+export function isPublicApiPath(urlPath, method) {
+  const m = (method || 'GET').toUpperCase()
+  if (urlPath === '/api/pages') return m === 'POST' || m === 'GET'
+  if (/^\/api\/pages\/[^/]+$/.test(urlPath)) return m === 'GET'
+  return false
+}
+
 // Classify a request path for the public-docs gate:
 //   'index'    -> the docs listing (/docs.html); filtered for anonymous
 //   'manifest' -> the docs manifest (/docs-manifest.json); filtered for anonymous
@@ -30,6 +49,10 @@ export function classifyDoc(urlPath, manifest) {
   if (urlPath === '/docs-manifest.json') return 'manifest'
   if (isDocAssetPath(urlPath)) return 'asset'
   if (/^\/docs\/[^/]+\.html$/.test(urlPath)) return 'page'
+  // Static pages published through the public upload API (task #470) live under
+  // /p/. They are documents like any other: public unless marked private, and
+  // listed on the docs index.
+  if (isUploadedPagePath(urlPath)) return 'page'
   // Bespoke doc pages (e.g. /singapore.html) live at the web root — recognise
   // them only if the manifest lists that exact .html href as a document.
   const entries = manifest && manifest.entries
