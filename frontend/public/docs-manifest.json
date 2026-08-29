@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-e2e-demo",
-    "title": "E2E 验证页",
-    "href": "/p/e2e-demo.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T05:37:17.440Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/e2e-demo.html",
-      "frontend/public/p/e2e-demo.meta.json"
-    ]
-  },
-  {
     "id": "publish-static-page",
     "title": "上传静态网页并公开展示（免鉴权 API）",
     "href": "/docs/publish-static-page.html",
