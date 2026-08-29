@@ -84,6 +84,12 @@ public class ClaudeWorkerService {
         int requeued = 0;
         int abandoned = 0;
         for (Todo t : orphans) {
+            if (t.isDelegated()) {
+                // A delegated task is IN_PROGRESS because an OUTSIDE worker claimed
+                // it — no session of ours died with the restart, and that worker is
+                // very likely still on the job. Leave the claim alone.
+                continue;
+            }
             if (t.getAttempts() >= props.getMaxAttempts()) {
                 fail(t, "Interrupted by a backend restart after " + t.getAttempts()
                         + " attempt(s) (the max-attempts cap). Not re-running automatically, "
@@ -130,13 +136,7 @@ public class ClaudeWorkerService {
         }
         try {
             List<Todo> pending = repository.findByStatusOrderByCreatedAtAsc(TodoStatus.PENDING);
-            // Story steps run in order: a step is skipped until every earlier step
-            // in its chain has RESOLVED, so a story never runs two tasks at once
-            // and halts if one of its steps fails. A task still held by the async
-            // story classifier is skipped until that pass clears the hold.
-            List<Todo> eligible = pending.stream()
-                    .filter(t -> !t.isClassifying() && !isBlockedByStory(t))
-                    .toList();
+            List<Todo> eligible = pending.stream().filter(this::isEligible).toList();
             if (eligible.isEmpty()) {
                 return;
             }
@@ -148,6 +148,24 @@ public class ClaudeWorkerService {
         } finally {
             tickLock.unlock();
         }
+    }
+
+    /**
+     * Whether the worker may pick a pending task up on this tick.
+     *
+     * <ul>
+     *   <li>A <em>delegated</em> (代理) task is never ours to run at all: it waits
+     *       in the queue until an outside worker finds it through the public API
+     *       ({@code /api/public/tasks}) and reports the outcome back.
+     *   <li>A task still held by the async story classifier waits until that pass
+     *       clears the hold, so it can't run before it has been filed.
+     *   <li>Story steps run in order: a step waits until every earlier step in its
+     *       chain has RESOLVED, so a story never runs two tasks at once and halts
+     *       if one of its steps fails.
+     * </ul>
+     */
+    boolean isEligible(Todo todo) {
+        return !todo.isDelegated() && !todo.isClassifying() && !isBlockedByStory(todo);
     }
 
     /**

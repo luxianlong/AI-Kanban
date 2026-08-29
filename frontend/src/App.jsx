@@ -258,7 +258,11 @@ export default function App() {
   useEffect(() => {
     const tick = () => {
       const ids = new Set(
-        todosRef.current.filter((t) => t.status === 'IN_PROGRESS').map((t) => t.id),
+        todosRef.current
+          // A delegated task runs outside this server — there is no session log
+          // to stream, so don't poll one for it.
+          .filter((t) => t.status === 'IN_PROGRESS' && !t.delegated)
+          .map((t) => t.id),
       )
       if (selectedRef.current != null) ids.add(selectedRef.current)
       ids.forEach(fetchLog)
@@ -268,8 +272,8 @@ export default function App() {
     return () => clearInterval(t)
   }, [fetchLog])
 
-  async function createTodo(title, description, projectImprovement, attachmentIds) {
-    await api.createTodo(title, description, projectImprovement, attachmentIds)
+  async function createTodo(title, description, projectImprovement, attachmentIds, delegated) {
+    await api.createTodo(title, description, projectImprovement, attachmentIds, delegated)
     await refresh()
     broadcastMutation()
     setShowComposer(false)
@@ -906,6 +910,11 @@ function Composer({ onCreate }) {
   // Whether this task is about improving the Kanban project itself. Off by
   // default: a plain task is a general task, not aimed at the project.
   const [projectImprovement, setProjectImprovement] = useState(false)
+  // Whether to hand this task OUT instead of running it here (代理任务). The
+  // worker never touches a delegated task; it sits in To Do and is published on
+  // the public /api/public/tasks feed for an outside worker to pick up and
+  // report back on.
+  const [delegated, setDelegated] = useState(false)
   // Images already uploaded for this (not yet created) task. Each was stored
   // server-side the moment it was picked, so we have a real URL to preview and
   // an id to hand to createTodo. See useImageUploads.
@@ -915,6 +924,7 @@ function Composer({ onCreate }) {
     setTitle('')
     setDesc('')
     setProjectImprovement(false)
+    setDelegated(false)
     images.reset()
     setOpen(false)
   }
@@ -928,7 +938,7 @@ function Composer({ onCreate }) {
     if (!t || busy) return
     setBusy(true)
     try {
-      await onCreate(t, desc.trim(), projectImprovement, images.ids())
+      await onCreate(t, desc.trim(), projectImprovement, images.ids(), delegated)
       // The task now owns the uploads — forget them without deleting the files.
       images.forget()
       clear()
@@ -971,6 +981,14 @@ function Composer({ onCreate }) {
               onChange={(e) => setProjectImprovement(e.target.checked)}
             />
             Improves this Kanban project itself
+          </label>
+          <label className="composer-flag" title="Delegated (代理) task: this server never runs it. It is published on the public API (/api/public/tasks) for an outside worker to pick up, do, and report back on.">
+            <input
+              type="checkbox"
+              checked={delegated}
+              onChange={(e) => setDelegated(e.target.checked)}
+            />
+            Delegate to an outside worker (public API)
           </label>
           <div className="composer-actions">
             <button type="submit" className="btn primary" disabled={!title.trim() || busy || images.uploading}>
@@ -1293,6 +1311,13 @@ function Card({ todo, tail, story, onOpen }) {
           <Icon name="project" size={12} /> Project
         </span>
       )}
+      {todo.delegated && (
+        <span className="card-tag delegated" title={todo.delegatedTo
+          ? `Delegated task — claimed by ${todo.delegatedTo} through the public API`
+          : 'Delegated task — this server never runs it; an outside worker picks it up from the public API'}>
+          <Icon name="delegate" size={12} /> {todo.delegatedTo || 'Delegated'}
+        </span>
+      )}
       {todo.attachments?.length > 0 && (
         <span className="card-tag image" title={`${todo.attachments.length} attached image(s) the agent will read`}>
           <Icon name="image" size={12} /> {todo.attachments.length}
@@ -1304,7 +1329,11 @@ function Card({ todo, tail, story, onOpen }) {
       {running && (
         <div className="ticker">
           <span className="ticker-pulse" />
-          <span className="ticker-text">{tail || 'Starting session…'}</span>
+          <span className="ticker-text">
+            {todo.delegated
+              ? `Claimed by ${todo.delegatedTo || 'an outside worker'} — running elsewhere`
+              : tail || 'Starting session…'}
+          </span>
         </div>
       )}
 
@@ -1374,7 +1403,7 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
         <div className="drawer-head">
           <span className={`badge ${todo.status.toLowerCase()}`}>{label(todo.status)}</span>
           <div className="drawer-actions">
-            {running && onStop && (
+            {running && onStop && !todo.delegated && (
               <button
                 className="icon-btn danger"
                 onClick={stop}
@@ -1440,6 +1469,20 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
                 ))}
               </select>
             )}
+          </div>
+        )}
+
+        {todo.delegated && (
+          <div className="drawer-section">
+            <div className="section-label">Delegated</div>
+            <p className="drawer-delegated">
+              {todo.delegatedTo
+                ? `Claimed by ${todo.delegatedTo} ${relTime(todo.delegateClaimedAt)}.`
+                : 'Waiting for an outside worker to pick it up.'}
+              {' '}This server never runs it — it is published on the public API,
+              and whoever does the work reports the outcome back there.
+            </p>
+            <code className="drawer-delegated-api">GET /api/public/tasks · POST /api/public/tasks/{todo.id}/status</code>
           </div>
         )}
 

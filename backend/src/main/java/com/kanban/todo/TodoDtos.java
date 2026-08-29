@@ -20,12 +20,16 @@ public final class TodoDtos {
      * {@code false} (a general task) when omitted. {@code attachmentIds} are ids
      * returned by {@code POST /api/attachments} — images the user uploaded for
      * this task; they are claimed by the new task and handed to the agent.
+     * {@code delegated} marks a 代理 task: this server never runs it, it is
+     * published on the public {@code /api/public/tasks} API for an outside
+     * worker to pick up and report back on. Optional, defaults to {@code false}.
      */
     public record CreateTodoRequest(
             @NotBlank @Size(max = 200) String title,
             @Size(max = 10_000) String description,
             Boolean projectImprovement,
-            @Size(max = 10) List<String> attachmentIds) {
+            @Size(max = 10) List<String> attachmentIds,
+            Boolean delegated) {
     }
 
     /** One step of a story chain. */
@@ -128,6 +132,9 @@ public final class TodoDtos {
             Integer storyOrder,
             boolean storyPlanner,
             boolean unread,
+            boolean delegated,
+            String delegatedTo,
+            Instant delegateClaimedAt,
             List<AttachmentView> attachments) {
 
         /**
@@ -157,6 +164,9 @@ public final class TodoDtos {
                     t.getStoryOrder(),
                     t.isStoryPlanner(),
                     t.isUnread(),
+                    t.isDelegated(),
+                    t.getDelegatedTo(),
+                    t.getDelegateClaimedAt(),
                     attachments == null ? List.of() : attachments);
         }
     }

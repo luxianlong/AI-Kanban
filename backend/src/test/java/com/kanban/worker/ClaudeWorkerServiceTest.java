@@ -13,6 +13,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -67,6 +69,50 @@ class ClaudeWorkerServiceTest {
         assertThat(prompt).contains("how to make changes");
         // The improvement task must NOT carry the general-task restriction.
         assertThat(prompt).doesNotContain("do NOT run scripts/deploy.sh");
+    }
+
+    // --- delegated (代理) tasks: handed out, never run here (task #471) ---
+
+    @Test
+    void aDelegatedTaskIsNeverPickedUpByTheWorker() {
+        Todo ours = task("Fix the board layout", true);
+        Todo handedOut = task("Book the venue", false);
+        handedOut.setDelegated(true);
+
+        // The whole point: this server leaves it in the queue for an outside
+        // worker to take through the public API, however long that takes.
+        assertThat(service.isEligible(handedOut)).isFalse();
+        assertThat(service.isEligible(ours)).isTrue();
+    }
+
+    @Test
+    void aRestartLeavesAnOutsideWorkersClaimAlone() {
+        TodoRepository repository = mock(TodoRepository.class);
+        WorkerProperties props = mock(WorkerProperties.class);
+
+        Todo claimed = task("Book the venue", false);
+        claimed.setDelegated(true);
+        claimed.setDelegatedTo("outside-bot");
+        claimed.setStatus(TodoStatus.IN_PROGRESS);
+        Todo ourOwnSession = task("Fix the board layout", true);
+        ourOwnSession.setStatus(TodoStatus.IN_PROGRESS);
+
+        when(repository.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS))
+                .thenReturn(List.of(claimed, ourOwnSession));
+        when(repository.findByClassifyingTrue()).thenReturn(List.of());
+        when(props.getMaxAttempts()).thenReturn(3);
+
+        new ClaudeWorkerService(repository, props, null, null, attachments).requeueOrphans();
+
+        // Our own killed session is re-queued...
+        assertThat(ourOwnSession.getStatus()).isEqualTo(TodoStatus.PENDING);
+        verify(repository).save(ourOwnSession);
+        // ...but the delegated one is IN_PROGRESS because somebody OUTSIDE took it.
+        // No session of ours died with the restart, and that worker is probably
+        // still on the job — yanking it back would drop their claim.
+        assertThat(claimed.getStatus()).isEqualTo(TodoStatus.IN_PROGRESS);
+        assertThat(claimed.getDelegatedTo()).isEqualTo("outside-bot");
+        verify(repository, never()).save(claimed);
     }
 
     // --- attached images (the agent must be told where the real files are) ---

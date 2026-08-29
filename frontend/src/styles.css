@@ -649,6 +649,13 @@ body {
 .card-tag.project { color: var(--project-ink); background: var(--project-bg); border: 1px solid var(--project-border); }
 .card-tag.planner { color: var(--brand-ink); background: var(--brand-100); border: 1px solid var(--brand-200); }
 .card-tag.image { color: var(--muted); background: var(--surface, #f4f6fb); border: 1px solid var(--hair); }
+/* Delegated (代理): handed out over the public API, never run by this server.
+   Amber like the in-progress badge — the work is elsewhere, not idle here. The
+   tag can carry a claimer's name, so cap it rather than let it stretch a card. */
+.card-tag.delegated {
+  color: var(--warn-ink); background: var(--warn-bg); border: 1px solid var(--warn-border);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;
+}
 
 /* ---------- Story badge (on cards + drawer) ---------- */
 .story-badge {
@@ -940,6 +947,13 @@ body {
 .section-label.live { color: var(--warn-ink); }
 .drawer-desc { margin: 0; font-size: var(--f-md); color: var(--ink); white-space: pre-wrap; line-height: 1.5; }
 .drawer-desc.muted { color: var(--faint); }
+.drawer-delegated { margin: 0; font-size: var(--f-sm); color: var(--ink); line-height: 1.5; }
+.drawer-delegated-api {
+  display: block; margin-top: var(--s-2); padding: 6px 8px;
+  font-size: var(--f-2xs); color: var(--muted);
+  background: var(--todo-bg); border-radius: var(--r-sm);
+  overflow-x: auto; white-space: nowrap;
+}
 
 /* Story picker (drawer) */
 .story-select {
