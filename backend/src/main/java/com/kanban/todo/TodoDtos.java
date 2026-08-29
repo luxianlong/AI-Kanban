@@ -39,14 +39,11 @@ public final class TodoDtos {
     }
 
     /**
-     * Body for creating a story from a single one-line goal. No steps are given
-     * up front: the server files one planner task, and the worker decomposes the
-     * goal into concrete step tasks when it processes it. {@code description} is
-     * optional extra context for that planning.
+     * Body for creating a story. A story is only a category, so its name is all
+     * there is to give: no steps are written up front and no task is filed.
      */
     public record CreateStoryRequest(
-            @NotBlank @Size(max = 200) String name,
-            @Size(max = 10_000) String description) {
+            @NotBlank @Size(max = 200) String name) {
     }
 
     /** Body for asking the server to decompose a free-text goal into steps. */

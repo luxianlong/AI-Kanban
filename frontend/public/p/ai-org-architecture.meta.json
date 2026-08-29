@@ -1,0 +1,7 @@
+{
+  "slug" : "ai-org-architecture",
+  "title" : "AI Org 架构",
+  "summary" : "两套系统:在产的答题线(七段+六件确定性工具)与已冻结的四角色 Python 管线。",
+  "createdAt" : "2026-08-29T06:40:35.314204635Z",
+  "bytes" : 11470
+}

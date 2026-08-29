@@ -37,14 +37,14 @@ export const api = {
   deleteAttachment: (id) =>
     fetch(`${BASE}/attachments/${id}`, { method: 'DELETE' }).then(json),
 
-  // Create a story from a single one-line goal (plus optional description). The
-  // server files one planner task; the worker decomposes the goal into step tasks
-  // when it processes it. Returns the created planner todo.
-  createStory: (name, description = '') =>
+  // Declare a story — just a named category for tasks. It creates NO task, so the
+  // new story lands on the board empty; tasks join it afterwards (auto-classified
+  // on creation, or filed by hand from the drawer). Returns the created story.
+  createStory: (name) =>
     fetch(`${BASE}/stories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify({ name }),
     }).then(json),
 
   // List every story with its ordered steps, newest chain first. Includes stories

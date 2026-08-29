@@ -12,6 +12,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -47,7 +48,7 @@ class TodoApiTest {
         return mapper.readTree(body).get("id").asLong();
     }
 
-    /** Creates a story from a one-line goal and returns its generated storyId. */
+    /** Declares a story (which files no tasks) and returns its generated storyId. */
     private String createStory(String name) throws Exception {
         String body = mvc.perform(post("/api/stories")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -116,15 +117,14 @@ class TodoApiTest {
                 .andExpect(status().isNotFound());
     }
 
-    /** Creates a story and returns [plannerTodoId, storyId]. */
-    private String[] createStoryReturningIds(String name) throws Exception {
-        String body = mvc.perform(post("/api/stories")
+    /** Appends a step to a story and returns the new task's id. */
+    private long addStep(String storyId, String title) throws Exception {
+        String body = mvc.perform(post("/api/stories/" + storyId + "/steps")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"" + name + "\"}"))
+                        .content("{\"title\":\"" + title + "\"}"))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        JsonNode planner = mapper.readTree(body);
-        return new String[] { planner.get("id").asText(), planner.get("storyId").asText() };
+        return mapper.readTree(body).get("id").asLong();
     }
 
     /** The story with the given id from GET /api/stories, or null if absent. */
@@ -143,12 +143,11 @@ class TodoApiTest {
     @Test
     void emptyStoryStaysListedAfterItsTasksAreDeleted() throws Exception {
         // A distinctive name keeps this isolated from the shared in-memory DB.
-        String[] ids = createStoryReturningIds("Persistent tangerine story");
-        long plannerId = Long.parseLong(ids[0]);
-        String storyId = ids[1];
+        String storyId = createStory("Persistent tangerine story");
+        long stepId = addStep(storyId, "the only tangerine step");
 
-        // Remove the story's only task (its planner seed).
-        mvc.perform(delete("/api/todos/" + plannerId))
+        // Remove the story's only task.
+        mvc.perform(delete("/api/todos/" + stepId))
                 .andExpect(status().isNoContent());
 
         // The story itself must still exist — now with zero steps — because its
@@ -161,12 +160,10 @@ class TodoApiTest {
 
     @Test
     void canFileTaskUnderAnEmptyStory() throws Exception {
-        String[] ids = createStoryReturningIds("Empty walnut story");
-        long plannerId = Long.parseLong(ids[0]);
-        String storyId = ids[1];
-        mvc.perform(delete("/api/todos/" + plannerId)).andExpect(status().isNoContent());
+        // A freshly declared story has no tasks at all — it's just a category.
+        String storyId = createStory("Empty walnut story");
 
-        // Filing a standalone task under the (now empty) story must still work —
+        // Filing a standalone task under the empty story must still work —
         // the story exists as a Story row even with no tasks.
         long taskId = createTodo("Some unrelated loose task");
         mvc.perform(patch("/api/todos/" + taskId + "/story")
@@ -180,23 +177,17 @@ class TodoApiTest {
 
     @Test
     void deleteStoryRemovesItAndItsTasks() throws Exception {
-        String[] ids = createStoryReturningIds("Disposable mango story");
-        long plannerId = Long.parseLong(ids[0]);
-        String storyId = ids[1];
-        String stepBody = mvc.perform(post("/api/stories/" + storyId + "/steps")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"a step\"}"))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        long stepId = mapper.readTree(stepBody).get("id").asLong();
+        String storyId = createStory("Disposable mango story");
+        long firstId = addStep(storyId, "a step");
+        long secondId = addStep(storyId, "another step");
 
         mvc.perform(delete("/api/stories/" + storyId))
                 .andExpect(status().isNoContent());
 
         // Story gone from the listing, and both its tasks are gone too.
         org.junit.jupiter.api.Assertions.assertNull(findStory(storyId));
-        mvc.perform(get("/api/todos/" + plannerId)).andExpect(status().isNotFound());
-        mvc.perform(get("/api/todos/" + stepId)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/todos/" + firstId)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/todos/" + secondId)).andExpect(status().isNotFound());
 
         // Deleting it again is a 404.
         mvc.perform(delete("/api/stories/" + storyId)).andExpect(status().isNotFound());
@@ -374,31 +365,34 @@ class TodoApiTest {
     }
 
     @Test
-    void createStoryFilesPlannerSeed() throws Exception {
-        // Creating a story from a one-line goal files a single PLANNER seed — not
-        // pre-written steps. It's queued (PENDING) so the worker plans it; it has
-        // no storyOrder (it isn't a numbered step) and carries storyPlanner=true.
+    void createStoryCreatesNoTasks() throws Exception {
+        // Creating a story is only declaring a category: it files NO task — not a
+        // step, not a planner seed. The response is the story itself, with no steps.
         String body = mvc.perform(post("/api/stories")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Ship dark mode\",\"description\":\"support a dark theme\"}"))
+                        .content("{\"name\":\"Ship dark mode\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title", is("Ship dark mode")))
-                .andExpect(jsonPath("$.storyName", is("Ship dark mode")))
-                .andExpect(jsonPath("$.storyPlanner", is(true)))
-                .andExpect(jsonPath("$.storyOrder", is(nullValue())))
-                .andExpect(jsonPath("$.status", is("PENDING")))
+                .andExpect(jsonPath("$.name", is("Ship dark mode")))
+                .andExpect(jsonPath("$.createdAt", is(notNullValue())))
+                .andExpect(jsonPath("$.steps.length()", is(0)))
                 .andReturn().getResponse().getContentAsString();
 
-        JsonNode planner = mapper.readTree(body);
-        String storyId = planner.get("storyId").asText();
+        String storyId = mapper.readTree(body).get("storyId").asText();
         org.junit.jupiter.api.Assertions.assertFalse(storyId.isBlank());
 
-        // The story is listable, containing its planner seed.
-        mvc.perform(get("/api/stories"))
+        // The story is listable straight away, still with zero steps...
+        JsonNode story = findStory(storyId);
+        org.junit.jupiter.api.Assertions.assertNotNull(story, "new story should be listed");
+        org.junit.jupiter.api.Assertions.assertEquals(0, story.get("steps").size());
+
+        // ...and no todo anywhere carries its id (the board gained no card).
+        String todos = mvc.perform(get("/api/todos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name", is("Ship dark mode")))
-                .andExpect(jsonPath("$[0].steps.length()", is(1)))
-                .andExpect(jsonPath("$[0].steps[0].storyPlanner", is(true)));
+                .andReturn().getResponse().getContentAsString();
+        for (JsonNode t : mapper.readTree(todos)) {
+            org.junit.jupiter.api.Assertions.assertNotEquals(storyId, t.path("storyId").asText(null),
+                    "declaring a story must not create a task");
+        }
     }
 
     @Test
@@ -449,7 +443,8 @@ class TodoApiTest {
     @Test
     void relatedFindsMatchingStoryAndIgnoresUnrelatedText() throws Exception {
         // Unique keywords ("avatar"/"gallery") keep this isolated from the shared
-        // in-memory DB that other tests also write stories into.
+        // in-memory DB that other tests also write stories into. The story is empty
+        // (declaring one files no task), so this matches on its name alone.
         createStory("Redesign avatar gallery");
 
         mvc.perform(get("/api/stories/related").param("text", "improve the avatar gallery layout"))
@@ -465,8 +460,8 @@ class TodoApiTest {
 
     @Test
     void addStepAppendsToStoryChain() throws Exception {
-        // A fresh story has only its planner (null order), so the first appended
-        // step lands at order 0, queued (PENDING) to run in chain order.
+        // A fresh story has no tasks at all, so the first appended step lands at
+        // order 0, queued (PENDING) to run in chain order.
         String storyId = createStory("Ship search feature");
 
         mvc.perform(post("/api/stories/" + storyId + "/steps")
@@ -479,16 +474,17 @@ class TodoApiTest {
                 .andExpect(jsonPath("$.storyOrder", is(0)))
                 .andExpect(jsonPath("$.status", is("PENDING")));
 
-        // The story now lists its planner plus the appended step.
+        // The appended step is the story's only task.
         mvc.perform(get("/api/stories"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].steps.length()", is(2)));
+                .andExpect(jsonPath("$[0].steps.length()", is(1)));
     }
 
     @Test
     void newTodoIsClassifiedIntoRelatedStory() throws Exception {
-        // A declared story about a distinctive subject (its goal alone carries the
-        // keywords kayak/checkout)...
+        // A declared story about a distinctive subject. It has NO tasks — a story is
+        // just a category — so this also covers classifying against an empty story,
+        // whose only text is its name (kayak/checkout)...
         String storyId = createStory("Build kayak rental checkout");
 
         // ...means a newly created task whose words clearly overlap it (kayak,
@@ -504,11 +500,11 @@ class TodoApiTest {
                 .andExpect(jsonPath("$.status", is("PENDING")))
                 .andExpect(jsonPath("$.storyPlanner", is(false)));
 
-        // The classified task now lives on the story (planner + this step).
+        // The classified task is now the story's first (and only) step.
         mvc.perform(get("/api/stories"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name", is("Build kayak rental checkout")))
-                .andExpect(jsonPath("$[0].steps.length()", is(2)));
+                .andExpect(jsonPath("$[0].steps.length()", is(1)));
     }
 
     @Test
@@ -560,19 +556,6 @@ class TodoApiTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status", is("PENDING")))
                 .andExpect(jsonPath("$.storyOrder", is(0)));
-    }
-
-    @Test
-    void storyPlannerSeedIsQueuedNotStaged() throws Exception {
-        // The planner seed itself is PENDING (queued for the worker to plan) — it is
-        // the one story task that is NOT staged, so planning starts on the next poll.
-        String storyId = createStory("Add a settings page");
-        mvc.perform(get("/api/todos"))
-                .andExpect(status().isOk())
-                // Newest first: the planner we just created is at index 0.
-                .andExpect(jsonPath("$[0].storyId", is(storyId)))
-                .andExpect(jsonPath("$[0].storyPlanner", is(true)))
-                .andExpect(jsonPath("$[0].status", is("PENDING")));
     }
 
     @Test

@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -102,10 +101,11 @@ public class AiStoryClassifier {
     }
 
     private void file(Long todoId, String text) throws Exception {
-        // Snapshot the current stories (newest first) into an indexed list.
+        // Snapshot the current stories into an indexed list. Empty stories count:
+        // a story is a category that exists before anything is filed under it.
         List<StoryRef> stories = new ArrayList<>();
-        for (Map.Entry<String, List<Todo>> e : classifier.groupByStory().entrySet()) {
-            stories.add(StoryRef.of(e.getKey(), e.getValue()));
+        for (StoryClassifier.StoryView story : classifier.candidates()) {
+            stories.add(StoryRef.of(story));
         }
 
         // Ask Claude which story (if any) fits. No stories, a "none" answer, or a
@@ -235,16 +235,16 @@ public class AiStoryClassifier {
 
     /** A story reduced to what the prompt needs: an id, a name, and step titles. */
     record StoryRef(String storyId, String name, List<String> titles) {
-        static StoryRef of(String storyId, List<Todo> group) {
-            String name = group.isEmpty() ? "Story" : group.get(0).getStoryName();
+        static StoryRef of(StoryClassifier.StoryView story) {
+            String name = story.name();
             List<String> titles = new ArrayList<>();
-            for (Todo t : group) {
+            for (Todo t : story.steps()) {
                 String title = t.getTitle();
                 if (title != null && !title.isBlank() && titles.size() < MAX_TITLES_PER_STORY) {
                     titles.add(title.strip());
                 }
             }
-            return new StoryRef(storyId, name == null ? "Story" : name, titles);
+            return new StoryRef(story.storyId(), name == null ? "Story" : name, titles);
         }
     }
 }

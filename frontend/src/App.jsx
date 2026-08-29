@@ -279,8 +279,8 @@ export default function App() {
     setShowComposer(false)
   }
 
-  async function createStory(name, description) {
-    await api.createStory(name, description)
+  async function createStory(name) {
+    await api.createStory(name)
     await refresh()
     broadcastMutation()
     setShowComposer(false)
@@ -1182,20 +1182,18 @@ function ImageAttacher({ images }) {
   )
 }
 
-// Declare a story from a single one-line goal. No steps are entered here — after
-// it's created, the worker picks up the story and breaks the goal into concrete
-// step tasks (queued and run in order). Mirrors the task composer: a single input
-// that expands to reveal an optional details field.
+// Declare a story: a name, and nothing else. A story is purely a category to
+// group tasks under — creating one files no task, so the new story appears on the
+// board as an empty row that tasks land in later (auto-classified when created, or
+// filed by hand from a task's drawer).
 function StoryComposer({ onCreateStory }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
-  const [desc, setDesc] = useState('')
   const [busy, setBusy] = useState(false)
 
   function reset() {
     setOpen(false)
     setName('')
-    setDesc('')
   }
 
   const canSubmit = name.trim() && !busy
@@ -1205,7 +1203,7 @@ function StoryComposer({ onCreateStory }) {
     if (!canSubmit) return
     setBusy(true)
     try {
-      await onCreateStory(name.trim(), desc.trim())
+      await onCreateStory(name.trim())
       reset()
     } finally {
       setBusy(false)
@@ -1214,7 +1212,7 @@ function StoryComposer({ onCreateStory }) {
 
   if (!open) {
     return (
-      <button className="story-add" onClick={() => setOpen(true)} title="Describe a goal — the worker breaks it into tasks">
+      <button className="story-add" onClick={() => setOpen(true)} title="Name a category to group tasks under — no tasks are created">
         <span className="story-add-icon"><Icon name="story" size={16} /></span> New story
       </button>
     )
@@ -1224,21 +1222,15 @@ function StoryComposer({ onCreateStory }) {
     <form className="composer story-form" onSubmit={submit}>
       <input
         className="composer-title"
-        placeholder="Describe a story / goal (e.g. Ship dark mode)"
+        placeholder="Name a story / category (e.g. Dark mode)"
         value={name}
         onChange={(e) => setName(e.target.value)}
         maxLength={200}
         autoFocus
       />
-      <textarea
-        className="composer-desc"
-        placeholder="Extra context for the worker's planning (optional)"
-        value={desc}
-        onChange={(e) => setDesc(e.target.value)}
-        rows={2}
-      />
       <p className="story-hint">
-        The worker will pick this up and break it into tasks — they'll appear on this story's row as New.
+        Just a category — no tasks are created. New tasks that match it are filed here automatically,
+        or pick this story from any task's details.
       </p>
       <div className="composer-actions">
         <button type="submit" className="btn primary" disabled={!canSubmit}>
