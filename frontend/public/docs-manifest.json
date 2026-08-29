@@ -1,5 +1,19 @@
 [
   {
+    "id": "public-api",
+    "title": "公开接口（Public API）总览",
+    "href": "/docs/public-api.html",
+    "deletable": true,
+    "file": "docs/public-api.md",
+    "updatedAt": "2026-08-29T06:21:10.324Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/public-api.md",
+      "frontend/public/docs/public-api.html"
+    ]
+  },
+  {
     "id": "upload-publish-api-smoke-test",
     "title": "发布接口验收记录",
     "href": "/p/publish-api-smoke-test.html",
