@@ -41,19 +41,5 @@
       "frontend/public/singapore.html",
       "frontend/public/img/singapore"
     ]
-  },
-  {
-    "id": "us-iran-war",
-    "title": "美伊战争 · 分析总览 (2026)",
-    "href": "/docs/us-iran-war.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-07-19T05:27:11.842Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "research/us-iran-war",
-      "frontend/public/docs/us-iran-war.html"
-    ]
   }
 ]
