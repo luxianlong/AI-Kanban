@@ -7,7 +7,7 @@
     "file": null,
     "updatedAt": "2026-08-29T11:43:12.608Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/task-76-arbitrage.html",
       "frontend/public/p/task-76-arbitrage.meta.json"
@@ -21,7 +21,7 @@
     "file": null,
     "updatedAt": "2026-08-29T11:27:34.345Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/structure.html",
       "frontend/public/p/structure.meta.json"

@@ -10,6 +10,10 @@ import {
   isDocsViewCountPath,
   isPublicApiPath,
   isUploadedPagePath,
+  isCrawlerFilePath,
+  buildRobotsTxt,
+  buildSitemap,
+  requestOrigin,
   shouldCountView,
   stripPrivateCards,
   stripPrivateManifest,
@@ -326,6 +330,30 @@ function basicAuthGate() {
           res.setHeader('Content-Type', 'application/json; charset=utf-8')
           res.setHeader('Cache-Control', 'no-store')
           return res.end(JSON.stringify({ authed: isAuthenticated(req, creds) }))
+        }
+
+        // Crawler files (task #79): /robots.txt and /sitemap.xml must answer
+        // 200 WITHOUT the password — behind the gate they returned the 401 login
+        // page, so Google saw an unreadable site and indexed none of the public
+        // docs. Both are generated from the live manifest, so a doc toggled
+        // private drops out immediately with no rebuild. Answered before the
+        // "gate off" short-circuit so they also exist in local dev.
+        if (isCrawlerFilePath(urlPath) && (req.method === 'GET' || req.method === 'HEAD')) {
+          const manifest = readDocsManifest(MANIFEST_FILE, manifestCache)
+          const origin = requestOrigin(req)
+          const robots = urlPath === '/robots.txt'
+          const body = robots
+            ? buildRobotsTxt(manifest, origin)
+            : buildSitemap(manifest, origin)
+          res.statusCode = 200
+          res.setHeader(
+            'Content-Type',
+            robots ? 'text/plain; charset=utf-8' : 'application/xml; charset=utf-8'
+          )
+          // Short cache: crawlers re-fetch often, and a privacy toggle should
+          // show up in minutes rather than being pinned by an edge cache.
+          res.setHeader('Cache-Control', 'public, max-age=600')
+          return res.end(req.method === 'HEAD' ? undefined : body)
         }
 
         // Public static-page upload API (task #470): POST /api/pages must work
