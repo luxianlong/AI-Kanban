@@ -60,6 +60,23 @@ public class RunningSessionRegistry {
     }
 
     /**
+     * Forcibly end every running session because the JVM is shutting down, returning
+     * how many were killed.
+     *
+     * <p>Deliberately does <em>not</em> raise the user-stop flag: nobody asked for these
+     * to stop, they were interrupted. The worker records that by leaving the todo
+     * IN_PROGRESS so the next start requeues it.
+     */
+    int abortAll() {
+        int aborted = 0;
+        for (Process process : processes.values()) {
+            process.destroyForcibly();
+            aborted++;
+        }
+        return aborted;
+    }
+
+    /**
      * Consume the user-stop flag for a todo: returns {@code true} exactly once if a
      * stop was requested for this run, and clears it. The worker calls this after a
      * run ends to tell a user-requested stop apart from a real error or timeout.

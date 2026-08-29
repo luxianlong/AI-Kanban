@@ -22,3 +22,6 @@ frontend/dist/
 .idea/
 .vscode/
 *.iml
+
+# Rotated pre-restart database backups (runtime state, never committed)
+backups/

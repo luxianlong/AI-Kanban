@@ -9,7 +9,15 @@ source "$(dirname "$0")/env.sh"
 sleep "${RESTART_DELAY:-15}"
 
 echo "$(date) restarting backend…"
+
+# Snapshot BEFORE stopping: shutdown is the dangerous moment (H2 compacts and
+# truncates the store as it closes), so this is the copy worth having.
+backup_db
 kill_backend
+# ...and refuse to launch onto a database that no longer opens; fall back to the
+# newest good backup instead of leaving the app silently down.
+ensure_healthy_db
+
 setsid java $(backend_launch_args) < /dev/null >> "$BACKEND_LOG" 2>&1 &
 disown || true
 

@@ -7,7 +7,9 @@ source "$(dirname "$0")/env.sh"
 bash "$REPO/scripts/build.sh"
 
 echo "▶ Starting backend on :$BACKEND_PORT…"
+backup_db
 kill_backend
+ensure_healthy_db
 setsid java $(backend_launch_args) < /dev/null > "$BACKEND_LOG" 2>&1 &
 disown || true
 wait_for_backend && echo "✔ backend up" || { echo "✗ backend failed — see $BACKEND_LOG"; exit 1; }
