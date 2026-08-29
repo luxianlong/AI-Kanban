@@ -57,20 +57,6 @@
     ]
   },
   {
-    "id": "ai-supply-chain",
-    "title": "AI supply chain — topology",
-    "href": "/docs/ai-supply-chain.html",
-    "deletable": true,
-    "file": "docs/ai-supply-chain.md",
-    "updatedAt": "2026-07-15T13:23:06.183Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "docs/ai-supply-chain.md",
-      "frontend/public/docs/ai-supply-chain.html"
-    ]
-  },
-  {
     "id": "daming-wangchao",
     "title": "大明王朝：潜规则生存模拟（网页游戏）",
     "href": "/docs/daming-wangchao.html",
