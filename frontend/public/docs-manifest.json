@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-sun-backs-down",
-    "title": "四个时间戳之后:收手也是一篇作品",
-    "href": "/p/sun-backs-down.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T09:11:01.733Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sun-backs-down.html",
-      "frontend/public/p/sun-backs-down.meta.json"
-    ]
-  },
-  {
     "id": "upload-jing-tian-symbolized",
     "title": "只有一个人在决定这件事以什么形式被记住",
     "href": "/p/jing-tian-symbolized.html",
