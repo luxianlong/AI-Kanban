@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-is-china-short-of-land-v7",
-    "title": "真的缺土地吗",
-    "href": "/p/is-china-short-of-land-v7.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T23:28:08.809Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/is-china-short-of-land-v7.html",
-      "frontend/public/p/is-china-short-of-land-v7.meta.json"
-    ]
-  },
-  {
     "id": "upload-how-an-article-is-made",
     "title": "一篇文章是怎么被做出来的",
     "href": "/p/how-an-article-is-made.html",
