@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-architecture",
-    "title": "热点线架构说明",
-    "href": "/p/architecture.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T09:54:47.770Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/architecture.html",
-      "frontend/public/p/architecture.meta.json"
-    ]
-  },
-  {
     "id": "upload-why-cz-could-stop-sun",
     "title": "赵长鹏那条推里,没有孙宇晨",
     "href": "/p/why-cz-could-stop-sun.html",
