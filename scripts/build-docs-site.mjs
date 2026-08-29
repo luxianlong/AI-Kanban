@@ -232,6 +232,13 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
 }
 .hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
 @media (max-width: 700px) {
   .hero { padding: 34px 20px 20px; }
 }
@@ -369,7 +376,7 @@ ${FONTS}
 <header class="hero">
 <p class="eyebrow">文章</p>
 <h1>${esc(title)}</h1>
-<a class="back" href="/docs.html">← 回到文章列表</a>
+<a class="back" href="/docs.html">← 回到文章列表</a>${id ? '\n<span class="views" id="view-count" hidden></span>' : ''}
 </header>
 <div class="layout">
 <button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ 目录</button>
@@ -406,6 +413,20 @@ ${hasMermaid ? `<script type="module">
       keepalive: true,
     }).catch(function () {});
   } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts[${JSON.stringify(id)}];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
 </script>` : ''}
 </body>
 </html>
@@ -431,6 +452,10 @@ const INDEX_CSS = `
   font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em;
   color: var(--muted); margin-bottom: 9px;
 }
+/* The visit tally sits with the date; a middot separates them when both show. */
+.entry-date .views { font-size: 11.5px; letter-spacing: 0.14em; }
+.entry-date .views::before { content: "·"; margin: 0 8px; }
+.entry-date .views:first-child::before { content: none; }
 .doc-card h2 {
   font-family: var(--display); font-weight: 600; font-size: 25px; line-height: 1.32;
   letter-spacing: -0.005em; margin: 0 0 9px;
@@ -562,7 +587,8 @@ function renderIndex(cards) {
     .map((c) => {
       const card = `<div class="card-wrap${c.isNew ? ' is-new' : ''}${c.private ? ' is-private' : ''}" data-id="${esc(c.id)}" data-private="${c.private ? 'true' : 'false'}">
   <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
-${c.updatedAt ? `  <div class="entry-date">${formatDate(c.updatedAt)}</div>\n` : ''}  <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
+  <div class="entry-date">${c.updatedAt ? formatDate(c.updatedAt) : ''}<span class="views" hidden></span></div>
+  <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
   <p>${esc(c.excerpt || '点开读全文。')}</p>
   <div class="meta">阅读全文 →</div>
 </a>${
@@ -772,6 +798,23 @@ ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">�
         var wraps = document.querySelectorAll('.card-wrap[data-id]');
         for (var i = 0; i < wraps.length; i++) {
           if (seen[wraps[i].getAttribute('data-id')]) clearNew(wraps[i]);
+        }
+      })
+      .catch(function () {});
+    // Per-article visit tallies (task #523). Counting happens server-side in the
+    // gate as each article is served, so the index only reads the numbers back
+    // and paints them next to the date; an article nobody has opened stays bare.
+    fetch('/api/docs/views')
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (counts) {
+        if (!counts) return;
+        var wraps = document.querySelectorAll('.card-wrap[data-id]');
+        for (var i = 0; i < wraps.length; i++) {
+          var n = counts[wraps[i].getAttribute('data-id')];
+          var el = wraps[i].querySelector('.views');
+          if (!el || !n) continue;
+          el.textContent = n + ' 次阅读';
+          el.hidden = false;
         }
       })
       .catch(function () {});

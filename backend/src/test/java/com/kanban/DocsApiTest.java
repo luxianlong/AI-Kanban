@@ -247,4 +247,38 @@ class DocsApiTest {
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$", containsInAnyOrder("alpha", "report", "guide")));
     }
+
+    @Test
+    void docViewsTallyPerDocumentAndIgnoreUnknownIds() throws Exception {
+        // No visits recorded yet — the index shows no tallies at all.
+        mvc.perform(get("/api/docs/views"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alpha").doesNotExist());
+
+        mvc.perform(post("/api/docs/views")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"ids\":[\"alpha\"]}"))
+                .andExpect(status().isNoContent());
+        mvc.perform(post("/api/docs/views")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"ids\":[\"alpha\",\"report\"]}"))
+                .andExpect(status().isNoContent());
+
+        // Repeat visits accumulate rather than overwrite.
+        mvc.perform(get("/api/docs/views"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.alpha").value(2))
+                .andExpect(jsonPath("$.report").value(1));
+
+        // Ids the manifest doesn't know are dropped, so nobody can seed junk
+        // rows (and blank ids are ignored) — while the real doc still counts.
+        mvc.perform(post("/api/docs/views")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"ids\":[\"no-such-doc\",\"\",\"alpha\"]}"))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/docs/views"))
+                .andExpect(jsonPath("$.alpha").value(3))
+                .andExpect(jsonPath("$['no-such-doc']").doesNotExist());
+    }
 }

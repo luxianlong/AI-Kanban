@@ -71,6 +71,13 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
 }
 .hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
 @media (max-width: 700px) {
   .hero { padding: 34px 20px 20px; }
 }
@@ -185,6 +192,7 @@ pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-ra
 <p class="eyebrow">文章</p>
 <h1>公开接口（Public API）总览</h1>
 <a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
 </header>
 <div class="layout">
 <button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ 目录</button>
@@ -409,6 +417,20 @@ curl -X POST http://localhost:8080/api/public/tasks/42/status \
       keepalive: true,
     }).catch(function () {});
   } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["public-api"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
 </script>
 </body>
 </html>

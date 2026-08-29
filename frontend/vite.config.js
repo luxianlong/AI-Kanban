@@ -5,11 +5,15 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 import {
   classifyDoc,
+  docIdForPath,
   isDocsReadStatePath,
+  isDocsViewCountPath,
   isPublicApiPath,
   isUploadedPagePath,
+  shouldCountView,
   stripPrivateCards,
   stripPrivateManifest,
+  stripPrivateViewCounts,
   readDocsManifest,
 } from './docsGate.mjs'
 
@@ -49,6 +53,7 @@ const CREDS_FILE = path.resolve(import.meta.dirname, '.public-auth.json')
 
 // The generated docs site — used by the public-docs gate (task #268) to learn
 // which docs are private and to serve a filtered listing to anonymous visitors.
+const API_ORIGIN = 'http://localhost:8080'
 const MANIFEST_FILE = path.resolve(import.meta.dirname, 'public', 'docs-manifest.json')
 const INDEX_FILE = path.resolve(import.meta.dirname, 'public', 'docs.html')
 
@@ -259,9 +264,53 @@ function sandboxUploadedPage(res) {
   res.setHeader('X-Content-Type-Options', 'nosniff')
 }
 
+// --- Per-document visit counts (task #523) ------------------------------
+// The gate counts a visit as it serves an article, and reads the tallies back
+// for the docs index / article pages. Counting here (rather than from a script
+// on the page) is what makes every article kind countable — uploaded pages under
+// /p/ run sandboxed in an opaque origin and could never call /api themselves.
+//
+// The increment goes straight to the backend from this process, so the write
+// endpoint stays behind the gate for browsers: a stranger can be counted, but
+// can't inflate anyone's number by POSTing.
+function recordDocView(req, urlPath, manifest, seen) {
+  const docId = docIdForPath(urlPath, manifest)
+  if (!docId) return
+  // Fold repeat hits from the same visitor on the same article into one visit.
+  const visitor =
+    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+    req.socket?.remoteAddress ||
+    '-'
+  if (!shouldCountView(seen, visitor, docId, Date.now())) return
+  fetch(`${API_ORIGIN}/api/docs/views`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids: [docId] }),
+  }).catch(() => {}) // the backend may be restarting — a lost count is fine
+}
+
+// Answer an anonymous reader's request for the visit counts. Like the read-state
+// probe, this must not challenge (the article pages are public and would pop the
+// browser's login dialog), and private docs are filtered out so their existence
+// stays hidden. Any backend hiccup degrades to "no counts yet".
+function serveViewCounts(res, manifest) {
+  const send = (obj) => {
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+    res.setHeader('Cache-Control', 'no-store')
+    res.end(JSON.stringify(obj))
+  }
+  fetch(`${API_ORIGIN}/api/docs/views`)
+    .then((r) => (r.ok ? r.json() : {}))
+    .then((counts) => send(stripPrivateViewCounts(counts, manifest)))
+    .catch(() => send({}))
+}
+
 function basicAuthGate() {
   const cache = { mtimeMs: -1, creds: null }
   const manifestCache = { mtimeMs: -1, data: null }
+  // "<visitor>|<docId>" -> last counted timestamp, so a reload doesn't re-count.
+  const viewSeen = new Map()
   return {
     name: 'public-basic-auth-gate',
     configureServer(server) {
@@ -308,6 +357,15 @@ function basicAuthGate() {
           }
         }
 
+        // Visit counts for a PUBLIC article page or the index (task #523). Same
+        // reasoning as the read-state probe above: challenging it would pop the
+        // browser's login dialog on a page that needs no password. Reads only —
+        // POSTing a count stays gated, since the increment comes from the gate
+        // itself (see recordDocView), never from the browser.
+        if (isDocsViewCountPath(urlPath) && !isAuthenticated(req, creds) && req.method === 'GET') {
+          return serveViewCounts(res, readDocsManifest(MANIFEST_FILE, manifestCache))
+        }
+
         // --- Public documents (task #268) -----------------------------------
         // A document is readable WITHOUT the password unless it's marked private.
         // The board, /api and every other asset stay gated by the logic below.
@@ -321,6 +379,7 @@ function basicAuthGate() {
               // Private doc: owner only. Authed -> serve it; otherwise fall
               // through to the normal challenge (login form for an HTML nav).
               if (authed) {
+                recordDocView(req, urlPath, manifest, viewSeen)
                 if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
                 return next()
               }
@@ -348,6 +407,7 @@ function basicAuthGate() {
               }
             } else {
               // Public page/asset, or an authed listing -> serve, no password.
+              if (kind === 'page') recordDocView(req, urlPath, manifest, viewSeen)
               if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
               return next()
             }

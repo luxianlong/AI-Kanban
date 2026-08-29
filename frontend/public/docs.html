@@ -72,6 +72,13 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
 }
 .hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
 @media (max-width: 700px) {
   .hero { padding: 34px 20px 20px; }
 }
@@ -96,6 +103,10 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em;
   color: var(--muted); margin-bottom: 9px;
 }
+/* The visit tally sits with the date; a middot separates them when both show. */
+.entry-date .views { font-size: 11.5px; letter-spacing: 0.14em; }
+.entry-date .views::before { content: "·"; margin: 0 8px; }
+.entry-date .views:first-child::before { content: none; }
 .doc-card h2 {
   font-family: var(--display); font-weight: 600; font-size: 25px; line-height: 1.32;
   letter-spacing: -0.005em; margin: 0 0 9px;
@@ -231,20 +242,22 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </header>
 <div class="wrap">
 <div class="grid">
-<div class="card-wrap is-new" data-id="upload-hot-event-line" data-private="false">
+<!--PRIVATE-CARD:upload-hot-event-line-->
+<div class="card-wrap is-new is-private" data-id="upload-hot-event-line" data-private="true">
   <a class="doc-card" href="/p/hot-event-line.html">
-  <div class="entry-date">2026.08.29</div>
-  <h2>热点线架构</h2>
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
+  <h2>热点线架构<span class="badge lock">🔒 Private</span></h2>
   <p>全网找热点→写文章。八段流水线、十件确定性工具,附各热榜的登录态实测。</p>
   <div class="meta">阅读全文 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-08-29" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 热点线架构" data-id="upload-hot-event-line" data-private="false">🌐</button>
+  <button class="doc-priv" type="button" title="Make public" aria-label="Make public: 热点线架构" data-id="upload-hot-event-line" data-private="true">🔒</button>
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 热点线架构" data-id="upload-hot-event-line" data-title="热点线架构">✕</button>
 </div>
+<!--/PRIVATE-CARD-->
 <div class="card-wrap is-new" data-id="upload-jing-tian-symbolized" data-private="false">
   <a class="doc-card" href="/p/jing-tian-symbolized.html">
-  <div class="entry-date">2026.08.29</div>
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
   <h2>只有一个人在决定这件事以什么形式被记住</h2>
   <p>十五年五个身份,没有一个是她自己起的。一段感情的结束变成了一个有版本号、有官网栏目的开源项目。</p>
   <div class="meta">阅读全文 →</div>
@@ -255,7 +268,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-sun-books-forensics" data-private="false">
   <a class="doc-card" href="/p/sun-books-forensics.html">
-  <div class="entry-date">2026.08.29</div>
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
   <h2>两本书的原件我下下来了,做成了物证</h2>
   <p>七处比对:同一个非标准开本、同一条工具链、版权页十五个字只差一个字。附封面原件。</p>
   <div class="meta">阅读全文 →</div>
@@ -266,7 +279,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-sun-objective-evaluation" data-private="false">
   <a class="doc-card" href="/p/sun-objective-evaluation.html">
-  <div class="entry-date">2026.08.29</div>
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
   <h2>「客观评价孙宇晨」:前排答案没有一个在回答客观</h2>
   <p>全文不用一个形容词描述他,只用他自己说过的话和可查证的记录。附亚洲周刊两期封面等原件。</p>
   <div class="meta">阅读全文 →</div>
@@ -277,7 +290,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-jing-tian-career-penalty" data-private="false">
   <a class="doc-card" href="/p/jing-tian-career-penalty.html">
-  <div class="entry-date">2026.08.29</div>
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
   <h2>464 万那笔罚款,和她的演艺事业是两件事</h2>
   <p>2022 年天河区市场监管局依《广告法》六十一条的行政处罚,和今天这件事该分开看。附中演协十五项原件。</p>
   <div class="meta">阅读全文 →</div>
@@ -288,7 +301,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 </div>
 <div class="card-wrap is-new" data-id="upload-jing-tian-four-lines" data-private="false">
   <a class="doc-card" href="/p/jing-tian-four-lines.html">
-  <div class="entry-date">2026.08.29</div>
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
   <h2>景甜昨天发了四行字,热搜只给你看了前两行</h2>
   <p>四行声明,热搜截走了前两行。三份东西在 17 分 23 秒里连着落地,附时间戳证据图。</p>
   <div class="meta">阅读全文 →</div>
@@ -300,7 +313,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 <!--PRIVATE-CARD:public-api-->
 <div class="card-wrap is-new is-private" data-id="public-api" data-private="true">
   <a class="doc-card" href="/docs/public-api.html">
-  <div class="entry-date">2026.08.29</div>
+  <div class="entry-date">2026.08.29<span class="views" hidden></span></div>
   <h2>公开接口（Public API）总览<span class="badge lock">🔒 Private</span></h2>
   <p>这块看板整体是私有的：站点挂在 cloudflared 隧道后面，前面有一道口令门 （frontend/vite.config.js 里的中间件）。但有几条路径是故意放开的 —— 不需要任何账号、 口令或 token，任何能访问到域名的人都能直接调用。</p>
   <div class="meta">阅读全文 →</div>
@@ -481,6 +494,23 @@ body:not(.is-owner) .doc-priv { display: none !important; }
         var wraps = document.querySelectorAll('.card-wrap[data-id]');
         for (var i = 0; i < wraps.length; i++) {
           if (seen[wraps[i].getAttribute('data-id')]) clearNew(wraps[i]);
+        }
+      })
+      .catch(function () {});
+    // Per-article visit tallies (task #523). Counting happens server-side in the
+    // gate as each article is served, so the index only reads the numbers back
+    // and paints them next to the date; an article nobody has opened stays bare.
+    fetch('/api/docs/views')
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (counts) {
+        if (!counts) return;
+        var wraps = document.querySelectorAll('.card-wrap[data-id]');
+        for (var i = 0; i < wraps.length; i++) {
+          var n = counts[wraps[i].getAttribute('data-id')];
+          var el = wraps[i].querySelector('.views');
+          if (!el || !n) continue;
+          el.textContent = n + ' 次阅读';
+          el.hidden = false;
         }
       })
       .catch(function () {});
