@@ -1,11 +1,25 @@
 [
   {
+    "id": "upload-jing-tian-symbolized",
+    "title": "只有一个人在决定这件事以什么形式被记住",
+    "href": "/p/jing-tian-symbolized.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T06:46:04.689Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/jing-tian-symbolized.html",
+      "frontend/public/p/jing-tian-symbolized.meta.json"
+    ]
+  },
+  {
     "id": "upload-ai-org-architecture",
     "title": "AI Org 架构",
     "href": "/p/ai-org-architecture.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-08-29T06:40:35.313Z",
+    "updatedAt": "2026-08-29T06:41:14.926Z",
     "isNew": true,
     "private": false,
     "paths": [
