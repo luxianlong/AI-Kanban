@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-alibaba-one-point",
+    "title": "装着外卖的那个分部,只跌了百分之一",
+    "href": "/p/alibaba-one-point.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T16:25:05.576Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/alibaba-one-point.html",
+      "frontend/public/p/alibaba-one-point.meta.json"
+    ]
+  },
+  {
     "id": "upload-harness-day-2026-08-29",
     "title": "被自己的数据推翻九次",
     "href": "/p/harness-day-2026-08-29.html",
@@ -7,7 +21,7 @@
     "file": null,
     "updatedAt": "2026-08-29T16:04:36.378Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/harness-day-2026-08-29.html",
       "frontend/public/p/harness-day-2026-08-29.meta.json"
