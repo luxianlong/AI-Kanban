@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-hot-event-line",
-    "title": "热点线架构",
-    "href": "/p/hot-event-line.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T07:07:22.953Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/hot-event-line.html",
-      "frontend/public/p/hot-event-line.meta.json"
-    ]
-  },
-  {
     "id": "upload-jing-tian-symbolized",
     "title": "只有一个人在决定这件事以什么形式被记住",
     "href": "/p/jing-tian-symbolized.html",
