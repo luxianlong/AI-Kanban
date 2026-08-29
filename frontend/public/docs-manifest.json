@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-gate-probe",
-    "title": "Gate probe",
-    "href": "/p/gate-probe.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T05:37:25.504Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/gate-probe.html",
-      "frontend/public/p/gate-probe.meta.json"
-    ]
-  },
-  {
     "id": "publish-static-page",
     "title": "上传静态网页并公开展示（免鉴权 API）",
     "href": "/docs/publish-static-page.html",
