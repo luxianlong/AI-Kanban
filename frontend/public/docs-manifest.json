@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ai-face-two-hours",
+    "title": "一句反问,23 天后变成了司法系统背景报纸上的既成事实",
+    "href": "/p/ai-face-two-hours.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T08:35:26.868Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-face-two-hours.html",
+      "frontend/public/p/ai-face-two-hours.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-architecture",
     "title": "热点线 · DDD 架构说明",
     "href": "/p/ddd-architecture.html",
