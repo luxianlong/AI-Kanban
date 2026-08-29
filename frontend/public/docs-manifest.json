@@ -7,7 +7,7 @@
     "file": null,
     "updatedAt": "2026-08-29T07:07:22.953Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/hot-event-line.html",
       "frontend/public/p/hot-event-line.meta.json"

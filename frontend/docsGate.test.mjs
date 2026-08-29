@@ -13,6 +13,10 @@ import {
   isUploadedPagePath,
   isPublicApiPath,
   isDocsReadStatePath,
+  isDocsViewCountPath,
+  docIdForPath,
+  stripPrivateViewCounts,
+  shouldCountView,
 } from './docsGate.mjs'
 
 const manifest = {
@@ -142,6 +146,56 @@ check('the docs read-state probe is recognised so a public page never prompts (t
   // It is NOT a blanket public API path: the exemption is a no-op answer in the
   // gate, not a pass-through to the backend.
   assert.equal(isPublicApiPath('/api/docs/reads', 'GET'), false)
+})
+
+check('the visit-count endpoint is readable without the password (task #523)', () => {
+  assert.equal(isDocsViewCountPath('/api/docs/views'), true)
+  // Reading tallies is the only exemption; the rest of /api/docs stays gated.
+  assert.equal(isDocsViewCountPath('/api/docs'), false)
+  assert.equal(isDocsViewCountPath('/api/docs/views/alpha'), false)
+  assert.equal(isDocsViewCountPath('/api/docs/some-id'), false)
+  assert.equal(isDocsViewCountPath('/api/docs/some-id/visibility'), false)
+  // Not a blanket pass-through either: the gate answers GET itself and lets
+  // every other verb (the increment included) fall through to the challenge, so
+  // a visitor can be counted but can never inflate a tally by hand.
+  assert.equal(isPublicApiPath('/api/docs/views', 'GET'), false)
+  assert.equal(isPublicApiPath('/api/docs/views', 'POST'), false)
+})
+
+check('a served doc page resolves to the manifest id it should be counted under', () => {
+  assert.equal(docIdForPath('/docs/a.html', manifest), 'a')
+  assert.equal(docIdForPath('/docs/b.html', manifest), 'b')
+  assert.equal(docIdForPath('/singapore.html', manifest), 'sg')
+  // Not a document -> nothing to count.
+  assert.equal(docIdForPath('/docs.html', manifest), null)
+  assert.equal(docIdForPath('/img/a/pic.png', manifest), null)
+  assert.equal(docIdForPath('/', manifest), null)
+  assert.equal(docIdForPath('/docs/a.html', { entries: [] }), null)
+})
+
+check('private docs\' tallies are withheld from anonymous visitors (task #523)', () => {
+  const counts = { a: 12, b: 7, sg: 3 }
+  assert.deepEqual(stripPrivateViewCounts(counts, manifest), { a: 12 })
+  // Degrades safely on an empty/absent answer.
+  assert.deepEqual(stripPrivateViewCounts({}, manifest), {})
+  assert.deepEqual(stripPrivateViewCounts(null, manifest), {})
+})
+
+check('repeat hits from the same visitor fold into one visit (task #523)', () => {
+  const seen = new Map()
+  const t = 1_000_000
+  assert.equal(shouldCountView(seen, '1.2.3.4', 'a', t), true)
+  // Same visitor, same doc, inside the window -> not counted again.
+  assert.equal(shouldCountView(seen, '1.2.3.4', 'a', t + 1000), false)
+  // A different doc, or a different visitor, still counts.
+  assert.equal(shouldCountView(seen, '1.2.3.4', 'b', t + 1000), true)
+  assert.equal(shouldCountView(seen, '5.6.7.8', 'a', t + 1000), true)
+  // Past the window the same visitor counts as a fresh visit, and the stale
+  // entries are pruned so the map can't grow without bound.
+  assert.equal(shouldCountView(seen, '1.2.3.4', 'a', t + 31 * 60 * 1000), true)
+  assert.equal(seen.size, 1)
+  // Nothing to count for a path with no document behind it.
+  assert.equal(shouldCountView(seen, '1.2.3.4', null, t), false)
 })
 
 if (failed) {

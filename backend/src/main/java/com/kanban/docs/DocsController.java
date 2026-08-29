@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -60,15 +63,18 @@ public class DocsController {
     private final DocsSiteGenerator generator;
     private final DocsGitCommitter gitCommitter;
     private final DocReadRepository reads;
+    private final DocViewRepository views;
     private final ObjectMapper mapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public DocsController(WorkerProperties props, DocsSiteGenerator generator,
-                          DocsGitCommitter gitCommitter, DocReadRepository reads) {
+                          DocsGitCommitter gitCommitter, DocReadRepository reads,
+                          DocViewRepository views) {
         this.repoRoot = Path.of(props.getWorkingDirectory());
         this.generator = generator;
         this.gitCommitter = gitCommitter;
         this.reads = reads;
+        this.views = views;
     }
 
     /**
@@ -118,6 +124,52 @@ public class DocsController {
                 continue;
             }
             reads.save(new DocRead(id, now));
+        }
+    }
+
+    /** Body for recording visits: the manifest ids that were just opened. */
+    public record RecordViewRequest(List<String> ids) {}
+
+    /**
+     * How many times each document has been opened (task #523), keyed by manifest
+     * id. Only documents that still exist in the manifest are reported, so a
+     * tally left behind by a deleted doc never resurfaces. Docs never visited are
+     * simply absent — the reader treats a missing key as zero.
+     */
+    @GetMapping("/views")
+    public Map<String, Long> views() {
+        Set<String> known = readManifest().stream().map(DocEntry::id).collect(Collectors.toSet());
+        Map<String, Long> out = new LinkedHashMap<>();
+        for (DocView v : views.findAll()) {
+            if (known.contains(v.getDocId())) {
+                out.put(v.getDocId(), v.getViewCount());
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Record one visit for each given document. Called by the Vite gate when it
+     * serves a doc page — server-side, so a visit counts even for pages with no
+     * script of their own and for readers who block JavaScript. Ids the manifest
+     * doesn't know are ignored, so nobody can seed the table with junk rows.
+     */
+    @PostMapping("/views")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    public void recordViews(@RequestBody RecordViewRequest req) {
+        if (req == null || req.ids() == null || req.ids().isEmpty()) {
+            return;
+        }
+        Set<String> known = readManifest().stream().map(DocEntry::id).collect(Collectors.toSet());
+        Instant now = Instant.now();
+        for (String id : req.ids()) {
+            if (id == null || id.isBlank() || !known.contains(id)) {
+                continue;
+            }
+            if (views.bump(id, now) == 0) {
+                views.save(new DocView(id, 1, now));
+            }
         }
     }
 

@@ -139,3 +139,65 @@ export function readDocsManifest(manifestFile, cache) {
   }
   return cache.data
 }
+
+// --- Per-document visit counts (task #523) ------------------------------
+// Every article carries a visit tally. Counting happens in the gate rather than
+// in a script on the page: the gate sees every doc page it serves, so uploaded
+// pages under /p/ (sandboxed, no scripts of ours) and bespoke pages at the web
+// root are counted exactly like generated ones, and a reader with JavaScript off
+// still counts. The gate POSTs the increment straight to the backend, so the
+// write endpoint itself never has to be opened to the public — only the read.
+
+// The counts endpoint the docs index and each article page read on load. It has
+// to answer anonymous visitors (the docs are public), so the gate serves it
+// without a password — filtered, see stripPrivateViewCounts.
+export function isDocsViewCountPath(urlPath) {
+  return urlPath === '/api/docs/views'
+}
+
+// The manifest id of the document served at `urlPath`, or null if that path is
+// not a document. Matches the manifest's own hrefs, so every doc kind resolves:
+// generated pages (/docs/x.html), uploaded pages (/p/x.html) and bespoke pages.
+export function docIdForPath(urlPath, manifest) {
+  const entries = (manifest && manifest.entries) || []
+  for (const e of entries) {
+    if (e && typeof e.href === 'string' && e.href.split('?')[0] === urlPath) {
+      return e.id || null
+    }
+  }
+  return null
+}
+
+// Drop private docs' tallies before handing counts to an anonymous visitor: the
+// gate hides even the existence of a private doc, and a count keyed by its id
+// would give it away.
+export function stripPrivateViewCounts(counts, manifest) {
+  const entries = (manifest && manifest.entries) || []
+  const privateIds = new Set(
+    entries.filter((e) => e && e.private && e.id).map((e) => e.id)
+  )
+  const out = {}
+  for (const [id, n] of Object.entries(counts || {})) {
+    if (!privateIds.has(id)) out[id] = n
+  }
+  return out
+}
+
+// How long the same visitor's repeat hits on the same document fold into the
+// first one. Without this a reload or a back-button trip would inflate the
+// tally; half an hour is the usual "one visit" window for a simple counter.
+export const VIEW_DEDUPE_MS = 30 * 60 * 1000
+
+// Decide whether this hit counts, remembering it if so. `seen` is a plain Map of
+// "<visitor>|<docId>" -> timestamp, pruned as we go so it can't grow unbounded.
+export function shouldCountView(seen, visitor, docId, now, windowMs = VIEW_DEDUPE_MS) {
+  if (!docId) return false
+  const key = `${visitor || '-'}|${docId}`
+  const last = seen.get(key)
+  if (last !== undefined && now - last < windowMs) return false
+  seen.set(key, now)
+  for (const [k, t] of seen) {
+    if (now - t >= windowMs) seen.delete(k)
+  }
+  return true
+}
