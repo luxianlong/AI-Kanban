@@ -26,20 +26,5 @@
       "docs/publish-static-page.md",
       "frontend/public/docs/publish-static-page.html"
     ]
-  },
-  {
-    "id": "singapore-travel-guide",
-    "title": "新加坡旅游攻略",
-    "href": "/singapore.html",
-    "deletable": true,
-    "file": "docs/singapore-travel-guide.md",
-    "updatedAt": "2026-07-18T06:04:49.141Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "docs/singapore-travel-guide.md",
-      "frontend/public/singapore.html",
-      "frontend/public/img/singapore"
-    ]
   }
 ]
