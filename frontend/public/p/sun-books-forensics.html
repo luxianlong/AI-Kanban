@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>两本书的原件我下下来了,做成了物证</title>
+<style>
+:root{--paper:#fbfbfc;--ink:#1a1c20;--ink-soft:#3c4148;--muted:#676d78;
+ --rule:#e3e5ea;--accent:#2f6fd0;--accent-soft:#eef3fb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --paper:#14161a;--ink:#e9ebef;--ink-soft:#c3c8d1;--muted:#98a0ac;
+ --rule:#282c34;--accent:#7aa8ee;--accent-soft:#1a222e}}
+:root[data-theme="dark"]{--paper:#14161a;--ink:#e9ebef;--ink-soft:#c3c8d1;
+ --muted:#98a0ac;--rule:#282c34;--accent:#7aa8ee;--accent-soft:#1a222e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+ font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;
+ font-size:17.5px;line-height:1.95;-webkit-font-smoothing:antialiased}
+.wrap{max-width:41rem;margin:0 auto;padding:4.5rem 1.5rem 6rem}
+header{border-bottom:1px solid var(--rule);padding-bottom:2.1rem;margin-bottom:2.6rem}
+h1{font-size:2.35rem;line-height:1.3;margin:0;font-weight:700;text-wrap:balance}
+h2{font-size:1.35rem;margin:2.8rem 0 1.2rem;line-height:1.45;font-weight:700}
+.meta{font-family:-apple-system,"PingFang SC",sans-serif;font-size:.8rem;
+ color:var(--muted);margin:1.3rem 0 0;font-variant-numeric:tabular-nums}
+p{margin:0 0 1.5rem;color:var(--ink-soft)}
+p.q{padding:1.15rem 1.4rem;background:var(--accent-soft);
+ border-left:3px solid var(--accent);color:var(--ink);margin-bottom:1.5rem}
+strong{color:var(--ink);font-weight:700}
+hr{border:0;border-top:1px solid var(--rule);margin:2.8rem 0}
+footer{margin-top:4rem;padding-top:1.6rem;border-top:1px solid var(--rule);
+ font-family:-apple-system,"PingFang SC",sans-serif;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>两本书的原件我下下来了,做成了物证</h1><p class="meta">1914 字</p></header>
+<p>这道题的首答已经猜对了方向。他说，没有理工科背景的他也没必要专门去用 latex 写。</p>
+<p>他给的是直觉。我把两本书的原件都下下来了，把它做成了物证。</p>
+<p>先说结论：这两本不是两个人各写各的，是同一套模板出的两份产品，而且是后面那本照着前面那本做的。七处，一条一条摆。</p>
+<p>一、开本</p>
+<p>李新野《人妻约会指南》v1.4，PDF 的 MediaBox 是 360 × 576 磅。除以 72，正好 5.00 × 8.00 英寸。</p>
+<p>孙宇晨那份 LaTeX 源码，第二行是一句英文注释：XeLaTeX source for the 5 x 8 inch edition。往下翻到页面设置那段，paperwidth=5in，paperheight=8in。</p>
+<p>5×8 英寸不是标准开本。中文书常见 16 开、32 开，英文书常见 6×9。5×8 是个人自出版才会挑的尺寸。两个人不会各自独立地把一篇散文排成同一个非标准开本。</p>
+<p>二、工具链</p>
+<p>李那本 PDF 的元数据里写着，Creator 是 LaTeX with hyperref，Producer 是 xdvipdfmx，创建时间 2025 年 11 月 9 日晚上七点零三分。</p>
+<p>孙那份源码的第一行：% !TEX program = xelatex。</p>
+<p>三、字体</p>
+<p>李那本用的拉丁字体族是 Latin Modern。孙那份源码里有一行 newfontfamily，加载的文件名是 lmroman10-regular.otf。lm 就是 Latin Modern。</p>
+<p>四、这一条是我觉得最要命的</p>
+<p>李新野那本书的版权页，原文照抄：</p>
+<p>人妻约会指南<br />李新野<br />2025 年 11 月第一版 v1.4<br />美国纽约曼哈顿第五大道<br />本书纯属虚构，如果雷同实属巧合<br />不设版权，请随意转发分享</p>
+<p>孙宇晨那本的封面：</p>
+<p>第二版 v2.0<br />我的女友景甜<br />作者 孙宇晨<br />本文纯属虚构，如果雷同实属巧合<br />不设版权，请随意转发分享</p>
+<p>把倒数第二行拿出来逐字比。</p>
+<p>本书纯属虚构，如果雷同实属巧合<br />本文纯属虚构，如果雷同实属巧合</p>
+<p>十五个字，只有第一个字不一样。书，文。</p>
+<p>再看最后一行。</p>
+<p>不设版权，请随意转发分享<br />不设版权，请随意转发分享</p>
+<p>一字不差。</p>
+<p>这两天全网都在吵，文末标注纯属虚构到底能不能免责，吵了整整两天。没有一个人发现，那两行连语序带标点，是从另一个人的版权页上搬下来的。</p>
+<p>五、书名</p>
+<p>李新野的代表作叫《我的父亲李松坚》。这是他自己写在作者简介里的。</p>
+<p>孙宇晨这本叫《我的女友景甜》。</p>
+<p>我的，加一个亲属称谓，加一个真名。</p>
+<p>六、版本号</p>
+<p>李新野：2025 年 11 月第一版 v1.4。<br />孙宇晨：第二版 v2.0。</p>
+<p>给一篇散文编软件版本号，这不是一个自然会想到的做法。</p>
+<p>七、分发方式</p>
+<p>两个人都是自己排 PDF、挂在自己的个人网站上、免费放送。孙这边多加了一层：官网导航栏上，在关于、媒体、洞察、艺术收藏、慈善、播客后面，新开了一个栏目，叫 Novel。</p>
+<p>现在回到这道题的第二问：是否说明北大学子文笔要强上一些。</p>
+<p>我建议先看一眼，被比较的那一位是谁。</p>
+<p>李新野那本书第三页有作者简介，原文是：李新野，男，1991 年生于广东省汕头市。毕业于清华大学计算机科学实验班（又称为姚班）、美国麻省理工学院（MIT）、布朗大学。</p>
+<p>清华姚班。</p>
+<p>所以这道题从一开始就不是北大对什么，是北大对清华姚班。而且姚班那位是先做的，早十个月。</p>
+<p>再看北大这一边。</p>
+<p>《中国青年报》2011 年 1 月 31 日有一篇整版报道，记者何瑫，写的正是孙宇晨从三本冲刺北大那一年。里面有一句我觉得应该被更多人看到：</p>
+<p>他最终考出语文115分、数学132分、英语130分、综合146分、历史127分、总分650分。</p>
+<p>六个数字排在一起，语文是最低的那一档。一个新概念作文大赛一等奖得主，高考语文考了 115。</p>
+<p>同一篇报道还写清了另一件事。他 2007 年 2 月因为拿了新概念一等奖去参加北大自主招生面试，拿到的是可在高考时于录取分数线下20分录取的资格。不是保送，是降 20 分。</p>
+<p>所以是那支笔换来了北大，不是北大给了他那支笔。</p>
+<p>最后说一句关于排名次这件事本身。</p>
+<p>被比较的那一位，一个多月前刚给文笔排过一次名次。2026 年 7 月 14 日，他在自己的博客上写了一篇《李新野超越鲁迅了吗？》，正文里有这么一句：</p>
+<p>所以结论其实很清楚，李新野 &gt; 刘仲敬 &gt; 牛津朱朱 = 鲁迅 = 哈佛女孩。</p>
+<p>所以这道题问谁的文笔更强，其实是在做一件他们两位都很擅长、而且很希望别人替他们做的事。</p>
+<p>十九年前，他在《萌芽》上发过一篇《一道论证题》。中青报那篇报道里写：他在文末留下自己的通信地址，邀请中学生和他一道证明这道题目。文章发表后两年多里，他收到近一万封信。</p>
+<p>十九年后，文末是官网、GitHub，和一行不设版权，请随意转发分享。</p>
+<p>同一个文体装置。换了介质，换了模板的出处，没换那个动作。</p>
+<p>所以这道题的答案不是谁的文笔更强。是这两本书本来就是同一套模板出的两份产品，而谁的文笔更强这个问法本身，恰恰是这个模板自带的功能。</p>
+<footer>本文由「小胖龙」发布 · 转载请注明出处</footer>
+</div>
+</body>
+</html>
