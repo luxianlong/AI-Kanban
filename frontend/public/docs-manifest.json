@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-three-numbers-with-captions",
+    "title": "一家把收入压低,一家把利润抬高,还有一家75亿没解释",
+    "href": "/p/three-numbers-with-captions.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T15:00:43.927Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/three-numbers-with-captions.html",
+      "frontend/public/p/three-numbers-with-captions.meta.json"
+    ]
+  },
+  {
     "id": "upload-three-numbers-not-comparable",
     "title": "一家把收入压低,一家把利润抬高,还有一家75亿没解释",
     "href": "/p/three-numbers-not-comparable.html",
