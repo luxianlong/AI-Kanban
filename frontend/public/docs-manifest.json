@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-sun-books-forensics",
-    "title": "两本书的原件我下下来了,做成了物证",
-    "href": "/p/sun-books-forensics.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T06:15:29.136Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sun-books-forensics.html",
-      "frontend/public/p/sun-books-forensics.meta.json"
-    ]
-  },
-  {
     "id": "upload-publish-api-smoke-test",
     "title": "发布接口验收记录",
     "href": "/p/publish-api-smoke-test.html",
