@@ -1,0 +1,7 @@
+{
+  "slug" : "ddd-domain-map",
+  "title" : "看板的 DDD 领域图（Mermaid 示例）",
+  "summary" : "用 Mermaid 画出看板的限界上下文与一次自动改进的生命周期；同时是 /p/ 页面的 mermaid 支持示例",
+  "createdAt" : "2026-08-29T12:36:58.517943336Z",
+  "bytes" : 3367
+}
