@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-task-76-arbitrage",
+    "title": "代理任务 #76 · 新选题思路:信息套利",
+    "href": "/p/task-76-arbitrage.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T11:43:12.608Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/task-76-arbitrage.html",
+      "frontend/public/p/task-76-arbitrage.meta.json"
+    ]
+  },
+  {
     "id": "upload-structure",
     "title": "项目结构报告:战略 / 战术 / 实现三层",
     "href": "/p/structure.html",
