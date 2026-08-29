@@ -1,5 +1,33 @@
 [
   {
+    "id": "upload-ddd-graphs-2",
+    "title": "卷宗系统的三张 DDD 图",
+    "href": "/p/ddd-graphs-2.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T12:45:19.825Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ddd-graphs-2.html",
+      "frontend/public/p/ddd-graphs-2.meta.json"
+    ]
+  },
+  {
+    "id": "upload-ddd-graphs",
+    "title": "卷宗系统的三张 DDD 图",
+    "href": "/p/ddd-graphs.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T12:43:04.306Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ddd-graphs.html",
+      "frontend/public/p/ddd-graphs.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-domain-map",
     "title": "看板的 DDD 领域图（Mermaid 示例）",
     "href": "/p/ddd-domain-map.html",
@@ -7,7 +35,7 @@
     "file": null,
     "updatedAt": "2026-08-29T12:36:58.518Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/ddd-domain-map.html",
       "frontend/public/p/ddd-domain-map.meta.json"
