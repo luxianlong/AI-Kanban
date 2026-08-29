@@ -459,10 +459,13 @@ const INDEX_CSS = `
   font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em;
   color: var(--muted); margin-bottom: 9px;
 }
-/* The visit tally sits with the date; a middot separates them when both show. */
+/* The visit tally sits with the date. The two are the same mono grey, so
+   without a mark between them "2026.08.29" and "12 次阅读" read as one run of
+   figures (task #83) — hence an explicit middot, drawn only when a date really
+   precedes the tally. The date needs its own element for that: a :first-child
+   rule ignores text nodes, so a bare date never suppressed the mark itself. */
 .entry-date .views { font-size: 11.5px; letter-spacing: 0.14em; }
-.entry-date .views::before { content: "·"; margin: 0 8px; }
-.entry-date .views:first-child::before { content: none; }
+.entry-date .date + .views::before { content: "·"; margin: 0 8px; }
 .doc-card h2 {
   font-family: var(--display); font-weight: 600; font-size: 25px; line-height: 1.32;
   letter-spacing: -0.005em; margin: 0 0 9px;
@@ -594,7 +597,7 @@ function renderIndex(cards) {
     .map((c) => {
       const card = `<div class="card-wrap${c.isNew ? ' is-new' : ''}${c.private ? ' is-private' : ''}" data-id="${esc(c.id)}" data-private="${c.private ? 'true' : 'false'}">
   <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
-  <div class="entry-date">${c.updatedAt ? formatDate(c.updatedAt) : ''}<span class="views" hidden></span></div>
+  <div class="entry-date">${c.updatedAt ? `<span class="date">${formatDate(c.updatedAt)}</span>` : ''}<span class="views" hidden></span></div>
   <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
   <p>${esc(c.excerpt || '点开读全文。')}</p>
   <div class="meta">阅读全文 →</div>
