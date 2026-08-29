@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ddd-audit",
+    "title": "DDD 审计报告:16 条真缺陷",
+    "href": "/p/ddd-audit.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T11:15:05.474Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ddd-audit.html",
+      "frontend/public/p/ddd-audit.meta.json"
+    ]
+  },
+  {
     "id": "upload-architecture",
     "title": "热点线架构说明",
     "href": "/p/architecture.html",
@@ -7,7 +21,7 @@
     "file": null,
     "updatedAt": "2026-08-29T09:54:47.770Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/architecture.html",
       "frontend/public/p/architecture.meta.json"
