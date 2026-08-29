@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-cz-gave-him-an-exit",
+    "title": "赵长鹏没有让他停,只是让他的停能被叫作听劝",
+    "href": "/p/cz-gave-him-an-exit.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T16:09:48.986Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/cz-gave-him-an-exit.html",
+      "frontend/public/p/cz-gave-him-an-exit.meta.json"
+    ]
+  },
+  {
     "id": "upload-harness-day-2026-08-29",
     "title": "被自己的数据推翻九次",
     "href": "/p/harness-day-2026-08-29.html",
