@@ -913,8 +913,10 @@ function Composer({ onCreate }) {
   // Whether to hand this task OUT instead of running it here (代理任务). The
   // worker never touches a delegated task; it sits in To Do and is published on
   // the public /api/public/tasks feed for an outside worker to pick up and
-  // report back on.
-  const [delegated, setDelegated] = useState(false)
+  // report back on. ON by default: most tasks filed here are meant for an
+  // outside worker, so the checkbox starts ticked and is unticked to run the
+  // task on this server instead.
+  const [delegated, setDelegated] = useState(true)
   // Images already uploaded for this (not yet created) task. Each was stored
   // server-side the moment it was picked, so we have a real URL to preview and
   // an id to hand to createTodo. See useImageUploads.
@@ -924,7 +926,7 @@ function Composer({ onCreate }) {
     setTitle('')
     setDesc('')
     setProjectImprovement(false)
-    setDelegated(false)
+    setDelegated(true)
     images.reset()
     setOpen(false)
   }
