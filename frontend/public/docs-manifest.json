@@ -55,19 +55,5 @@
       "research/us-iran-war",
       "frontend/public/docs/us-iran-war.html"
     ]
-  },
-  {
-    "id": "daming-wangchao",
-    "title": "大明王朝：潜规则生存模拟（网页游戏）",
-    "href": "/docs/daming-wangchao.html",
-    "deletable": true,
-    "file": "docs/daming-wangchao.md",
-    "updatedAt": "2026-07-19T03:06:20.160Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "docs/daming-wangchao.md",
-      "frontend/public/docs/daming-wangchao.html"
-    ]
   }
 ]
