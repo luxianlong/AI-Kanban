@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-topic-review-87",
-    "title": "选题候选 · 待确认",
-    "href": "/p/topic-review-87.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T14:18:32.639Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/topic-review-87.html",
-      "frontend/public/p/topic-review-87.meta.json"
-    ]
-  },
-  {
     "id": "upload-ecommerce-three-rulers",
     "title": "20260829-电商财报分化",
     "href": "/p/ecommerce-three-rulers.html",
