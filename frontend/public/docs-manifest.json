@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-structure",
+    "title": "项目结构报告:战略 / 战术 / 实现三层",
+    "href": "/p/structure.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T11:27:34.345Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/structure.html",
+      "frontend/public/p/structure.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-audit",
     "title": "DDD 审计报告:16 条真缺陷",
     "href": "/p/ddd-audit.html",

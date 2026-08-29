@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>项目结构报告</title>
+<style>
+  :root{--paper:#fbfbfc;--ink:#16181c;--soft:#3c4148;--muted:#6b717c;--rule:#e1e4ea;
+   --card:#fff;--accent:#2f6fd0;--accent-bg:#eef3fb;--code:#f4f5f7;
+   --core:#1a7f4b;--core-bg:#e9f5ee;--sup:#7a6bd1;--sup-bg:#f0edfb;--gen:#8a8f99;--gen-bg:#f2f3f5;
+   --off:#a35200;--off-bg:#fff3e4}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+   --paper:#131519;--ink:#e9ebef;--soft:#c3c8d1;--muted:#97a0ac;--rule:#272b33;
+   --card:#191c21;--accent:#7aa8ee;--accent-bg:#182029;--code:#1d2027;
+   --core:#5fd39a;--core-bg:#122a1e;--sup:#a99cf0;--sup-bg:#1d1a2c;--gen:#868d98;--gen-bg:#1c1f24;
+   --off:#ffbe76;--off-bg:#2c2212}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);line-height:1.72;
+   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif;
+   -webkit-font-smoothing:antialiased}
+  .wrap{max-width:56rem;margin:0 auto;padding:3.4rem 1.4rem 6rem}
+  header{border-bottom:1px solid var(--rule);padding-bottom:1.5rem;margin-bottom:1.4rem}
+  h1{font-size:2rem;margin:0 0 .5rem;line-height:1.25;letter-spacing:-.01em}
+  .lead{color:var(--soft);margin:0;font-size:1rem}
+  .stamp{font-size:.76rem;color:var(--muted);margin:.9rem 0 0}
+  .lvl{font-size:.7rem;font-weight:800;letter-spacing:.14em;color:var(--accent);
+   text-transform:uppercase;margin:2.6rem 0 .3rem}
+  h2{font-size:1.2rem;margin:0 0 .8rem;padding-bottom:.42rem;border-bottom:1px solid var(--rule)}
+  h3{font-size:.96rem;margin:1.5rem 0 .45rem}
+  p{margin:0 0 1rem;color:var(--soft);font-size:.93rem}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;
+   background:var(--code);border:1px solid var(--rule);padding:.05em .32em;border-radius:4px}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;margin:.5rem 0 1.1rem}
+  th,td{text-align:left;padding:.45rem .55rem;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.77rem}
+  tr:last-child td{border-bottom:0}
+  td.m,.mono{font-family:ui-monospace,Menlo,monospace;font-size:.8rem}
+  .tag{display:inline-block;font-size:.67rem;font-weight:700;padding:.08rem .42rem;border-radius:5px;white-space:nowrap}
+  .t-core{background:var(--core-bg);color:var(--core)}
+  .t-sup{background:var(--sup-bg);color:var(--sup)}
+  .t-gen{background:var(--gen-bg);color:var(--gen)}
+  .t-off{background:var(--off-bg);color:var(--off)}
+  .banner{border:1px solid var(--off);background:var(--off-bg);border-radius:12px;padding:.9rem 1.1rem;margin:0 0 1.5rem}
+  .banner b{color:var(--ink)}
+  .banner p{margin:0;font-size:.9rem}
+  .note{border-left:3px solid var(--accent);background:var(--accent-bg);padding:.75rem 1rem;
+   border-radius:0 9px 9px 0;margin:1.1rem 0;font-size:.9rem}
+  .note p:last-child{margin:0} .note b{color:var(--ink)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(6rem,1fr));gap:.6rem;margin:1rem 0}
+  .stat{border:1px solid var(--rule);border-radius:10px;padding:.65rem .8rem;background:var(--card)}
+  .stat .v{font-size:1.45rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+  .stat .k{font-size:.73rem;color:var(--muted);margin-top:.1rem}
+  svg{display:block;width:100%;height:auto;margin:1rem 0}
+  footer{margin-top:2.8rem;padding-top:1.1rem;border-top:1px solid var(--rule);font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>项目结构报告</h1>
+  <p class="lead">按 DDD 的三个层次描述:<b>战略层</b>(领域怎么切)、<b>战术层</b>(构件怎么建)、
+  <b>实现层</b>(文件在哪)。2294 行,五个限界上下文,一个共享内核。</p>
+  <p class="stamp">2026-08-29 · 基线 commit 3c5b52d</p>
+</header>
+
+<div class="banner">
+  <p><b>先说强制状态:两处「门槛/规格」目前都不拦截。</b>
+  <code>scout</code> 的四道选题门槛与 <code>gate</code> 的四条发稿规格照常计算、照常打印,
+  但都不阻断 —— 2026-08-29 用户裁定停用。本报告中凡标
+  <span class="tag t-off">已停用</span> 的,都是「有判定、无强制」。</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="v">2294</div><div class="k">行</div></div>
+  <div class="stat"><div class="v">5</div><div class="k">限界上下文</div></div>
+  <div class="stat"><div class="v">2</div><div class="k">核心域</div></div>
+  <div class="stat"><div class="v">16</div><div class="k">领域类</div></div>
+  <div class="stat"><div class="v">11</div><div class="k">脚本</div></div>
+</div>
+
+<p class="lvl">Level 1 · 战略设计</p>
+<h2>领域怎么切</h2>
+
+<p>业务领域是<b>热点事件写作</b>:从全网发现正在发酵的事件,回溯到一手载体,
+产出可核验的文章。竞争力不在文笔,在<b>一手材料的独占性</b> —— 这句话决定了子域怎么分。</p>
+
+<table>
+  <tr><th>子域</th><th>类型</th><th>凭什么这么定</th></tr>
+  <tr><td><b>侦查</b></td><td><span class="tag t-core">核心域</span></td>
+      <td>独占材料只能在这里产生。二手转述层里没有护城河</td></tr>
+  <tr><td><b>质量</b></td><td><span class="tag t-core">核心域</span></td>
+      <td>把没核实的话安在真人头上是业务风险,不是技术风险</td></tr>
+  <tr><td><b>选题</b></td><td><span class="tag t-sup">支撑域</span></td>
+      <td>规则明确可编码,但绑定平台 —— 换平台要重写</td></tr>
+  <tr><td><b>信源发现</b></td><td><span class="tag t-gen">通用域</span></td>
+      <td>就是查新闻,用现成的 Google News RSS,不自建</td></tr>
+  <tr><td><b>交付</b></td><td><span class="tag t-gen">通用域</span></td>
+      <td>渲染 + HTTP POST,唯一特殊之处是<b>不可逆</b></td></tr>
+</table>
+
+<h3>上下文映射</h3>
+<svg viewBox="0 0 760 210" role="img" aria-label="上下文映射:外部平台经防腐层进入选题与信源发现,再进入侦查核心域,与成稿共享卷宗,成稿以遵奉者关系服从质量,最后进入不可逆的交付">
+ <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+   <path d="M0,0 L10,5 L0,10 z" fill="currentColor" fill-opacity=".5"/></marker></defs>
+ <g font-family="-apple-system,PingFang SC,sans-serif" font-size="11.5">
+  <rect x="20" y="8" width="720" height="30" rx="7" fill="none" stroke="currentColor"
+        stroke-opacity=".28" stroke-dasharray="5 4"/>
+  <text x="380" y="27" text-anchor="middle" fill="currentColor" fill-opacity=".7">
+    上游 U:知乎 · 微博 · X · Google News —— 四套互不兼容的模型</text>
+  <line x1="200" y1="38" x2="170" y2="62" stroke="currentColor" stroke-opacity=".45" marker-end="url(#ar)"/>
+  <line x1="560" y1="38" x2="590" y2="62" stroke="currentColor" stroke-opacity=".45" marker-end="url(#ar)"/>
+  <text x="380" y="55" text-anchor="middle" fill="currentColor" fill-opacity=".8" font-size="11" font-weight="700">
+    ACL 防腐层 · 一平台一适配器 · 阈值各自定义</text>
+  <g stroke="currentColor" stroke-opacity=".45" fill="none">
+    <rect x="20" y="64" width="290" height="34" rx="7"/><rect x="450" y="64" width="290" height="34" rx="7"/>
+    <rect x="130" y="112" width="500" height="34" rx="7" stroke-width="1.6"/>
+    <rect x="130" y="160" width="240" height="34" rx="7"/><rect x="390" y="160" width="240" height="34" rx="7" stroke-width="1.6"/>
+  </g>
+  <g fill="currentColor" fill-opacity=".85">
+   <text x="34" y="85">选题 D · Candidate <tspan fill-opacity=".55">(门槛已停用)</tspan></text>
+   <text x="464" y="85">信源发现 D · SourceItem</text>
+   <text x="146" y="133">侦查 · 核心域 —— 聚合根 Dossier ⟨RawArtifact, EvidenceImage, Fact⟩</text>
+   <text x="144" y="181">成稿 D · Draft ⟨Quote⟩</text>
+   <text x="404" y="181">质量 U · 四条规格 <tspan fill-opacity=".55">(已停用)</tspan></text>
+  </g>
+  <line x1="165" y1="98" x2="300" y2="108" stroke="currentColor" stroke-opacity=".45" marker-end="url(#ar)"/>
+  <line x1="595" y1="98" x2="460" y2="108" stroke="currentColor" stroke-opacity=".45" marker-end="url(#ar)"/>
+  <line x1="250" y1="146" x2="250" y2="156" stroke="currentColor" stroke-opacity=".45" marker-end="url(#ar)"/>
+  <line x1="370" y1="177" x2="384" y2="177" stroke="currentColor" stroke-opacity=".45" marker-end="url(#ar)"/>
+  <text x="700" y="133" text-anchor="end" fill="currentColor" fill-opacity=".55" font-size="10.5">共享内核:卷宗</text>
+  <text x="380" y="205" text-anchor="middle" fill="currentColor" fill-opacity=".6" font-size="10.5">
+    成稿→质量 是遵奉者关系:下游无协商权</text>
+ </g>
+</svg>
+
+<table>
+  <tr><th>关系</th><th>模式</th><th>契约</th></tr>
+  <tr><td>外部平台 → 选题/信源</td><td>Anticorruption Layer</td><td>阈值属于适配器类,<b>不可跨平台复用</b></td></tr>
+  <tr><td>选题 → 侦查</td><td>Customer / Supplier</td><td><code>candidates.json</code>,下游只取一个 index</td></tr>
+  <tr><td>侦查 ↔ 成稿</td><td>Shared Kernel</td><td><code>runs/&lt;id&gt;/dossier/</code> 的目录契约</td></tr>
+  <tr><td>成稿 → 质量</td><td>Conformist</td><td>作者服从规格,规格不为作者让步</td></tr>
+  <tr><td>质量 → 交付</td><td>前置守卫 <span class="tag t-off">已停用</span></td><td>四条路径都体检,但不再阻断</td></tr>
+</table>
+
+<p class="lvl">Level 2 · 战术设计</p>
+<h2>构件怎么建</h2>
+
+<table>
+  <tr><th>构件</th><th>实例</th><th>在哪</th></tr>
+  <tr><td>聚合根 Aggregate Root</td><td><code>Dossier</code> · <code>Candidate</code> · <code>PublishedPage</code></td><td class="m">domain/dossier.py</td></tr>
+  <tr><td>实体 Entity</td><td><code>RawArtifact</code> · <code>EvidenceImage</code>(以文件名为身份)</td><td class="m">dossier 内</td></tr>
+  <tr><td>值对象 Value Object</td><td><code>Fact</code>(frozen)· <code>FactGrade</code>(五级枚举)· <code>Item</code>(frozen)</td><td class="m">domain/fact.py · adapter.py</td></tr>
+  <tr><td>规格 Specification</td><td>四条合取:可执行性 / 引语 / 红线 / 禁写清单</td><td class="m">contexts/quality/gate.py</td></tr>
+  <tr><td>防腐层 ACL</td><td><code>ZhihuQuestion</code> · <code>WeiboHot</code> · <code>ZhihuHot</code> · <code>GoogleNews</code></td><td class="m">selection/ · discovery/</td></tr>
+  <tr><td>领域事件 Domain Event</td><td><code>topic.picked</code> · <code>draft.gated</code> · <code>page.published</code></td><td class="m">domain/events.py</td></tr>
+  <tr><td>仓储 Repository</td><td><b>刻意不做</b> —— 见下</td><td class="m">—</td></tr>
+  <tr><td>工厂 Factory</td><td><b>刻意不做</b> —— 构造都在 <code>normalize()</code> 里,一步到位</td><td class="m">—</td></tr>
+</table>
+
+<h3>三条不变式,以及它们现在的强制状态</h3>
+<table>
+  <tr><th>不变式</th><th>守在哪</th><th>状态</th></tr>
+  <tr><td><b>I-1 卷宗自洽</b>:引号内每句必须是本卷宗原件的子串</td>
+      <td>QuoteSpec</td><td><span class="tag t-off">只提示</span></td></tr>
+  <tr><td><b>I-2 分级红线</b>:【网】【传】【假】不得进成稿</td>
+      <td><code>Fact.quotable</code> → ForbiddenFactSpec</td><td><span class="tag t-off">只提示</span></td></tr>
+  <tr><td><b>I-3 发布不可逆</b>:匿名写、站长才能删</td>
+      <td>接口本身</td><td>结构性,不可关闭</td></tr>
+</table>
+
+<div class="note">
+  <p><b>I-2 曾经是「写了但没接上」。</b>值对象里有 <code>FactGrade.writable</code> 和
+  <code>Fact.quotable</code>,而禁写清单只看 <code>usable_in_draft</code>,那两个属性
+  <b>全项目零调用</b> —— 实测有 112 条【网】+ 16 条【传】标着可写入,其中 61 条带原话,
+  一条都拦不住。2026-08-29 已改为以 <code>quotable</code> 为判据。
+  <b>有表达能力而没有使用点,等于没有。</b></p>
+</div>
+
+<p class="lvl">Level 3 · 实现</p>
+<h2>文件在哪</h2>
+
+<table>
+  <tr><td class="m">domain/</td><td>共享内核 —— <code>fact.py</code> 分级与事实 · <code>dossier.py</code> 聚合根 ·
+      <code>adapter.py</code> ACL 契约 · <code>events.py</code> 领域事件</td></tr>
+  <tr><td class="m">contexts/selection/</td><td><code>scout.py</code> 知乎适配器 ·
+      <code>review_page.py</code> 人工确认页 · <code>pickstats.py</code> 选题证据体检</td></tr>
+  <tr><td class="m">contexts/discovery/</td><td><code>newsfind.py</code> Google News(免登录)·
+      <code>hotlist.py</code> 微博/知乎热榜(登录态)</td></tr>
+  <tr><td class="m">contexts/investigation/</td><td><code>fetch_raw.py</code> 原件落盘 ·
+      <code>harvest_flow.py</code> 工作流产出并卷宗</td></tr>
+  <tr><td class="m">contexts/quality/</td><td><code>gate.py</code> 四条规格 ·
+      <code>polish.py</code> 文风体检</td></tr>
+  <tr><td class="m">contexts/delivery/</td><td><code>render.py</code> 出单文件 HTML ·
+      <code>publish_page.py</code> 发公开页 + <code>--sweep</code> 积压巡检</td></tr>
+  <tr><td class="m">tools/</td><td>只剩 <code>fetch_raw.py</code> 转发 shim ——
+      工作流里还硬编码着旧路径,那条跑完即删</td></tr>
+</table>
+
+<h3>刻意不做的三件事</h3>
+<p><b>不做仓储层。</b>Fowler:「For simpler systems with minimal domain complexity or few
+domain classes, adding a Repository layer may introduce unnecessary abstraction overhead」。
+持久化就是文件系统,<code>runs/&lt;id&gt;/</code> 本身就是聚合边界 ——
+加一层抽象反而让「卷宗即记忆」难以验证。</p>
+<p><b>不做分层目录</b>(service / domain / infra)。11 个单文件脚本,这个规模分层成本高于收益。
+目录只反映<b>上下文边界</b>,不反映技术分层。</p>
+<p><b>不做重型领域事件。</b>没有事件总线、订阅者、重放 —— 只有一条 append-only JSONL,
+和已有的两个 manifest 同一个风格。它存在的唯一理由是:过规格和发布这两个时刻
+以前只 print 不落盘,导致「哪些成稿过了规格却没发」根本答不出来。</p>
+
+<footer>行数、类名、强制状态均取自 <code>domain/</code> 与 <code>contexts/</code> 实际代码。
+配套阅读:审计报告 <code>/p/ddd-audit.html</code>。本页只讲结构,不含运营数据。</footer>
+
+</div>
+</body>
+</html>
