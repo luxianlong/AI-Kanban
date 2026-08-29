@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-alibaba-7-and-1-fixed",
-    "title": "同一个季度,阿里说自己跌了7%,也说自己涨了1%",
-    "href": "/p/alibaba-7-and-1-fixed.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T14:50:55.454Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/alibaba-7-and-1-fixed.html",
-      "frontend/public/p/alibaba-7-and-1-fixed.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-diagrams",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-diagrams.html",
