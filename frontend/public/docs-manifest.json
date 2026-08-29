@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-ddd-architecture",
-    "title": "热点线 · DDD 架构说明",
-    "href": "/p/ddd-architecture.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T07:57:26.423Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ddd-architecture.html",
-      "frontend/public/p/ddd-architecture.meta.json"
-    ]
-  },
-  {
     "id": "upload-jing-tian-symbolized",
     "title": "只有一个人在决定这件事以什么形式被记住",
     "href": "/p/jing-tian-symbolized.html",
