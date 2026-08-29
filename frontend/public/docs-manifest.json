@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-sun-objective-evaluation",
-    "title": "「客观评价孙宇晨」:前排答案没有一个在回答客观",
-    "href": "/p/sun-objective-evaluation.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T06:15:21.386Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sun-objective-evaluation.html",
-      "frontend/public/p/sun-objective-evaluation.meta.json"
-    ]
-  },
-  {
     "id": "upload-jing-tian-four-lines",
     "title": "景甜昨天发了四行字,热搜只给你看了前两行",
     "href": "/p/jing-tian-four-lines.html",
