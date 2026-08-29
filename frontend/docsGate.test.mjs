@@ -17,6 +17,11 @@ import {
   docIdForPath,
   stripPrivateViewCounts,
   shouldCountView,
+  isCrawlerFilePath,
+  requestOrigin,
+  publicDocPaths,
+  buildSitemap,
+  buildRobotsTxt,
 } from './docsGate.mjs'
 
 const manifest = {
@@ -197,6 +202,95 @@ check('repeat hits from the same visitor fold into one visit (task #523)', () =>
   // Nothing to count for a path with no document behind it.
   assert.equal(shouldCountView(seen, '1.2.3.4', null, t), false)
 })
+
+// --- Search-engine crawler files (task #79) ------------------------------
+// robots.txt/sitemap.xml are what let Google index the public docs at all, and
+// they must never advertise a private one (the gate hides its very existence).
+const crawlManifest = {
+  entries: [
+    { id: 'a', href: '/docs/a.html', private: false, updatedAt: '2026-08-20T10:00:00.000Z' },
+    { id: 'sg', href: '/singapore.html', private: false, updatedAt: '2026-08-28T09:00:00.000Z' },
+    { id: 'b', href: '/docs/b.html', private: true, updatedAt: '2026-08-29T09:00:00.000Z' },
+    { id: 'u', href: '/p/u.html?x=1', private: false, updatedAt: null },
+  ],
+  privatePaths: new Set(['/docs/b.html']),
+}
+
+check('robots.txt and sitemap.xml are recognised as crawler files', () => {
+  assert.equal(isCrawlerFilePath('/robots.txt'), true)
+  assert.equal(isCrawlerFilePath('/sitemap.xml'), true)
+  assert.equal(isCrawlerFilePath('/docs.html'), false)
+  assert.equal(isCrawlerFilePath('/robots.txt/evil'), false)
+})
+
+check('request origin honours the forwarded scheme and host', () => {
+  assert.equal(
+    requestOrigin({ headers: { host: 'localhost', 'x-forwarded-proto': 'https', 'x-forwarded-host': 'www.example.com' } }),
+    'https://www.example.com'
+  )
+  assert.equal(requestOrigin({ headers: { host: 'example.com:8080' } }), 'http://example.com:8080')
+  // Multi-hop headers: only the first (client-facing) value counts.
+  assert.equal(
+    requestOrigin({ headers: { host: 'a.com', 'x-forwarded-proto': 'https, http' } }),
+    'https://a.com'
+  )
+  // A junk/spoofed Host can't inject a foreign origin or markup.
+  assert.equal(requestOrigin({ headers: { host: 'evil.com/"><b>' } }), 'http://localhost')
+  assert.equal(requestOrigin({ headers: {} }), 'http://localhost')
+})
+
+check('public doc paths drop private docs and normalise hrefs', () => {
+  assert.deepEqual(publicDocPaths(crawlManifest), [
+    { loc: '/docs/a.html', lastmod: '2026-08-20' },
+    { loc: '/singapore.html', lastmod: '2026-08-28' },
+    { loc: '/p/u.html', lastmod: null },
+  ])
+  assert.deepEqual(publicDocPaths(null), [])
+})
+
+check('sitemap lists the index plus every public doc, absolute and private-free', () => {
+  const xml = buildSitemap(crawlManifest, 'https://www.example.com')
+  assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/)
+  assert.match(xml, /<urlset xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9">/)
+  for (const loc of ['/docs.html', '/docs/a.html', '/singapore.html', '/p/u.html']) {
+    assert.ok(xml.includes(`<loc>https://www.example.com${loc}</loc>`), 'missing ' + loc)
+  }
+  // The private doc appears nowhere — not even its path.
+  assert.ok(!xml.includes('/docs/b.html'))
+  // The index carries the newest public doc's date (not the private one's).
+  assert.match(xml, /<loc>https:\/\/www.example.com\/docs.html<\/loc>\n\s*<lastmod>2026-08-28<\/lastmod>/)
+  // A doc with no timestamp simply has no <lastmod>.
+  assert.equal((xml.match(/<lastmod>/g) || []).length, 3)
+  assert.equal((xml.match(/<url>/g) || []).length, 4)
+})
+
+check('robots.txt allows the doc surfaces, denies the board, points at the sitemap', () => {
+  const txt = buildRobotsTxt(crawlManifest, 'https://www.example.com')
+  assert.match(txt, /^# /)
+  assert.ok(txt.includes('User-agent: *'))
+  for (const rule of ['Allow: /docs.html', 'Allow: /docs/', 'Allow: /p/', 'Allow: /img/']) {
+    assert.ok(txt.includes(rule), 'missing ' + rule)
+  }
+  // Bespoke root-level docs need their own Allow — no prefix rule covers them.
+  assert.ok(txt.includes('Allow: /singapore.html'))
+  assert.ok(txt.includes('Disallow: /api/'))
+  assert.ok(txt.includes('Disallow: /__auth/'))
+  assert.ok(txt.includes('Disallow: /'))
+  assert.ok(txt.includes('Sitemap: https://www.example.com/sitemap.xml'))
+  // Every Allow must be longer than the blanket "Disallow: /" path, or
+  // longest-match would leave the doc blocked.
+  for (const line of txt.split('\n').filter((l) => l.startsWith('Allow: '))) {
+    assert.ok(line.slice('Allow: '.length).length > 1, 'useless allow: ' + line)
+  }
+})
+
+check('a private root-level doc is never allowed in robots.txt', () => {
+  const m = { entries: [{ id: 'sg', href: '/singapore.html', private: true }] }
+  const txt = buildRobotsTxt(m, 'http://x')
+  assert.ok(!txt.includes('/singapore.html'))
+  assert.ok(!buildSitemap(m, 'http://x').includes('/singapore.html'))
+})
+
 
 if (failed) {
   console.error(`\n${failed} docsGate test(s) failed`)

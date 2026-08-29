@@ -201,3 +201,116 @@ export function shouldCountView(seen, visitor, docId, now, windowMs = VIEW_DEDUP
   }
   return true
 }
+
+// --- Search-engine crawler files (task #79) ------------------------------
+// Google could not index the site: /robots.txt and /sitemap.xml both sat behind
+// the password gate and answered 401 with the login form, so a crawler saw an
+// unreadable site and the "sitemap" submitted to Search Console (/docs.html)
+// was an HTML page, not a sitemap. Both files are therefore served by the gate
+// itself, without a password, and built from the live manifest so they can
+// never drift from what is actually public: a doc marked private disappears
+// from the sitemap (and loses its robots Allow) the moment it is toggled.
+
+// The two crawler files the gate owns. Generated on the fly rather than kept in
+// public/ so privacy toggles take effect with no rebuild.
+export function isCrawlerFilePath(urlPath) {
+  return urlPath === '/robots.txt' || urlPath === '/sitemap.xml'
+}
+
+// The absolute origin this request arrived on ("https://www.example.com"), so a
+// sitemap's URLs always match the host Google actually crawled — apex or www,
+// tunnel hostname or bare IP. Behind cloudflared the real scheme only survives
+// in X-Forwarded-Proto, so prefer it over the (always plain-HTTP) hop we see.
+export function requestOrigin(req) {
+  const headers = (req && req.headers) || {}
+  const first = (v) => String(v || '').split(',')[0].trim()
+  const proto = first(headers['x-forwarded-proto']) === 'https' ? 'https' : 'http'
+  const host = first(headers['x-forwarded-host']) || first(headers['host'])
+  // Reject anything that isn't a plain host[:port] so a spoofed Host header
+  // can't inject markup or a foreign origin into the generated files.
+  if (!/^[A-Za-z0-9.\-]+(:\d+)?$/.test(host)) return `${proto}://localhost`
+  return `${proto}://${host}`
+}
+
+function xmlEsc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+// YYYY-MM-DD for <lastmod>, or null when the timestamp is missing/unparseable.
+function lastmodDay(updatedAt) {
+  if (!updatedAt) return null
+  const t = Date.parse(updatedAt)
+  return Number.isNaN(t) ? null : new Date(t).toISOString().slice(0, 10)
+}
+
+// Every publicly readable document path, in manifest order, de-duplicated.
+// Private docs are omitted: the gate hides even their existence, so listing one
+// would both 401 the crawler and leak the title through the URL.
+export function publicDocPaths(manifest) {
+  const out = []
+  const seen = new Set()
+  for (const e of (manifest && manifest.entries) || []) {
+    if (!e || e.private || typeof e.href !== 'string') continue
+    const loc = e.href.split('?')[0]
+    // Same-origin absolute paths only ("//host/x" would point off-site).
+    if (!/^\/(?!\/)/.test(loc) || seen.has(loc)) continue
+    seen.add(loc)
+    out.push({ loc, lastmod: lastmodDay(e.updatedAt) })
+  }
+  return out
+}
+
+// The sitemap: the docs index plus every public document. The index carries the
+// newest document's date, since that is when the listing last changed.
+export function buildSitemap(manifest, origin) {
+  const docs = publicDocPaths(manifest)
+  const newest = docs.reduce((a, d) => (d.lastmod && d.lastmod > a ? d.lastmod : a), '')
+  const urls = [{ loc: '/docs.html', lastmod: newest || null }, ...docs]
+  const body = urls
+    .map(({ loc, lastmod }) =>
+      '  <url>\n' +
+      `    <loc>${xmlEsc(origin + loc)}</loc>\n` +
+      (lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : '') +
+      '  </url>'
+    )
+    .join('\n')
+  return (
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    body +
+    '\n</urlset>\n'
+  )
+}
+
+// robots.txt: the board, its API and the auth endpoints are password-gated, so
+// crawling them only ever yields a login page — deny the site by default and
+// allow exactly the public document surfaces back in. Longest-match wins for
+// Google/Bing, so each `Allow` below overrides the blanket `Disallow: /`.
+// Bespoke docs live at the web root (/singapore.html), which no prefix rule
+// covers, so they get an explicit Allow line each, straight from the manifest.
+export function buildRobotsTxt(manifest, origin) {
+  const rootDocs = publicDocPaths(manifest)
+    .map((d) => d.loc)
+    .filter((loc) => loc !== '/docs.html' && /^\/[^/]+\.html$/.test(loc))
+  return [
+    '# The kanban board itself is private (password-gated); the published',
+    '# documents under /docs/ and /p/ are public and meant to be indexed.',
+    'User-agent: *',
+    'Allow: /docs.html',
+    'Allow: /docs/',
+    'Allow: /p/',
+    'Allow: /img/',
+    ...rootDocs.map((loc) => `Allow: ${loc}`),
+    'Disallow: /api/',
+    'Disallow: /__auth/',
+    'Disallow: /',
+    '',
+    `Sitemap: ${origin}/sitemap.xml`,
+    '',
+  ].join('\n')
+}
