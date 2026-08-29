@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ddd-diagrams-v2",
+    "title": "卷宗系统的三张 DDD 图",
+    "href": "/p/ddd-diagrams-v2.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T15:20:57.526Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ddd-diagrams-v2.html",
+      "frontend/public/p/ddd-diagrams-v2.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-diagrams",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-diagrams.html",
