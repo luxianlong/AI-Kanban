@@ -297,11 +297,16 @@ export default function App() {
     }
   }
 
-  async function retryTodo(id) {
+  // Run a finished task again as a copy: the server queues a new task built from
+  // this one (with whatever the user edited in the re-run form) and leaves the
+  // original — and the result of its first run — untouched. The board jumps to
+  // the fresh copy so the user watches the run they just started.
+  async function rerunTodo(id, edits) {
     try {
-      await api.retryTodo(id)
+      const copy = await api.rerunTodo(id, edits)
       await refresh()
       broadcastMutation()
+      if (copy && copy.id) setSelectedId(copy.id)
     } catch (e) {
       setError(e.message)
     }
@@ -478,7 +483,7 @@ export default function App() {
           onSetStory={(storyId) => setTaskStory(selected.id, storyId)}
           onClose={() => setSelectedId(null)}
           onDelete={() => removeTodo(selected.id)}
-          onRetry={() => retryTodo(selected.id)}
+          onRerun={(edits) => rerunTodo(selected.id, edits)}
           onStop={() => stopTodo(selected.id)}
         />
       )}
@@ -1344,19 +1349,32 @@ function Card({ todo, tail, story, onOpen }) {
   )
 }
 
-function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose, onDelete, onRetry, onStop }) {
+function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose, onDelete, onRerun, onStop }) {
   const running = todo.status === 'IN_PROGRESS'
-  const canRetry = todo.status === 'FAILED' || todo.status === 'RESOLVED'
-  const [retrying, setRetrying] = useState(false)
+  const canRerun = todo.status === 'FAILED' || todo.status === 'RESOLVED'
+  // Running again queues a *copy* of this task rather than resetting it, so the
+  // form below opens pre-filled with the original's wording: the usual reason a
+  // run is repeated is that the instructions needed a tweak. null = form closed.
+  const [rerunDraft, setRerunDraft] = useState(null)
+  const [rerunning, setRerunning] = useState(false)
   const [stopping, setStopping] = useState(false)
 
-  async function retry() {
-    if (retrying) return
-    setRetrying(true)
+  // The drawer follows the user onto the new copy (and to any other task they
+  // open), so the half-written form of the previous task must not follow it.
+  useEffect(() => {
+    setRerunDraft(null)
+    setRerunning(false)
+  }, [todo.id])
+
+  async function submitRerun(e) {
+    e.preventDefault()
+    if (rerunning || !rerunDraft.title.trim()) return
+    setRerunning(true)
     try {
-      await onRetry()
+      await onRerun({ title: rerunDraft.title.trim(), description: rerunDraft.description })
+      setRerunDraft(null)
     } finally {
-      setRetrying(false)
+      setRerunning(false)
     }
   }
 
@@ -1408,13 +1426,16 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
                 <Icon name="stop" />
               </button>
             )}
-            {canRetry && (
+            {canRerun && (
               <button
                 className="icon-btn"
-                onClick={retry}
-                disabled={retrying}
-                title={todo.status === 'FAILED' ? 'Retry task' : 'Run again'}
-                aria-label="Run again"
+                onClick={() =>
+                  setRerunDraft((open) =>
+                    open ? null : { title: todo.title, description: todo.description || '' })
+                }
+                aria-expanded={!!rerunDraft}
+                title="Run again as a copy — edit the wording first, this task keeps its result"
+                aria-label="Run again as a copy"
               >
                 <Icon name="run" />
               </button>
@@ -1438,6 +1459,43 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
           #{todo.id} · created {relTime(todo.createdAt)} · updated {relTime(todo.updatedAt)}
           {costMeta(todo) && <> · {costMeta(todo)}</>}
         </div>
+
+        {rerunDraft && (
+          <form className="rerun-form" onSubmit={submitRerun}>
+            <div className="section-label">Run again as a new task</div>
+            <p className="rerun-note">
+              This queues a copy of #{todo.id}; the original keeps its result. Edit the
+              wording below if the last run needs different instructions.
+            </p>
+            <input
+              className="composer-title"
+              value={rerunDraft.title}
+              onChange={(e) => setRerunDraft({ ...rerunDraft, title: e.target.value })}
+              maxLength={200}
+              aria-label="Title for the new run"
+            />
+            <textarea
+              className="composer-desc"
+              value={rerunDraft.description}
+              onChange={(e) => setRerunDraft({ ...rerunDraft, description: e.target.value })}
+              placeholder="Details / context for the agent (optional)"
+              rows={4}
+              aria-label="Description for the new run"
+            />
+            <div className="composer-actions">
+              <button
+                type="submit"
+                className="btn primary"
+                disabled={rerunning || !rerunDraft.title.trim()}
+              >
+                {rerunning ? 'Queueing…' : 'Queue the copy'}
+              </button>
+              <button type="button" className="btn ghost" onClick={() => setRerunDraft(null)}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
 
         {(story || onSetStory) && (
           <div className="drawer-section">

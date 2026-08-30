@@ -184,6 +184,34 @@ class AttachmentApiTest {
     }
 
     @Test
+    void rerunningATaskGivesTheCopyItsOwnImages() throws Exception {
+        String attachmentId = upload("original.png");
+        long todoId = createTodoWith("Task with an image", attachmentId);
+
+        String body = mvc.perform(post("/api/todos/" + todoId + "/rerun")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.attachments.length()", is(1)))
+                .andExpect(jsonPath("$.attachments[0].fileName", is("original.png")))
+                .andReturn().getResponse().getContentAsString();
+        JsonNode copied = mapper.readTree(body).get("attachments").get(0);
+        String copyId = copied.get("id").asText();
+
+        // The copy owns a distinct file with the same bytes, so deleting either
+        // task leaves the other's image intact.
+        assertThat(copyId).isNotEqualTo(attachmentId);
+        assertThat(storedOnDisk(copyId)).isTrue();
+        assertThat(mvc.perform(get("/api/attachments/" + copyId))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray()).isEqualTo(PNG_BYTES);
+
+        mvc.perform(delete("/api/todos/" + todoId))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/attachments/" + copyId)).andExpect(status().isOk());
+    }
+
+    @Test
     void anUnknownAttachmentIdIsIgnoredRatherThanFailingTheTask() throws Exception {
         long todoId = createTodoWith("Task with a stale id", "does-not-exist");
 
