@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ddd-audit-20260830b",
+    "title": "代码结构对照 DDD 的一次审计",
+    "href": "/p/ddd-audit-20260830b.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T13:31:13.563Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ddd-audit-20260830b.html",
+      "frontend/public/p/ddd-audit-20260830b.meta.json"
+    ]
+  },
+  {
     "id": "upload-java-migration-20260830",
     "title": "整仓改写成 Java 的可行性评估",
     "href": "/p/java-migration-20260830.html",
