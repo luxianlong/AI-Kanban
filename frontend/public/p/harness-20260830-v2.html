@@ -1,0 +1,123 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>今天 harness 长出了什么</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:840px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:29px;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:20px;margin:48px 0 6px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:14px;margin-right:9px}
+p{margin:12px 0}
+.big{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}
+.big div{flex:1 1 150px;background:var(--card);border:1px solid var(--line);
+ border-radius:10px;padding:14px 16px}
+.big b{display:block;font-family:ui-monospace,Menlo,monospace;font-size:27px;
+ color:var(--accent);line-height:1.2;font-variant-numeric:tabular-nums}
+.big span{font-size:13px;color:var(--ink-3);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.scroll{overflow-x:auto}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12px;letter-spacing:.05em;
+ text-transform:uppercase;white-space:nowrap}
+td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;font-variant-numeric:tabular-nums}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:var(--accent-soft);
+ color:var(--accent);padding:1px 5px;border-radius:4px}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:18px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+ul{padding-left:20px;font-size:15px}li{margin:7px 0}
+</style></head><body><div class="wrap">
+
+<h1>今天 harness 长出了什么</h1>
+<p class="sub">一天里流水线从六道检查变成十道,而其中八条的出处是同一天里的一次翻车</p>
+<p class="meta">2026-08-30 · 代理任务 #110 到 #131 · 43 条提交</p>
+
+<div class="big">
+  <div><b>6→8</b><span>闸门规格</span></div>
+  <div><b>+2</b><span>流程阶段</span></div>
+  <div><b>+3</b><span>领域模块</span></div>
+  <div><b>+4</b><span>测量工具</span></div>
+  <div><b>62</b><span>篇成稿语料</span></div>
+</div>
+
+<h2><span class="n">一</span>两个新阶段,一前一后夹住写作</h2>
+<p>之前的流程是:侦查完直接写,写完过闸门。今天两头各加了一道。</p>
+<div class="scroll"><table>
+<tr><th>阶段</th><th>位置</th><th>它问什么</th><th>为什么加</th></tr>
+<tr><td><b>大纲</b></td><td>动笔之前</td><td>论点是哪一个、对立面是谁、每节给读者什么、落点带走什么</td>
+<td>那篇土地文章改了八轮,只有一轮是事实错了,其余七轮全是结构问题 —— 结构问题都能在动笔前问掉</td></tr>
+<tr><td><b>编辑复审</b></td><td>成稿之后</td><td>嫌它长:这段删掉读者会少知道什么;嫌它闷:读者凭什么还往下读</td>
+<td>闸门查「能不能发」,复审问「值不值得读」。八条全过、polish 零问题的稿子照样可以又长又闷</td></tr>
+</table></div>
+<div class="note"><b>两条新规矩把它们连起来了。</b>编辑有意见,要回大纲改、不许在旧文上补
+—— 在段落层面切,是把一节硬塞进两段;在大纲层面拆,才是让它本来就是两节。
+而骨架最多八节 —— 拆节点会把数量往上顶,顶过八就说明这篇装了太多东西,该砍内容。
+两条互相夹住,谁也没法靠凑数糊弄过去。</div>
+
+<h2><span class="n">二</span>闸门从六条到八条</h2>
+<div class="scroll"><table>
+<tr><th>新增</th><th>判据</th><th>实测</th></tr>
+<tr><td><b>纠正</b></td><td>落点不许拒答;调查稿开头该有对立面</td>
+<td>落点拒答在 62 篇里只有 1 篇,正是被判定「不如前两篇」的那篇</td></tr>
+<tr><td><b>大纲</b></td><td>四栏在不在、论点是不是写了两句、有没有裸节、骨架超没超八节</td>
+<td>拿一份坏大纲试,四个问题全点到</td></tr>
+</table></div>
+
+<h2><span class="n">三</span>polish 抓的东西多了三类</h2>
+<div class="scroll"><table>
+<tr><th>新增</th><th>被抓到的原句</th><th>全语料误报</th></tr>
+<tr><td><b>裸比喻</b></td><td>把方向拧回去 / 长出了牙 / 同一只手 / 这台发动机</td><td class="num">0 / 62</td></tr>
+<tr><td><b>预告句</b></td><td>下面按顺序走一遍,并且在每一步注明……</td><td class="num">0 / 62</td></tr>
+<tr><td><b>自说自话</b></td><td>理由是我猜的 / 我本来还有第二个发现,没立住 / 我没有的东西……找了,没有</td><td class="num">0 / 62</td></tr>
+</table></div>
+<div class="note"><b>「自说自话」这条最难做,因为它必须放过叙述者的「我」。</b>
+这个号大量用第一人称讲故事。量下来:作者-调查者的我 7 处 / 2 篇,
+叙述者的我 14 处 / 13 篇,两组零重叠 —— 分界线在动词,查找搜核推翻 对 认识见过听说。<br>
+而且它<b>不是一律该删</b>:被夸过的那篇《京东剔罚款》也命中两处,
+「我搜了四份公告,京东外卖出现 31 次」—— 那里过程本身就是证据。
+所以只报警,判断的办法写在提示语里:去掉「我」这个主语,这句话还剩多少信息?</div>
+
+<h2><span class="n">四</span>每条规矩都配了测量,而测量推翻过我自己</h2>
+<p>新增四个测量工具。它们的作用不是证明规矩对,是让规矩可以被推翻。</p>
+<ul>
+<li><code>measure_landing.py</code> —— 落点拒答的全语料命中率。命中超一成会退出码 3 提醒词表太宽</li>
+<li><code>measure_metaphor.py</code> —— 各语种初稿的比喻密度,不足六篇会提醒「继续攒」</li>
+<li><code>editorial.py</code> —— 两副镜片的信号,每条意见带一行「回大纲改哪一栏」</li>
+<li><code>publish_outline.py</code> —— 大纲单独发页,动笔前给人看</li>
+</ul>
+<div class="note"><b>今天有三次,是测出来的数推翻了我自己的判断。</b><br>
+一、我写过「先写英文是比喻的入口」。量完六篇英文初稿:一篇每千词 6.9 处,
+其余五篇合计 0.24 —— 比喻集中在一篇里,不是英文的毛病。当天改正。<br>
+二、比喻检测第一版误伤三篇,全是把真东西当比喻:「我看着她那双手」是真的手,
+「发条消息」是发加量词,「这部戏」是真的电影。收紧后误报归零。<br>
+三、编辑复审报了一段该砍,我看完决定不砍 —— 那是「容积率就是个除法」那一段,
+一个数字都没有,却正是上一轮要求补上的东西。工具把「解释」误读成了「空转」,
+这条写进了代码里判不了的清单,排第一。</div>
+
+<h2><span class="n">五</span>还欠什么</h2>
+<div class="scroll"><table>
+<tr><th>欠的</th><th>说明</th></tr>
+<tr><td><code>carriers.py</code> 零调用</td><td>十二层载体回溯写成了代码,没有任何地方调它</td></tr>
+<tr><td>内核只覆盖 31/132 份 facts</td><td>两次真实的分级词漂移,都发生在没覆盖的那 97 份里</td></tr>
+<tr><td>发现上下文只通一路</td><td>微博知乎热榜锁在登录态后面。今天出候选页时如实标了这个缺口,没假装量过国内热度</td></tr>
+<tr><td>线上版本页堆积</td><td>同一篇文章发了十一版,删除要 owner 认证。改内容重发只能换 slug</td></tr>
+</table></div>
+
+<h2><span class="n">六</span>一句话</h2>
+<p>今天流水线上有十道检查,其中八条的来历是同一句话:<b>我先犯了一次,而当时没有任何东西拦得住。</b></p>
+
+</div></body></html>
