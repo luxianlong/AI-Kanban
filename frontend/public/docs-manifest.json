@@ -42,20 +42,6 @@
     ]
   },
   {
-    "id": "upload-ddd-diagrams-v2-fixed",
-    "title": "卷宗系统的三张 DDD 图",
-    "href": "/p/ddd-diagrams-v2-fixed.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T15:21:16.650Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/ddd-diagrams-v2-fixed.html",
-      "frontend/public/p/ddd-diagrams-v2-fixed.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-domain-map",
     "title": "看板的 DDD 领域图（Mermaid 示例）",
     "href": "/p/ddd-domain-map.html",
