@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-outline-no-name-in-that-tweet",
-    "title": "大纲 · 20260829-为什么CZ能让孙宇晨停",
-    "href": "/p/outline-no-name-in-that-tweet.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T01:01:09.674Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/outline-no-name-in-that-tweet.html",
-      "frontend/public/p/outline-no-name-in-that-tweet.meta.json"
-    ]
-  },
-  {
     "id": "upload-no-name-in-that-tweet",
     "title": "那条推里没有孙宇晨",
     "href": "/p/no-name-in-that-tweet.html",
