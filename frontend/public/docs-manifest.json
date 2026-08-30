@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-topic-candidates-20260830",
-    "title": "8 月 30 日 的候选题",
-    "href": "/p/topic-candidates-20260830.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T01:07:24.671Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/topic-candidates-20260830.html",
-      "frontend/public/p/topic-candidates-20260830.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-three-graphs",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-three-graphs.html",
