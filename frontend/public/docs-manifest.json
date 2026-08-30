@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-harness-20260830",
+    "title": "今天 harness 长出了什么",
+    "href": "/p/harness-20260830.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T00:54:49.726Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/harness-20260830.html",
+      "frontend/public/p/harness-20260830.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-three-graphs",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-three-graphs.html",
