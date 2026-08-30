@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-topic-candidates-20260830-b",
+    "title": "候选题 · 8 月 30 日第二轮",
+    "href": "/p/topic-candidates-20260830-b.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T03:21:44.631Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/topic-candidates-20260830-b.html",
+      "frontend/public/p/topic-candidates-20260830-b.meta.json"
+    ]
+  },
+  {
     "id": "upload-outline-no-official-wrote-those-lines-v3",
     "title": "大纲 · 20260830-虞书欣约谈",
     "href": "/p/outline-no-official-wrote-those-lines-v3.html",
