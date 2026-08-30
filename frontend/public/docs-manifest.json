@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-why-the-writing-got-worse",
-    "title": "越写越差,差在哪一步",
-    "href": "/p/why-the-writing-got-worse.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T02:45:41.671Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/why-the-writing-got-worse.html",
-      "frontend/public/p/why-the-writing-got-worse.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-three-graphs",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-three-graphs.html",
