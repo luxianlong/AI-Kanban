@@ -1,0 +1,123 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>越写越差,差在哪一步</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:840px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:29px;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:20px;margin:48px 0 8px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:14px;margin-right:9px}
+p{margin:12px 0}
+.lede{font-size:17px;color:var(--ink-2)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.scroll{overflow-x:auto}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12px;letter-spacing:.05em;
+ text-transform:uppercase;white-space:nowrap}
+td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+tr.bad td{background:var(--accent-soft)}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:18px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+.big{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}
+.big div{flex:1 1 160px;background:var(--card);border:1px solid var(--line);
+ border-radius:10px;padding:14px 16px}
+.big b{display:block;font-family:ui-monospace,Menlo,monospace;font-size:26px;
+ color:var(--accent);line-height:1.2;font-variant-numeric:tabular-nums}
+.big span{font-size:13px;color:var(--ink-3);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:var(--accent-soft);
+ color:var(--accent);padding:1px 5px;border-radius:4px}
+ol{padding-left:22px;font-size:15px}ol li{margin:10px 0}
+</style></head><body><div class="wrap">
+
+<h1>越写越差,差在哪一步</h1>
+<p class="sub">用户判断:「文章越写越差了」。量了三组数,判断成立,而且原因不在写作</p>
+<p class="meta">2026-08-30 · 代理任务 #147 · 数据来自本机 runs/ 与今天 57 条提交</p>
+
+<p class="lede">写作没有退步,退步的是每一篇背后的材料。同一条流水线,最好的一篇每一百字背后站着 63.7 份一手原件,今天改了十一轮的那篇是 2.8 份。</p>
+
+<h2><span class="n">一</span>三组数</h2>
+
+<h3>投入侧:每百字背后有多少份一手原件</h3>
+<div class="scroll"><table>
+<tr><th>稿件</th><th>原件</th><th>字数</th><th>每百字</th></tr>
+<tr><td>为什么CZ能让孙宇晨停</td><td class="num">372</td><td class="num">584</td><td class="num">63.7</td></tr>
+<tr><td>京东剔罚款 <span style="color:var(--ok)">(被夸)</span></td><td class="num">122</td><td class="num">1024</td><td class="num">11.9</td></tr>
+<tr><td>阿里挪账 <span style="color:var(--ok)">(被夸)</span></td><td class="num">122</td><td class="num">1315</td><td class="num">9.3</td></tr>
+<tr class="bad"><td>缺不缺土地 <span style="color:var(--accent)">(今天改了 11 轮)</span></td><td class="num">39</td><td class="num">1385</td><td class="num">2.8</td></tr>
+<tr class="bad"><td>虞书欣约谈 <span style="color:var(--accent)">(动笔时)</span></td><td class="num">2</td><td class="num">606</td><td class="num">0.3</td></tr>
+</table></div>
+<p>最好的一篇和今天那篇差 23 倍。而这条流水线自己的第一条教义是:质量来自一手材料的独占性,不来自文笔。</p>
+
+<h3>动作侧:今天 57 条提交花在哪</h3>
+<div class="big">
+  <div><b>11</b><span>重写同一篇稿子</span></div>
+  <div><b>23</b><span>动工具与规则</span></div>
+  <div><b>2</b><span>新建的 run</span></div>
+  <div><b>0</b><span>新做的侦查(直到最后)</span></div>
+</div>
+<p>十五条与文章有关的提交里,十一条是「重写/重做」。<strong>返工代替了新作。</strong></p>
+
+<h3>规则侧:一天里长了多少</h3>
+<div class="scroll"><table>
+<tr><th>项</th><th>早上</th><th>晚上</th></tr>
+<tr><td>闸门规格</td><td class="num">6</td><td class="num">8</td></tr>
+<tr><td>polish 检查类目</td><td class="num">3</td><td class="num">6</td></tr>
+<tr><td>编辑镜片</td><td class="num">0</td><td class="num">2</td></tr>
+<tr><td>大纲结构</td><td>无</td><td>两段式 + 8 块上限</td></tr>
+</table></div>
+
+<h2><span class="n">二</span>诊断</h2>
+
+<div class="note"><b>这些新规则没有一条是帮助挖到材料的。</b>
+落点不许拒答、不许比喻、不许自说自话、不许预告、骨架最多八块 ——
+每一条都在防止写坏,没有一条在帮助写好。<b>工具变严了,没有变强。</b></div>
+
+<p>严格的工具作用在薄材料上,产出是可预测的:一篇挑不出毛病、也没什么可看的稿子。
+今天那篇《缺不缺土地》八条闸门全过、polish 零问题、编辑两副镜片零意见 ——
+而它每百字背后只有 2.8 份原件。</p>
+
+<p><strong>改十一轮改不出材料。</strong>返工能修掉缺点,长不出优点 ——
+独占的事实不会在重写里出现,它只在翻原件的时候出现。</p>
+
+<h2><span class="n">三</span>还有两处结构性的毛病</h2>
+<ol>
+<li><strong>规则开始互相打架。</strong>「超长段就回大纲拆节点」和「骨架最多八块」撞过一次,
+当时靠在别处打补丁绕开,四张卡之后才扶正成「逻辑骨架/内容骨架」两段式。
+标题那副镜片加了又删。规则之间没有互斥性检查,而它们的数量已经到了会互撞的量级。</li>
+<li><strong>检查覆盖的是成稿,不是卷宗。</strong>八条闸门里没有一条问「这篇的材料够不够」。
+《虞书欣约谈》拿两份原件就写完了,全套检查一句话都没说 ——
+直到人看了一眼说「缺乏内容和深度」。</li>
+</ol>
+
+<h2><span class="n">四</span>下一步,四条</h2>
+<ol>
+<li><strong>给卷宗定一个动笔门槛。</strong>调查稿原件数低于某个线就不许动笔。
+这是这套检查唯一缺的那一类:管投入,不管产出。</li>
+<li><strong>停止新增写作规则。</strong>下一条新规则必须是帮助挖材料的,否则不加。</li>
+<li><strong>返工与新作要有比例。</strong>今天是 11:2。同一篇改到第三轮还不满意,
+问题多半在卷宗而不在稿子,该回去挖而不是接着改。</li>
+<li><strong>侦查工作流是对的方向。</strong>今天最后那次七路并发,一轮补了 60 份原件,
+其中包括「那个作者号发过 95 篇」「同源孪生稿相隔 5 秒」
+「停更37天掉粉53.2% 全网检索为否定结果」——
+这些是重写十一轮也长不出来的东西。</li>
+</ol>
+
+<div class="note"><b>一句话。</b>今天把工具磨得很锋利,而磨刀的时间是从找材料那边挪过来的。
+这份诊断本身也是这个毛病的一部分:它又是一份关于工具的文档,不是一篇稿子。</div>
+
+</div></body></html>
