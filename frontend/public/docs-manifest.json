@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-outline-three-adjusted-profits",
+    "title": "大纲 · 20260829-电商财报分化",
+    "href": "/p/outline-three-adjusted-profits.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T00:27:37.282Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/outline-three-adjusted-profits.html",
+      "frontend/public/p/outline-three-adjusted-profits.meta.json"
+    ]
+  },
+  {
     "id": "upload-three-adjusted-profits",
     "title": "三个调整后利润,三把不同的算法",
     "href": "/p/three-adjusted-profits.html",
