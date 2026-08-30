@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-outline-no-official-wrote-those-lines",
+    "title": "大纲 · 20260830-虞书欣约谈",
+    "href": "/p/outline-no-official-wrote-those-lines.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T02:50:43.390Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/outline-no-official-wrote-those-lines.html",
+      "frontend/public/p/outline-no-official-wrote-those-lines.meta.json"
+    ]
+  },
+  {
     "id": "upload-no-official-wrote-those-lines",
     "title": "最像官方口径的那几行字,没有一行是官方写的",
     "href": "/p/no-official-wrote-those-lines.html",
