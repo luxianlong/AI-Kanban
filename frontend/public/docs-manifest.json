@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-outline-three-adjusted-profits",
-    "title": "大纲 · 20260829-电商财报分化",
-    "href": "/p/outline-three-adjusted-profits.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T00:27:37.282Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/outline-three-adjusted-profits.html",
-      "frontend/public/p/outline-three-adjusted-profits.meta.json"
-    ]
-  },
-  {
     "id": "upload-outline-is-china-short-of-land-v3",
     "title": "大纲 · 20260830-缺不缺土地",
     "href": "/p/outline-is-china-short-of-land-v3.html",
