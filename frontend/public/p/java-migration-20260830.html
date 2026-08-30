@@ -1,0 +1,142 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>整仓改写成 Java 的可行性评估</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:29px;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:21px;margin:52px 0 6px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:14px;margin-right:9px}
+p{margin:12px 0}
+.stop{background:var(--card);border:1px solid var(--accent);border-left:5px solid var(--accent);
+ border-radius:8px;padding:20px 22px;margin:20px 0}
+.stop b{font-size:17px;color:var(--accent)}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:16px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.scroll{overflow-x:auto}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12px;letter-spacing:.05em;
+ text-transform:uppercase;white-space:nowrap}
+td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;text-align:right}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:var(--accent-soft);
+ color:var(--accent);padding:1px 5px;border-radius:4px}
+.tag{font-family:system-ui,sans-serif;font-size:11px;padding:2px 7px;border-radius:99px;
+ border:1px solid var(--line);color:var(--ink-3);white-space:nowrap}
+.t-bad{color:var(--accent);border-color:var(--accent)}
+.t-ok{color:var(--ok);border-color:var(--ok)}
+.t-warn{color:var(--warn);border-color:var(--warn)}
+</style></head><body><div class="wrap">
+
+<h1>整仓改写成 Java 的可行性评估</h1>
+<p class="sub">38 个文件 · 3,840 行 · 换语言之前先看换不掉的那部分</p>
+<p class="meta">2026-08-30 · 任务 #168 · 未动一行代码,先出评估 —— 理由见下面第一节</p>
+
+<div class="stop">
+<b>先说一个当场就能验证的硬事实:这台机器上没有 Java。</b><br><br>
+<code>java -version</code> → <code>Unable to locate a Java Runtime</code>。
+Maven、Gradle 也都没有。<br><br>
+意思是:哪怕我今天把 3,840 行全部译完,<b>它在这台机器上一行都跑不起来</b>。
+而这个仓库不是一个库,是一条每天在跑的流水线 —— 装 JDK 属于系统级改动,
+该由你决定,不该我替你装。
+</div>
+
+<h2><span class="n">一</span>好消息:代码本身很好移</h2>
+<p>解析全部 import,这个项目对外部世界的依赖薄得出奇:</p>
+
+<div class="scroll"><table>
+<tr><th>依赖</th><th>用到的文件</th><th>Java 对应</th><th>难度</th></tr>
+<tr><td>JSON / JSONL</td><td class="num">15</td><td>Jackson</td><td><span class="tag t-ok">直译</span></td></tr>
+<tr><td>命令行解析 <code>argparse</code></td><td class="num">10</td><td>picocli</td><td><span class="tag t-ok">直译</span></td></tr>
+<tr><td>HTTP <code>urllib</code></td><td class="num">6</td><td><code>java.net.http.HttpClient</code></td><td><span class="tag t-ok">直译</span></td></tr>
+<tr><td>子进程 <code>subprocess</code></td><td class="num">5</td><td><code>ProcessBuilder</code></td><td><span class="tag t-ok">直译</span></td></tr>
+<tr><td>图像 PIL</td><td class="num">2</td><td><code>javax.imageio</code></td><td><span class="tag t-warn">要重写</span></td></tr>
+<tr><td>内嵌 JavaScript 字符串</td><td class="num">17</td><td>原样搬(是数据不是代码)</td><td><span class="tag t-ok">复制</span></td></tr>
+</table></div>
+
+<div class="note">
+<b>唯一的第三方依赖是个幽灵。</b><br>
+<code>pyproject.toml</code> 写着 <code>dependencies = ["claude-agent-sdk"]</code>,
+但全仓搜下来<b>没有任何一行 import 它</b> —— 只在一句注释里被提到。
+所以真实的外部依赖是:<b>Python 标准库 + PIL</b>。这对移植是极好的条件。
+</div>
+
+<h2><span class="n">二</span>坏消息:换不掉的是调用它的那一层</h2>
+<p>这个仓库不是被人调用的,是被 <b>Claude Code</b> 调用的。改语言意味着这些全要跟着改:</p>
+
+<div class="scroll"><table>
+<tr><th>调用方</th><th>调用处</th><th>说明</th></tr>
+<tr><td><code>~/.claude/skills/hot-event-answer/SKILL.md</code></td><td class="num">11</td><td>技能文档里写死了 <code>python3 contexts/…</code>,这是整条流水线的操作手册</td></tr>
+<tr><td><code>~/.claude/workflows/investigate.js</code></td><td class="num">3</td><td>侦查工作流</td></tr>
+<tr><td>仓库内部 <code>subprocess</code> 起 python</td><td class="num">69</td><td>入口互相调用,例如 <code>publish_page</code> 起 <code>render.py</code> 拿 PIL</td></tr>
+</table></div>
+
+<p>
+<b>83 处调用点</b>要在同一次切换里全部改完,否则流水线是断的。
+而这条流水线昨天还在跑:最近一轮侦查 27 个 agent、738 份原件。
+</p>
+
+<h2><span class="n">三</span>还有一样东西直译过去没有意义</h2>
+<div class="note">
+3,840 行里,<b>19,305 字是中文 docstring</b> —— 平均每行代码约 5 字说明。
+#166 的文档盘点量过:21/38 个模块的说明里带实测数字,4 个专门记录了被推翻的做法。<br><br>
+这些不是注释,是这个项目最贵的资产:<b>为什么这么设计、以及哪条路走不通</b>。
+直译成 Java 的 Javadoc 是机械劳动,而一旦翻译走样,那些「实测」「回退」「翻过车」
+的上下文就废了。<br><br>
+真要迁移,这部分应该<b>整段搬运不重写</b>,和当初 #77 补分层时的做法一样
+(那次是「逐字搬运,只调 sys.path 深度」,改造前后 7 个入口做过逐字输出比对)。
+</div>
+
+<h2><span class="n">四</span>如果要做,该怎么做</h2>
+<p>不建议一次性推倒重来。这条流水线每天在用,断一天就少一天产出。分四步,每步都可回退:</p>
+
+<div class="scroll"><table>
+<tr><th>阶段</th><th>做什么</th><th>规模</th><th>能验证什么</th></tr>
+<tr><td>0 · 前置</td><td>装 JDK 21 + 构建工具,定包名与目录布局</td><td class="num">—</td><td>能不能编译</td></tr>
+<tr><td>1 · 共享内核</td><td><code>domain/</code> 五个文件:<code>Fact</code> <code>FactGrade</code> <code>Dossier</code> <code>SourceAdapter</code> <code>repository</code></td><td class="num">≈380 行</td><td><b>这一层 #164 之后是纯的,零 I/O</b> —— 可以拿真实卷宗跑新旧对拍</td></tr>
+<tr><td>2 · 领域层</td><td>四个上下文的 <code>domain/</code>:候选筛选、知乎适配器、大纲</td><td class="num">≈420 行</td><td>同样是纯逻辑,逐条对拍</td></tr>
+<tr><td>3 · 基础设施</td><td>HTTP、文件系统、图像、浏览器脚本</td><td class="num">≈1,400 行</td><td>要真连外部,只能端到端跑</td></tr>
+<tr><td>4 · 入口与切换</td><td>10 个命令行入口 + 83 处调用点同步改</td><td class="num">≈1,600 行</td><td>切换当天流水线通不通</td></tr>
+</table></div>
+
+<p>
+第 1、2 阶段(约 800 行)是<b>最值得先做的</b>:它们纯、可对拍、切换成本为零
+—— Java 版和 Python 版可以并存,拿同一份卷宗比对输出,不一致就是移植出错。
+第 3、4 阶段才是真正的风险和工作量所在。
+</p>
+
+<h2><span class="n">五</span>我需要你先回答的三件事</h2>
+<div class="note">
+<b>一、为什么要换?</b><br>
+这决定了做法。如果是为了<b>类型安全</b>,Python 这边加 mypy 严格模式成本低得多;
+如果是为了<b>部署到 JVM 环境</b>,那第 3、4 阶段必须做;
+如果是为了<b>练手或某个外部要求</b>,先做第 1、2 阶段就够,而且不影响现有流水线。
+</div>
+<div class="note">
+<b>二、要不要装 JDK?</b><br>
+装 JDK 是系统级改动,我不替你装。你同意的话我用
+<code>brew install openjdk@21</code>,或者你自己装。
+</div>
+<div class="note">
+<b>三、切换还是并存?</b><br>
+一次性切换意味着某一天流水线是断的;并存意味着一段时间内两套代码都要维护。
+我建议并存,并从第 1、2 阶段开始 —— 那 800 行可以在不碰任何调用点的前提下写完并验证。
+</div>
+
+<p class="meta">全部数字由脚本当场产出:38 文件 / 3,840 行 / 19,305 字 docstring / 83 处调用点 / java 未安装</p>
+
+</div></body></html>
