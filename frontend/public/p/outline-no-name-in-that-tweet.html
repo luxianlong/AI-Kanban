@@ -1,0 +1,76 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大纲 · 20260829-为什么CZ能让孙宇晨停</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:800px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:29px;line-height:1.3;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);
+ margin:44px 0 10px;font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.claim{font-size:21px;line-height:1.55;margin:0;padding:20px 22px;background:var(--card);
+ border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 9px 9px 0}
+.opp,.land{margin:0;padding:18px 20px;background:var(--card);border:1px solid var(--line);
+ border-radius:9px;color:var(--ink-2)}
+ol.beams{list-style:none;counter-reset:b;padding:0;margin:0}
+ol.beams li{counter-increment:b;background:var(--card);border:1px solid var(--line);
+ border-radius:9px;padding:14px 18px 14px 46px;margin:9px 0;position:relative}
+ol.beams li::before{content:counter(b,decimal-leading-zero);position:absolute;left:16px;top:14px;
+ font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-3)}
+.what{display:block;font-size:16px}
+.gives{display:block;margin-top:5px;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.gives b{color:var(--ok);font-weight:600}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:16px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+.chk{font-family:system-ui,sans-serif;font-size:14px;margin:6px 0;color:var(--ink-2)}
+.chk.ok{color:var(--ok)} .chk.bad{color:var(--accent)}
+ul.cj{padding-left:20px;font-size:14px;color:var(--ink-3);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+ul.cj li{margin:6px 0}
+</style></head><body><div class="wrap">
+<h1>动笔之前的那张大纲</h1>
+<p class="sub">20260829-为什么CZ能让孙宇晨停</p>
+<p class="meta">骨架 7 节 · 这一步存在的理由:结构问题在这张纸上改一行,
+在成稿里改要连带重建证据图的锚点和图注</p>
+
+<h2>论点</h2>
+<p class="claim">那条被全网叫作「赵长鹏喊话孙宇晨」的推,从头到尾没有孙宇晨这个名字 —— 是孙宇晨自己回过去,把它认领到了自己头上。</p>
+<div class="note"><b>一篇只打一个点。</b>论点写了第二句,那第二句是另一篇。</div>
+
+<h2>对立面</h2>
+<p class="opp">全网都把它叫「CZ 喊话孙宇晨」。而这条推没 @ 任何人、不是回复、不是引用,X 原生接口返回的字段是空的 —— 没有一篇转述查过这三个字段。</p>
+<div class="note"><b>谁在说一个错的说法。</b>没有被纠正的一方,结尾就没有可落的地方 ——
+62 篇成稿里唯一一篇落点拒答的,开头也正好没有对立面。</div>
+
+<h2>骨架</h2>
+<ol class="beams"><li><span class="what">摆那条推本身</span><span class="gives"><b>给读者</b> 让读者知道它是独立发布的,2026 年 8 月 28 日 17:11:10Z,北京时间次日凌晨 1 点 11 分</span></li><li><span class="what">摆接口返回的三个空</span><span class="gives"><b>给读者</b> 让读者看到 entities 是空对象、in_reply_to 是 null、quoted_tweet 是 null</span></li><li><span class="what">说清这三个字段分别是什么</span><span class="gives"><b>给读者</b> 让读者知道它们对应「没 @ 人」「不是回复谁」「没引用谁的推」,是明码不是解读</span></li><li><span class="what">指出评论区也没点名</span><span class="gives"><b>给读者</b> 让读者知道 2315 条评论里 CZ 一次都没提孙宇晨</span></li><li><span class="what">说清是谁认领的</span><span class="gives"><b>给读者</b> 让读者知道是孙宇晨主动回过去,把这条推接到了自己身上</span></li><li><span class="what">摆收手长文回应的对象</span><span class="gives"><b>给读者</b> 让读者看到「我不属于任何一边」对的是男女站队,而 CZ 全文没提性别、没提站队</span></li><li><span class="what">说清 CZ 那句话到底给了什么</span><span class="gives"><b>给读者</b> 让读者知道「直接打官司」正是孙团队已经在走的路,那不是命令,是一个正好合身的公开理由</span></li></ol>
+<div class="note"><b>每一节都得写明给读者什么新东西。</b>
+写「讲容积率」不算数,要写「让读者知道那个数是下限不是上限」。
+一节说不出给读者什么,它写出来就是空转段。<br>
+还有一条:<b>一节只装一件事</b>。装两件,写出来必然是一百多字的长段 ——
+这篇八轮返工里有三个超长段,回溯到大纲全是这个原因。</div>
+
+<h2>落点</h2>
+<p class="land">读者带走一个能当场用的动作:下次看到「某人喊话某人」,先去看那条推有没有 @、是不是回复、是不是引用。这三样在接口里是明码,查一次不到一分钟,而它决定了这件事到底是喊话还是认领。</p>
+<div class="note"><b>不许把问题推给别处。</b>「答案在别处」这种结尾,
+读者读完全文拿到的是一张欠条。</div>
+
+<h2>自检</h2>
+<p class="chk ok">✓ 四栏都在,论点只有一句,骨架每一节都写明了给读者什么,落点没有拒答</p>
+
+<h2>代码判不了的</h2>
+<ul class="cj"><li>这个论点是不是真的成立 —— 大纲阶段它还只是个猜想,证伪是侦查和引语闸门的事</li><li>骨架的顺序对不对 —— #93 那次读不懂就是顺序问题,而顺序好坏没有判据</li><li>「给读者什么」写得是不是实话 —— 可以写得很漂亮然后正文里根本没给</li></ul>
+</div></body></html>
