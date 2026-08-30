@@ -1,0 +1,173 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代码结构对照 DDD 的一次审计</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:29px;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:21px;margin:52px 0 6px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:14px;margin-right:9px}
+h3{font-size:16px;margin:26px 0 4px}
+p{margin:12px 0}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:16px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.scroll{overflow-x:auto}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12px;letter-spacing:.05em;
+ text-transform:uppercase;white-space:nowrap}
+td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;text-align:right}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:var(--accent-soft);
+ color:var(--accent);padding:1px 5px;border-radius:4px}
+.bar{display:block;height:9px;border-radius:3px;background:var(--accent);opacity:.75}
+.tag{font-family:system-ui,sans-serif;font-size:11px;padding:2px 7px;border-radius:99px;
+ border:1px solid var(--line);color:var(--ink-3);white-space:nowrap}
+.t-bad{color:var(--accent);border-color:var(--accent)}
+.t-ok{color:var(--ok);border-color:var(--ok)}
+.t-warn{color:var(--warn);border-color:var(--warn)}
+.zero{color:var(--accent);font-weight:700}
+</style></head><body><div class="wrap">
+
+<h1>代码结构对照 DDD 的一次审计</h1>
+<p class="sub">每个文件该在哪一层 · 实际在哪一层 · 差在哪</p>
+<p class="meta">2026-08-30 · 任务 #159 · 全部结论由 AST 解析产出,没有一条是读代码读出来的印象</p>
+
+<div class="note">
+这不是重画架构图(那是 #156 做的),是<b>拿 DDD 的规矩去量现有代码</b>:
+解析 45 个文件的 import 和类定义,按四条规则逐条检查。
+查出 <b>3 条真违规、1 条误报</b>。其中一条当场修了,另外两条需要你拍板。
+</div>
+
+<h2><span class="n">一</span>四层的实际重量</h2>
+
+<div class="scroll"><table>
+<tr><th>层</th><th>文件</th><th>行数</th><th>占比</th><th></th><th>DDD 期望</th></tr>
+<tr><td>领域 domain</td><td class="num">10</td><td class="num">859</td><td class="num">23%</td>
+    <td style="width:34%"><span class="bar" style="width:23%"></span></td><td>业务规则的家</td></tr>
+<tr><td>应用 application</td><td class="num">2</td><td class="num">57</td><td class="num zero">1%</td>
+    <td><span class="bar" style="width:1.5%"></span></td><td>用例编排</td></tr>
+<tr><td>基础设施 infrastructure</td><td class="num">9</td><td class="num">1414</td><td class="num">38%</td>
+    <td><span class="bar" style="width:38%"></span></td><td>和外部世界打交道</td></tr>
+<tr><td>接口 interface</td><td class="num">14</td><td class="num">1383</td><td class="num">37%</td>
+    <td><span class="bar" style="width:37%"></span></td><td><b>薄壳</b>,只解析参数、调用应用层</td></tr>
+</table></div>
+
+<div class="note">
+<b>最大的一处偏离:接口层 1383 行,应用层 57 行 —— 差 24 倍。</b><br><br>
+DDD 里接口层应该是最薄的一层:接命令行参数,调一个用例,打印结果。
+现在它是第二重的一层,而本该承担编排的应用层只有两个文件、加起来 57 行
+(<code>discovery/application/newsfind.py</code> 17 行、<code>selection/application/scout.py</code> 40 行)。<br><br>
+意思是:<b>用例逻辑住在命令行入口里。</b><code>review_page.py</code> 199 行、
+<code>candidates.py</code> 158 行、<code>publish_outline.py</code> 144 行 ——
+这些不是壳子,是程序本身。换一个调用方式(比如从工作流里调),这些逻辑一行都复用不了。
+</div>
+
+<h2><span class="n">二</span>上下文 × 层 的分布</h2>
+
+<div class="scroll"><table>
+<tr><th>上下文</th><th>domain</th><th>app</th><th>infra</th><th>iface</th><th>合计</th><th>形状</th></tr>
+<tr><td>discovery 发现</td><td class="num">265</td><td class="num">17</td><td class="num">330</td><td class="num">430</td><td class="num">1042</td><td><span class="tag t-ok">四层齐全</span></td></tr>
+<tr><td>selection 选题</td><td class="num">148</td><td class="num">40</td><td class="num">90</td><td class="num">397</td><td class="num">675</td><td><span class="tag t-ok">四层齐全</span></td></tr>
+<tr><td>delivery 交付</td><td class="num">139</td><td class="num zero">0</td><td class="num">548</td><td class="num">209</td><td class="num">896</td><td><span class="tag t-warn">无应用层</span></td></tr>
+<tr><td>investigation 侦查</td><td class="num zero">0</td><td class="num zero">0</td><td class="num">446</td><td class="num">53</td><td class="num">499</td><td><span class="tag t-bad">只有两层</span></td></tr>
+<tr><td>(共享内核)</td><td class="num">307</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">307</td><td><span class="tag t-ok">纯领域</span></td></tr>
+<tr><td>(tools 工具)</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">294</td><td class="num">294</td><td><span class="tag">非限界上下文</span></td></tr>
+</table></div>
+
+<p>
+<b>侦查上下文 499 行,领域层 0 行。</b>这一格值得单独看,因为按 #156 那张核心域图,
+侦查是<b>唯一的核心域</b> —— 全部差异化都来自这里。而一个核心域没有领域层,
+意思是它的规则不在代码里:并发几路、怎么对抗核查、什么算一份合格原件,
+这些全写在技能文档和工作流脚本里。<br><br>
+这不一定是错的。侦查的"规则"确实更像提示词而不是不变量。但它意味着
+<b>那部分知识没有任何机器可以校验</b>,和第 四 节说的是同一件事。
+</p>
+
+<h2><span class="n">三</span>四条规则,逐条查</h2>
+
+<h3>规则一 · 领域层必须是纯的(不做 I/O)</h3>
+<div class="scroll"><table>
+<tr><th>文件</th><th>引入</th><th>实际用途</th><th>判定</th></tr>
+<tr><td><code>domain/dossier.py</code></td><td class="num">pathlib, json</td>
+    <td><code>mkdir</code> / <code>exists</code> / <code>read_text</code> —— 聚合根自己读写文件系统</td>
+    <td><span class="tag t-bad">真违规</span></td></tr>
+<tr><td><code>domain/events.py</code></td><td class="num">pathlib, json</td>
+    <td><code>p.open("a")</code> 往磁盘追加 JSONL</td>
+    <td><span class="tag t-bad">真违规</span></td></tr>
+<tr><td><code>domain/fact.py</code></td><td class="num">sys</td>
+    <td>只用于 <code>print(..., file=sys.stderr)</code> 告警</td>
+    <td><span class="tag t-warn">轻微</span></td></tr>
+<tr><td><code>selection/domain/zhihu.py</code></td><td class="num">sys, pathlib</td>
+    <td>只用于 <code>sys.path.insert</code> 让 import 找得到根目录</td>
+    <td><span class="tag t-ok">误报</span></td></tr>
+</table></div>
+
+<h3>规则二 · 依赖方向不许倒置(domain 不能 import application / infrastructure)</h3>
+<p><span class="tag t-ok">0 处违规</span> —— 全部 10 个领域文件,没有一个反向依赖。这条守得很干净。</p>
+
+<h3>规则三 · 领域对象不许住在接口层</h3>
+<div class="scroll"><table>
+<tr><th>文件</th><th>内容</th><th>判定</th></tr>
+<tr><td><code>contexts/delivery/outline.py</code></td>
+    <td><code>Outline</code> frozen 值对象 + 7 个常量,133 行</td>
+    <td><span class="tag t-ok">本次已修</span></td></tr>
+<tr><td><code>tools/measure.py</code></td>
+    <td><code>Correction</code> 值对象</td>
+    <td><span class="tag t-ok">接受</span></td></tr>
+</table></div>
+<p>
+<code>Outline</code> 那处是 <b>#155 我自己引入的</b>:删掉 quality 上下文时把它搬进 delivery,
+但落在了接口层。本次已移到 <code>contexts/delivery/domain/outline.py</code>,
+交付上下文因此有了领域层(139 行)。<br>
+<code>tools/</code> 不是限界上下文,是量尺盒子,<code>Correction</code> 放那儿是 #155 的有意安排,不算违规。
+</p>
+
+<h3>规则四 · 接口层应当是薄壳</h3>
+<p>见第 一 节。<b>14 个接口文件里有 10 个超过 70 行</b>,最厚的 199 行。这条是全仓偏离最大的一条。</p>
+
+<h2><span class="n">四</span>剩下两条需要你拍板</h2>
+
+<div class="note">
+<b>甲 · 聚合根兼任仓储。</b><br>
+<code>Dossier</code> 既是聚合根,又自己 <code>mkdir</code>、<code>read_text</code>、解析 JSONL。
+DDD 的标准做法是把 I/O 拆到 <code>DossierRepository</code>,聚合本身只持有内存中的事实集合。<br>
+<b>好处:</b>领域层可以脱离文件系统做单元测试;卷宗换存储方式时领域不用改。<br>
+<b>代价:</b><code>Dossier</code> 是全仓被 import 最多的类,拆它要动四个上下文,而且它现在
+"就是那个目录"这件事本身很好用 —— 冷启动之后只要有路径就能恢复全部状态。<br>
+<b>我的看法:</b>先别拆。这个项目的卷宗天然就是磁盘目录,抽象掉它换来的是可测试性,
+而这条流水线目前没有单元测试,收益兑现不了。<code>events.py</code> 同理。
+</div>
+
+<div class="note">
+<b>乙 · 用例逻辑从接口层下沉到应用层。</b><br>
+把 <code>review_page.py</code>(199 行)、<code>candidates.py</code>(158 行)这类文件里的编排逻辑
+搬到各自的 <code>application/</code>,接口层只留参数解析。<br>
+<b>好处:</b>同一个用例能被命令行、工作流、别的上下文三种方式调用,不用复制。<br>
+<b>代价:</b>纯搬运,大约 600 行要动,不改任何行为。而现在这些入口只有一个调用方 —— 我。<br>
+<b>我的看法:</b>等到真有第二个调用方再搬。现在搬是为了图好看,这个项目最近三版都在做减法,
+不该为了对齐一张架构图而增加间接层。
+</div>
+
+<h2><span class="n">五</span>这次改了什么</h2>
+<div class="scroll"><table>
+<tr><th>改动</th><th>为什么</th></tr>
+<tr><td><code>contexts/delivery/outline.py</code><br>→ <code>contexts/delivery/domain/outline.py</code></td>
+    <td>规则三查出来的唯一一处真违规,而且是我在 #155 亲手放错位的。搬迁理由已写进模块 docstring。改完 import 自检通过,全仓无残留旧路径</td></tr>
+</table></div>
+<p class="meta">审计脚本检查 45 个文件 · 4 条规则 · 查出 3 真 1 误报 · 修 1 处 · 留 2 处待裁定</p>
+
+</div></body></html>
