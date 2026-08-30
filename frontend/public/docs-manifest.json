@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ai-wrote-the-tidiest-report-v2",
+    "title": "写得越像通报的报道,越该拉到最底下看一眼",
+    "href": "/p/ai-wrote-the-tidiest-report-v2.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T01:58:54.923Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-wrote-the-tidiest-report-v2.html",
+      "frontend/public/p/ai-wrote-the-tidiest-report-v2.meta.json"
+    ]
+  },
+  {
     "id": "upload-outline-ai-wrote-the-tidiest-report-v2",
     "title": "大纲 · 20260830-虞书欣约谈",
     "href": "/p/outline-ai-wrote-the-tidiest-report-v2.html",
