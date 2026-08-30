@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-the-word-nobody-actually-wrote",
-    "title": "全网吵的那个词,两边文件里一次都没出现",
-    "href": "/p/the-word-nobody-actually-wrote.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T03:37:24.076Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/the-word-nobody-actually-wrote.html",
-      "frontend/public/p/the-word-nobody-actually-wrote.meta.json"
-    ]
-  },
-  {
     "id": "upload-alibaba-one-point",
     "title": "装着外卖的那个分部,只跌了百分之一",
     "href": "/p/alibaba-one-point.html",
