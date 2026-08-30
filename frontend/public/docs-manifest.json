@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ai-wrote-the-tidiest-report",
+    "title": "写得越像通报的报道,越该拉到最底下看一眼",
+    "href": "/p/ai-wrote-the-tidiest-report.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T01:31:33.182Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-wrote-the-tidiest-report.html",
+      "frontend/public/p/ai-wrote-the-tidiest-report.meta.json"
+    ]
+  },
+  {
     "id": "upload-outline-no-name-in-that-tweet-v2",
     "title": "大纲 · 20260829-为什么CZ能让孙宇晨停",
     "href": "/p/outline-no-name-in-that-tweet-v2.html",
