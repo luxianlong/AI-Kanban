@@ -280,6 +280,66 @@ class TodoApiTest {
     }
 
     @Test
+    void rerunCopiesTheFinishedTaskInsteadOfRequeuingIt() throws Exception {
+        long id = createTodo("Run me twice");
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"RESOLVED\",\"result\":\"first run output\"}"))
+                .andExpect(status().isOk());
+
+        String body = mvc.perform(post("/api/todos/" + id + "/rerun")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title", is("Run me twice")))
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                .andExpect(jsonPath("$.result", is(nullValue())))
+                .andReturn().getResponse().getContentAsString();
+        long copyId = mapper.readTree(body).get("id").asLong();
+        org.junit.jupiter.api.Assertions.assertNotEquals(id, copyId);
+
+        // The original keeps its finished state and its result — the point of the
+        // copy is that the previous attempt stays readable.
+        mvc.perform(get("/api/todos/" + id))
+                .andExpect(jsonPath("$.status", is("RESOLVED")))
+                .andExpect(jsonPath("$.result", is("first run output")));
+    }
+
+    @Test
+    void rerunAppliesTheUsersEditsAndKeepsTheOriginalWordingOtherwise() throws Exception {
+        String storyId = createStory("Story with a rerun");
+        long id = createTodo("Original title");
+        mvc.perform(patch("/api/todos/" + id + "/story")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"storyId\":\"" + storyId + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.storyOrder", is(0)));
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"FAILED\"}"))
+                .andExpect(status().isOk());
+
+        // Only the description is edited: the title falls back to the original's.
+        mvc.perform(post("/api/todos/" + id + "/rerun")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"this time, read the log first\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title", is("Original title")))
+                .andExpect(jsonPath("$.description", is("this time, read the log first")))
+                // The copy joins the same story, appended after the existing step.
+                .andExpect(jsonPath("$.storyId", is(storyId)))
+                .andExpect(jsonPath("$.storyOrder", is(1)));
+    }
+
+    @Test
+    void rerunOfAnUnknownTaskIs404() throws Exception {
+        mvc.perform(post("/api/todos/987654/rerun")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void markAllReadClearsEveryUnreadNotification() throws Exception {
         long a = createTodo("First");
         long b = createTodo("Second");

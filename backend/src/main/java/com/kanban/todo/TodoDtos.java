@@ -104,6 +104,20 @@ public final class TodoDtos {
     }
 
     /**
+     * Body for re-running a finished task as a <em>copy</em>. Both fields are
+     * optional edits the user made in the re-run form before queueing it: an
+     * omitted field keeps the original task's own wording, so an empty body
+     * re-runs the task exactly as it was. (A blank title falls back too — a task
+     * always needs one — while a blank description is taken literally, as the
+     * user clearing it.) The original row is never touched: its result stays
+     * readable next to the new run's.
+     */
+    public record RerunTodoRequest(
+            @Size(max = 200) String title,
+            @Size(max = 10_000) String description) {
+    }
+
+    /**
      * Manually file a task under a story, or unassign it. A null/blank
      * {@code storyId} makes the task standalone; otherwise it must be an existing
      * story's id and the task is appended to the end of that chain.

@@ -147,6 +147,51 @@ public class AttachmentService {
                 .toList();
     }
 
+    /**
+     * Duplicate every attachment of one task onto another (row + a fresh copy of
+     * the file on disk). Used when a finished task is re-run as a copy: the new
+     * task gets its own images so the two are fully independent — deleting one
+     * can never take the other's files with it.
+     */
+    public List<Attachment> copyTo(Long fromTodoId, Long toTodoId) {
+        if (fromTodoId == null || toTodoId == null) {
+            return List.of();
+        }
+        return listFor(fromTodoId).stream()
+                .map(source -> copyOne(source, toTodoId))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
+    /** Copy one attachment onto a task, or null when its bytes are gone. */
+    private Attachment copyOne(Attachment source, Long toTodoId) {
+        String id = UUID.randomUUID().toString().replace("-", "");
+        String storedName = id + extensionSuffix(source.getStoredName());
+        try {
+            Files.createDirectories(directory);
+            Files.copy(pathOf(source), directory.resolve(storedName), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            // A missing/unreadable source file shouldn't fail the whole re-run:
+            // the copied task is still worth having, just without that image.
+            log.warn("Could not copy attachment {} for todo {}: {}", source.getId(), toTodoId, e.getMessage());
+            return null;
+        }
+        Attachment copy = new Attachment();
+        copy.setId(id);
+        copy.setTodoId(toTodoId);
+        copy.setFileName(source.getFileName());
+        copy.setContentType(source.getContentType());
+        copy.setSizeBytes(source.getSizeBytes());
+        copy.setStoredName(storedName);
+        return repository.save(copy);
+    }
+
+    /** The ".png" tail of a stored name (empty when it has none). */
+    private String extensionSuffix(String storedName) {
+        int dot = storedName == null ? -1 : storedName.lastIndexOf('.');
+        return dot < 0 ? "" : storedName.substring(dot);
+    }
+
     public List<Attachment> listFor(Long todoId) {
         return todoId == null ? List.of() : repository.findByTodoIdOrderByCreatedAtAsc(todoId);
     }

@@ -944,6 +944,18 @@ body {
 }
 .drawer-meta { color: var(--faint); font-size: var(--f-sm); }
 
+/* The "run again" form: a copy of the task, pre-filled and editable, opened
+   from the drawer's run button. */
+.rerun-form {
+  margin-top: var(--s-4);
+  padding: var(--s-3);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--col);
+}
+.rerun-note { margin: var(--s-1) 0 var(--s-2); font-size: var(--f-xs); color: var(--muted); line-height: 1.5; }
+.rerun-form .composer-title { box-shadow: none; }
+
 .drawer-section { margin-top: var(--s-4); display: flex; flex-direction: column; min-height: 0; }
 .drawer-section.grow { flex: 1; }
 .section-label {

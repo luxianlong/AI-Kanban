@@ -3,6 +3,7 @@ package com.kanban.todo;
 import com.kanban.attachment.AttachmentDtos.AttachmentView;
 import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.TodoDtos.CreateTodoRequest;
+import com.kanban.todo.TodoDtos.RerunTodoRequest;
 import com.kanban.todo.TodoDtos.SetStoryRequest;
 import com.kanban.todo.TodoDtos.TodoResponse;
 import com.kanban.todo.TodoDtos.UpdateStatusRequest;
@@ -187,6 +188,57 @@ public class TodoController {
             todo.setResult(req.result());
         }
         return withAttachments(repository.save(todo));
+    }
+
+    /**
+     * Re-run a finished task as a <em>copy</em>: queue a brand-new PENDING task
+     * built from this one, leaving the original untouched.
+     *
+     * <p>Requeuing the same row used to be the only way to run something again,
+     * which overwrote the previous run's result and lost the history of what was
+     * tried. A copy keeps the first attempt readable next to the second, and —
+     * because the client may send an edited title/description — lets the user fix
+     * the instructions that made the first run fail before running it again.
+     *
+     * <p>Everything that describes the <em>work</em> is carried over (title,
+     * description, project/delegated flags, story membership, attachments);
+     * everything that describes the finished <em>run</em> is not (result, cost,
+     * duration, timestamps). A copy of a story step is appended to the end of its
+     * story's chain, so it runs after the steps already there rather than
+     * re-opening a slot in the middle.
+     */
+    @PostMapping("/{id}/rerun")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TodoResponse rerun(@PathVariable Long id, @Valid @RequestBody(required = false) RerunTodoRequest req) {
+        Todo source = find(id);
+        String title = req == null ? null : req.title();
+        String description = req == null ? null : req.description();
+
+        Todo copy = new Todo();
+        copy.setTitle(title == null || title.isBlank() ? source.getTitle() : title.trim());
+        // An omitted description keeps the original's; an explicitly empty one is
+        // the user deleting it in the form, so it is honoured as written.
+        copy.setDescription(description == null ? source.getDescription() : description);
+        copy.setStatus(TodoStatus.PENDING);
+        copy.setProjectImprovement(source.isProjectImprovement());
+        copy.setDelegated(source.isDelegated());
+        copy.setStoryPlanner(source.isStoryPlanner());
+        if (source.getStoryId() != null) {
+            copy.setStoryId(source.getStoryId());
+            copy.setStoryName(source.getStoryName());
+            // A planner has no numbered slot; a step copy queues after the chain's
+            // current last step so the story still runs strictly in order.
+            if (!source.isStoryPlanner()) {
+                copy.setStoryOrder(classifier.nextOrder(
+                        repository.findByStoryIdOrderByStoryOrderAsc(source.getStoryId())));
+            }
+        }
+        Todo saved = repository.save(copy);
+        // Give the new task its own copies of the original's images, so the agent
+        // running it can open them and deleting either task leaves the other whole.
+        List<AttachmentView> copied = attachments.copyTo(source.getId(), saved.getId())
+                .stream().map(AttachmentView::from).toList();
+        return TodoResponse.from(saved, copied);
     }
 
     /**

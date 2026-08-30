@@ -146,6 +146,7 @@ enabling this — the session will run tools without prompting.
 | `GET` | `/api/todos/{id}` | Fetch one. |
 | `GET` | `/api/todos/{id}/log` | Live session transcript (poll while in progress). |
 | `PATCH` | `/api/todos/{id}` | Update `{ "status": "...", "result": "..." }`. |
+| `POST` | `/api/todos/{id}/rerun` | Run a finished task again as a **copy**: queues a new PENDING task built from it (attachments included) and leaves the original and its result alone. Optional `{ "title": "...", "description": "..." }` edits the copy's wording; omit a field to keep the original's. |
 | `DELETE` | `/api/todos/{id}` | Delete. |
 | `GET` | `/api/stories` | List stories with their ordered steps. |
 | `POST` | `/api/stories` | Create a story `{ "name": "...", "steps": [{ "title": "...", "description": "..." }] }`. |

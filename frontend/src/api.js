@@ -67,7 +67,7 @@ export const api = {
     }).then(json),
 
   // Move a task to a given status (generic PATCH helper). The worker drives most
-  // transitions; see retryTodo for requeuing a finished task.
+  // transitions; see rerunTodo for running a finished task again.
   updateStatus: (id, status) =>
     fetch(`${BASE}/todos/${id}`, {
       method: 'PATCH',
@@ -94,14 +94,15 @@ export const api = {
   stopTodo: (id) =>
     fetch(`${BASE}/todos/${id}/stop`, { method: 'POST' }).then(json),
 
-  // Requeue a finished (FAILED/RESOLVED) task: flip status back to PENDING so
-  // the worker re-picks it on the next poll. Clears the old result by default
-  // for a clean slate; pass keepResult=true to preserve the prior output.
-  retryTodo: (id, { keepResult = false } = {}) =>
-    fetch(`${BASE}/todos/${id}`, {
-      method: 'PATCH',
+  // Run a finished (FAILED/RESOLVED) task again as a *copy*: the server queues a
+  // new PENDING task built from this one and leaves the original — and its
+  // result — alone, so the previous attempt stays readable. title/description are
+  // the user's edits from the re-run dialog; omit either to keep the original's.
+  rerunTodo: (id, { title, description } = {}) =>
+    fetch(`${BASE}/todos/${id}/rerun`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(keepResult ? { status: 'PENDING' } : { status: 'PENDING', result: '' }),
+      body: JSON.stringify({ title, description }),
     }).then(json),
 
   // Clear a finished task's unread-notification flag (server-side, so the badge
