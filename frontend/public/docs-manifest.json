@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-six-weeks-then-i-shut-it-down",
+    "title": "给我六周,收不到十个人我自己关掉",
+    "href": "/p/six-weeks-then-i-shut-it-down.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-30T02:11:12.619Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/six-weeks-then-i-shut-it-down.html",
+      "frontend/public/p/six-weeks-then-i-shut-it-down.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-three-graphs",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-three-graphs.html",
