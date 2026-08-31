@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-java-migration-20260830",
-    "title": "整仓改写成 Java 的可行性评估",
-    "href": "/p/java-migration-20260830.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T12:51:49.925Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/java-migration-20260830.html",
-      "frontend/public/p/java-migration-20260830.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-doc-audit-20260830",
     "title": "文档对照 DDD 标准的一次盘点",
     "href": "/p/ddd-doc-audit-20260830.html",
