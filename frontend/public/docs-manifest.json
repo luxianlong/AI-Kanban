@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-hyogaki-30man-20260831",
+    "title": "日本给一代人写了一个数字：三年增加30万。七年后那一栏是空的",
+    "href": "/p/hyogaki-30man-20260831.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-31T15:19:12.089Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/hyogaki-30man-20260831.html",
+      "frontend/public/p/hyogaki-30man-20260831.meta.json"
+    ]
+  },
+  {
     "id": "upload-ai-entropy-harness-20260831b",
     "title": "AI 项目的熵往哪里漏",
     "href": "/p/ai-entropy-harness-20260831b.html",
