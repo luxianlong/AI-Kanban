@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-ddd-doc-audit-20260830",
-    "title": "文档对照 DDD 标准的一次盘点",
-    "href": "/p/ddd-doc-audit-20260830.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T12:31:41.711Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ddd-doc-audit-20260830.html",
-      "frontend/public/p/ddd-doc-audit-20260830.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-audit-20260830",
     "title": "代码结构对照 DDD 的一次审计",
     "href": "/p/ddd-audit-20260830.html",
