@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ai-entropy-harness-20260831",
+    "title": "AI 项目的熵往哪里漏",
+    "href": "/p/ai-entropy-harness-20260831.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-31T13:09:51.875Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-entropy-harness-20260831.html",
+      "frontend/public/p/ai-entropy-harness-20260831.meta.json"
+    ]
+  },
+  {
     "id": "upload-ddd-llm-position-20260831",
     "title": "LLM 在 DDD 图上的位置",
     "href": "/p/ddd-llm-position-20260831.html",

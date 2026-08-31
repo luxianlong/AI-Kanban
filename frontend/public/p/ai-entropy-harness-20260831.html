@@ -1,0 +1,278 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 项目的熵往哪里漏</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f;
+ --code-bg:#f2efe9}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a;
+ --code-bg:#232219}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;
+ --warn:#c9a95a;--code-bg:#232219}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:30px;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:21px;margin:54px 0 6px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:14px;margin-right:9px}
+h3{font-size:16px;margin:26px 0 4px}
+p{margin:12px 0}
+.own{background:var(--card);border:1px solid var(--accent);border-left:5px solid var(--accent);
+ border-radius:8px;padding:18px 20px;margin:20px 0}
+.own b{color:var(--accent)}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:16px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+.case{background:var(--card);border:1px solid var(--line);border-radius:10px;
+ padding:18px 20px;margin:18px 0}
+.case h3{margin-top:0;display:flex;gap:9px;align-items:baseline}
+.case h3 .tagline{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--accent)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.scroll{overflow-x:auto}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:11.5px;letter-spacing:.05em;
+ text-transform:uppercase;white-space:nowrap}
+td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;text-align:right}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.86em;background:var(--code-bg);
+ color:var(--accent);padding:1px 5px;border-radius:4px}
+pre.snip{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;
+ padding:13px 15px;overflow-x:auto;font-family:ui-monospace,Menlo,monospace;
+ font-size:12.5px;line-height:1.62;color:var(--ink-2);margin:12px 0;white-space:pre}
+pre.snip b{color:var(--accent);font-weight:600}
+pre.snip i{color:var(--ok);font-style:normal}
+blockquote{margin:16px 0;padding:12px 18px;border-left:3px solid var(--accent);
+ background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:15px}
+blockquote cite{display:block;margin-top:7px;font-size:12.5px;color:var(--ink-3);
+ font-style:normal;font-family:system-ui,sans-serif}
+.tag{font-family:system-ui,sans-serif;font-size:11px;padding:2px 7px;border-radius:99px;
+ border:1px solid var(--line);color:var(--ink-3);white-space:nowrap;display:inline-block}
+.t-code{color:var(--ok);border-color:var(--ok)}
+.t-schema{color:var(--warn);border-color:var(--warn)}
+.t-prompt{color:var(--accent);border-color:var(--accent)}
+.t-none{color:var(--ink-3);border-color:var(--ink-3);background:var(--code-bg)}
+.ladder{margin:18px 0}
+.rung{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);
+ border-radius:9px;margin:7px 0;background:var(--card);font-family:system-ui,-apple-system,"PingFang SC",sans-serif;font-size:14px}
+.rung .lv{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-3);min-width:74px;padding-top:2px}
+.rung .bd{flex:1}
+.rung b{display:block;margin-bottom:2px}
+ol,ul{padding-left:22px}
+li{margin:7px 0}
+</style></head><body><div class="wrap">
+
+<h1>AI 项目的熵往哪里漏</h1>
+<p class="sub">DDD 管得住代码,管不住提示词 —— 而这条流水线的不变量,一半住在提示词里</p>
+<p class="meta">2026-08-31 · 任务 #180 · 四道边界哨兵已写成脚本,拿今晚 20:05 的真实运行态跑过</p>
+
+<div class="own">
+<b>先更正你记错的一件事:这个词不是 Google 提的。</b><br><br>
+我按 <code>site:google</code>、Google Research Blog、developers.googleblog、Cloud Blog 逐个查过,
+<b>零命中</b>。<br><br>
+原始载体是 <b>Mitchell Hashimoto</b>(HashiCorp 联合创始人,Terraform 与 Ghostty 作者)
+2026-02-05 发在自己站上的《My AI Adoption Journey》——
+我直接把原件抓下来了(HTTP 200 / 65,498 字节 / 正文 13,298 字),
+它的<b>第五节标题就叫「Step 5: Engineer the Harness」</b>,
+全文 <code>harness</code> 出现 3 次,全部集中在这一节。<br><br>
+另有一家厂商站(amux.io,自己就卖 harness 编排产品)说六天后 OpenAI 的 Ryan Lopopolo
+发了个案例(Codex 生成 100 万行、1500 个 PR、3 名工程师)。
+<b>这半条我没核实</b> —— openai.com 直取 403,走可读性代理撞上 Cloudflare 人机验证,
+我不绕过人机验证,所以它停在【网】。
+</div>
+
+<h2><span class="n">一</span>他说的是什么</h2>
+
+<p>Hashimoto 的定义可以压成一句话:凡是发现 agent 犯了某个错,就花时间去
+<q>engineer a solution such that the agent never makes that mistake again</q>。
+<cite style="display:block;font-size:12.5px;color:var(--ink-3);margin-top:4px">
+—— Mitchell Hashimoto,《My AI Adoption Journey》,2026-02-05</cite></p>
+
+<p>他明说自己不确定业界有没有通行叫法,是自己长期这么叫的。而他给的落地手段只有两种:</p>
+
+<div class="scroll"><table>
+<tr><th>他说的形式</th><th>做什么</th><th>他给的适用范围</th></tr>
+<tr><td><b>更好的隐式提示</b>(<code>AGENTS.md</code> 之类)</td>
+    <td>把「agent 老是跑错命令、找错 API」这类毛病写成一行规矩</td>
+    <td>他原话限定在 <b>simple things</b></td></tr>
+<tr><td><b>真正编出来的工具</b></td>
+    <td>截图脚本、过滤过的测试等等,并在 <code>AGENTS.md</code> 里告诉 agent 它存在</td>
+    <td>他把「最可靠的办法」这句话给了这一类:<br>让 agent 能<b>自动知道自己错了</b></td></tr>
+</table></div>
+
+<p>注意他的排序:提示只管简单毛病,<b>能自动说「你错了」的工具才是主力</b>。这一点马上要用到。</p>
+
+<h2><span class="n">二</span>把他的两种形式,接到 #176 量出来的四层上</h2>
+
+<p>
+上一张卡(#176)我量过这条流水线的不变量都由谁来拦,结论是四档。
+把 Hashimoto 的两种形式贴上去,正好只覆盖其中两档 —— <b>而剩下两档才是熵的漏口</b>:
+</p>
+
+<div class="ladder">
+<div class="rung"><div class="lv">第一档</div><div class="bd">
+  <b><span class="tag t-code">代码拦</span> = 他说的「真正编出来的工具」</b>
+  违反时会炸(<code>ImportError</code>、断言失败)。<b>熵增速度 0</b> —— 不可能悄悄退化,语言替你盯着。
+</div></div>
+<div class="rung"><div class="lv">第二档</div><div class="bd">
+  <b><span class="tag t-schema">Schema 拦</span> = 他没单列,但同属「工具」</b>
+  JSON Schema 在 tool-call 层强制,不合规模型重试。熵增极低,而且<b>是唯一对 LLM 直接生效的硬约束</b>。
+</div></div>
+<div class="rung"><div class="lv">第三档</div><div class="bd">
+  <b><span class="tag t-prompt">提示词说说</span> = 他说的「隐式提示」</b>
+  违反了<b>没有任何东西会响</b>。他把它限定在 simple things 是有道理的 —— 一旦你把真正的不变量放进来,
+  它就变成一句<b>没人验证的承诺</b>。
+</div></div>
+<div class="rung"><div class="lv">第四档</div><div class="bd">
+  <b><span class="tag t-none">没人拦</span></b>
+  规则还写在文档里、还挂在嘴上,但两侧代码都不做这件事了。<b>这一档在图上根本看不见。</b>
+</div></div>
+</div>
+
+<div class="note">
+<b>于是 AI 项目的熵可以定义得很具体:</b><br>
+不是「代码变乱了」,而是 —— <b>有多少不变量住在第三、第四档,以及它们向下掉的时候有没有人知道。</b><br><br>
+传统项目里这个问题不存在:不变量只有一种住处(代码),掉下去会炸,编译器就是棘轮。
+DDD 能控熵,靠的正是把模型显式化之后<b>交给类型系统去执行</b>。
+提示词没有类型系统 —— 所以 DDD 画完图,AI 那一半仍然是无人区。
+</div>
+
+<h2><span class="n">三</span>四天里,这条产线的不变量掉了三次,每次都没人知道</h2>
+
+<div class="case">
+<h3><span class="tagline">漂移一</span>删掉闸门,留下三句还在承诺它的提示词</h3>
+<p><code>contexts/quality/</code> 于 #155 整个删除,<code>gate.py</code> 全仓零处。但三处提示词继续告诉 LLM 它还在:
+<code>investigate.js:364</code>、<code>SKILL.md:160</code>、<code>SKILL.md:216</code>。
+而同一份 SKILL.md 的 262 行写着「没有任何自动闸门」—— <b>自相矛盾了四天</b>。</p>
+<p>掉档路径:<span class="tag t-code">代码拦</span> → <span class="tag t-prompt">提示词说说</span>,
+而且提示词说的还是假话。</p>
+</div>
+
+<div class="case">
+<h3><span class="tagline">漂移二</span>Schema 长了两个字段,实体没长</h3>
+<p>8-29 往侦查 Schema 加了 <code>cui_bono</code> / <code>why_they_did_it</code>,
+Python 实体没跟上,<code>Fact.from_json</code> 静默丢了<b>两天</b>。
+实测:8-31 景甜卷宗 438 条事实里 <b>33 条</b>带这两个字段,全丢。</p>
+<p>掉档路径:<span class="tag t-schema">Schema 拦</span> → <span class="tag t-none">没人拦</span>(在 Python 那一侧)。</p>
+</div>
+
+<div class="case">
+<h3><span class="tagline">漂移三</span>同一条规矩两份实现,裁定只落到了没在跑的那份</h3>
+<p>#155 裁定「所有分级都可入稿」。我改了 <code>domain/fact.py</code>,没改 <code>investigate.js:338</code> ——
+而<b>后者才是往 jsonl 写 <code>usable_in_draft</code> 的那一行</b>。
+当天卷宗里 <b>56 条【网】</b>被判成不可写。</p>
+<p>这一次连档都没掉,是<b>同一档里两份实现互相矛盾</b> —— 传统项目里不会有这种事,因为不会有两份。</p>
+</div>
+
+<h2><span class="n">四</span>所以我写了四道边界哨兵,并且真的跑了</h2>
+
+<p>
+它们不检查代码对不对,只检查<b>同一个东西在代码侧和 LLM 侧说的是不是一样</b>。
+每一道都对应上面一次真实事故:
+</p>
+
+<div class="scroll"><table>
+<tr><th>#</th><th>哨兵</th><th>它盯的漂移</th></tr>
+<tr><td class="num">一</td><td>分级词表两侧一致</td><td>词表在 6 个文件、2 种语言里各写一遍</td></tr>
+<tr><td class="num">二</td><td>Schema 字段 ⊆ 实体字段</td><td>漂移二(<code>cui_bono</code>)</td></tr>
+<tr><td class="num">三</td><td>提示词点名的模块必须真的存在</td><td>漂移一(死承诺)</td></tr>
+<tr><td class="num">四</td><td>同名不变量的两份实现跑同样的输入,答案必须一致</td><td>漂移三(56 条【网】)</td></tr>
+</table></div>
+
+<p>拿三个时间点的真实源码跑出来:</p>
+
+<pre class="snip">══════ 现在(#178 + #179 修完之后)
+  [<i>✅</i>] 一 词表一致性:分级词表两侧一致
+  [<i>✅</i>] 二 Schema↔实体字段:Schema 10 字段全部在实体里
+  [<i>✅</i>] 三 死承诺:没有死承诺
+  [<i>✅</i>] 四 双实现对拍:两侧答案一致 {"实":true,"实·单方":true,"网":true,"传":true}
+  → <i>4/4 通过</i>
+
+══════ 今晚 20:05(真正在跑的那一份)
+  [✅] 一 词表一致性:分级词表两侧一致
+  [<b>🚨</b>] 二 Schema↔实体字段:<b>Schema 有 2 个字段实体不认识:['cui_bono','why_they_did_it']</b>
+  [<b>🚨</b>] 三 死承诺:<b>3 处提示词仍在承诺已删除的闸门</b>
+        investigate.js:364 / SKILL.md:160 / SKILL.md:216
+  → 1/3 通过
+
+══════ 对照:git HEAD 里存的那一份
+  [✅] 一 词表一致性
+  [✅] 二 Schema↔实体字段:Schema <b>8</b> 字段全部在实体里   ← <b>漏了!</b>
+  [🚨] 三 死承诺:3 处
+  [🚨] 四 双实现对拍:分歧在 ['网','传']
+  → 2/4 通过</pre>
+
+<h2><span class="n">五</span>一个反直觉的发现:哨兵不能对着 git</h2>
+
+<div class="note">
+看上面第三块。<b>同样的哨兵,对着 git HEAD 跑,漏掉了漂移二。</b><br><br>
+原因:HEAD 里的 <code>investigate.js</code> 根本没有 <code>cui_bono</code> ——
+那个字段是加在<b>工作区</b>里的,一直没提交。查一下就知道有多久:<br><br>
+<code>investigate.js</code> 上一次提交是 <b>08-29 19:49</b>,到今晚已经 <b>2 天 1 小时</b>。
+而它每跑一轮侦查要驱动 <b>22 个 agent</b>。<br><br>
+<b>也就是说:这两天真正在生产的那份代码,git 里一直没有。</b>
+传统项目里这不可能 —— 你没法把未提交的代码部署到线上。
+但 LLM 侧是「改完立刻生效」的:<code>~/.claude/</code> 下的文件保存即上线,
+没有构建、没有部署、没有 PR,连 <code>git status</code> 都要你自己想起来去看。<br><br>
+<b>结论:AI 项目的检查必须对准「此刻真正在跑的那份」,不是仓库里那份。</b>
+这也解释了为什么这三次漂移全都能活好几天 ——
+代码评审看的是 diff,而这些文件根本没进过 diff。
+</div>
+
+<h2><span class="n">六</span>棘轮怎么才不打滑</h2>
+
+<p>
+Hashimoto 那句话的力量在「never again」:它要求每次犯错都留下一个<b>不可逆的机制</b>。
+但棘轮只有卡得住才叫棘轮。上面三次漂移说明这条产线的棘轮打滑了三次,而滑法完全一样 ——
+<b>在 代码/提示词 的边界一侧改了东西,另一侧没有任何人在看。</b>
+</p>
+
+<p>所以对 AI 项目,我会把控熵收敛成三条,顺序不能换:</p>
+
+<ol>
+<li><b>先问「这条不变量住在第几档」,再问「它对不对」。</b>
+一条住在第三档的正确规则,比一条住在第一档的粗糙规则更危险 —— 后者会炸给你看,前者会安静地烂掉。</li>
+<li><b>发现漂移时,交付物不是更好的提示词,是一道让它不能再无声重演的检查。</b>
+这就是把第三档的东西<b>往上抬到第一档</b>。上面四道哨兵每一道都是这么来的 ——
+它们本身是代码,所以它们不会悄悄失效。</li>
+<li><b>检查对准运行态,不对准仓库。</b>见上一节;这一条是这次真跑之后才发现的,
+不跑就想不到。</li>
+</ol>
+
+<div class="note">
+<b>顺带说一件我自己踩的:哨兵写错了也会骗人。</b><br>
+第一版第三道哨兵对着修好的代码报了一次假警 —— 它把我自己写的说明句
+「那道闸门 #155 已经删了」当成了新的承诺,因为排除词里有「已删」却没有「删了」。
+一道会乱叫的哨兵会被人关掉,那比没有哨兵更糟。所以修完之后我又把三个时间点重跑了一遍,
+现在是 4/4 / 1/3 / 2/4 —— 上面那三块就是重跑后的结果。
+</div>
+
+<h2><span class="n">七</span>我没做的</h2>
+<div class="note">
+四道哨兵目前只是 scratchpad 里的一个脚本,<b>没有进仓库、没有接进任何流程</b>。
+把它变成常驻检查(比如接进 <code>publish_page</code> 之前、或者每次侦查起跑前跑一遍)
+属于新功能,按 no-work-without-approval 我先问你:<br><br>
+<b>一、这四道要不要进仓库?</b>进的话我倾向放 <code>contexts/</code> 之外的顶层 ——
+它检查的是「代码侧和 LLM 侧一不一致」,不属于任何一个限界上下文。<br>
+<b>二、要不要在侦查起跑前自动跑一遍?</b>好处是漂移当场暴露;
+代价是多一道可能误报的闸,而这条产线刚刚才因为闸门太多被你砍过一轮(#155)。<br>
+<b>三、还是维持现状,我每次动到边界时手动跑?</b><br><br>
+另外那件更大的仍然摆着:<b>让 Schema 和 Python 实体从同一处生成</b>,
+从根上消掉漂移二和漂移三 —— 那是结构改动,要先出设计。
+</div>
+
+<p class="meta">
+信源:mitchellh.com 原件(HTTP 200 / 65,498 字节,已存卷宗)【实】·
+amux.io 与 harness-engineering.ai 厂商站【网】· openai.com 撞 Cloudflare 未核实 ·
+Google 侧零命中(否定性结论)。
+仓库数字:investigate.js 430 行 / SKILL.md 403 行 / 上次提交 08-29 19:49 /
+卷宗 438 条事实 · 33 条带动机字段 · 56 条【网】曾被误判。
+</p>
+
+</div></body></html>
