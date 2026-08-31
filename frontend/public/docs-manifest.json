@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-ddd-graphs-20260830c",
-    "title": "卷宗系统的三张 DDD 图",
-    "href": "/p/ddd-graphs-20260830c.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-30T05:14:51.033Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ddd-graphs-20260830c.html",
-      "frontend/public/p/ddd-graphs-20260830c.meta.json"
-    ]
-  },
-  {
     "id": "upload-alibaba-one-point",
     "title": "装着外卖的那个分部,只跌了百分之一",
     "href": "/p/alibaba-one-point.html",
