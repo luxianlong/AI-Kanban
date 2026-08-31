@@ -84,20 +84,6 @@
     ]
   },
   {
-    "id": "upload-ddd-llm-position-20260831",
-    "title": "LLM 在 DDD 图上的位置",
-    "href": "/p/ddd-llm-position-20260831.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-31T12:00:05.089Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ddd-llm-position-20260831.html",
-      "frontend/public/p/ddd-llm-position-20260831.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-graphs-20260831b",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-graphs-20260831b.html",
