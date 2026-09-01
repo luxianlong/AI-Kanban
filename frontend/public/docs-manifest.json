@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-run-replay-japan-20260901",
-    "title": "一次 run 里跑了什么",
-    "href": "/p/run-replay-japan-20260901.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-01T02:44:49.177Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/run-replay-japan-20260901.html",
-      "frontend/public/p/run-replay-japan-20260901.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-graphs-20260901b",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-graphs-20260901b.html",
