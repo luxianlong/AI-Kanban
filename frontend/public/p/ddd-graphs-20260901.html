@@ -1,0 +1,316 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>卷宗系统的三张 DDD 图</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:29px;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:21px;margin:52px 0 6px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:14px;margin-right:9px}
+p{margin:12px 0}
+.mermaid{background:var(--card);border:1px solid var(--line);border-radius:10px;
+ padding:18px;margin:18px 0;overflow-x:auto;text-align:center}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:16px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.scroll{overflow-x:auto}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12px;letter-spacing:.05em;
+ text-transform:uppercase;white-space:nowrap}
+td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;text-align:right}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:var(--accent-soft);
+ color:var(--accent);padding:1px 5px;border-radius:4px}
+pre.plain{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.65;
+ background:var(--card);border:1px solid var(--line);border-radius:9px;
+ padding:14px 16px;overflow-x:auto;color:var(--ink-2)}
+.gone{color:var(--ink-3);text-decoration:line-through}
+.tag{font-family:system-ui,sans-serif;font-size:11px;padding:2px 7px;border-radius:99px;
+ border:1px solid var(--line);color:var(--ink-3);white-space:nowrap}
+.t-new{color:var(--ok);border-color:var(--ok)}
+</style></head><body><div class="wrap">
+
+<h1>卷宗系统的三张 DDD 图</h1>
+<p class="sub">上下文映射 · 核心域 · 聚合</p>
+<p class="meta">2026-09-01 第五次更新 · 这一版没有新增任何类、没有新增上下文、没有搬动任何文件 —— 加的是一道<b>边界警报</b>,而为了画它,地图必须承认一条它画了四版都没画的边</p>
+
+<div class="note">
+所有数字当场跑命令产出:<code>38</code> 个文件(不含 <code>__init__</code>)、
+<code>3892</code> 行、<code>17</code> 个类、上下文之间 <code>0</code> 条依赖。
+文件数与类数和上一版<b>一模一样</b>,行数只多了 <code>35</code> 行 ——
+全部落在同一个文件 <code>domain/fact.py</code> 里。<br><br>
+前四版记的都是结构的加减:加分层、删上下文、把 I/O 搬出聚合根。
+<b>这一版结构没动。</b>动的是一个值对象长出了自我保护 ——
+它开始知道「有人给了我不认识的东西」。
+</div>
+
+<h2><span class="n">一</span>上下文映射图</h2>
+<p>四个限界上下文、一个分成两半的共享内核 —— 这些和上一版一样。变的是右边多了一个方框。</p>
+
+<pre class="mermaid">
+flowchart TB
+  X["外部平台<br/>微博 知乎 谷歌 SEC 政府网站"]
+  L["LLM 侦查工作流<br/>.claude/workflows/investigate.js<br/>430 行 · 5 阶段 · 一轮 24 个 agent"]
+  K["共享内核 · 领域 domain/<br/>Fact · FactGrade · Dossier<br/>SourceAdapter 端口 · repository 端口"]
+  KI["共享内核 · 基础设施 infrastructure/<br/>FileSystemDossierRepository<br/>JsonlEventStore"]
+  D["发现 discovery<br/>新闻 · 全网检索 · 候选筛选"]
+  S["选题 selection<br/>门槛已取消<br/>候选页等人确认"]
+  I["侦查 investigation<br/>采集原件 · 分级落盘"]
+  V["交付 delivery<br/>渲染 · 发布 · 大纲页"]
+
+  X -.->|"防腐层 SourceAdapter(代码)"| D
+  L -.->|"FINDINGS Schema(另一门语言)"| I
+  D -.->|"news.json"| S
+  S -.->|"候选页"| I
+  I -.->|"raw/ 与 facts.jsonl"| V
+
+  D ==> K
+  S ==> K
+  I ==> K
+  V ==> K
+  KI ==> K
+  V -.->|"用仓储"| KI
+
+  style K fill:#F4EBD6,stroke:#8A6A22
+  style KI fill:#E7F0E9,stroke:#2F6B4F
+  style I fill:#E4EAF3,stroke:#2C4A7C
+  style X fill:#E9E7E2,stroke:#8A93A0
+  style L fill:#F5E3E3,stroke:#A82730
+</pre>
+
+<div class="note">
+<b>红色那格是这一版新加的,而它不是新东西 —— 它一直在,只是四版没画。</b><br><br>
+左上角那条边画了四版:外部平台经 <code>SourceAdapter</code> 进入发现上下文,
+这是一条<b>用代码写的防腐层</b>,端口在 <code>domain/adapter.py</code>,
+实现是 4 个适配器类。<br><br>
+右上角这条边同样是「外面的东西进来」,但它的防腐层<b>不是代码,是一份 JSON Schema,
+写在另一门语言里</b>(<code>investigate.js</code> 的 <code>FINDINGS</code>)。
+一轮 deep 侦查有 24 个 agent 往卷宗里写事实,它们写出来的每一行都要经过
+<code>Fact.from_json</code> 才变成内核里的值对象。<br><br>
+<b>这条边上没有编译器。</b>Schema 加一个字段,Python 实体不跟,数据不会报错 ——
+只会安静地少一块。
+</div>
+
+<div class="note">
+<b>它已经安静地少过一块。</b><br><br>
+2026-08-29 侦查侧的 Schema 加了 <code>cui_bono</code>(谁得利)和
+<code>why_they_did_it</code>(为什么这么做)两个字段,但内核的 <code>Fact</code>
+没跟着加。于是接下来两天,agent 老老实实地写,<code>from_json</code> 老老实实地丢。<br><br>
+<b>拿全部 11 份卷宗、639 条事实实测:</b>其中 <code>190</code> 条带着这两个字段。
+把上一版的 <code>Fact</code>(<code>9</code> 个字段)拉出来读同一批数据 ——
+<code>190</code> 条<b>一条都进不来</b>,因为那个类上根本没有这两个属性。
+换成这一版的 <code>Fact</code>(<code>11</code> 个字段)再读,<code>190</code> 条全部活着进来。
+</div>
+
+<div class="note">
+<b>粗线和虚线仍然是两回事。</b>粗线 = 代码依赖,四个上下文各自只 import 共享内核
+(selection 3 次、discovery 2 次、delivery 2 次、investigation 1 次),
+<b>上下文之间依然 0 条</b>。虚线 = 交接件,磁盘上的文件或跨语言的 JSON。<br>
+依赖方向实测:<code>infrastructure/</code> import <code>domain/</code> <b>5</b> 次,
+反过来 <b>0</b> 次;<code>domain/</code> 代码里的文件系统调用 <b>0</b> 处
+(用 AST 去掉注释和文档串之后扫 <code>mkdir</code> / <code>read_text</code> /
+<code>write_text</code> / <code>glob</code> / <code>open</code>)。箭头没有一根是反的。
+</div>
+
+<h2><span class="n">二</span>核心域图</h2>
+<p>哪些地方值得下重手。档位和上一版一样,但核心域那一格里该写的东西变了。</p>
+
+<pre class="mermaid">
+flowchart LR
+  subgraph CORE["核心域 · 差异化全在这里"]
+    I2["侦查<br/>Python 499 行 · 领域层 0 行<br/>规则实际在 investigate.js 430 行"]
+  end
+  subgraph SUP["支撑域 · 决定不浪费力气"]
+    S2["选题<br/>门槛取消<br/>只剩人工确认"]
+    D2["发现<br/>外网在报国内没热"]
+  end
+  subgraph GEN["通用域 · 够用就行"]
+    V2["交付<br/>渲染与发布"]
+  end
+  D2 -.-> S2 -.-> I2 -.-> V2
+
+  style CORE fill:#F5E3E3,stroke:#A82730
+  style SUP fill:#E4EAF3,stroke:#2C4A7C
+  style GEN fill:#E9E7E2,stroke:#8A93A0
+</pre>
+
+<div class="scroll"><table>
+<tr><th>域</th><th>档位</th><th>总行数</th><th>领域层</th><th>为什么归在这一档</th></tr>
+<tr><td>侦查</td><td>核心</td><td class="num">499</td><td class="num">0</td><td>成稿的独占性全部来自这里。Python 侧领域层仍然是 <b>0 行</b> —— 但这一版要把话说准:规则<b>存在</b>,只是写在 <code>investigate.js</code> 那 430 行里。见下面那条</td></tr>
+<tr><td>选题</td><td>支撑</td><td class="num">693</td><td class="num">167</td><td>门槛 #155 取消,领域层与上一版持平</td></tr>
+<tr><td>发现</td><td>支撑</td><td class="num">1042</td><td class="num">265</td><td>出候选,不产生内容。实际跑通的只有 Google News 一路</td></tr>
+<tr><td>交付</td><td>通用</td><td class="num">899</td><td class="num">139</td><td>渲染和发布谁都能做。领域层只有 <code>Outline</code> 一个值对象</td></tr>
+<tr><td class="gone">质量</td><td class="gone">核心</td><td class="num">0</td><td class="num">0</td><td>#155 整个删除。成稿质量至今没有任何代码承载</td></tr>
+</table></div>
+
+<div class="note">
+<b>「核心域没有领域层」这句话,前三版都写得不够准。</b><br><br>
+准确的说法是:核心域的领域层<b>不在 <code>ai-org/</code> 这棵树里</b>,而在
+<code>~/.claude/workflows/investigate.js</code>。而这个文件
+<b>跟 <code>ai-org/</code> 在同一个 git 仓库里、被同一次 <code>git log</code> 记录</b> ——
+它不是外部依赖,是这个项目自己的代码,只是不长在 DDD 的目录结构上。<br><br>
+它承载的东西完全是领域规则:五路取证怎么分、双镜核查怎么互相证伪、
+哪些分级能入稿。#178 关掉 fast 模式(所有侦查一律 5 路取证 + 双镜核查)
+就是一次纯粹的领域决策,而它的改法是改 JS。
+</div>
+
+<h2><span class="n">三</span>聚合图</h2>
+<p>全仓 17 个类,和上一版同一批。下图画承载领域含义的 11 个。</p>
+
+<pre class="mermaid">
+classDiagram
+  class Dossier {
+    聚合根 · 唯一的
+    +Path path
+    +raw() images() facts_dir()
+    +facts 内存快照
+    +forbidden() 纯过滤
+  }
+  class Fact {
+    值对象 frozen · 11 个字段
+    +claim +grade +verbatim
+    +cui_bono #179 新增
+    +why_they_did_it #179 新增
+    +from_json() 认不出的键会吵
+  }
+  class FactGrade {
+    枚举 · 红线定义处
+    实 实·单方 网 传 假
+    +writable() 只拦【假】
+  }
+  class DossierRepository {
+    端口 ABC
+    +load() ensure()
+    +raw_files() read_facts()
+  }
+  class EventStore {
+    端口 ABC
+    +append() read() last()
+  }
+  class FileSystemDossierRepository {
+    实现 · infrastructure/
+  }
+  class JsonlEventStore {
+    实现 · infrastructure/
+  }
+  class SourceAdapter {
+    端口 ABC · 防腐层(代码)
+    +emit_js() normalize()
+  }
+  class Item {
+    值对象 · 适配器产出
+  }
+  class Outline {
+    值对象 frozen · delivery/domain
+  }
+  class Candidate {
+    值对象 · discovery/domain
+    六条拒绝规则
+  }
+
+  Dossier "1" *-- "0..*" Fact
+  Fact --> FactGrade
+  DossierRepository ..> Dossier
+  EventStore ..> Dossier
+  FileSystemDossierRepository ..|> DossierRepository
+  JsonlEventStore ..|> EventStore
+  SourceAdapter ..> Item
+  Candidate ..> Item
+</pre>
+
+<div class="note">
+<b>值对象第一次说清了「我不是什么」。</b><br><br>
+<code>Fact</code> 现在有 <code>11</code> 个字段。同时 <code>fact.py</code> 里多了一个
+<code>_SIDECAR_KEYS</code> —— <code>7</code> 个<b>故意不进实体</b>的旁路键
+(<code>flow angle evidence url was downgrade_reason unverified</code>)。
+它们由采集脚本和侦查流写在同一行里,讲的是「这条事实从哪来」,
+不是「这条事实是什么」。<br><br>
+两者相加得到 <code>18</code> 个已知键,就是 <code>from_json</code> 的警戒线:
+<b>键不在这 18 个里,就往 stderr 吵一声。</b>吵完照样返回一条 <code>Fact</code>,
+不拦人 —— 这是刻意的,拦下去只会让一次正常采集把整条流水线停住。
+</div>
+
+<div class="note">
+<b>这道警报的第一次真实运行,当场响了一次。</b><br><br>
+拿全部 11 份卷宗、639 条事实喂进去:
+<pre class="plain">⚠️ Fact.from_json:卷宗里有 1 个本实体不认识的字段 ['grade_note'] ——
+   侦查侧 Schema 可能已经加了字段而内核没跟上,这些值会被丢掉。</pre>
+<code>grade_note</code> 出现 <b>1</b> 次,在
+<code>runs/20260831-日本就职冰河期</code> 第 59 行。<br><br>
+<b>它是哪来的?哪来的都不是。</b>全仓搜 <code>grade_note</code>:
+<code>investigate.js</code> 里没有、<code>fact.py</code> 里没有、技能文档里也没有。
+是某个核查 agent 自己发明的键 —— 没有任何规格允许它,也没有任何东西拦它。<br><br>
+<b>但要把话说准:这一次什么也没丢。</b>那条的
+<code>grade_note</code> 值是空字符串。所以它证明的不是「又丢了数据」,
+而是「这条边上确实有人在自由发挥,而在这一版之前,没有任何东西会吭一声」。
+</div>
+
+<div class="note">
+<b>两侧模型现在对得上了 —— 一个方向上。</b><br><br>
+侦查侧 <code>FINDINGS</code> 的每条 finding 有 <code>10</code> 个字段,
+<b>全部</b>在实体的 11 个字段里(<code>Schema ⊆ 实体</code>)。上一版不是这样:
+那时 <code>cui_bono</code> / <code>why_they_did_it</code> 在 Schema 里、不在实体里。<br><br>
+反过来还差一个:实体多出来的那个字段是 <code>derived</code>(这个数是抄的还是算的),
+而 <code>derived</code> 在 <code>investigate.js</code> 里出现 <b>0</b> 次 ——
+侦查侧永远不会填它,它只能由 <code>from_json</code> 拿 <code>DERIVATION_WORDS</code>
+(推算 倒推 估算 推断 测算)去猜。而这 5 个词与 Schema 的 <code>grade</code> 枚举
+交集为<b>空</b> —— 枚举只允许那 5 个分级词。也就是说:内核留着一条兼容规则,
+防的是一种<b>现在的 Schema 已经不可能产出</b>的写法。
+</div>
+
+<h2><span class="n">四</span>这一版动了什么</h2>
+<div class="scroll"><table>
+<tr><th>改动</th><th>任务</th><th>规模</th></tr>
+<tr><td><code>Fact</code> 补上 <code>cui_bono</code> / <code>why_they_did_it</code>,并给 <code>from_json</code> 装漂移警报</td><td class="num">#179</td><td class="num">+35 行</td></tr>
+<tr><td><code>investigate.js</code>:关掉 fast(所有侦查一律 5 路 + 双镜)</td><td class="num">#178</td><td class="num" rowspan="2">+58 / −15 行</td></tr>
+<tr><td><code>investigate.js</code>:<code>usable</code> 判定跟上 #155(只拦【假】),两侧对拍一致</td><td class="num">#179</td></tr>
+<tr><td>技能文档清掉三处已删闸门的承诺</td><td class="num">#179</td><td class="num">+17 / −6 行</td></tr>
+</table></div>
+
+<div class="note">
+<b>为什么 #178 和 #179 会出现在一张 DDD 图上。</b><br>
+它们改的都不是 <code>ai-org/</code> 里的类,而是这条边界两侧的<b>同一个概念的两份定义</b>:
+「哪些分级能入稿」这句话,内核写在 <code>FactGrade.writable</code> 里,
+侦查流写在 <code>investigate.js</code> 的一行 <code>usable</code> 判定里。
+#155 只改了一侧,另一侧接着按老规矩筛,持续到 #179 才对齐。
+现在两侧对同一批分级给出同一个答案 ——
+<code>实 / 实·单方 / 网 / 传</code> 都放行,只拦 <code>假</code>。
+</div>
+
+<h2><span class="n">五</span>还欠什么</h2>
+<div class="scroll"><table>
+<tr><th>欠的</th><th>说明</th></tr>
+<tr><td><b>输出侧零自动检查</b></td><td>#155 之后没有任何闸门。引语对不对靠落笔时自己回原件比。这条从第二版欠到这一版,没动过</td></tr>
+<tr><td><b>边界警报只吵不拦,而且只在读的时候吵</b></td><td>这一版新加的警报走的是 <code>from_json</code>。而侦查流写卷宗时并不经过它 —— 要等到有人把 <code>facts.jsonl</code> 读回内核,才会知道漂了。写的那一刻仍然没有任何东西看着</td></tr>
+<tr><td><b>核心域的领域层不在这棵树里</b></td><td>侦查 Python 499 行、领域层 0 行;真正的规则在同仓的 <code>investigate.js</code> 430 行里。它是代码、有版本、能改,但改它不会有任何类型或测试替你把关</td></tr>
+<tr><td><b>仓储没接进流水线</b></td><td><code>FileSystemDossierRepository</code> 全仓出现 <b>2</b> 处:它自己的类定义,和 <code>domain/dossier.py</code> 文档串里的示例。<b>0 个命令行入口调用它。</b><code>JsonlEventStore</code> 则已接上 —— <code>publish_page.py</code> 用它记发布事件</td></tr>
+<tr><td>ADR 引用指向空处</td><td>正文里引 <code>ADR-1</code> / <code>ADR-4</code>,全仓 0 个 ADR 文件。内容都在正文里,是引用扑空,不是知识丢失</td></tr>
+<tr><td>发现上下文只通一路</td><td>微博知乎热榜锁在登录态后面,实际跑通的只有 Google News</td></tr>
+</table></div>
+
+<p class="meta">本页 61 个数字全部由断言脚本当场核过(61 通过 / 0 失败),包括:拿上一版的 <code>Fact</code> 与这一版的 <code>Fact</code> 分别读同一批 639 条真实事实、对拍 <code>investigate.js</code> 的 Schema 与内核实体的字段集、用 AST 去掉文档串后扫 <code>domain/</code> 的文件系统调用</p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+(function(){
+  var dark = matchMedia('(prefers-color-scheme:dark)').matches
+             && document.documentElement.dataset.theme !== 'light'
+             || document.documentElement.dataset.theme === 'dark';
+  mermaid.initialize({startOnLoad:true, theme: dark ? 'dark' : 'neutral',
+    themeVariables:{fontFamily:'"PingFang SC",system-ui,sans-serif', fontSize:'13px'}});
+})();
+</script>
+</div></body></html>
