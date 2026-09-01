@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-jp-hyogaki-run02-log",
+    "title": "角度二 造词人 · 写作全过程",
+    "href": "/p/jp-hyogaki-run02-log.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-01T07:57:53.009Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/jp-hyogaki-run02-log.html",
+      "frontend/public/p/jp-hyogaki-run02-log.meta.json"
+    ]
+  },
+  {
     "id": "upload-jp-hyogaki-run01-log",
     "title": "角度一 人的生活 · 写作全过程",
     "href": "/p/jp-hyogaki-run01-log.html",

@@ -1,0 +1,151 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>02-造词人 · 写作全过程</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.7;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding:46px 20px 80px}
+h1{font-size:26px;margin:0 0 6px;font-family:"Songti SC",Georgia,serif}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:12px;margin-top:16px}
+.st{border-left:2px solid var(--line);padding:0 0 4px 18px;margin:26px 0;position:relative}
+.st:before{content:"";position:absolute;left:-6px;top:12px;width:10px;height:10px;
+ border-radius:50%;background:var(--accent)}
+.st h2{font-size:17px;margin:0 0 2px;font-weight:600}
+.ph{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:11px;
+ background:var(--accent);color:#fff;border-radius:4px;padding:1px 7px;margin-right:9px;
+ vertical-align:2px}
+.sum{color:var(--ink-3);font-size:13.5px;margin:0 0 8px}
+details{margin:6px 0}
+summary{cursor:pointer;color:var(--accent);font-size:13.5px;padding:4px 0;user-select:none}
+details.sub{margin:6px 0 6px 12px;border-left:1px solid var(--line);padding-left:12px}
+details.sub>summary{color:var(--ink-2);font-size:13px}
+pre.raw{font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.55;
+ background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+ overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--ink-2);
+ max-height:520px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0}
+.scroll{overflow-x:auto;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:8px}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+ position:sticky;top:0;background:var(--bg)}
+td.num{font-family:ui-monospace,Menlo,monospace;text-align:right;white-space:nowrap}
+td.mono{font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+td.brk{word-break:break-all}
+td.sm{color:var(--ink);max-width:420px}
+td.mini{font-size:11px;color:var(--ink-3);font-family:ui-monospace,Menlo,monospace;max-width:260px}
+ul.facts{list-style:none;padding:0;margin:6px 0;max-height:520px;overflow-y:auto}
+ul.facts li{border-bottom:1px solid var(--line);padding:8px 4px;font-size:13px;color:var(--ink-2)}
+.g{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:12px;margin-right:4px}
+.vb{color:var(--ink-3);font-size:12px;margin-top:3px;padding-left:10px;border-left:2px solid var(--line)}
+.src{color:var(--ink-3);font-size:11.5px;font-family:ui-monospace,Menlo,monospace;
+ margin-top:3px;word-break:break-all}
+.sev{display:inline-block;font-size:11px;border-radius:4px;padding:1px 6px;margin-right:6px;
+ font-family:ui-monospace,Menlo,monospace}
+.sev-阻断{background:var(--accent);color:#fff}
+.sev-核查{background:var(--warn);color:#fff}
+.sev-建议{background:var(--line);color:var(--ink-2)}
+.dsum{color:var(--ink-3);font-size:12.5px;font-family:ui-monospace,Menlo,monospace;margin:6px 0 10px}
+.dp{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden;background:var(--card)}
+.dh{font-size:11px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em;
+ color:var(--ink-3);background:var(--accent-soft);padding:3px 10px;border-bottom:1px solid var(--line)}
+.do,.dn{padding:9px 12px;font-size:13.5px;line-height:1.75;word-break:break-word}
+.do{color:var(--ink-3);border-bottom:1px dashed var(--line)}
+.dn{color:var(--ink)}
+.del{background:rgba(154,43,37,.16);color:var(--accent);text-decoration:line-through;
+ border-radius:2px;padding:0 1px}
+.ins{background:rgba(47,107,79,.18);color:var(--ok);border-radius:2px;padding:0 1px;font-weight:600}
+.dgroup{margin:4px 0 12px}
+</style></head><body><div class="wrap"><h1>02-造词人 · 写作全过程</h1><p class="meta">一篇文章是怎么写出来的 · 2 个步骤 · 卷宗不在这一页,在侦查日志里</p><section class="st"><h2><span class="ph">角度</span>这一篇要回答什么</h2><pre class="raw"># 角度二:造这个词的人
+
+**要回答的问题:** 这个词是谁造的,他自己怎么看后来的三十年?
+
+**和角度一的区别:** 角度一问的是「这一代人今天过什么日子」,材料是政府议事录里
+当事者的发言。这一篇问的是「造词的人怎么说」,材料是 1994 年的官方获奖页、
+一本已经停刊的杂志在国会图书馆里的编目、和一篇 2011 年的个人日记。
+**同一份卷宗,零重叠。**
+
+**落点:** 命名的理由白纸黑字印在 1994 年的获奖词里——
+「産業構造の問題であり、当然に一過性のものではなく」。
+而 2019 年开始的那套支援计划,从头到尾是一个出口计划。
+造这个词的人提前八年把这种态度骂成了「巨大的怠工」。
+</pre></section><p class="meta">材料来自同一次侦查:<a href="http://www.youraikanban.com/p/jp-hyogaki-investigation.html">http://www.youraikanban.com/p/jp-hyogaki-investigation.html</a></p><section class="st"><h2><span class="ph">成稿</span>answer.md</h2><p class="sum">4,004 字节</p><details><summary>展开这一步的真实产物</summary><pre class="raw">1994 年 12 月，「就职冰河期」这个词得了一个奖。
+
+奖的名字叫「審査員特選造語賞」——评委特选造词奖。
+
+官方获奖页上，这个奖那一年发了两个。上下相邻，同一块背景板。
+
+上面那个是「ゴーマニズム」，受赏者「小林 よしのり さん（漫画家）」。右边配着一张现场照：他戴着红绶带，在话筒前讲话。
+
+下面那个是「就職氷河期」，受赏者写着「長薗 安浩 さん（就職ジャーナル元編集長）」。
+
+右边那块位置是空的。
+
+同一个奖、同一天、同一块背景板。一个人有照片，另一个人连一张脸都没留下。
+
+而没留下脸的那个人，造了后来被写进内阁决定、被首相在官邸念出来的那个词。
+
+获奖词里写了这个词为什么被造出来。原话是：「就職環境の悪化は産業構造の問題であり、当然に一過性のものではなく長期的、本格的なものとの視点から「就職氷河期」と名付けられた」——大意是，就业环境的恶化是产业结构的问题，当然不是一阵子的事，而是长期的、动真格的，从这个视角出发，才起了「就职冰河期」这个名字。
+
+1994 年就写在那儿了：这不是一阵子的事。
+
+这个词生自一本杂志，叫《就職ジャーナル》，是一家人力资源公司办的招聘杂志。
+
+那本杂志今天在国立国会图书馆里的样子是这样的：一册合订本，請求記号 Z6-494，卷号「25(7)(通号294)-25(12)(通号299)」，1992 年 7 月到 12 月。著者栏写着「リクルート[編]」。
+
+封面那一格是空白框，加一个通用的书本占位图标。
+
+十七年后，2011 年 3 月 5 日，星期六。
+
+造这个词的人在自己的个人网站上写日记。那个网站 2019 年已经关站，今天只剩一份网页存档的快照。
+
+那天的日期格是深橄榄底白字，标题用了粗体：「何が「就職氷河期」だ。」——什么就职冰河期。
+
+他在那篇里说，文部科学省积年失策，厚生劳动省后手后手地乱发对策，而「根本策はまったく出ていない」——根本的办法一个都没出来。他还说，这两年媒体又在滥用这个词，「名付け親としてはうんざりするばかりだ」——作为起名的人，只觉得腻烦。
+
+日记的最后三行是这样收的：
+
+「まるで「出口」だけの問題のように嘯いている態度は、大いなるサボタージュでしかない。何が「就職氷河期」だ。まったく。」
+
+大意是：把它说得好像只是一个「出口」问题的那种态度，只能叫做巨大的怠工。什么就职冰河期。真是的。
+
+出口，指的是就业出口——毕业了往哪儿去。
+
+他写这句话的时候是 2011 年。
+
+八年后，2019 年 6 月 21 日，日本政府阁议决定了《就職氷河期世代支援プログラム》。
+
+那套计划从头到尾是一个出口计划。把人送去公共职业介绍所的专门窗口，送去培训，送去从非正规转成正规。考核它的指标叫正规雇用者数。
+
+三年之后改成五年。五年到期那年，首相把役员的增量加进了正社员的增量。
+
+而 2026 年 4 月的新计划里，指标名叫「正規雇用労働者率」「不本意非正規雇用労働者率」「無業者率」。
+
+还是出口。
+
+造这个词的人在 2011 年就说过，只把它当出口问题谈，是一种怠工。八年后开始的那套东西，正是他说的那个样子。
+
+这件事落到你手上，是一个下次能自己做的动作。
+
+再看到一个流行了三十年的词，先去查一下它是谁造的、当初为什么造。
+
+造词的人常常留下过一句话。而那句话往往就是这个词后来被用错的地方。
+
+1994 年那一页上，他的照片位置是空的。但获奖词里那句「当然に一過性のものではなく」印得清清楚楚，谁都能读到。
+</pre></details></section><section class="st"><h2><span class="ph">事件流</span>1 条</h2><p class="sum">发布×1</p><details><summary>展开这一步的真实产物</summary><pre class="raw">[
+ {
+  &quot;at&quot;: &quot;2026-09-01 15:57:09&quot;,
+  &quot;kind&quot;: &quot;page.published&quot;,
+  &quot;title&quot;: &quot;就职冰河期:造这个词的人,提前八年骂过后来那套办法&quot;,
+  &quot;url&quot;: &quot;/p/page-19426424.html&quot;,
+  &quot;slug&quot;: &quot;page-19426424&quot;,
+  &quot;bytes&quot;: 3399380,
+  &quot;src&quot;: &quot;02-造词人&quot;,
+  &quot;no_dossier&quot;: null
+ }
+]</pre></details></section></div></body></html>
