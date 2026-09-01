@@ -1,0 +1,229 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>一次 run 里跑了什么</title><style>
+:root{--ink:#1a1a1a;--ink-2:#4a4a4a;--ink-3:#7a7a7a;--bg:#faf9f7;--card:#fff;
+ --line:#e2ddd4;--accent:#8a3324;--accent-soft:#f3e8e4;--ok:#2f6b4f;--warn:#8a6d1f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;--card:#1e1d16;
+ --line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}}
+:root[data-theme="dark"]{--ink:#e8e4dd;--ink-2:#b4aea4;--ink-3:#857f75;--bg:#16150f;
+ --card:#1e1d16;--line:#33312a;--accent:#d98b6f;--accent-soft:#2b211c;--ok:#7fb79a;--warn:#c9a95a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+ font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:52px 22px 88px}
+h1{font-size:29px;margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:15px;margin:0}
+.meta{color:var(--ink-3);font-size:13px;font-family:ui-monospace,Menlo,monospace;
+ border-top:1px solid var(--line);padding-top:13px;margin-top:20px}
+h2{font-size:21px;margin:52px 0 6px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:14px;margin-right:9px}
+p{margin:12px 0}
+.note{background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;
+ padding:16px 18px;margin:16px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.note b{color:var(--ink)}
+.bug{background:var(--card);border:1px solid var(--accent);border-left:5px solid var(--accent);
+ border-radius:8px;padding:17px 19px;margin:18px 0;font-size:14px;color:var(--ink-2);
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.bug b{color:var(--ink)} .bug .h{color:var(--accent);font-weight:700;font-size:15px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px;
+ font-family:system-ui,-apple-system,"PingFang SC",sans-serif}
+.scroll{overflow-x:auto}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12px;letter-spacing:.05em;
+ text-transform:uppercase;white-space:nowrap}
+td.num{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;text-align:right;
+ font-variant-numeric:tabular-nums}
+td.mono{font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.88em;background:var(--accent-soft);
+ color:var(--accent);padding:1px 5px;border-radius:4px}
+pre.plain{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.6;
+ background:var(--card);border:1px solid var(--line);border-radius:9px;
+ padding:14px 16px;overflow-x:auto;color:var(--ink-2)}
+.tag{font-family:system-ui,sans-serif;font-size:11px;padding:2px 7px;border-radius:99px;
+ border:1px solid var(--line);color:var(--ink-3);white-space:nowrap}
+.t-ok{color:var(--ok);border-color:var(--ok)}
+.t-bad{color:var(--accent);border-color:var(--accent)}
+.t-warn{color:var(--warn);border-color:var(--warn)}
+.funnel{display:flex;flex-direction:column;gap:8px;margin:18px 0}
+.fr{display:flex;align-items:center;gap:12px;font-family:system-ui,"PingFang SC",sans-serif;font-size:13.5px}
+.fr .bar{height:22px;background:var(--accent-soft);border:1px solid var(--line);
+ border-radius:4px;flex:0 0 auto}
+.fr .lb{flex:0 0 148px;color:var(--ink-2)}
+.fr .vl{font-family:ui-monospace,Menlo,monospace;color:var(--ink-3);font-size:12.5px;
+ font-variant-numeric:tabular-nums}
+</style></head><body><div class="wrap">
+
+<h1>一次 run 里跑了什么</h1>
+<p class="sub">日本就职冰河期那一篇的完整回放</p>
+<p class="meta">2026-09-01 · 任务 #185 · 37 个 agent 进程 · 3 小时 16 分 · 198 份原件 → 230 条事实 → 2968 字</p>
+
+<div class="note">
+<b>问题是「我需要知道一次 run 里跑了什么。不知道的话怎么改进它」。</b><br><br>
+好消息:这些数据<b>本来就全在磁盘上</b>,一行代码都不用加就能看。
+坏消息:它们散在三个互不相认的地方,而且其中一份<b>不在这个项目的仓库里</b>,
+也不在任何备份里 —— 它跟着 Claude Code 的会话目录走,会话没了就没了。<br><br>
+这一页是把那三份数据拼起来跑了一遍。<b>拼完当场跑出四个毛病</b>,见第四节。
+</div>
+
+<h2><span class="n">一</span>数据在哪</h2>
+<div class="scroll"><table>
+<tr><th>看什么</th><th>数据在哪</th><th>寿命</th></tr>
+<tr><td>哪些 agent 起了、成没成、跑了多久</td><td class="mono">~/.claude/projects/…/subagents/<br>workflows/wf_967d4502-909/journal.jsonl</td><td><span class="tag t-bad">会话级</span> 不在仓库里</td></tr>
+<tr><td>每个 agent 具体说了什么、点了哪些页面</td><td class="mono">同上目录 · agent-*.jsonl<br>37 个文件 · 28,770,825 字节</td><td><span class="tag t-bad">会话级</span> 不在仓库里</td></tr>
+<tr><td>抓了哪些原件、成没成</td><td class="mono">dossier/raw/_manifest.jsonl</td><td><span class="tag t-ok">在仓库里</span></td></tr>
+<tr><td>挖到哪些事实、什么定级</td><td class="mono">dossier/facts/*.jsonl</td><td><span class="tag t-ok">在仓库里</span></td></tr>
+<tr><td>核查阶段改了什么</td><td class="mono">dossier/facts.jsonl(合并版)</td><td><span class="tag t-bad">已丢失</span> 从未进过提交</td></tr>
+<tr><td>拍了哪些图、为什么拍</td><td class="mono">dossier/images/manifest.jsonl</td><td><span class="tag t-ok">在仓库里</span></td></tr>
+</table></div>
+
+<div class="note">
+<b>第一行第二行是关键,也是最脆的。</b>整条流水线里唯一记录「谁跑了、成没成」的
+是 <code>journal.jsonl</code>,它由 Claude Code 写在会话目录下,
+<b>和 <code>ai-org/</code> 仓库没有任何关系</b>。这一轮之所以还能回放,
+纯粹因为这个会话还没结束。<br><br>
+项目里本来有一个采集器 <code>contexts/investigation/harvest_flow.py</code>,
+职责正是把这些采集进卷宗。<b>这份卷宗上它一次都没跑过</b>
+—— <code>dossier/flows/</code> 不存在。
+</div>
+
+<h2><span class="n">二</span>阶段回放:37 个进程,24 个交货</h2>
+
+<div class="scroll"><table>
+<tr><th>阶段</th><th>交货</th><th>转录行数</th><th>转录字节</th><th>说明</th></tr>
+<tr><td>回溯 · 载体回溯</td><td class="num">1</td><td class="num">270</td><td class="num">865,275</td><td>找原文、读首尾三行、展开每个 URL</td></tr>
+<tr><td>取证 · party-a</td><td class="num">1</td><td class="num">166</td><td class="num">621,469</td><td>第一方当事人</td></tr>
+<tr><td>取证 · party-b</td><td class="num">1</td><td class="num">211</td><td class="num">734,524</td><td>第二方当事人</td></tr>
+<tr><td>取证 · official</td><td class="num">1</td><td class="num">244</td><td class="num">866,414</td><td>官方与法律口径</td></tr>
+<tr><td>取证 · opinion</td><td class="num">1</td><td class="num">160</td><td class="num">545,984</td><td>舆论场</td></tr>
+<tr><td>取证 · motive</td><td class="num">1</td><td class="num">145</td><td class="num">680,049</td><td>动机与利益 —— 不上网,只读别人落盘的事实</td></tr>
+<tr><td>取图</td><td class="num">1</td><td class="num">280</td><td class="num">13,994,261</td><td>独占 Chrome 串行补图。<b>单个 agent 就占了全部转录的一半</b></td></tr>
+<tr><td>核查 · 源头</td><td class="num">7</td><td class="num">949</td><td class="num">4,530,321</td><td>逐条打开出处,确认原文一字不差</td></tr>
+<tr><td>核查 · 反面</td><td class="num">7</td><td class="num">1140</td><td class="num">3,547,984</td><td>主动找反证和漏网</td></tr>
+<tr><td>成档 · 简报</td><td class="num">1</td><td class="num">15</td><td class="num">625,645</td><td>BRIEF.md</td></tr>
+<tr><td>成档 · 补漏</td><td class="num">1</td><td class="num">57</td><td class="num">660,388</td><td>GAPS.md</td></tr>
+<tr><td>成档 · 落盘</td><td class="num">1</td><td class="num">31</td><td class="num">518,938</td><td>合并事实台账 —— <b>就是后来丢掉的那一份</b></td></tr>
+<tr><td><b>合计</b></td><td class="num"><b>24</b></td><td class="num"><b>3811</b></td><td class="num"><b>28,770,825</b></td><td>另有 10 个进程失败、3 个被弃</td></tr>
+</table></div>
+
+<div class="note">
+<b>37 个进程,只有 24 个交货。</b><code>journal.jsonl</code> 记了
+<b>71</b> 条事件:<code>started</code> 37 次、<code>result</code> 24 次、<code>failed</code> 10 次,
+落在 <b>33</b> 个不同的调用点上。<br><br>
+时间线摊开是这样:<b>20:27 到 20:44</b> 之间,10 个进程接连失败、3 个被丢下 ——
+那是第一次尝试整个塌掉。<b>21:26 起</b>重跑,之后 24 个全部走完,
+最后一个 <b>23:43</b> 结束。首尾跨度 <b>3 小时 16 分 03 秒</b>。<br><br>
+<b>核查阶段是最贵的一段</b>:14 个 agent(7 轮 × 源头/反面双镜),
+占了交货 agent 的 <b>58%</b>。这笔钱花得对 —— 它是这条产线唯一的自我证伪机制。
+</div>
+
+<h2><span class="n">三</span>内容漏斗</h2>
+
+<div class="funnel">
+<div class="fr"><span class="lb">原件 raw/</span><span class="bar" style="width:100%"></span></div>
+<div class="fr"><span class="lb"></span><span class="vl">198 个文件 · 58,293,481 字节 · 抓取成功 133 / 196</span></div>
+<div class="fr"><span class="lb">抽文 txt/</span><span class="bar" style="width:2.7%"></span><span class="vl">40 个文件 · 1,567,165 字节</span></div>
+<div class="fr"><span class="lb">证据图 images/</span><span class="bar" style="width:36%"></span><span class="vl">30 张 · 21,224,362 字节 · 每张都写了「拍的是什么 / 为什么」</span></div>
+<div class="fr"><span class="lb">事实台账 facts/</span><span class="bar" style="width:1%"></span><span class="vl">17 个文件 · 230 条</span></div>
+<div class="fr"><span class="lb">简报 BRIEF.md</span><span class="bar" style="width:0.6%"></span><span class="vl">65,720 字节</span></div>
+<div class="fr"><span class="lb">成稿 answer.md</span><span class="bar" style="width:0.3%"></span><span class="vl">8,828 字节 · <b>2968 字</b></span></div>
+</div>
+
+<div class="scroll"><table>
+<tr><th colspan="2">230 条事实长什么样</th><th colspan="2">196 次抓取的结果</th></tr>
+<tr><td>【实】</td><td class="num">188</td><td>HTTP 200</td><td class="num">133</td></tr>
+<tr><td>【实·单方】</td><td class="num">32</td><td>HTTP 404</td><td class="num">15</td></tr>
+<tr><td>【网】</td><td class="num">6</td><td>连不上(000)</td><td class="num">11</td></tr>
+<tr><td><b>【実】← 日文汉字,不是分级词</b></td><td class="num"><b>4</b></td><td>HTTP 403</td><td class="num">3</td></tr>
+<tr><td>禁写(usable_in_draft=false)</td><td class="num">6</td><td>无 HTTP 记录</td><td class="num">33</td></tr>
+<tr><td>带 verbatim / source_url</td><td class="num">230 / 230</td><td>HTTP 202</td><td class="num">1</td></tr>
+<tr><td>带动机字段(#179 那两个)</td><td class="num">41</td><td><b>抓取失败合计</b></td><td class="num"><b>63</b></td></tr>
+</table></div>
+
+<h2><span class="n">四</span>拼完当场跑出来的四个毛病</h2>
+
+<div class="bug">
+<span class="h">毛病一 · 4 条事实的定级写成了日文汉字「実」</span><br><br>
+全部 4 条都在 <code>verify.jsonl</code> 里,claim 也全是日文 ——
+核查 agent 在日文语境里顺手打了日文汉字。后果不是报错,是<b>静默作废</b>:
+<pre class="plain">FactGrade.parse("実")  →  None      (并往 stderr 吼一声)
+Fact.from_json(grade="実").quotable  →  False</pre>
+也就是说,这 4 条<b>经过核查确认的</b>事实,在内核眼里既没有分级、也不可引用。<br><br>
+<b>为什么没人拦:</b>侦查侧 Schema 的 <code>grade</code> 枚举里没有「実」
+(全文搜 <code>investigate.js</code>,出现 <b>0</b> 次)。但
+<b>Schema 校验的是 agent <em>返回给工作流</em> 的值,不是 agent <em>自己写进卷宗</em> 的文件</b> ——
+<code>facts/*.jsonl</code> 是 agent 拿 Bash 徒手写的。枚举对这个文件没有约束力。
+</div>
+
+<div class="bug">
+<span class="h">毛病二 · 196 次抓取里 63 次失败,没有任何地方汇总过</span><br><br>
+成功率 <b>133/196 = 68%</b>。失败分布:404 十五次、连不上十一次、403 三次、
+另有 <b>33</b> 条 manifest 根本没记 HTTP 状态。<br><br>
+这些数字一直躺在 <code>raw/_manifest.jsonl</code> 里,格式良好、随时可读 ——
+但从来没有任何一步去读它。<b>「哪一路的取证其实什么都没抓到」这个问题,
+现在没有任何人问。</b>
+</div>
+
+<div class="bug">
+<span class="h">毛病三 · 成稿的引号,只有 4 处能在事实台账里逐字对上</span><br><br>
+成稿里共 <b>13</b> 处 <code>「」</code> 片段,其中能在 <code>facts/*.jsonl</code> 的
+<code>verbatim</code> 里逐字找到的只有 <b>4</b> 处。<br><br>
+逐条看完之后,这 13 处其实是三类,<b>不能笼统说成「9 处没出处」</b>:<br>
+· 六处是中文术语或强调(「扎实的成果」「地域青年支援站」),本来就不是逐字引用;<br>
+· 「これ、未達であったがために二年間延長した」<b>在原件里逐字命中</b>,
+但<b>不在任何 verbatim 里</b> —— 写手是直接从 <code>raw/</code> 里摘的,绕过了事实台账;<br>
+· 「まるで『出口』…」那句同样在原件里命中。<br><br>
+<b>只有一处站不住:</b>「持ち回り開催」。原件里有「持ち回り」、有「開催」,
+但<b>没有「持ち回り開催」这个连写</b>。它被当成原话打了引号,而那个连写不存在于任何原件。
+</div>
+
+<div class="bug">
+<span class="h">毛病四 · 最值钱的那份产物,从来没进过仓库</span><br><br>
+<code>dossier/facts.jsonl</code>(合并版事实台账,98 条)<b>从未进过任何一个提交</b>,
+所以 9-01 上午 <code>runs/</code> 被清空时它一起没了,而 <code>git revert</code> 救不回
+git 从来不认识的东西。其余 10 份卷宗的合并台账 <b>10/10 都在仓库里</b>,只有这一份漏了。<br><br>
+它为什么最值钱:分路台账 <code>facts/</code> 是<b>取证阶段</b>的产出,
+合并版带着<b>核查阶段的全部更正</b>。所以「这一轮核查到底改了什么」这个问题,
+对这篇文章<b>已经永久答不上来了</b>。(此事已单独记在三张图第六版里。)
+</div>
+
+<h2><span class="n">五</span>所以现在能看到什么、看不到什么</h2>
+<div class="scroll"><table>
+<tr><th>问题</th><th>能不能答</th><th>靠什么</th></tr>
+<tr><td>起了几个 agent、成没成、各跑多久</td><td><span class="tag t-warn">能,但会过期</span></td><td>会话目录里的 journal.jsonl</td></tr>
+<tr><td>某个 agent 具体点了哪些页面、说了什么</td><td><span class="tag t-warn">能,但会过期</span></td><td>agent-*.jsonl,28 MB</td></tr>
+<tr><td>抓了哪些原件、成功率多少</td><td><span class="tag t-ok">能</span></td><td>raw/_manifest.jsonl</td></tr>
+<tr><td>挖到哪些事实、什么定级、哪些禁写</td><td><span class="tag t-ok">能</span></td><td>facts/*.jsonl</td></tr>
+<tr><td>核查阶段改了哪几条、为什么降级</td><td><span class="tag t-bad">这一篇答不了</span></td><td>合并台账已丢</td></tr>
+<tr><td>成稿的每一句话来自哪条事实</td><td><span class="tag t-bad">不能</span></td><td>成稿与台账之间没有任何链接</td></tr>
+<tr><td>这一轮花了多少钱 / 多少 token</td><td><span class="tag t-bad">不能</span></td><td>journal 不记 token,只记成败</td></tr>
+<tr><td>哪一路取证白跑了</td><td><span class="tag t-bad">不能</span></td><td>没有人把 raw 的成败按路汇总</td></tr>
+</table></div>
+
+<h2><span class="n">六</span>要做成常设的,我建议只做一件</h2>
+<div class="note">
+<b>不建议一上来就建大盘。</b>上面四个毛病里有三个,根子是同一件事:
+<b>这一轮的运行数据从来没有被收进卷宗</b> —— 它躺在会话目录里,会话一结束就没了。<br><br>
+项目里已经有那个采集器(<code>contexts/investigation/harvest_flow.py</code>),
+它本来就是干这个的,只是<b>这份卷宗上没人跑过它</b>。所以第一件该做的不是写新东西,
+而是让<b>每一轮侦查结束时必跑一次采集</b>,把 <code>journal.jsonl</code> 的成败摘要、
+每路的事实数、抓取成功率一起写进 <code>dossier/flows/</code>。<br><br>
+这一件做完,第五节那张表里「会过期」的两行就变成「能」,毛病二和毛病四也一起没了。
+</div>
+<div class="note">
+<b>我没有动任何代码,等你拍板。</b>按你定的规矩(#161:代码改动先出 PR;
+新功能先出设计再写),这一页就是设计。要往下走的话,我需要你在三件事里挑:<br><br>
+<b>甲、只补采集</b> —— 侦查跑完自动跑 <code>harvest_flow</code>,落 <code>dossier/flows/</code>。
+改动最小,解决「数据会过期」这一条。<br>
+<b>乙、甲 + 一页回放</b> —— 再加一个入口,把本页这张表对任意一个 run 生成出来。
+每篇跑完能自己看一眼。<br>
+<b>丙、甲 + 乙 + 落盘边界</b> —— 顺带定义「哪些产物必须入库」,
+让毛病四不会再发生第二次。<br><br>
+另外<b>毛病一(「実」)是个当场就能修的小口子</b>,一行词表的事,
+但它属于代码改动,同样等你点头再开 PR。
+</div>
+
+<p class="meta">本页 69 个数字全部由断言脚本当场核过(69 通过 / 0 失败),包括:重放 journal.jsonl 的 71 条事件并按提示词把 37 个 agent 归到 12 个阶段、逐个文件量转录字节、对 230 条事实做分级与字段统计、把 <code>raw/</code> 与 <code>txt/</code> 共 239 个文件按 4 种编码解码后逐字搜成稿里的 13 处引号</p>
+
+</div></body></html>
