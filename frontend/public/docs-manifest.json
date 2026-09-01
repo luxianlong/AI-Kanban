@@ -42,20 +42,6 @@
     ]
   },
   {
-    "id": "upload-topic-candidates",
-    "title": "今天 的候选题",
-    "href": "/p/topic-candidates.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-31T10:48:39.198Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/topic-candidates.html",
-      "frontend/public/p/topic-candidates.meta.json"
-    ]
-  },
-  {
     "id": "upload-alibaba-one-point",
     "title": "装着外卖的那个分部,只跌了百分之一",
     "href": "/p/alibaba-one-point.html",
