@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-topic-review-20260901b",
-    "title": "今天写哪个",
-    "href": "/p/topic-review-20260901b.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-01T05:45:49.826Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/topic-review-20260901b.html",
-      "frontend/public/p/topic-review-20260901b.meta.json"
-    ]
-  },
-  {
     "id": "upload-topic-review-20260901",
     "title": "今天写哪个",
     "href": "/p/topic-review-20260901.html",
