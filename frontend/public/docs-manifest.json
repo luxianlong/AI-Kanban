@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-cz-same-building",
-    "title": "那两天,他们在同一栋楼里",
-    "href": "/p/cz-same-building.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-01T10:52:42.330Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/cz-same-building.html",
-      "frontend/public/p/cz-same-building.meta.json"
-    ]
-  },
-  {
     "id": "upload-run-log-20260901-cz",
     "title": "孙宇晨为什么听赵长鹏的 · 全过程",
     "href": "/p/run-log-20260901-cz.html",
