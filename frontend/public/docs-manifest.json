@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-ddd-graphs-20260901",
-    "title": "卷宗系统的三张 DDD 图",
-    "href": "/p/ddd-graphs-20260901.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-01T01:20:50.936Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ddd-graphs-20260901.html",
-      "frontend/public/p/ddd-graphs-20260901.meta.json"
-    ]
-  },
-  {
     "id": "upload-hyogaki-30man-20260831",
     "title": "日本给一代人写了一个数字：三年增加30万。七年后那一栏是空的",
     "href": "/p/hyogaki-30man-20260831.html",
