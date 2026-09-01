@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-hyogaki-30man-20260901-rewrite",
-    "title": "把目标定得比现在的成绩还低，然后宣布达成",
-    "href": "/p/hyogaki-30man-20260901-rewrite.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-01T04:46:32.484Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/hyogaki-30man-20260901-rewrite.html",
-      "frontend/public/p/hyogaki-30man-20260901-rewrite.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-graphs-20260901b",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-graphs-20260901b.html",
