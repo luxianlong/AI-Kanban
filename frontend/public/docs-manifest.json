@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-cz",
+    "title": "四千万美元,和一句「如果CZ同意」",
+    "href": "/p/cz.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-01T10:52:24.313Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/cz.html",
+      "frontend/public/p/cz.meta.json"
+    ]
+  },
+  {
     "id": "upload-run-log-20260901-cz",
     "title": "孙宇晨为什么听赵长鹏的 · 全过程",
     "href": "/p/run-log-20260901-cz.html",
