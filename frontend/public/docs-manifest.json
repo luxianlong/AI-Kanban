@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-editor-review-japan-20260901",
+    "title": "资深编辑的稿签",
+    "href": "/p/editor-review-japan-20260901.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-01T02:57:44.976Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/editor-review-japan-20260901.html",
+      "frontend/public/p/editor-review-japan-20260901.meta.json"
+    ]
+  },
+  {
     "id": "upload-run-replay-japan-20260901",
     "title": "一次 run 里跑了什么",
     "href": "/p/run-replay-japan-20260901.html",
