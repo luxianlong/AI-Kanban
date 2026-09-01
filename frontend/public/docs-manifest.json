@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-jp-hyogaki-investigation",
-    "title": "日本就职冰河期 · 侦查全过程",
-    "href": "/p/jp-hyogaki-investigation.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-01T07:57:48.061Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/jp-hyogaki-investigation.html",
-      "frontend/public/p/jp-hyogaki-investigation.meta.json"
-    ]
-  },
-  {
     "id": "upload-page-19426424",
     "title": "就职冰河期:造这个词的人,提前八年骂过后来那套办法",
     "href": "/p/page-19426424.html",
