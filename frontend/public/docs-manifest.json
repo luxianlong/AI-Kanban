@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-ddd-graphs-20260901c",
+    "title": "卷宗系统的三张 DDD 图",
+    "href": "/p/ddd-graphs-20260901c.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-01T05:48:33.191Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ddd-graphs-20260901c.html",
+      "frontend/public/p/ddd-graphs-20260901c.meta.json"
+    ]
+  },
+  {
     "id": "upload-topic-review-20260901b",
     "title": "今天写哪个",
     "href": "/p/topic-review-20260901b.html",
