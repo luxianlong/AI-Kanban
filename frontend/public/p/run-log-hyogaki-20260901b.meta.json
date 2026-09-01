@@ -1,7 +1,0 @@
-{
-  "slug" : "run-log-hyogaki-20260901b",
-  "title" : "日本就职冰河期 · 全程产物",
-  "summary" : "#201:复用 events 域,一页装全过程 —— 这一版由 contexts/delivery/run_log.py 生成,不再是一次性脚本",
-  "createdAt" : "2026-09-01T06:10:14.419950970Z",
-  "bytes" : 993692
-}
