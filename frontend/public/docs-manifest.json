@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-topic-review-20260901",
-    "title": "今天写哪个",
-    "href": "/p/topic-review-20260901.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-01T05:41:48.821Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/topic-review-20260901.html",
-      "frontend/public/p/topic-review-20260901.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-graphs-20260901b",
     "title": "卷宗系统的三张 DDD 图",
     "href": "/p/ddd-graphs-20260901b.html",
