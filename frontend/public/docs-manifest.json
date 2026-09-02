@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-huashao2-kaogu",
+    "title": "十一年了,《花儿与少年2》还在被逐帧考古:宁静最新回应,母带比正片更炸",
+    "href": "/p/huashao2-kaogu.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T01:32:21.414Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/huashao2-kaogu.html",
+      "frontend/public/p/huashao2-kaogu.meta.json"
+    ]
+  },
+  {
     "id": "upload-topic-review-huashao2-20260902",
     "title": "花少2争议 · 今天写哪个角度",
     "href": "/p/topic-review-huashao2-20260902.html",
