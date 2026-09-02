@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-2026-09-02",
+    "title": "情绪出口选题候选 2026-09-02",
+    "href": "/p/2026-09-02.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T09:03:49.514Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/2026-09-02.html",
+      "frontend/public/p/2026-09-02.meta.json"
+    ]
+  },
+  {
     "id": "upload-page-0085ad50",
     "title": "于东来为什么跳出来",
     "href": "/p/page-0085ad50.html",
