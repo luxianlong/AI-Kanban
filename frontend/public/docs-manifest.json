@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-daily-worklog-20260902",
+    "title": "2026-09-02 工作总结",
+    "href": "/p/daily-worklog-20260902.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T07:16:59.836Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daily-worklog-20260902.html",
+      "frontend/public/p/daily-worklog-20260902.meta.json"
+    ]
+  },
+  {
     "id": "upload-worklog-20260902",
     "title": "2026-09-02 工作总结",
     "href": "/p/worklog-20260902.html",
