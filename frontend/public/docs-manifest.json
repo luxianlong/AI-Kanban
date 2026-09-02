@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-hua-shao-2-huaxue",
+    "title": "十一年了,一句「上一季的人都正常」,凭什么把一档早就下架的老综艺又顶上热搜?",
+    "href": "/p/hua-shao-2-huaxue.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T02:10:03.413Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/hua-shao-2-huaxue.html",
+      "frontend/public/p/hua-shao-2-huaxue.meta.json"
+    ]
+  },
+  {
     "id": "upload-page-ef307235",
     "title": "Page ef307235",
     "href": "/p/page-ef307235.html",
@@ -189,7 +203,7 @@
     "file": "docs/public-api.md",
     "updatedAt": "2026-08-29T12:35:44.714Z",
     "isNew": true,
-    "private": true,
+    "private": false,
     "paths": [
       "docs/public-api.md",
       "frontend/public/docs/public-api.html"
