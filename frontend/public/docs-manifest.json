@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-2",
-    "title": "花学到底是什么？——一门靠《花少2》立起来的「显学」",
-    "href": "/p/2.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-02T06:36:18.997Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/2.html",
-      "frontend/public/p/2.meta.json"
-    ]
-  },
-  {
     "id": "upload-page-72ddd06a",
     "title": "库克时代落幕：苹果新掌门特纳斯上任第一天",
     "href": "/p/page-72ddd06a.html",
