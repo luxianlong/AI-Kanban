@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-page-dbcd9e29",
+    "title": "热点选题候选",
+    "href": "/p/page-dbcd9e29.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T08:42:59.390Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/page-dbcd9e29.html",
+      "frontend/public/p/page-dbcd9e29.meta.json"
+    ]
+  },
+  {
     "id": "upload-page-0085ad50",
     "title": "于东来为什么跳出来",
     "href": "/p/page-0085ad50.html",
