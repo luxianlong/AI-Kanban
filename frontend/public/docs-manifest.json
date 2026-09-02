@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-2026-09-02",
+    "title": "热点选题候选-2026-09-02",
+    "href": "/p/2026-09-02.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T05:14:42.153Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/2026-09-02.html",
+      "frontend/public/p/2026-09-02.meta.json"
+    ]
+  },
+  {
     "id": "upload-2",
     "title": "花少2里的\"花学\"到底是什么？一档十年前的综艺，凭什么被封\"第五大名著\"",
     "href": "/p/2.html",
