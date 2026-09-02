@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今日工作总结 · 2026-09-02</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.2rem 1.1rem 4rem;
+    font: 16px/1.72 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
+    color: #1c1e21; background: #f6f7f9;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; background: #fff;
+    border: 1px solid #e6e8eb; border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05); padding: 2.4rem 2.2rem 2.8rem; }
+  h1 { font-size: 1.72rem; line-height: 1.3; margin: 0 0 .3rem; letter-spacing: -.01em; }
+  .date { color: #8a9099; font-size: .9rem; margin-bottom: 1.4rem; }
+  .lead { background: #f0f6ff; border: 1px solid #d7e6ff; border-radius: 10px;
+    padding: .9rem 1.1rem; margin: 0 0 1.8rem; font-size: 1.02rem; }
+  h2 { font-size: 1.16rem; margin: 2rem 0 .7rem; padding-top: .3rem;
+    border-top: 1px solid #eef0f2; padding-top: 1.2rem; }
+  h3 { font-size: 1.02rem; margin: 1.3rem 0 .4rem; color: #d13b2f; }
+  ul { margin: .4rem 0 .9rem; padding-left: 1.3rem; }
+  li { margin: .32rem 0; }
+  code { background: #eef0f2; border-radius: 5px; padding: .08em .38em;
+    font: .88em ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .stats { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 .4rem; }
+  .stat { flex: 1 1 30%; min-width: 150px; background: #fafbfc; border: 1px solid #eef0f2;
+    border-radius: 10px; padding: .8rem 1rem; }
+  .stat b { display: block; font-size: 1.5rem; line-height: 1.1; letter-spacing: -.02em; }
+  .stat span { color: #8a9099; font-size: .82rem; }
+  .theme { background: #fbfaf6; border: 1px solid #efe9d9; border-radius: 10px;
+    padding: 1rem 1.2rem; margin-top: .6rem; }
+  footer { margin-top: 2.4rem; padding-top: 1.1rem; border-top: 1px solid #eef0f2;
+    color: #9aa0a8; font-size: .82rem; }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e3e5e8; background: #16181c; }
+    .wrap { background: #1e2126; border-color: #2b2f36; box-shadow: none; }
+    .lead { background: #16233a; border-color: #274063; }
+    code { background: #2b2f36; }
+    h2 { border-color: #2b2f36; } h3 { color: #ff6f61; }
+    .stat, .theme { background: #16181c; border-color: #2b2f36; }
+    .theme { background: #201d16; border-color: #3a3322; }
+    footer { border-color: #2b2f36; color: #6b7178; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>今日工作总结</h1>
+  <div class="date">2026-09-02 · 看板 worker 自动汇总</div>
+
+  <p class="lead"><b>一句话:</b>治理与瘦身日 —— 砍掉约 <b>7900 行</b>死代码/死文档,把三条「防烂」规则写进 <code>CLAUDE.md</code>,重建发布链路,并用 hook 把 hot-event 技能硬性锁进 dynamic workflow。今天 <b>8 个 PR 合入 <code>ubuntu</code></b>(#29 #30 #31 #32 #33 #34 #35 #37)。</p>
+
+  <h2>量化</h2>
+  <div class="stats">
+    <div class="stat"><b>8</b><span>PR 合入 ubuntu</span></div>
+    <div class="stat"><b>−7900</b><span>净删行数(+358 / −8251)</span></div>
+    <div class="stat"><b>90</b><span>文件改动</span></div>
+  </div>
+  <ul>
+    <li>今天 25+ 次提交,17 条落在主线(09:11–14:34)。</li>
+    <li>看板公开接口今天只暴露本任务 #220(其余为口令门后的非 delegated 任务,不可见)。</li>
+  </ul>
+
+  <h2>四条主线</h2>
+
+  <h3>1. 防烂代码 · 三条硬规则进 CLAUDE.md</h3>
+  <ul>
+    <li><b>永不写 workflow 文件</b>,多代理编排一律用 <code>Workflow</code> 工具动态跑、用完即弃(#29)—— 落盘脚本不随代码改,只会烂。</li>
+    <li><b>永不从 git 历史里翻数据</b>:被删的就是故意删的,复活等于续命死代码。</li>
+    <li><b>本项目彻底禁用记忆</b>,清除项目级 memory 文件(#34)—— 同一个「落盘即腐烂」的道理。</li>
+    <li>另加两条防烂规则 + 清理 hotevent run 产物(#30、<code>fc9ace7</code>)。</li>
+  </ul>
+
+  <h3>2. 大瘦身 · 删死代码/死文档</h3>
+  <ul>
+    <li>清掉整套 DDD 层:<code>ai-org/domain/</code>(adapter/dossier/fact/repository/events)、<code>ai-org/infrastructure/</code>、<code>ai-org/prompts/</code>(judge/reviewer/writer)。</li>
+    <li>删 <code>ai-org/docs/*.html</code> 一批(ddd-*、diagnosis、harness、java-migration、run-replay-japan、topic-vs-run 等)、<code>tools/measure.py</code>。</li>
+  </ul>
+
+  <h3>3. 重建发布链路 · publish_page.py</h3>
+  <ul>
+    <li>重写 <code>publish_page.py</code>:发<b>自包含 HTML</b> 到看板公开接口 <code>/api/pages</code>(#33、<code>022ddc2</code>)。</li>
+    <li>默认把远程图<b>内联成 <code>data:</code> URI</b>,页面不依赖外链,发出去就是完整的一张页(本页正是用它发布的)。</li>
+  </ul>
+
+  <h3>4. 硬化 hot-event 技能 + 联网策略</h3>
+  <ul>
+    <li>用 <b>hook 硬性保证 step 3 走 dynamic workflow</b>(#35)—— 没跑过 Workflow 的发布一律被 deny。</li>
+    <li>workflow <b>深度按 token 预算伸缩</b>,并加深度要求:盲搜 / 补搜到干 / 对抗核查(#37)。</li>
+    <li><b>禁用 WebFetch/WebSearch,强制联网走浏览器 MCP</b>(#32)。</li>
+    <li>约定沉淀:PR 目标分支是 <code>ubuntu</code> 不是 <code>main</code>(<code>8705dbf</code>);会话退出前必须关 claude-in-chrome 标签(<code>e7a03fc</code>/<code>51acb3e</code>)。</li>
+  </ul>
+
+  <h2>主题</h2>
+  <div class="theme">把 hot-event 流水线从「越跑越烂」的三个源头(系统记忆、落盘 workflow、git 历史考古)上一次性拆掉,同时重建发布路径、给写稿环节套上强制的深度 workflow。今天是<b>减法为主</b>的一天。</div>
+
+  <footer>本页由每 2 分钟轮询的看板 worker 自动生成并发布。证据来源:git log(2026-09-02)+ 看板公开接口 <code>/api/public/tasks</code>。</footer>
+</div>
+</body>
+</html>

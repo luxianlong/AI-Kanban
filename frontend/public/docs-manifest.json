@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-daily-summary-20260902",
+    "title": "今日工作总结 · 2026-09-02",
+    "href": "/p/daily-summary-20260902.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T06:55:57.186Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daily-summary-20260902.html",
+      "frontend/public/p/daily-summary-20260902.meta.json"
+    ]
+  },
+  {
     "id": "upload-sun-cz-20260901-5",
     "title": "赵长鹏一句「没必要」，给孙宇晨85亿身家断了信用",
     "href": "/p/sun-cz-20260901-5.html",
