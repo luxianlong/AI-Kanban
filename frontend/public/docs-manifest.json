@@ -14,20 +14,6 @@
     ]
   },
   {
-    "id": "upload-topic-review-ent-20260902",
-    "title": "娱乐 · 今天写哪个",
-    "href": "/p/topic-review-ent-20260902.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-02T00:46:57.219Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/topic-review-ent-20260902.html",
-      "frontend/public/p/topic-review-ent-20260902.meta.json"
-    ]
-  },
-  {
     "id": "upload-topic-review-20260902",
     "title": "今天写哪个",
     "href": "/p/topic-review-20260902.html",
