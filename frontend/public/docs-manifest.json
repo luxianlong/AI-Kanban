@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-worklog-20260902",
+    "title": "2026-09-02 工作总结",
+    "href": "/p/worklog-20260902.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-02T07:03:25.832Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/worklog-20260902.html",
+      "frontend/public/p/worklog-20260902.meta.json"
+    ]
+  },
+  {
     "id": "upload-3000-6000",
     "title": "3000万彩礼、6000字长文、结尾却写「纯属虚构」——孙宇晨和「景田」的瓜,细节比你想的更离谱",
     "href": "/p/3000-6000.html",
