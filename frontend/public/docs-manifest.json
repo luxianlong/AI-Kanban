@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-2026-09-03",
+    "title": "热点选题候选 · 2026-09-03",
+    "href": "/p/2026-09-03.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-03T00:51:39.147Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/2026-09-03.html",
+      "frontend/public/p/2026-09-03.meta.json"
+    ]
+  },
+  {
     "id": "upload-page-15ca5ad9",
     "title": "景甜在爱情里是什么体质",
     "href": "/p/page-15ca5ad9.html",
