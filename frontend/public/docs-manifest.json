@@ -56,20 +56,6 @@
     ]
   },
   {
-    "id": "upload-page-004d3975",
-    "title": "花学到底是什么：一群没资格开口的人，自己盖了一所大学",
-    "href": "/p/page-004d3975.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-02T10:22:00.504Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/page-004d3975.html",
-      "frontend/public/p/page-004d3975.meta.json"
-    ]
-  },
-  {
     "id": "upload-2026-09-02",
     "title": "情绪出口选题候选 2026-09-02",
     "href": "/p/2026-09-02.html",
