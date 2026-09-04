@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-2026-09-03b",
-    "title": "热点选题候选 第二批已核实 · 2026-09-03B",
-    "href": "/p/2026-09-03b.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-03T01:13:32.859Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/2026-09-03b.html",
-      "frontend/public/p/2026-09-03b.meta.json"
-    ]
-  },
-  {
     "id": "upload-2026-09-03",
     "title": "热点选题候选 · 2026-09-03",
     "href": "/p/2026-09-03.html",
