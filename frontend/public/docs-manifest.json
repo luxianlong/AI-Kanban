@@ -1,5 +1,19 @@
 [
   {
+    "id": "article-ce2808be",
+    "title": "上海高级工程师市场:一场你在领英上看不见的繁荣",
+    "href": "/docs/article-ce2808be.html",
+    "deletable": true,
+    "file": "docs/article-ce2808be.md",
+    "updatedAt": "2026-09-04T10:16:10.958Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/article-ce2808be.md",
+      "frontend/public/docs/article-ce2808be.html"
+    ]
+  },
+  {
     "id": "staff",
     "title": "新加坡高级 / Staff 软件工程师的机会",
     "href": "/docs/staff.html",

@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>上海高级工程师市场:一场你在领英上看不见的繁荣 · 文章存档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+.toc-title {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+  padding-bottom: 9px; border-bottom: 1px solid var(--line);
+}
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>上海高级工程师市场:一场你在领英上看不见的繁荣</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<div class="toc-title">目录</div>
+<ul>
+<li class="lv2"><a href="#需求快照真实但被折射了">需求快照:真实,但被折射了</a></li>
+<li class="lv2"><a href="#谁在真正招人又在哪里发布">谁在真正招人——又在哪里发布</a></li>
+<li class="lv2"><a href="#在这里senior和staff到底意味着什么">在这里,"Senior"和"Staff"到底意味着什么</a></li>
+<li class="lv2"><a href="#薪酬分层以及那些异类">薪酬:分层,以及那些异类</a></li>
+<li class="lv2"><a href="#撬动薪水的那项技能ai">撬动薪水的那项技能:AI</a></li>
+<li class="lv2"><a href="#大气候一场战争与一场清洗同时发生">大气候:一场战争与一场清洗,同时发生</a></li>
+<li class="lv2"><a href="#脱钩掏空了外资研发却喂饱了外资金融">脱钩掏空了外资研发——却喂饱了外资金融</a></li>
+<li class="lv2"><a href="#宏观背景上海在加码">宏观背景:上海在加码</a></li>
+<li class="lv2"><a href="#该如何解读这个市场">该如何解读这个市场</a></li>
+<li class="lv2"><a href="#方法与说明">方法与说明</a></li>
+<li class="lv2"><a href="#来源">来源</a></li>
+</ul>
+</nav>
+<main class="content">
+<p><em>在中国最国际化的城市,对高级(Senior)与资深/专家级(Staff)软件工程师的需求真实存在、薪酬丰厚,并且越来越被 AI 所塑造——但大多数西方观察者习惯打开的那个平台,只呈现了其中很小的一角。以下是 2026 年年末这幅完整图景的样子,以及该如何解读它。</em></p>
+<p><em>分析 · 2026 年 9 月 · 基于第一手领英数据与经核查的二手研究</em></p>
+<hr />
+<p>打开最顺手的那个查询,数字看上去几乎令人安心。在已登录的领英上搜索<strong>"Senior Software Engineer"、上海、过去一个月</strong>,会返回 <strong>473 条招聘</strong>——筛选到"Mid-Senior level(中高级)"后剩下 290 条。搜索 <strong>"Staff Software Engineer"</strong>,你会得到 <strong>472 条</strong>。两个干净、可对比、四位数的计数。你完全可以只凭这些就写一篇"需求"报道。</p>
+<p>但那样写就错了。往下翻"Staff"的结果,关键词匹配正在悄悄误导你:NXP 的一个"Software Intern – Linux/Yocto(软件实习生)",特赞(Tezign)的一个"AI 全栈开发实习生"。<strong>Staff Software Engineer 这个头衔在中国大陆几乎不存在。</strong>而那些<em>确实</em>浮现出来的雇主——micro1、Google、高盛、Optiver、NVIDIA、Kong、摩根大通——都有一个耐人寻味的共同点:它们几乎全是外资跨国公司、投行、交易公司,或 AI 众包平台。真正雇用了上海最多高级工程师的本土巨头——拼多多、小红书、B 站、携程、米哈游、中芯国际——却几乎全部缺席。这种缺席并不是数据里的一个空洞。它<em>本身</em>就是数据。</p>
+<h2 id="需求快照真实但被折射了">需求快照:真实,但被折射了<a class="anchor" href="#需求快照真实但被折射了" aria-label="链接到本节">#</a></h2>
+<p>就把领英的这些数字看作它们本来的样子:一次对上海招聘中<strong>面向英语、跨国公司与金融</strong>那一片的实时读数。在那一片里,一个滚动月里有数百个真实的高级岗位是个健康的信号——不是一个冻结的市场。工作方式高度偏向<strong>现场办公(on-site)</strong>,少量混合办公(NXP),而远程岗位则集中在外资公司和 AI 训练众包平台(micro1、Singularity Systems、Deel)。</p>
+<p>但要把 472 这个"Staff"数字当作噪声,而非信号。松散的关键词匹配用实习生和中级岗位把它撑大了,而这个头衔本身又是舶来品。473/290 这两个"Senior"数字更结实一些,但它们衡量的是一个<strong>渠道</strong>,而不是一座城市。</p>
+<h2 id="谁在真正招人又在哪里发布">谁在真正招人——又在哪里发布<a class="anchor" href="#谁在真正招人又在哪里发布" aria-label="链接到本节">#</a></h2>
+<p>领英(LinkedIn)在中国已经没有本土立足点了。它本地化的社交平台在 2021 年关停,只保留求职功能的继任者 InCareer(领英职场)也已于 2023 年 8 月关闭。剩下的部分,主要被外资跨国公司和面向国际的交易公司用来招募双语、可全球流动的人才。本土科技公司的招聘完全在别处进行:<strong>BOSS 直聘、猎聘、智联招聘、前程无忧(51Job)、牛客网、应届生求职网</strong>、公司自有招聘门户、飞书/Lark 承载的招聘页,以及大量的<strong>内推</strong>。</p>
+<p>看看那些本土渠道,画面就反了过来。上海拥有中国最深厚的工程雇主阵容之一,而其中大部分都在<strong>招人</strong>——只是有所挑选:</p>
+<ul>
+<li><strong>小红书(RED)</strong>——上海总部,2025 年年末估值超过 500 亿美元——是全市最激进的高级/AI 招聘方之一,因薪酬而得了个"小字节"的绰号。其 Seed 大模型研究员的开价大约在<strong>每月 10 万元人民币</strong>,外加每年约 500 股期权和一笔签字费。</li>
+<li><strong>拼多多</strong>(长宁总部)在内部发布高级 Java 岗位,薪资约为<strong>每月 3 万–6 万元 · 18 薪</strong>,并开展大规模的 2026/2027 校招批次。</li>
+<li><strong>携程(Trip.com)</strong>在 2025 财年交出约 624 亿–625 亿元人民币的净营收(同比 +17%),并借 AI 的推动而扩张。</li>
+<li><strong>米哈游</strong>与<strong>叠纸(Papergames)</strong>锚定了一个密集的游戏集群,开放岗位数以百计。</li>
+<li><strong>蔚来(NIO)</strong>在招募自动驾驶与 AI 智能体工程师,薪资约<strong>每月 4.5 万–7 万元 · 15 薪</strong>。</li>
+<li>张江的半导体集群是最亮眼的一块:<strong>中芯国际(SMIC)</strong>、<strong>中微公司(AMEC)</strong>(2025 财年营收 123.9 亿元,同比 +36.6%;新总部大楼于 2026 年 8 月落成)、<strong>韦尔股份/豪威(OmniVision)</strong>、<strong>拓荆</strong>,以及 EDA 厂商<strong>华大九天/概伦</strong>都在扩张。</li>
+</ul>
+<p>唯一诚实的注脚是,这个市场是<strong>两极分化</strong>的。AI/大模型、自动驾驶、具身智能,以及芯片/EDA 岗位在猛烈扩张;而通用后端、前端与测试则面临冻结与"优化"。阿里巴巴的总员工数从 2024 年底约 <strong>19.4 万人</strong>在随后一年间有所下降。B 站——2025 年首次实现盈利(营收 303.5 亿元,净利 11.9 亿元)——年末员工数为 8,423 人,此前经历了多年的收缩;2026 年 3 月一则"裁员 60%"的传闻虽被辟谣,却反映出真实存在的重组焦虑。</p>
+<h2 id="在这里senior和staff到底意味着什么">在这里,"Senior"和"Staff"到底意味着什么<a class="anchor" href="#在这里senior和staff到底意味着什么" aria-label="链接到本节">#</a></h2>
+<p>中国公司并不把西方的 Senior/Staff/Principal 阶梯当作职位名称来用。每家都跑着自己的字母数字网格——阿里 <strong>P5–P10+</strong>、字节跳动旧的 <strong>1-1…5-2</strong>(2025 年 12 月改制为 <strong>L1–L10</strong>)、腾讯扁平化后的 <strong>4–17</strong> 数字序列、华为 <strong>13–22</strong>——而对外公开的中文头衔则是 高级工程师、资深工程师、技术专家(真正对应"Staff"的 IC 专家路线)以及 架构师。</p>
+<p>那些经得起核查的粗略对应关系是:</p>
+<ul>
+<li><strong>Senior(高级)</strong> ≈ 阿里 <strong>P7</strong> / 字节旧 <strong>2-2</strong>(新 <strong>L3</strong>) / 华为 <strong>17 级</strong> / Google <strong>L5</strong></li>
+<li><strong>Staff(专家/技术专家)</strong> ≈ 阿里 <strong>P8</strong> / 字节旧 <strong>3-1</strong>(新 <strong>L4</strong>) / Google <strong>L6</strong></li>
+</ul>
+<p>有一个真实的错位点(而非错误):中国的 HR 早在 <strong>P6</strong> 就会挂上"高级工程师"的名头,比 FAANG 体系里"Senior"所处的位置低了一档。所以英文里的"Senior"其实最贴合 <strong>P7</strong>,而不是 P6。</p>
+<p>至于"Staff Software Engineer"——一次领英搜索就能确认,它本质上是个外企构造。当它出现在某家中国公司名下时,那是为国际受众而作的英文译写(例如,一位阿里云工程师在海外被描述为"Staff Software Engineer")。在内部,候选人谈的是 P/T/L 那个数字,而不是那个词。</p>
+<h2 id="薪酬分层以及那些异类">薪酬:分层,以及那些异类<a class="anchor" href="#薪酬分层以及那些异类" aria-label="链接到本节">#</a></h2>
+<p>以下均为 2025–2026 年的总包(总包 = 月基本工资 × 薪数 + 酌定年终奖 + 股权),单位为人民币。<strong>各方估算差异很大</strong>——同一个名义上的"Senior",可能相差 2–3 倍——所以请把这些当作区间,而非精确点值。美元按约 7.1 折算。</p>
+<p><strong>头部本土互联网</strong>——走量的高薪方:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>公司 / 职级</th><th>Senior(高级)</th><th>Staff(专家级)</th></tr></thead>
+<tbody>
+<tr><td>阿里巴巴(P7 → P8)</td><td>约 91 万–118 万</td><td>约 170 万–240 万</td></tr>
+<tr><td>字节跳动(L3/旧 2-2 → L4/旧 3-1)</td><td>约 86 万–128 万</td><td>约 145 万–206 万</td></tr>
+<tr><td>腾讯(3-1 高级工程师 → 4-1 专家)</td><td>约 56 万–87 万</td><td>约 208 万–259 万</td></tr>
+<tr><td>美团(L6 → L7)</td><td>约 40 万–53 万</td><td>约 54 万–71 万</td></tr>
+</tbody>
+</table></div>
+<p>字节跳动 2025 年 12 月的薪酬重定价是这一年的结构性事件:它上调了所有职级带宽(调薪预算约增至 1.5 倍;奖金/期权预算 +35%),同时抬高了下限和上限,并自 2026 年 1 月起把 1-1…5-2 的网格换成了 L1–L10。duibiao.info 上的实时 L 带宽(L3 90 万–115 万,L4 145 万–206 万,L5 250 万–285 万)与之精确到"万"位对得上。(注:上表中的"腾讯 3-1/4-1"是真正的内部代码;在一些数据聚合网站上看到的"T9/T11/T12"之类序号只是行号,并非官方职级。)</p>
+<p><strong>外资跨国公司 / 大厂</strong>在这些职级上大体与本土互联网相当、或略低。Levels.fyi 的大上海地区数据:Google SWE L3 约 7.2 万美元 → L6 约 25.2 万美元;Apple ICT3 约 100 万元 → ICT5 约 179 万元。该站上海 SWE 的综合区间大约在 <strong>45.5 万–91.9 万元</strong>,月度总包中位数约 9,268 新元,PayPal 是列出的最高薪雇主。请注意:同一职级,美国总部的薪酬是中国数字的 2–2.5 倍。</p>
+<p><strong>中腰部 / 本土非互联网</strong>给得明显更少。华为按职级:15 级约 40 万–48 万,16 级 高级工程师约 54 万–71 万,17 级 资深工程师约 74 万–97 万——一位华为"Senior"落在远低于阿里 P7 的位置。招聘薪酬指南的"标价"(Michael Page 2026:软件架构师约 7.85 万–11.4 万美元)低于众包总包,因为它们只计<strong>基本工资</strong>,且偏向外企/非互联网岗位。</p>
+<p><strong>异类那一层——外资高频/自营交易公司。</strong> Optiver、Jane Street、Citadel Securities、HRT、Jump、IMC 为它们极少的席位支付市场顶格薪酬,且几乎全为现金。Glassdoor 实时的上海页面(Optiver)列出 <strong>SWE 47.5 万–200 万元</strong>、量化研究员 <strong>100 万–200 万元</strong>——但这只基于约 23 份薪酬提交,所以要把 200 万这个上限读作上限,而非中位数。放到全球看,Jane Street 在 2025 年人均约 270 万美元、Citadel Securities 人均约 210 万美元;应届量化的总包在 25 万–45 万美元以上。有一处事实核查更正值得点出:一些把 <em>Optiver</em> 应届定在约 33 万美元的报道,把美国 L3 的中位数与应届平均值(约 25.5 万–26.5 万美元)混为一谈;在那个特定排名里,真正领先的是 HRT(约 40 万美元)和 Jane Street(约 35 万美元)。</p>
+<h2 id="撬动薪水的那项技能ai">撬动薪水的那项技能:AI<a class="anchor" href="#撬动薪水的那项技能ai" aria-label="链接到本节">#</a></h2>
+<p>这份溢价已不再含蓄。脉脉(Maimai)2025 年的数据把<strong>大模型算法</strong>的新发岗位薪酬定在<strong>每月 70,107 元</strong>——在所有行业中排第一——AIGC 工程师紧随其后。最顶端那一层更高:AI 科学家/负责人平均<strong>每月超过 13 万元</strong>(顶尖科学家群体约 132,800 元)。不过也要对着基数校准:所有 AI 岗位的<em>平均</em>值更接近<strong>每月 6 万元</strong>,而 AI 应届生落在<strong>每月约 2.4 万–2.5 万元</strong>,而非有时被引用的 3 万元——那些头条数字是天花板,不是常态。<strong>AI 基础设施</strong>(CUDA/GPU、分布式训练、低延迟推理)此后已略微超过大模型算法,成为单项薪酬最高的赛道(2026 年春招约每月 73,700 元;全包 120 万–150 万元/年)。具身智能则是增长最快的类别——脉脉招聘指数在 2026 年年初约为 579,而一年前约为 36,是约 15 倍的暴增——并伴有像优必选(UBTech)那样标价 1,500 万元/年的首席科学家岗这类真正的异类。</p>
+<p>这个"K 形"的另一条腿则很冷峻:2026 年一季度,<strong>初级前端岗位同比下降约 65%,初级后端约 58%,测试约 35%</strong>。AI/算法相对于通用后端的溢价,在 0–3 年经验段约为 <strong>2–4 倍</strong>,对具备 AI 能力的后端工程师则约 <strong>+30%–50%</strong>——而且这是一次向稀缺技能的<em>再分配</em>,而非普遍的工资通胀(互联网行业的涨薪率已从 2022 年的 4.8% 塌缩到近来的远低于 1%)。</p>
+<h2 id="大气候一场战争与一场清洗同时发生">大气候:一场战争与一场清洗,同时发生<a class="anchor" href="#大气候一场战争与一场清洗同时发生" aria-label="链接到本节">#</a></h2>
+<p>2025 年 1 月的 DeepSeek 冲击点燃了一场全面的人才争夺战。腾讯挖字节的研究员;字节否认了一则(从未被证实的)一亿元人民币个人打包传闻;DeepSeek 据报的巨额融资据说附带了竞业禁挖条款。与此同时,在 2022–23 年见顶的裁员潮在 2025 年仍以可见的阵发方式滚动着(财新,2025 年 8 月:科技巨头"让一代人惶惶不安";亚洲时报,2025 年 12 月:这股浪潮"冲击"着科技业)。约 1,200 万的 2025 届创纪录毕业生,撞上了在 <strong>2025 年 8 月创下 2023 年以来新高(18.9%)</strong>、随后到年末回落至<strong>约 16.9%</strong> 的青年(16–24 岁)失业率。</p>
+<p><strong>"35 岁诅咒"</strong>——对 35 岁以上工程师的年龄歧视——在 2024–25 年间仍然真实且被广泛记录,但对稀缺的高级 AI 人才而言,它正在<em>部分反转</em>(36 氪,2026 年 6 月:《35 岁职场人紧俏》)。</p>
+<p>那么 <strong>996</strong> 呢?被中国最高法院于 2021 年宣判违法后,它并没有消亡——而是被重新包装成非正式加班和"专注日"。2025 年带来了一轮执法收紧(腾讯 18 点强制下班、美的 18:20、大疆 21 点锁楼)以及一场真正的胜利:<strong>大小周</strong>的取消(小红书于 2025 年 4 月加入)。但国家统计局数据显示,2025 年上半年企业员工周工时仍平均达 <strong>48.5 小时</strong>——高于 44 小时的法定上限。最清晰的结构性对比依旧成立:外资跨国公司跑着接近西方的工时;本土巨头给得更多,也要得更多。</p>
+<h2 id="脱钩掏空了外资研发却喂饱了外资金融">脱钩掏空了外资研发——却喂饱了外资金融<a class="anchor" href="#脱钩掏空了外资研发却喂饱了外资金融" aria-label="链接到本节">#</a></h2>
+<p>外企的工程足迹已大幅收缩:领英中国求职应用关停(2023),IBM 关闭其在华的两个研发实验室(2024,1,000 余人),亚马逊关闭其上海 AI 实验室(2025),微软则处于多年的退却之中(2024 年的岗位迁移;2026 年年中前后又在北京/上海削减 Azure 研发)。与之互为镜像的是外资<strong>金融</strong>:Citadel Securities 于 2025 年 1 月申请上海外商独资证券牌照,而 Optiver、Jump、Jane Street 及同行都在积极扩张亚太的量化开发团队。正是这种分野——大厂研发席位减少、超高薪的交易席位增多——恰恰解释了为什么一次领英搜索会浮现出它所浮现的那些雇主。</p>
+<h2 id="宏观背景上海在加码">宏观背景:上海在加码<a class="anchor" href="#宏观背景上海在加码" aria-label="链接到本节">#</a></h2>
+<p>上海 2025 年 GDP 突破 <strong>5.6 万亿元(+5.4%)</strong>,并在 2026 年上半年加速至约 5.6%。其三大"先导产业"——集成电路、人工智能、生物医药——合计制造业产值跨过 <strong>2 万亿元</strong>(+9.6%),其中集成电路 +15.1%、人工智能 +13.6%。政策资金充足:扩容的国家集成电路基金、临港 15% 的企业所得税率、以 WAIC 为锚的 AI 集群,以及让全球前 50 高校毕业生可直接落户的落户条件。财新报道(2026 年 7 月)称,随着人才涌向制造业与具身智能枢纽,上海正在 AI 人才上<strong>盖过北京</strong>。上海与北京(研究/金融之都,薪酬通常最高)、深圳(硬件/华为-腾讯)、杭州(阿里/DeepSeek 相邻)争夺同一个全国人才池——其差异化在于外企研发、金融、电动车软件与半导体。</p>
+<h2 id="该如何解读这个市场">该如何解读这个市场<a class="anchor" href="#该如何解读这个市场" aria-label="链接到本节">#</a></h2>
+<ul>
+<li><strong>别把领英的计数当作市场普查。</strong>它是对跨国/金融/AI 那一片的真实读数,仅此而已。对于本土的那 80%,你必须待在 BOSS 直聘、猎聘、牛客网和内推链条上。</li>
+<li><strong>谈判要谈职级数字,而不是英文头衔。</strong>"Senior"意味着 P7/L3/17 级;"Staff"意味着 P8/L4——如果一家中国公司递给你一个"Staff"头衔,那是在为外国人做翻译。</li>
+<li><strong>要么钻进溢价,要么接受挤压。</strong>AI 基础设施、大模型/算法、具身智能、自动驾驶,以及模拟芯片/EDA,是钱和稀缺性所在之处。大路货 CRUD、手工测试、初级前端正在快速萎缩。</li>
+<li><strong>35 岁诅咒如今是双刃的。</strong>如果你是高级 AI/基础设施专才,年龄重新成了资产。如果你是通才,那就不是。</li>
+<li><strong>"现金最大化"对"生活最大化"是一个真实的岔路。</strong>自营交易在薪酬榜上居首(几乎全现金,席位极少);外企提供最理智的工时,以及在收缩的编制;本土互联网提供最多的席位、可观的股权,以及最长的工时。</li>
+</ul>
+<hr />
+<h2 id="方法与说明">方法与说明<a class="anchor" href="#方法与说明" aria-label="链接到本节">#</a></h2>
+<p>关于需求量与雇主构成的观察,依托的是从一个已登录账户采集的<strong>第一手领英数据</strong>(上海、"过去一个月"筛选、2026 年 9 月初)。领英在中国大陆是一个<strong>小众渠道</strong>——其本土应用已于 2023 年关停,全球站点主要被跨国公司、金融业,以及讲英语的/海归候选人使用。因此它<strong>高估了跨国公司、金融与 AI,而低估了本土互联网公司</strong>——后者的招聘发生在 BOSS 直聘、猎聘、牛客网以及内推里。"Staff Software Engineer"这个计数(472)还被松散的关键词匹配(实习生、中级岗位)进一步撑大,应当被当作噪声看待。文中引用的领英雇主/岗位样例,是结果前几页的一个代表性抽样,而非穷尽式普查(因平台职位列表采用虚拟滚动,深度翻页受限)。</p>
+<p>薪酬数字是<strong>近似值</strong>,取自众包表格(duibiao.info、Levels.fyi、Glassdoor)、招聘薪酬指南(Michael Page),以及中文行业媒体(脉脉、EET-China、36 氪)。独立事实核查确认了大多数头部带宽,但也标出了若干处属于误归因或样本偏薄——尤其是 Optiver 上海的 Glassdoor 区间(约 23 份提交)、Optiver 应届基准值,以及字节跳动重定价的精确数字。在来源相互矛盾之处,文中给出区间,而非虚假的精确。</p>
+<h2 id="来源">来源<a class="anchor" href="#来源" aria-label="链接到本节">#</a></h2>
+<p><strong>职级与薪酬:</strong> duibiao.info;levels.fyi(阿里、字节、华为、Google/Apple 大上海地区、Optiver);Glassdoor(Optiver 上海);eet-china.com;jscgroups.com(Michael Page 2026);michaelpage.com.cn。</p>
+<p><strong>AI/技能溢价:</strong> cls.cn 与 bjnews.com.cn(脉脉 70,107 数据);news.cn(新华社 AI 市场);36 氪(AI 薪酬、《35 岁紧俏》);CSDN/SegmentFault(AI Infra);21jingji.com、tmtpost.com(具身智能)。</p>
+<p><strong>招聘气候与裁员:</strong> 财新(Caixin Global);亚洲时报(Asia Times);南华早报(SCMP);China Media Project(《AI Job Mirage》);卫报(The Guardian);路透社(996);restofworld.org(DeepSeek 人才)。</p>
+<p><strong>外企/金融与脱钩:</strong> 路透社(IBM、亚马逊、微软、Citadel Securities);efinancialcareers.com;theguardian.com(领英/InCareer)。</p>
+<p><strong>宏观/政策:</strong> trendforce.com 与 scmp.com(上海 GDP/集成电路);china-briefing.com(临港、WAIC 2026);caixinglobal.com(上海盖过北京)。</p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    var toc = document.querySelector('.toc');
+    if (toc) toc.classList.add('collapsed');
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["article-ce2808be"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["article-ce2808be"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
