@@ -98,20 +98,6 @@
     ]
   },
   {
-    "id": "upload-harness-day-2026-08-29",
-    "title": "被自己的数据推翻九次",
-    "href": "/p/harness-day-2026-08-29.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T16:04:36.378Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/harness-day-2026-08-29.html",
-      "frontend/public/p/harness-day-2026-08-29.meta.json"
-    ]
-  },
-  {
     "id": "upload-ddd-domain-map",
     "title": "看板的 DDD 领域图（Mermaid 示例）",
     "href": "/p/ddd-domain-map.html",
