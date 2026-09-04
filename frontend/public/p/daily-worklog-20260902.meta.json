@@ -1,7 +1,0 @@
-{
-  "slug" : "daily-worklog-20260902",
-  "title" : "2026-09-02 工作总结",
-  "summary" : "看板 worker 日志:治理与瘦身日,8 PR 入 ubuntu,净删约 7900 行。经 publish_page.py --wrap 套 docs_theme,样式长期对齐 docs.html",
-  "createdAt" : "2026-09-02T07:16:59.837947833Z",
-  "bytes" : 6512
-}
