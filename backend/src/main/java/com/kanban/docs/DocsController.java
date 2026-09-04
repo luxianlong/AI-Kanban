@@ -37,7 +37,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * REST API backing the "Delete" button on the docs index page (/docs.html).
+ * REST API backing the owner's controls on the docs index page (/docs.html):
+ * writing a new article, deleting one, and flipping its visibility.
+ *
+ * <p>Writing (task #223) takes the Markdown pasted into the page's editor,
+ * stores it as {@code docs/<slug>.md} and regenerates the site — so a
+ * browser-written article is the same kind of thing as one committed by a task,
+ * with the same page style, card, view counter and delete path.
  *
  * <p>The docs site is a static build: every {@code docs/*.md} is rendered to a
  * page and listed in {@code frontend/public/docs-manifest.json}. Deleting a
@@ -64,17 +70,19 @@ public class DocsController {
     private final DocsGitCommitter gitCommitter;
     private final DocReadRepository reads;
     private final DocViewRepository views;
+    private final ArticleService articles;
     private final ObjectMapper mapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public DocsController(WorkerProperties props, DocsSiteGenerator generator,
                           DocsGitCommitter gitCommitter, DocReadRepository reads,
-                          DocViewRepository views) {
+                          DocViewRepository views, ArticleService articles) {
         this.repoRoot = Path.of(props.getWorkingDirectory());
         this.generator = generator;
         this.gitCommitter = gitCommitter;
         this.reads = reads;
         this.views = views;
+        this.articles = articles;
     }
 
     /**
@@ -92,6 +100,29 @@ public class DocsController {
     @GetMapping
     public List<DocEntry> list() {
         return readManifest();
+    }
+
+    /** Body for {@link #create}: the pasted Markdown plus an optional title/slug. */
+    public record CreateRequest(String markdown, String title, String slug) {}
+
+    /**
+     * Publish an article written on the docs page (task #223): store the Markdown
+     * as {@code docs/<slug>.md}, regenerate the site so the page and its card
+     * exist, and commit both so the next deploy's {@code git checkout main} can't
+     * roll the publication back. Owner-only — the Vite gate keeps every
+     * {@code /api/docs} verb but the read trackers behind the site password.
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ArticleService.NewArticle create(@RequestBody CreateRequest req) {
+        if (req == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing request body");
+        }
+        ArticleService.NewArticle article = articles.write(req.markdown(), req.title(), req.slug());
+        generator.regenerate();
+        gitCommitter.commitPaths("docs: write '" + article.id() + "' via web UI",
+                articles.pathsFor(article.id()));
+        return article;
     }
 
     /** Body for marking documents seen: the manifest ids the user just viewed. */
