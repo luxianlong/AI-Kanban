@@ -1,5 +1,19 @@
 [
   {
+    "id": "staff",
+    "title": "新加坡高级 / Staff 软件工程师的机会",
+    "href": "/docs/staff.html",
+    "deletable": true,
+    "file": "docs/staff.md",
+    "updatedAt": "2026-09-04T10:14:11.144Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/staff.md",
+      "frontend/public/docs/staff.html"
+    ]
+  },
+  {
     "id": "2026",
     "title": "2026 海外信息流自媒体创业可行性分析",
     "href": "/docs/2026.html",

@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>新加坡高级 / Staff 软件工程师的机会 · 文章存档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+.toc-title {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+  padding-bottom: 9px; border-bottom: 1px solid var(--line);
+}
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>新加坡高级 / Staff 软件工程师的机会</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<div class="toc-title">目录</div>
+<ul>
+<li class="lv2"><a href="#一句话总结tldr">一句话总结（TL;DR）</a></li>
+<li class="lv2"><a href="#1-机会有多大谁在招人">1. 机会有多大，谁在招人？</a></li>
+<li class="lv3"><a href="#linkedin-实时快照新加坡已登录2026-年-9-月-3-日">LinkedIn 实时快照（新加坡，已登录，2026 年 9 月 3 日）</a></li>
+<li class="lv3"><a href="#到底谁在这个层级招人">到底谁在这个层级招人</a></li>
+<li class="lv3"><a href="#宏观背景经济强劲招聘谨慎">宏观背景：经济强劲，招聘谨慎</a></li>
+<li class="lv2"><a href="#2-薪酬6-倍的跨度而股权是原因">2. 薪酬：6 倍的跨度，而股权是原因</a></li>
+<li class="lv2"><a href="#3-税后到手新加坡真正的优势">3. 税后到手：新加坡真正的优势</a></li>
+<li class="lv3"><a href="#所得税居民税率ya2024-起--已对照-iras-核实">所得税（居民税率，YA2024 起 —— 已对照 IRAS 核实）</a></li>
+<li class="lv3"><a href="#公积金-cpf外籍人士的优势">公积金 CPF（外籍人士的优势）</a></li>
+<li class="lv3"><a href="#抵消因素房租与家庭成本堆栈">抵消因素：房租与「家庭成本堆栈」</a></li>
+<li class="lv3"><a href="#对比美国科技中心已对账">对比美国科技中心（已对账）</a></li>
+<li class="lv2"><a href="#4-签证的现实如果你是外籍人士">4. 签证的现实（如果你是外籍人士）</a></li>
+<li class="lv3"><a href="#就业准证是两阶段测试">就业准证是「两阶段」测试</a></li>
+<li class="lv3"><a href="#为什么技术工程师能轻松通过-compass">为什么技术工程师能轻松通过 COMPASS</a></li>
+<li class="lv3"><a href="#面向极高级人才的更高层级">面向极高级人才的更高层级</a></li>
+<li class="lv3"><a href="#外籍人士必须权衡的摩擦">外籍人士必须权衡的摩擦</a></li>
+<li class="lv2"><a href="#5-这里到底存不存在-staff--principal-阶梯">5. 这里到底存不存在 Staff / Principal 阶梯？</a></li>
+<li class="lv2"><a href="#6-敏锐读者会提出的风险与反面观点">6. 敏锐读者会提出的风险与反面观点</a></li>
+<li class="lv2"><a href="#7-结论--这个机会究竟适合谁">7. 结论 —— 这个机会究竟适合谁</a></li>
+<li class="lv2"><a href="#数据来源与方法">数据来源与方法</a></li>
+</ul>
+</nav>
+<main class="content">
+<p><strong>2026 年市场分析 —— 需求、薪酬、税务、签证，以及不加粉饰的风险</strong></p>
+<p><em>数据截至 2026 年 9 月 3 日。实时招聘数据取自已登录的 LinkedIn 会话；薪酬来自 levels.fyi / NodeFlair / 招聘顾问薪资指南；签证与税务数据均已对照政府一手来源（MOM 人力部、IRAS 税务局、CPFB 公积金局、ICA 移民局）核实。所有数字均为市场数据，不构成个性化的职业或理财建议。</em></p>
+<hr />
+<h2 id="一句话总结tldr">一句话总结（TL;DR）<a class="anchor" href="#一句话总结tldr" aria-label="链接到本节">#</a></h2>
+<ul>
+<li><strong>需求真实但高度挑剔。</strong> LinkedIn 上新加坡在招的「senior software engineer（高级软件工程师）」约有 <strong>920</strong> 个岗位、「staff software engineer」约 <strong>671</strong> 个，其中<strong>仅过去一周就新发布了 372 个高级岗位</strong> —— 但市场是「哑铃型」的：一端是对高级 / 专精工程师的强劲、高溢价需求，另一端却在主动削减初级和通用岗位。即便稀缺技能的薪酬在涨，招聘<em>信心</em>却已跌至 2021 年以来的最低点。</li>
+<li><strong>薪酬跨度约 6 倍</strong>，股权是拉开差距的根源。高级工程师从本地银行的 <strong>~S$100K</strong> 到大厂（Big Tech）的 <strong>~S$250–420K</strong>；staff / principal 从 <strong>~S$180K</strong> 到 <strong>S$445–530K+</strong>；天花板是量化 / 高频交易（HFT，Jane Street 新加坡中位数约 <strong>~S$662K</strong>）。而全体雇主的本地中位数总包仅约 <strong>~S$113–120K</strong>。</li>
+<li><strong>税后到手极为可观。</strong> 最高边际税率 <strong>24%</strong>（且仅对超过 S$1M 的部分征收）；有效税率在 S$200K 时约 <strong>~11%</strong>、S$300K 时约 <strong>~14%</strong>。<strong>无资本利得税。</strong> <strong>外籍人士持就业准证（EP）不缴公积金（CPF）</strong>，因此几乎整份薪水只经过这道低所得税。</li>
+<li><strong>签证门槛真实，但对这一层级并不难跨。</strong> EP 需要满足按年龄基准设定的最低薪资（一般行业目前 <strong>S$5,600/月</strong>，<strong>2027 年 1 月起 S$6,000</strong>），外加在 COMPASS 框架下拿满 40 分 —— 但<strong>「软件工程师」在紧缺职业清单（SOL）上</strong>，任何高薪的高级岗位都能轻松拿到薪资分。月薪 <strong>S$22,500 以上</strong>时，COMPASS 与强制性的本地招聘广告<strong>完全豁免</strong>。</li>
+<li><strong>代价在于：</strong> 真正的 Staff→Principal 独立贡献者（IC）阶梯集中在约 10–15 家美国 / 中国背景的公司；本地银行和公司常常做头衔通胀（「VP」）或给 IC 封顶；名义薪酬天花板比美国前沿<strong>低约 3–4 倍</strong>；而这一切又建立在与雇主绑定的签证依赖之上，身处一个受裁员冲击、被 AI 重塑的市场。</li>
+</ul>
+<hr />
+<h2 id="1-机会有多大谁在招人">1. 机会有多大，谁在招人？<a class="anchor" href="#1-机会有多大谁在招人" aria-label="链接到本节">#</a></h2>
+<h3 id="linkedin-实时快照新加坡已登录2026-年-9-月-3-日">LinkedIn 实时快照（新加坡，已登录，2026 年 9 月 3 日）<a class="anchor" href="#linkedin-实时快照新加坡已登录2026-年-9-月-3-日" aria-label="链接到本节">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>搜索关键词（LinkedIn）</th><th>全部</th><th>过去一个月</th><th>过去一周</th><th>过去 24 小时</th></tr></thead>
+<tbody>
+<tr><td><code>software engineer</code>（整个市场）</td><td><strong>1,459</strong></td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td><code>senior software engineer</code></td><td><strong>920</strong></td><td>782</td><td><strong>372</strong></td><td>124</td></tr>
+<tr><td><code>staff software engineer</code></td><td><strong>671</strong></td><td>—</td><td>—</td><td>—</td></tr>
+</tbody>
+</table></div>
+<p>有经验的层级在岗位发布中占绝对多数，且<strong>新鲜度很高</strong> —— 全部高级岗位中约有 40% 是在过去一周内发布的。<strong>注意：</strong> LinkedIn 的计数采用宽松的关键词匹配（因此「senior/staff」的数字高度重叠、会高估真实的头衔数量），并可能包含重复发布和多地点挂牌。请把它们当作<strong>方向性的需求信号，而非在招 Staff-IC 岗位的精确数量</strong> —— 真正开放的 Staff/Principal IC 岗位远比「671」所暗示的稀少。</p>
+<h3 id="到底谁在这个层级招人">到底谁在这个层级招人<a class="anchor" href="#到底谁在这个层级招人" aria-label="链接到本节">#</a></h3>
+<p>实时结果里的雇主构成，是新加坡科技经济的一个真实横切面：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>板块</th><th>在招高级 / staff / principal 软件工程师的雇主</th><th>实时岗位示例</th></tr></thead>
+<tbody>
+<tr><td><strong>大厂（Big Tech）</strong></td><td>Google、Apple、Meta</td><td>「Senior SWE, ML / TPU Workload Optimization」（Google）；「Senior SWE, AI &amp; Data Platforms」（Apple）；「Software Engineer, Principal」（Meta）</td></tr>
+<tr><td><strong>支付 / 金融科技</strong></td><td>Visa、Stripe</td><td>「Staff Software Engineer (AI Engineer)」；「Director, Software Engineer」（Visa）</td></tr>
+<tr><td><strong>数据基础设施</strong></td><td>Databricks</td><td>「Senior Software Engineer — Singapore」</td></tr>
+<tr><td><strong>区域科技巨头</strong></td><td>Shopee / Sea</td><td>「Senior SWE — ShopeePay」</td></tr>
+<tr><td><strong>银行与交易机构</strong></td><td>Morgan Stanley、对冲基金</td><td>「Senior Real-Time Market Data C++ SWE — Vice President」；「Lead Java Engineer, Algo Execution — Hedge Fund」</td></tr>
+<tr><td><strong>政府</strong></td><td>GovTech、HTX</td><td>「Senior SWE, Ministry of Law」（混合办公，Easy Apply）；「Principal Engineer (Solution Architect)」</td></tr>
+<tr><td><strong>半导体</strong></td><td>Micron</td><td>「Principal / Staff Engineer — Firmware」</td></tr>
+<tr><td><strong>网络安全</strong></td><td>Zscaler</td><td>「Staff Software Development Engineer」（混合办公）</td></tr>
+</tbody>
+</table></div>
+<p>从岗位本身可以读出两点质感：</p>
+<ul>
+<li><strong>岗位偏向现场办公（on-site）。</strong> 大多数高级 / staff 岗位标注为<em>现场办公</em>；少数为<em>混合办公</em>（GovTech、HTX、Zscaler）。这个市场里纯远程的高级软件工程师岗位很少。</li>
+<li><strong>头衔本身就讲清了技术故事。</strong> 实时 C++ 行情数据、ML/TPU 优化、AI 工程、固件、算法执行、「安全编码（safe coding）」—— 新加坡的高级需求集中在<strong>贴近金融的低延迟系统、AI/ML 基础设施、数据平台和安全</strong>，而非普通的 CRUD 网页开发。</li>
+</ul>
+<p>竞争在岗位数据里也看得见：Visa 的「Staff Software Engineer (AI Engineer)」在发布后<strong>头两天就录得 31 次「点击申请」</strong>。</p>
+<h3 id="宏观背景经济强劲招聘谨慎">宏观背景：经济强劲，招聘谨慎<a class="anchor" href="#宏观背景经济强劲招聘谨慎" aria-label="链接到本节">#</a></h3>
+<p>新加坡的劳动力市场确实健康 —— 但疲软是<em>局部的</em>，而非普遍下行：</p>
+<ul>
+<li>整体失业率 <strong>2.0%</strong>（2026 年 6 月）；<strong>连续 19 个季度</strong>就业增长；2025 全年就业增长 <strong>+55,500</strong>（高于 2024 年的 +44,500）。<em>（MOM 2026 年第二季度劳动力市场预览）</em></li>
+<li><strong>信息与通信业创造的全新岗位是所有行业中最多的</strong> —— 其 2025 年空缺岗位中 <strong>74.2%</strong> 是全新岗位；软件开发者位列最抢手的 PMET（专业、经理、行政与技术人员）岗位之一。<em>（MOM / CNA）</em></li>
+<li>2026 年 GDP 增长预测被<strong>上调至 4.5–5.5%</strong>，并明确归因于 AI 相关需求。</li>
+</ul>
+<p>但是：招聘顾问报告称招聘<em>信心</em>「已跌至 2021 年以来的最低水平」，成本压力将长期岗位的编制增长压到最低，并把工作推向<strong>合同制与离岸外包</strong>（Robert Walters《2026 薪资调查》；《海峡时报》2026 年 6 月）。<strong>解读是：对稀缺的高级专才需求旺盛，而非全面扩张。</strong></p>
+<hr />
+<h2 id="2-薪酬6-倍的跨度而股权是原因">2. 薪酬：6 倍的跨度，而股权是原因<a class="anchor" href="#2-薪酬6-倍的跨度而股权是原因" aria-label="链接到本节">#</a></h2>
+<p>新加坡软件工程师的薪酬几乎完全取决于<strong>雇主层级</strong>，从本地银行到顶级量化机构的跨度约为 <strong>6 倍</strong>。以下均为 <strong>总薪酬（base 底薪 + bonus 奖金 + equity 股权）</strong>，单位为 SGD/年，除另注明外均来自 <strong>levels.fyi（众包数据，截至 2026 年 9 月 3 日）</strong>。<em>S$1 ≈ US$0.77。</em></p>
+<div class="table-wrap"><table>
+<thead><tr><th>层级</th><th>高级软件工程师（总包/年）</th><th>Staff / Principal（总包/年）</th><th>备注</th></tr></thead>
+<tbody>
+<tr><td><strong>HFT / 量化</strong>（Jane Street、Optiver）</td><td>—</td><td><strong>Jane Street 中位数 ~S$662K</strong>；Optiver ~S$250K</td><td>天花板。溢价来自<em>现金奖金</em>而非股权。市场极小、极度挑剔（见下方说明）。</td></tr>
+<tr><td><strong>大厂</strong>（Meta、Google、ByteDance）</td><td>Meta E5 <strong>~S$422K</strong> · Google L5 <strong>~S$249K</strong> · ByteDance ~S$247K</td><td>Meta E6 <strong>~S$531K</strong> · Google L6 <strong>~S$444K</strong> · ByteDance ~S$341–544K</td><td><strong>股权占大头</strong>：在 Meta，股权 ≈ 底薪。</td></tr>
+<tr><td><strong>高增长 / 独角兽</strong>（Grab、Shopee/Sea）</td><td>Grab G4 <strong>~S$172K</strong> · Shopee ~S$152K</td><td>Grab G5 Lead ~S$253K · G6 Principal <strong>~S$329K</strong> · Shopee Sr-Expert ~S$293K</td><td>明显低于 FAANG 一档，但远高于本地中位数。</td></tr>
+<tr><td><strong>本地及投资银行</strong>（DBS、Morgan Stanley、GS）</td><td>DBS ~S$100–130K</td><td>DBS 「VP」层级 <strong>~S$177K</strong></td><td>股权几乎为零；IC 被并入 VP/AVP 薪级。</td></tr>
+<tr><td><strong>政府</strong>（GovTech）</td><td>~S$125K（全体层级中位数）</td><td>—</td><td>稳定，股权极少；公共部门 AI 薪资溢价较强。</td></tr>
+<tr><td><strong>市场中位数（全体雇主）</strong></td><td><strong>~S$113–120K</strong> 总包</td><td>75 分位 ~S$162K · 90 分位 ~S$214K</td><td>levels.fyi 新加坡整体数据。</td></tr>
+</tbody>
+</table></div>
+<p><strong>如何诚实地解读这些数字（这正是大多数对比出错的地方）：</strong></p>
+<ul>
+<li>*<em>在大厂，股权占大头 —— 而股权是</em>快照，不是保证<em>。<strong> 在 Meta，一位 E6 Staff 工程师约 S$531K 的总包大致是 </strong>S$261K 底薪 + S$229K 股权 + S$40K 奖金<strong>；股权约占 43%。这些 levels.fyi 中位数反映的是</strong>任职较久、拿到良好续授（refresher）、且股价上涨的员工</em><em>。一份</em>全新*的高级 / staff offer 通常携带的<strong>股权少于稳态中位数</strong>，而股权部分是按授予日定价、分约 4 年归属的 —— 股价持平或下跌可能让实际到手薪酬比标题数字低 20–40%。此外，levels.fyi 是自报数据、<strong>存在向上的幸存者偏差</strong>。请把它们读作「一位资深稳定员工能拿多少」，而不是「你会被 offer 多少」。</li>
+<li>*<em>招聘顾问指南看起来低得多，因为它们只衡量</em>底薪<em>。<strong> Robert Half 的 2026 指南给出「软件工程师」底薪为 </strong>S$85K / 105K / 125K<strong>（25/50/75 分位），明确不含奖金、公积金和股权。请把这些当作</strong>底薪的下限</em>*，而非总薪酬。架构师方向的岗位更高（企业架构师底薪中位数约 S$240K；安全架构师约 S$185K）。</li>
+<li><strong>HFT 天花板真实存在，但几乎够不着。</strong> Jane Street 新加坡约 S$662K 的中位数锚定了「本地中位数的 5–7 倍」这一天花板 —— 但它建立在<strong>极小的样本量（很可能只有几十个数据点）</strong>和极端的招聘门槛之上。它定义的是<em>可能性</em>的上限，而非大多数高级工程师能现实走通的路径。把它当作外沿，而不是目标。</li>
+<li><strong>一个数据注意事项：</strong> levels.fyi 对单个公司<strong>并不</strong>发布可靠的单一「全体层级中位数」；分层级中位数（E5 高级、E6 staff 等）才是稳健的对比口径。若你在别处看到某公司被引用的混合中位数，请保持怀疑。</li>
+</ul>
+<hr />
+<h2 id="3-税后到手新加坡真正的优势">3. 税后到手：新加坡真正的优势<a class="anchor" href="#3-税后到手新加坡真正的优势" aria-label="链接到本节">#</a></h2>
+<p>新加坡决定性胜出之处在于<strong>你能留下多少</strong>，尤其对外籍人士而言。</p>
+<h3 id="所得税居民税率ya2024-起--已对照-iras-核实">所得税（居民税率，YA2024 起 —— 已对照 IRAS 核实）<a class="anchor" href="#所得税居民税率ya2024-起--已对照-iras-核实" aria-label="链接到本节">#</a></h3>
+<ul>
+<li>累进制，最高 <strong>24%</strong> —— 但该最高税率<strong>仅对超过 S$1,000,000 的应税收入</strong>征收。顶部的阶梯是 <strong>22%</strong>（S$320K–500K）→ <strong>23%</strong>（S$500K–1M）→ <strong>24%</strong>（&gt;S$1M）。</li>
+<li><strong>有效（平均）税率很低：</strong> S$150K 约 <strong>~8.3%</strong>，S$200K 约 <strong>~10.6%</strong>（应缴税额 S$21,150），S$300K 约 <strong>~13.5%</strong>（S$40,550），S$350K 约 <strong>~14.6%</strong> —— 这还是在任何税务减免<em>之前</em>。</li>
+<li><strong>无资本利得税。</strong> RSU / ESOW 在<strong>归属（vesting）时</strong>作为受雇收入一次性征税（期权在行权时征税）；此后，<strong>所有股价增值及最终出售全部免税。</strong>（细节：出售限制会推迟计税日；非公民终止新加坡雇佣时适用「视同行权」规则。）</li>
+</ul>
+<h3 id="公积金-cpf外籍人士的优势">公积金 CPF（外籍人士的优势）<a class="anchor" href="#公积金-cpf外籍人士的优势" aria-label="链接到本节">#</a></h3>
+<ul>
+<li>CPF（合计 37%：员工 20% + 雇主 17%，年龄 ≤55）<strong>仅对公民和永久居民（PR）</strong>缴纳。<strong>持就业准证（EP）者不缴 CPF。</strong> 因此外籍高级工程师的整份薪水只经过这道低所得税 —— 到手现金明显高于同薪的本地人。</li>
+<li>即便对公民，CPF 也<strong>设有上限</strong>（普通工资月上限 S$8,000；年上限 S$102,000），因此员工侧 CPF 每年最高约 <strong>S$20,400</strong> —— 而且它是强制<em>储蓄</em>（养老 / 住房 / 医疗），并非纯粹的税。</li>
+</ul>
+<h3 id="抵消因素房租与家庭成本堆栈">抵消因素：房租与「家庭成本堆栈」<a class="anchor" href="#抵消因素房租与家庭成本堆栈" aria-label="链接到本节">#</a></h3>
+<p>新加坡的税务优势部分被<strong>生活成本</strong>吃掉 —— 它长期位居<strong>全球最贵城市前三</strong>。</p>
+<ul>
+<li><strong>房租</strong>是大头：市中心一居室公寓约 <strong>~S$4,000–5,500/月</strong>（2025 年）；市中心两居室约 <strong>~S$5,500–8,000+</strong>；近市中心地带约 ~S$3,500–5,000（一居室）。<em>（URA 市区重建局 / 2025 年市场数据）</em></li>
+<li><strong>对任何携家庭搬迁的人来说，三项臭名昭著的成本会重塑账本：</strong> 国际学校学费（<strong>每名子女每年约 ~S$35–50K</strong>）、汽车拥有权（仅拥车证 COE 就经常超过 <strong>S$100K</strong>）以及私立医疗。「留下更多毛收入」的结论对单身租客最成立，而对一个总包 S$200–300K、四口之家的家庭会迅速被侵蚀。</li>
+<li>相比之下，公共交通、小贩中心餐食（每餐约 ~S$5–8）和公立医疗都便宜；<strong>新元强势且由 MAS（金管局）管理</strong>（约 US$0.77），保护储蓄免受汇率波动。</li>
+</ul>
+<h3 id="对比美国科技中心已对账">对比美国科技中心（已对账）<a class="anchor" href="#对比美国科技中心已对账" aria-label="链接到本节">#</a></h3>
+<p>诚实、可对齐口径的结论：<strong>新加坡在「留存比例」上胜出；美国在「绝对天花板」上胜出。</strong></p>
+<ul>
+<li>一位在新加坡持 EP、年薪 S$250K 的工程师能留下<strong>约 88–89% 的毛收入</strong>（约 11–12% 税、无 CPF）。一位湾区工程师在约 32–37% 联邦税 + 9–13% 加州税后，只能留下约 60–65% 的毛收入。</li>
+<li>但美国 FAANG 的<em>总薪酬</em>在顶部结构性地<strong>高出约 3–4 倍</strong>（Google L6 Staff 在<strong>美国</strong>中位数约 <strong>US$627K</strong>，而在新加坡约 S$444K ≈ US$340K）。一个平价估算：<strong>旧金山的 US$225K ≈ 新加坡约 S$215K</strong> 的家庭净现金。</li>
+<li><strong>结论是：</strong> 对于<strong>中段（~S$200K）岗位，新加坡在税后到手和生活质量上很有竞争力</strong>；对于<strong>顶尖、股权占大头的 FAANG 薪酬（US$500K+），美国在绝对财富积累上仍然胜出。</strong> 新加坡的结构性优势 —— RSU 增值无资本利得税、低边际税率、安全、英语、亚太区位 —— 对高储蓄率的专业人士叠加效应最强。</li>
+</ul>
+<hr />
+<h2 id="4-签证的现实如果你是外籍人士">4. 签证的现实（如果你是外籍人士）<a class="anchor" href="#4-签证的现实如果你是外籍人士" aria-label="链接到本节">#</a></h2>
+<p>对大多数非本地读者而言，这是决定成败的一节，而好消息是：一位<strong>高薪的高级 / staff 工程师恰恰是最容易过关的画像之一</strong>。所有数字均已对照<strong>人力部（MOM）</strong>核实。</p>
+<h3 id="就业准证是两阶段测试">就业准证是「两阶段」测试<a class="anchor" href="#就业准证是两阶段测试" aria-label="链接到本节">#</a></h3>
+<ol>
+<li><strong>第一阶段 —— 合格薪资（按年龄设基准）。</strong> 当前最低：<strong>S$5,600/月</strong>（一般行业）或 <strong>S$6,200/月</strong>（金融服务业），并<em>随年龄上升</em>，到 45 岁以上分别为 <strong>S$10,700 / S$11,800</strong>。<strong>已排定的上调：</strong> 自 <strong>2027 年 1 月 1 日</strong>起，一般行业升至 <strong>S$6,000</strong>（最高 S$11,500），金融服务业升至 <strong>S$6,600</strong>（最高 S$12,700）。第一阶段不达标即出局，无论分数如何。<em>（任何真实的高级 / staff offer 都能轻松跨过这些门槛。）</em></li>
+<li><strong>第二阶段 —— COMPASS（打分）。</strong> 需从四项基础标准（薪资、学历、多样性、对本地就业的支持；各最高 20 分）加上奖励分中拿到 <strong>40 分</strong>。大多数常规申请者靠每项基础标准拿 10 分即可通过。</li>
+</ol>
+<h3 id="为什么技术工程师能轻松通过-compass">为什么技术工程师能轻松通过 COMPASS<a class="anchor" href="#为什么技术工程师能轻松通过-compass" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>「软件工程师 / 软件开发者 / 平台工程师 / AI 工程师」明确列在信息通信技术（Infocomm）的紧缺职业清单（SOL）上</strong> —— 可获 <strong>+10 至 +20 奖励分</strong>（C5）。（2025 年 11 月发布，适用于 2026 年 1 月 1 日起的申请。需要相关学士学位，或在清单岗位有 3 年以上经验。）</li>
+<li>明显高于行业基准的高级薪资可拿到强劲的 C1（薪资）分；一个好学历可拿到 C2。</li>
+<li>*<em>月薪超过 S$22,500（固定）时，COMPASS </em>完全豁免*** —— 强制性的本地招聘广告同样豁免。</li>
+<li><strong>在 SOL 上的有经验技术专才可获得 5 年期 EP</strong>（相较标准的 ≤3 年），稳定性更高，条件是薪资 ≥<strong>S$10,700/月</strong>（≤36 岁；随年龄递增）且 COMPASS 多样性拿到 ≥10 分。</li>
+</ul>
+<h3 id="面向极高级人才的更高层级">面向极高级人才的更高层级<a class="anchor" href="#面向极高级人才的更高层级" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>ONE Pass（顶尖专才准证）</strong> —— 面向月薪 <strong>S$30,000</strong> 的全球顶尖人才；不绑定雇主，5 年可续。自 <strong>2027 年 1 月起新增「ONE Pass（AI 与科技）」通道</strong>，面向 AI / 科技领域的「巅峰人才」（最低 S$22,500 固定薪资 + 已归属股权，凑到约 S$30K）。</li>
+<li><strong>Tech.Pass</strong>（由 EDB 经济发展局管理）—— 面向成熟的科技创始人 / 领导者 / 专家（约 S$22,500 上一份薪资 + 履历证明）；适合 CTO / 创始人，而非典型的 staff 工程师。</li>
+</ul>
+<h3 id="外籍人士必须权衡的摩擦">外籍人士必须权衡的摩擦<a class="anchor" href="#外籍人士必须权衡的摩擦" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>公平考量框架（FCF）：</strong> 月薪 S$22,500 以下时，雇主<strong>必须在 MyCareersFuture 上刊登招聘广告 ≥14 天</strong>，并在提交 EP 申请前公平考量本地人 —— 这增加约 2 周前置期，并对钻空子形成实质威慑（12–24 个月禁令；虚假申报最高 2 年监禁 / S$20K 罚款）。</li>
+<li><strong>绑定雇主且续签有风险：</strong> EP 与你的雇主绑定。<strong>若被裁员，只有有限的宽限期去找新雇主</strong>，否则必须离境 —— 考虑到 2025–26 年的裁员潮（Sea 在 2026 年 6 月裁掉约 8% 的开发者），这是现实风险。续签并非自动，而薪资门槛还在不断上调。</li>
+<li><strong>PR 靠酌情决定：</strong> EP 持有者可直接向 ICA 申请永久居民（专业 / 技术类通道）。没有固定的最短持有年限，但 ICA 会权衡经济贡献、学历、年龄、家庭关系和居住年限 —— 是否批准由其酌情决定。</li>
+</ul>
+<p><strong>外籍人士的结论：</strong> 一位拥有好学历、拿到高于基准 offer、就职于科技公司的真正高级 / staff 工程师<strong>在结构上处于有利位置</strong> —— 技术在 SOL 上、高薪能拿满薪资分、顶级 offer 甚至完全跳过 COMPASS/FCF。真正的约束与其说是「我能不能合格」，不如说是<strong>「这个岗位到底对外籍人士开放吗」</strong>（公司层面的本地比例压力 —— 见 §6）以及<strong>「经济下行时我的身份会怎样」</strong>。</p>
+<hr />
+<h2 id="5-这里到底存不存在-staff--principal-阶梯">5. 这里到底存不存在 Staff / Principal 阶梯？<a class="anchor" href="#5-这里到底存不存在-staff--principal-阶梯" aria-label="链接到本节">#</a></h2>
+<p>简短答案：<strong>存在，但很窄。</strong> 真正的 Senior→Staff→Principal IC 通道集中在<strong>美国背景的大厂（Meta、Google、Amazon、Visa、Stripe）以及少数中国 / 东南亚独角兽（ByteDance/TikTok、Grab、Shopee/Sea）。</strong> 出了这约 10–15 家公司，它就迅速稀薄：</p>
+<ul>
+<li><strong>银行把工程师并入企业式的 AVP→VP→SVP→ED 层级。</strong> 「VP」是<strong>薪级，而非 Staff-IC 的信号</strong> —— 据称约 25% 的银行员工都挂着这个头衔。一位强大的 IC「晋升」靠的是拿到 VP 头衔或转入管理岗。</li>
+<li><strong>本地公司常常做头衔通胀或给 IC 封顶</strong> —— 社区的批评相当直白：有些公司「把一个 IC6 叫作 principal，却只付 IC4 的钱」，头衔通胀普遍（一份被引用的调查指出经理 / 总监头衔增长了 24%，连初级岗位也如此）。</li>
+<li><strong>存在一种把人从 IC 通道拉走的「管理溢价」。</strong> 在 Visa 新加坡，一位工程<em>经理</em>（L7）总包约 S$242K，而一位 Staff <em>IC</em>（L6）约 S$167K —— 这是一种鼓励离开纯工程岗的结构性激励。相比之下，美国大厂提供一条完整的、与管理平行的 Staff→Principal→Distinguished IC 阶梯，其薪酬不低于甚至高于管理岗。</li>
+</ul>
+<p><strong>名义天花板更低 —— 而且阶梯本身更早到顶。</strong> 同公司、同层级对比：Visa <strong>Staff</strong> 软件工程师中位数为<strong>新加坡 S$167K，而美国 US$211K</strong>，且 Visa 的新加坡阶梯止步于 L7（约 US$172K），美国阶梯却一直到 L9（US$383K）。最深的 Principal/Distinguished 岗位与最大的 RSU 股权池都在美国总部。<strong>例外是中国 / 东南亚独角兽</strong>：ByteDance 的 Staff 等效层级（3-2）中位数约 <strong>~S$544K</strong>，是本地 IC 市场的顶点 —— 这是新加坡本地 IC 唯一能<em>接近</em>（虽极少匹敌）美国前沿薪酬、且无需离开新加坡的地方。</p>
+<p><strong>竞争激烈。</strong> NUS（新加坡国立大学）招收了「史上最大」的计算机专业一届（1,100+ 人）；2024–25 年经历了反复裁员和「精英过剩」；而新加坡在争夺 staff 岗位时还要面对<strong>来自印度、中国、东南亚的深厚区域人才池</strong>。胜出者的区分点在于：<strong>具真正规模的系统设计、分布式系统的深度、组织级影响力，以及越来越重要的 AI/ML。</strong> 正如社区的说法：<em>Staff 工程师提升团队；Principal 工程师提升组织</em> —— 而面试官把「把组件做对」仅当作最低门槛。</p>
+<hr />
+<h2 id="6-敏锐读者会提出的风险与反面观点">6. 敏锐读者会提出的风险与反面观点<a class="anchor" href="#6-敏锐读者会提出的风险与反面观点" aria-label="链接到本节">#</a></h2>
+<p>一篇诚实的分析必须对「机会」论点做压力测试：</p>
+<ol>
+<li>*<em>AI 可能压缩对</em>所有<em> IC 的需求，而不只是初级。<strong> 目前效应对高级工程师有利 —— AI 岗位薪酬在一年内上涨了 </strong>~15–25%</em><em>（约为整体工资增速的 5 倍），而「低层编程、初级数据报表、一线 IT 支持」被标为最易自动化，一篇在 2026 年广为流传的资深工程师文章更直言</em>「AI 可能砍掉初级岗位 —— 但砍不掉对有经验工程师的需求」<em>。<strong>但是</strong> AI 溢价集中在<strong>狭窄的 ML 子专业</strong>；一位</em>通用型*高级 / staff 工程师未必能吃到，而在 3–5 年的时间维度上，AI 编码工具可能软化对广大中间层的需求。对一场多年期的搬迁押注而言，这是一个真实、尚未解决的风险。</li>
+<li><strong>裁员并未完全过去 —— 只是换了说辞。</strong> 2025–26 年这一波以 AI 效率和资本开支再分配为名：Microsoft 裁了约 4,800 人（2026 年 7 月）；<strong>Shopee/Sea 裁掉全球约 8% 的开发者，含新加坡工程师</strong>（2026 年 6 月，且是在利润上升的情况下）；2026 年头 7 个月与 AI 相关的金融科技 / 银行业裁员约 70,000 人。如今裁员与招聘<strong>同时发生</strong>，因为公司在向 AI 重塑团队。</li>
+<li><strong>本地 vs 外籍的政策张力，直接与外籍申请者作对。</strong> 新加坡一边招揽顶尖外籍 AI 人才（新的 ONE Pass AI 通道），一边<strong>同时</strong>把 EP 门槛提高到 S$6,000 并推动「更强的本地代表性」。招聘顾问警告称 EP 审查会让本地人在招聘中占优。对一位高薪、且在 SOL 上的高级工程师而言，<em>资格</em>通常没问题（见 §4）—— 但某个具体岗位<strong>到底是否对外籍人士开放</strong>，取决于该公司的本地比例状况，而这是你从外部看不到的。</li>
+<li><strong>标题薪酬未必是你的 offer。</strong> 如 §2 所述：levels.fyi 的中位数偏向任职久者、有幸存者偏差、且股权占比高；一份全新 offer 通常携带更少股权，而股权是一场按授予价对股价的押注。请用 <strong>底薪 + 现实（打折后）的股权</strong>来测算你的下行，而非用中位数。</li>
+<li><strong>市场规模的错觉。</strong> LinkedIn 的「671 个 staff」高估了真实可得的 Staff-IC 数量（宽松关键词匹配、重复发布、多地点挂牌）。真正开放的 Staff/Principal IC 岗位 —— 尤其是对外籍人士开放的 —— 只是其中的一小部分。</li>
+<li><strong>HFT 天花板对大多数人并非现实目标。</strong> Jane Street 约 S$662K 锚定了区间顶部，但代表的是一个<strong>几百人规模、门槛极端的市场</strong>，而非大多数高级工程师能进入的路径。</li>
+</ol>
+<hr />
+<h2 id="7-结论--这个机会究竟适合谁">7. 结论 —— 这个机会究竟适合谁<a class="anchor" href="#7-结论--这个机会究竟适合谁" aria-label="链接到本节">#</a></h2>
+<p>2026 年的新加坡提供了<strong>亚洲最好的、经税务和生活质量调整后的高级工程市场之一</strong>，其支撑是：强劲的经济、大厂区域总部 / 银行 / 量化机构自建团队的高度集中，以及政府对 AI 的大笔投入（2026 财政预算新增 S$1bn；OpenAI、Nvidia、DeepMind 和 Anthropic 均已在本地设点）。对<strong>合适的画像而言，这是一个真正强劲的机会</strong> —— 但需保持清醒的若干前提。</p>
+<p><strong>如果你是以下这些人，它很适合你：</strong></p>
+<ul>
+<li>在 AI/ML、低延迟 / HFT、分布式系统、数据平台、云或安全领域的<strong>专精型</strong>高级 / staff 工程师 —— 这些领域的需求高溢价且持久。</li>
+<li>更看重<strong>税后到手与储蓄率</strong>（低税、无资本利得税、外籍人士不缴 CPF）与<strong>生活质量</strong>（安全、英语、亚太区位），而非绝对薪酬天花板。</li>
+<li>能够进入一家<strong>有真实阶梯的公司</strong>（美国大厂或中国 / 东南亚独角兽），而非头衔通胀的本地公司或把 IC 并入 VP 薪级的银行。</li>
+<li>能接受<strong>现场办公</strong>，以及（若搬迁）房租 / 家庭成本堆栈。</li>
+</ul>
+<p><strong>如果你是以下这些人，请三思：</strong></p>
+<ul>
+<li>追逐 <strong>IC 薪酬的绝对顶端</strong> —— 美国前沿名义上高出约 3–4 倍，拥有更深的 Principal/Distinguished 阶梯和更大的股权池。</li>
+<li>指望 AI 溢价「水涨船高」的<strong>通用型</strong>工程师 —— 它集中在狭窄的 ML 专业。</li>
+<li>无法在一个仍在裁减工程师的市场中承受<strong>绑定雇主的签证风险</strong>，或需要远程灵活性的外籍人士。</li>
+</ul>
+<p>新加坡的高级 / staff 软件工程师市场<strong>狭窄、竞争激烈、挑剔 —— 但对于进入正确公司的专精者而言，税后回报异常丰厚。</strong> 机会是真实的；中位数不是你的 offer，天花板也不是你的路径。</p>
+<hr />
+<h2 id="数据来源与方法">数据来源与方法<a class="anchor" href="#数据来源与方法" aria-label="链接到本节">#</a></h2>
+<p><strong>实时招聘数据</strong> —— 已登录的 LinkedIn Jobs 搜索，<code>location=Singapore</code>，2026 年 9 月 3 日（结果计数为 LinkedIn 自身的、按关键词匹配的、方向性的数据；未去重）。</p>
+<p><strong>薪酬</strong> —— levels.fyi（Google、Meta、ByteDance、Grab、Shopee/Sea、DBS、GovTech、Visa、Jane Street、Optiver —— 新加坡，截至 2026 年 9 月 3 日）；NodeFlair 新加坡薪资指南；Robert Half 2026 与 Michael Page 新加坡薪资指南；Glassdoor SG。<em>levels.fyi 为众包、总薪酬口径；招聘顾问指南为仅底薪口径 —— 两者不可直接比较，且分层级中位数（而非混合的公司中位数）才是稳健基准。</em></p>
+<p><strong>税务与公积金</strong> —— IRAS《个人所得税税率》（YA2024 起）与《行权股票期权所得》；CPF 公积金局缴费率（自 2026 年 1 月 1 日）。所有关键数字均已独立核实。</p>
+<p><strong>签证</strong> —— MOM：就业准证资格；COMPASS C5 紧缺职业清单；面向有经验技术专才的 5 年期 EP；ONE Pass 资格；公平考量框架。EDB：Tech.Pass。ICA：申请永久居民。当前 EP 薪资数字（一般 S$5,600 / 金融 S$6,200）及 2027 年 1 月 1 日的上调（S$6,000 / S$6,600）均已对照 MOM 核实。</p>
+<p><strong>市场趋势</strong> —— MOM 2026 年第二季度劳动力市场预览；CNA、《海峡时报》、《商业时报》、Robert Walters《2026 薪资调查》、PwC 及 Fintech News Singapore（2025–2026 年报道）。</p>
+<p><strong>职业阶梯色彩</strong> —— levels.fyi 跨国层级对比；NodeFlair；工程师社区讨论（Blind、Reddit r/singapore / r/askSingapore / r/singaporejobs）—— 仅用于关于头衔通胀与竞争的定性信号，而非硬数据。</p>
+<p><em>本文数字为供一般分析编制的 2025–2026 年市场数据；若干签证与税务门槛将于 2027 年 1 月 1 日变更 —— 行动前请对照 MOM/IRAS 重新确认。本文不构成个性化的职业、移民、税务或理财建议。</em></p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    var toc = document.querySelector('.toc');
+    if (toc) toc.classList.add('collapsed');
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["staff"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["staff"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
