@@ -1,19 +1,5 @@
 [
   {
-    "id": "docs-html",
-    "title": "从 /docs.html 直接写文章",
-    "href": "/docs/docs-html.html",
-    "deletable": true,
-    "file": "docs/docs-html.md",
-    "updatedAt": "2026-09-04T09:03:10.220Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/docs-html.md",
-      "frontend/public/docs/docs-html.html"
-    ]
-  },
-  {
     "id": "upload-page-15ca5ad9",
     "title": "景甜在爱情里是什么体质",
     "href": "/p/page-15ca5ad9.html",
