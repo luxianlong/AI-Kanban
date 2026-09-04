@@ -1,19 +1,5 @@
 [
   {
-    "id": "article-9e0e7d60",
-    "title": "浏览器端到端测试",
-    "href": "/docs/article-9e0e7d60.html",
-    "deletable": true,
-    "file": "docs/article-9e0e7d60.md",
-    "updatedAt": "2026-09-04T09:07:40.209Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/article-9e0e7d60.md",
-      "frontend/public/docs/article-9e0e7d60.html"
-    ]
-  },
-  {
     "id": "docs-html",
     "title": "从 /docs.html 直接写文章",
     "href": "/docs/docs-html.html",
