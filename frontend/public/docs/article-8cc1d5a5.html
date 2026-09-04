@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>微信公众号上最火的是哪类文章？ · 文章存档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>微信公众号上最火的是哪类文章？</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#10-万的可能性">「10 万+」的可能性</a></li>
+<li class="lv2"><a href="#头部赛道逐一拆解">头部赛道逐一拆解</a></li>
+<li class="lv2"><a href="#制胜的形式与标题套路">制胜的形式与标题套路</a></li>
+<li class="lv2"><a href="#20252026-的算法巨变这才是真正的故事">2025–2026 的算法巨变（这才是真正的故事）</a></li>
+<li class="lv2"><a href="#aiaigc-这条线以及那场整治">AI/AIGC 这条线——以及那场整治</a></li>
+<li class="lv2"><a href="#变现简要说明">变现，简要说明</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>两类内容主导了纯粹的阅读量，第三类则是当下最赚钱的风口故事：</p>
+<ol>
+<li><strong>快节奏的时政/时事评论（图文形式）</strong>——多年来一直是原创 10 万+ 文章的最大产出源。</li>
+<li><strong>情感共鸣类的文化/情感写作，如今被重新包装为「情绪价值」</strong>——覆盖面最广的品类，也是按阅读量排名第一的赛道。</li>
+<li><strong>AI 与科技（AI 工具/科技）</strong>——增速最快的「黑马」品类，也是 2026 年平台上被讨论最多的爆款故事来源。</li>
+</ol>
+<p>在这三类之下，还有一批「实用型」赛道——职场/副业、财经/投资、健康养生、育儿/教育、本地民生——它们靠的是变现能力、用户粘性或账号数量取胜，而非纯粹的爆款传播。<strong>没有任何一个赛道能在所有维度上通吃</strong>。</p>
+<h2 id="10-万的可能性">「10 万+」的可能性<a class="anchor" href="#10-万的可能性" aria-label="链接到本节">#</a></h2>
+<p>先做个量级校准：2024 年，微信公众号共产出 <strong>307,800（30.78 万）篇 10 万+ 文章</strong>，其中 <strong>118,700（11.87 万）篇为原创</strong>——相当于<strong>每天约 324 篇原创 10 万+</strong>，较 2023 年大幅增长〔新榜/腾讯新闻，2025-01-19〕。但相对于当年发布的 4.44 亿+ 篇文章（约每天 121 万篇），10 万+ 仍属稀有。能跑出一篇，只有<strong>万分之三</strong>的可能性。</p>
+<h2 id="头部赛道逐一拆解">头部赛道逐一拆解<a class="anchor" href="#头部赛道逐一拆解" aria-label="链接到本节">#</a></h2>
+<p><strong>时政/时事是阅读量之王。</strong> 在微信对 TOP 5000 原创 10 万+ 文章的分析中，<em>同样的四个时政账号连续三年（2022–2024）霸占前四名</em>：<strong>有理儿有面、洞见、占豪、远方青木</strong>。它们的燃料是热点新闻周期——中美关系、俄乌、地缘政治、军事。微信官方将<strong>图文</strong>称为跑出 10 万+ 的「致胜法门」，正是因为在突发新闻上文字比视频发得更快。军事细分赛道很真实：大伊万频道（原「军武速递」）单月总阅读量达 336 万（2025 年 11 月）。关于榜单有一点需要说明：新榜的 500 强样本<strong>剔除了</strong>纯政务账号，因此时政的主导地位甚至比排行榜显示的还要强。</p>
+<p><strong>情感/文化是覆盖面最广的引擎。</strong> 微信将其列为产出 10 万+ 的第二大板块，建立在「社会情绪」和「两性关系」之上，代表账号是十点读书（产出了 1,484 篇原创 10 万+）和夜听。在 2026 年的 TOP 5 赛道里，它按阅读量排名<strong>第一（阅读高）</strong>。其机制被重新包装为「情绪价值」——愤怒、焦虑与共鸣被当作<em>分享的催化剂</em>。情感类内容的<strong>转发率约比均值高 47%</strong>，考虑到算法如今给分享赋予约 30% 的权重，这一点极其重要。一个尤其赚钱的细分是<strong>中老年情感</strong>（面向老年读者的关系故事）：受众偏 60 岁以上、偏男性，在固定时段阅读（早 5–6 点、下午 3–4 点），且会为实用商品买单；单篇文章常常轻松破 10 万+。</p>
+<p><strong>AI/科技是黑马。</strong> 微信自己的复盘特别点名了<strong>数字生命卡兹克</strong>和 <strong>AI 新榜</strong>这两个从零起步冲到头部的账号。DeepSeek R1 发布时，公众号在所有平台中领跑，占据 <strong>DeepSeek 相关提及总量的 47.7%</strong>，其中操作教程和新闻解析占主导——*81% 跑成功的新闻解析类文章是在发布后 15 天内推出的。时机就是一切。2026 年的推荐流让一个全新账号有可能在第二、三篇就冲上 10 万+，这对新鲜、搜索量高的 AI 话题格外有利。据报道，一个 3,000 粉的账号靠一篇踩准时机的科技文，四小时破 10 万+。</p>
+<p><strong>钱和粘性所在，与阅读量并不重合。</strong> 2026 年排名前五的「能卖货」赛道，各自对应<em>不同</em>的 KPI：<strong>1）职场/副业 = 变现最强</strong>；<strong>2）情感/家庭 = 阅读最高</strong>；<strong>3）AI = 增长最快</strong>；<strong>4）财经/投资 = 客单价最高（高客单）</strong>；<strong>5）育儿/教育 = 粘性最高</strong>〔知乎，2025-06〕。财经的单读者变现最强：头部财经账号（财联社、第一财经、每日经济新闻）月阅读量达数千万，广告刊例价高达 <strong>87 万元/篇</strong>，腰部账号则在 3–8 万元/月。而按<em>账号数量</em>看，本地民生悄然占据了金字塔尖：<strong>公众号 500 强 TOP 10 中占 7 席</strong>。</p>
+<h2 id="制胜的形式与标题套路">制胜的形式与标题套路<a class="anchor" href="#制胜的形式与标题套路" aria-label="链接到本节">#</a></h2>
+<p>内容已经两极分化为<strong>「极致深度 vs. 极致速度」</strong>——深度长文面向愿意深读的读者，突发热点快评面向抢时效。中间那种拖沓的中等长度、堆满「铺垫」和「说教」的文章，会被惩罚。</p>
+<p>2025–2026 年最典型的爆款结构是<strong>「焦虑 + 解决方案」</strong>——职场内容体现得最淋漓尽致：<em>「大厂裁员潮下，普通人如何避开 35 岁危机」</em>。共鸣型标题也管用：<em>「暖哭了！这个小举动，让整座城市充满爱」</em>。</p>
+<p>其他被验证有效的形式还有：<strong>自述体</strong>（制造代入感）；<strong>清单体</strong>（拉高收藏率）；<strong>盘点/复盘</strong>（时间线回顾）；<strong>吐槽体</strong>（幽默/讽刺）；以及<strong>反常识</strong>论点，比如<em>「真正决定人生高度的，不是勤奋，而是懒人思维」</em>。针对银发赛道，可靠的套路是<strong>年龄标签 + 数字清单 + 情绪落点</strong>：<em>「人到中年才明白……」</em>、<em>「60 岁的女人……」</em>、<em>「3 个忠告」</em>。</p>
+<p>开头的规则变了。<strong>「黄金三章已死」——传统的黄金三段被「黄金三屏」（约 1,000 字）取代</strong>：读者在 20–30% 处大量流失，因此如今的公式是「痛点前置 / 反常识结论 / 冲突前置」——把痛点、反常识结论或核心冲突甩在最前面，零铺垫。被拉黑的开头：<em>「记得我刚开始做公众号的时候……」</em>。主流推文的黄金字数是 <strong>800–1,500 字</strong>；深度长文属于例外。</p>
+<h2 id="20252026-的算法巨变这才是真正的故事">2025–2026 的算法巨变（这才是真正的故事）<a class="anchor" href="#20252026-的算法巨变这才是真正的故事" aria-label="链接到本节">#</a></h2>
+<p>上面这一切，都源于一个结构性变化：公众号从<strong>「订阅优先私域」转向「算法推荐 + 社交裂变双引擎」</strong>。2024 年推荐流已占<strong>全部阅读量的 59.2%</strong>；据 2026 年运营者的报告，非粉丝流量现已占到总量的 <strong>70–90%</strong>。<strong>粉丝量不再决定你的天花板。</strong></p>
+<p>如今所有人都在优化的 2026 行为权重排序：<strong>完读率约 35% &gt; 分享/转发约 30% &gt; 收藏约 20% &gt; 互动约 15%——而粉丝数排在最后</strong>。这在结构上恰好利好前述头部品类：时效强（新闻）、易分享（情感）、完读率高（深度）。它也造就了如今常见的现象：<strong>千粉账号靠单篇破 10 万+</strong>，其中大部分阅读往往来自「看一看」的社交推荐〔人人都是产品经理，2025〕。「搜一搜」已成为主要入口——据称约占新增关注的 40%——因此结构清晰、关键词明确的文章能吃到 7 天以上的长尾，而不是 24 小时就沉底。</p>
+<p>还有两条执行层面的规则改变了内容结构：<strong>单纯的标题党如今会被算法惩罚</strong>——文不对题会触发提前退出，被系统判定为低质；<strong>内嵌外链、二维码或微信联系方式会被打上「不推荐」标签</strong>，逼得引导（CTA）只能挪到评论区和文末卡片。</p>
+<h2 id="aiaigc-这条线以及那场整治">AI/AIGC 这条线——以及那场整治<a class="anchor" href="#aiaigc-这条线以及那场整治" aria-label="链接到本节">#</a></h2>
+<p>2026 年最具标志性的公众号故事是监管层面的。微信的立场很明确：<strong>「可辅助，不可替代」</strong>——工具辅助创作没问题，但<em>完全</em>由自动化程序生产的内容被禁止。<strong>2026-03-27</strong>，微信运营规则新增了「非真人自动化创作」条款，封禁 AI 拼接/搬运内容、脚本驱动的批量发布，甚至封禁教人做自动化的<em>教程</em>。导火索是一桩刷屏丑闻：一对夫妻宣称靠 AI 写公众号<strong>年入 200 万</strong>——其账号「爆了么 AI」在一周内被永久封禁。（那 200 万主要是 299 元的课程费，而非广告流量。）执行是动真格的：2026 年 2 月的一次清理处置了 13,421 个账号；今日头条在 2025 年全年清理了 260 万条低质 AIGC 内容。</p>
+<p>另外，国家层面的法规——《人工智能生成合成内容标识办法》，自 <strong>2025-09-01</strong> 起施行——要求<em>所有</em> AI 生成内容都必须同时带有显式的「AI 生成」标识和隐式的元数据。但<strong>在微信上，「打了标」不等于「安全」</strong>：合规的标识满足了法律要求，却并不能豁免平台自身对自动化创作的封禁。</p>
+<p>其连锁反应还催生了<em>自成一派</em>的爆款题材：「去 AI 味 / 降 AI 率」（如何让 AI 文本读起来像人写的），以及——从长期看最耐人寻味的——<strong>GEO/AEO 内容</strong>（教创作者如何被 AI 答案引擎引用）。这一点之所以重要，是因为腾讯的<strong>元宝</strong>大约有<strong>一半的回答取材于微信生态</strong>，使公众号成了它的「自留地」。据 2026 年 7 月的研究，被引用的制胜特征包括：疑问式标题、答案前置的开头、完整的命名实体、清晰的证据，以及可拆解/清单化的结构——也就是说，创作者越来越多地是在为 AI 写作，而非为信息流写作。宏观驱动因素：谷歌搜索导流量下降了 33%（2024-11 至 2025-11），而只有 12% 的用户接受纯 AI 生产的新闻，43% 的人更偏好「人主导 + AI 辅助」〔路透新闻研究院〕。由此产生了所谓的「人味溢价」。</p>
+<h2 id="变现简要说明">变现，简要说明<a class="anchor" href="#变现简要说明" aria-label="链接到本节">#</a></h2>
+<p>钱和阅读量是背离的。<strong>职场/副业变现最好</strong>（焦虑+解决方案能导流到付费课程）；<strong>财经的单读者与单广告位收入最高</strong>（高达 87 万元/篇）；<strong>健康/银发转化最快</strong>（老年用户能在 30 秒内于小程序内完成购买）；<strong>情感带来最大的阅读体量</strong>。AI 账号的淘金热（单篇 10 万+、月入 3 万的说法）确有其事，但在 2026 年 3 月的整治之后，法律上已变得相当棘手。</p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["article-8cc1d5a5"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["article-8cc1d5a5"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
