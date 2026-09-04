@@ -266,11 +266,25 @@ const CONTENT_CSS = `
   line-height: 1.55;
   padding-right: 6px;
 }
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
 .toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
   font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--muted); margin-bottom: 12px;
-  padding-bottom: 9px; border-bottom: 1px solid var(--line);
+  color: var(--muted);
 }
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
 .toc ul { list-style: none; margin: 0; padding: 0; }
 .toc li { margin: 0; }
 .toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
@@ -340,6 +354,11 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 .backtop.show { opacity: 1; pointer-events: auto; }
 .backtop:hover { color: var(--accent); border-color: var(--accent); }
 .mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
   .toc { position: static; max-height: none; }
@@ -350,6 +369,9 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
     text-transform: uppercase; color: var(--muted); text-align: left;
   }
   .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
   .content { max-width: none; }
 }
 `
@@ -361,8 +383,8 @@ const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 function renderDocPage({ id, title, body, toc, hasMermaid }) {
   const sidebar = toc.length
     ? `<nav class="toc" aria-label="目录">
-<div class="toc-title">目录</div>
-<ul>
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
 ${toc.map((h) => `<li class="lv${h.level}"><a href="#${h.id}">${esc(h.text)}</a></li>`).join('\n')}
 </ul>
 </nav>`
@@ -383,7 +405,7 @@ ${FONTS}
 <a class="back" href="/docs.html">← 回到文章列表</a>${id ? '\n<span class="views" id="view-count" hidden></span>' : ''}
 </header>
 <div class="layout">
-<button class="mobile-toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed')">☰ 目录</button>
+${toc.length ? `<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>` : ''}
 ${sidebar}
 <main class="content">
 ${body}
@@ -395,9 +417,31 @@ ${body}
   window.addEventListener('scroll', function () {
     if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
   });
-  if (window.matchMedia('(max-width: 900px)').matches) {
-    var toc = document.querySelector('.toc');
-    if (toc) toc.classList.add('collapsed');
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
   }
 </script>
 ${hasMermaid ? `<!-- A doc that draws diagrams loads the same vendored renderer as an
