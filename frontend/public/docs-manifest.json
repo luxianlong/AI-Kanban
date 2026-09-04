@@ -98,20 +98,6 @@
     ]
   },
   {
-    "id": "upload-ddd-domain-map",
-    "title": "看板的 DDD 领域图（Mermaid 示例）",
-    "href": "/p/ddd-domain-map.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T12:36:58.518Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/ddd-domain-map.html",
-      "frontend/public/p/ddd-domain-map.meta.json"
-    ]
-  },
-  {
     "id": "public-api",
     "title": "公开接口（Public API）总览",
     "href": "/docs/public-api.html",
