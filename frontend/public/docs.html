@@ -215,6 +215,51 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* "Write an article" (task #223) — the archive's one authoring affordance. It
+   is owner-only like the delete/privacy controls, so it stays hidden until the
+   /__auth/whoami probe confirms the viewer; a public reader sees a masthead
+   with nothing to press. Quiet mono, the same register as the dates. */
+.hero .write {
+  display: none; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em;
+  padding: 8px 14px; border-radius: 3px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--sheet); color: var(--ink);
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+body.is-owner .hero .write { display: inline-block; }
+.hero .write:hover { color: var(--accent); border-color: var(--accent); }
+
+/* The editor pop-up (task #223): a wider sheet than the delete confirmation,
+   holding a title line and the Markdown itself. The paper/ink palette carries
+   over, and the textarea is set in mono because what goes in it is source. */
+.modal.editor { max-width: 720px; }
+.modal.editor .field { margin-top: 16px; }
+.modal.editor label {
+  display: block; margin-bottom: 6px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+}
+.modal.editor input[type="text"], .modal.editor textarea {
+  display: block; width: 100%; padding: 10px 12px;
+  background: var(--bg); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 3px;
+  font-family: var(--body); font-size: 15px; line-height: 1.7;
+}
+.modal.editor textarea {
+  font-family: var(--mono); font-size: 13px; line-height: 1.65;
+  min-height: 320px; resize: vertical;
+}
+.modal.editor input[type="text"]:focus, .modal.editor textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.modal.editor .hint { font-family: var(--mono); font-size: 11.5px; margin: 10px 0 0; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fffdf9; }
+.btn-primary:hover { background: #233c66; border-color: #233c66; }
+.btn-primary:disabled { opacity: 0.6; cursor: default; }
+@media (max-width: 700px) {
+  .modal.editor textarea { min-height: 220px; }
+}
+
 /* Toast notifications — replace native alert() for success/error feedback. */
 .toast-host {
   position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
@@ -238,6 +283,7 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 <body>
 <header class="hero">
 <h1>文章存档</h1>
+<button class="write" type="button" id="write-open">✎ 写文章</button>
 </header>
 <div class="wrap">
 <div class="grid">
@@ -396,6 +442,25 @@ body:not(.is-owner) .doc-priv { display: none !important; }
     <div class="modal-actions">
       <button type="button" class="btn" data-act="cancel">Cancel</button>
       <button type="button" class="btn btn-danger" data-act="confirm">Delete</button>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop" id="write-modal" role="dialog" aria-modal="true" aria-labelledby="write-modal-title" hidden>
+  <div class="modal editor">
+    <h3 id="write-modal-title">写一篇文章</h3>
+    <p>把 Markdown 粘进来，发布后会生成一篇和这个存档同样排版的文章。</p>
+    <div class="field">
+      <label for="write-title">标题</label>
+      <input type="text" id="write-title" placeholder="留空就取正文里第一个 # 标题" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="write-md">正文 · Markdown</label>
+      <textarea id="write-md" placeholder="# 标题&#10;&#10;正文……" spellcheck="false"></textarea>
+    </div>
+    <p class="hint">支持标题、列表、表格、引用、代码块和 mermaid 图。⌘/Ctrl + Enter 发布。</p>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-act="write-cancel">取消</button>
+      <button type="button" class="btn btn-primary" data-act="write-submit">发布</button>
     </div>
   </div>
 </div>
@@ -620,6 +685,104 @@ body:not(.is-owner) .doc-priv { display: none !important; }
             toast('Couldn’t update privacy: ' + err.message, true);
           }
         });
+    });
+  })();
+</script>
+<script>
+  // Write an article from the archive itself (task #223): the pop-up takes
+  // Markdown, POST /api/docs stores it as docs/<slug>.md, and the backend
+  // regenerates the site — so the new article is an ordinary document (same
+  // page style, card, view counter, delete path), not a second kind of page.
+  // The button is owner-only (body.is-owner, set by the whoami probe above) and
+  // the endpoint sits behind the site password, so a public reader can't write.
+  (function () {
+    var openBtn = document.getElementById('write-open');
+    var box = document.getElementById('write-modal');
+    if (!openBtn || !box) return;
+    var titleEl = document.getElementById('write-title');
+    var mdEl = document.getElementById('write-md');
+    var submitBtn = box.querySelector('[data-act="write-submit"]');
+    var cancelBtn = box.querySelector('[data-act="write-cancel"]');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var opener = null;
+
+    function say(message, isError) {
+      if (typeof toast === 'function') toast(message, isError);
+    }
+
+    function open() {
+      opener = openBtn;
+      box.hidden = false;
+      requestAnimationFrame(function () { box.classList.add('open'); });
+      reset();
+      setTimeout(function () { titleEl.focus(); }, 0);
+    }
+
+    function close() {
+      box.classList.remove('open');
+      setTimeout(function () { box.hidden = true; }, reduced ? 0 : 180);
+      // Keep what was typed: a mis-click on the backdrop must not destroy a draft.
+      if (opener && document.body.contains(opener)) opener.focus();
+    }
+
+    function reset() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '发布';
+    }
+
+    function publish() {
+      var markdown = mdEl.value;
+      if (!markdown.trim()) {
+        mdEl.focus();
+        say('正文还是空的', true);
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>发布中…';
+      fetch('/api/docs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: titleEl.value, markdown: markdown }),
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (doc) {
+          // Straight to the new article. The index was regenerated server-side,
+          // so coming back shows its card without another round trip here.
+          window.location.href = doc && doc.href ? doc.href : '/docs.html';
+        })
+        .catch(function (err) {
+          reset();
+          say('发布失败：' + err.message, true);
+        });
+    }
+
+    openBtn.addEventListener('click', open);
+    cancelBtn.addEventListener('click', close);
+    submitBtn.addEventListener('click', publish);
+    box.addEventListener('click', function (e) {
+      if (e.target === box) close(); // click on backdrop
+    });
+    document.addEventListener('keydown', function (e) {
+      if (box.hidden) return;
+      if (e.key === 'Escape') { close(); return; }
+      // ⌘/Ctrl + Enter publishes from inside the textarea, where a bare Enter is
+      // a newline and can't submit.
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !submitBtn.disabled) {
+        e.preventDefault();
+        publish();
+        return;
+      }
+      if (e.key === 'Tab') {
+        // Focus trap across the pop-up's own fields and buttons.
+        var stops = [titleEl, mdEl, cancelBtn, submitBtn].filter(function (el) { return !el.disabled; });
+        if (!stops.length) return;
+        var first = stops[0], last = stops[stops.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     });
   })();
 </script>
