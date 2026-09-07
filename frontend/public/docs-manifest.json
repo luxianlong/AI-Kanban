@@ -1,5 +1,19 @@
 [
   {
+    "id": "optiver-shanghai-senior-swe-research-platform-orp-the-real-requi",
+    "title": "Optiver Shanghai — Senior SWE, Research Platform (ORP): The Real Requirements",
+    "href": "/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html",
+    "deletable": true,
+    "file": "docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.md",
+    "updatedAt": "2026-09-07T02:57:20.358Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.md",
+      "frontend/public/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html"
+    ]
+  },
+  {
     "id": "article-8cc1d5a5",
     "title": "微信公众号上最火的是哪类文章？",
     "href": "/docs/article-8cc1d5a5.html",
@@ -168,69 +182,13 @@
     ]
   },
   {
-    "id": "upload-alibaba-one-point",
-    "title": "装着外卖的那个分部,只跌了百分之一",
-    "href": "/p/alibaba-one-point.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T16:25:05.576Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/alibaba-one-point.html",
-      "frontend/public/p/alibaba-one-point.meta.json"
-    ]
-  },
-  {
-    "id": "public-api",
-    "title": "公开接口（Public API）总览",
-    "href": "/docs/public-api.html",
-    "deletable": true,
-    "file": "docs/public-api.md",
-    "updatedAt": "2026-08-29T12:35:44.714Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/public-api.md",
-      "frontend/public/docs/public-api.html"
-    ]
-  },
-  {
-    "id": "upload-why-cz-could-stop-sun",
-    "title": "赵长鹏那条推里,没有孙宇晨",
-    "href": "/p/why-cz-could-stop-sun.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T09:11:11.475Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/why-cz-could-stop-sun.html",
-      "frontend/public/p/why-cz-could-stop-sun.meta.json"
-    ]
-  },
-  {
-    "id": "upload-jing-tian-symbolized",
-    "title": "只有一个人在决定这件事以什么形式被记住",
-    "href": "/p/jing-tian-symbolized.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T06:46:04.689Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/jing-tian-symbolized.html",
-      "frontend/public/p/jing-tian-symbolized.meta.json"
-    ]
-  },
-  {
     "id": "upload-sun-objective-evaluation",
     "title": "「客观评价孙宇晨」:前排答案没有一个在回答客观",
     "href": "/p/sun-objective-evaluation.html",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-08-29T06:26:53.790Z",
-    "isNew": true,
+    "isNew": false,
     "private": false,
     "paths": [
       "frontend/public/p/sun-objective-evaluation.html",
@@ -244,11 +202,39 @@
     "deletable": true,
     "file": null,
     "updatedAt": "2026-08-29T06:25:32.710Z",
-    "isNew": true,
+    "isNew": false,
     "private": false,
     "paths": [
       "frontend/public/p/jing-tian-career-penalty.html",
       "frontend/public/p/jing-tian-career-penalty.meta.json"
+    ]
+  },
+  {
+    "id": "public-api",
+    "title": "公开接口（Public API）总览",
+    "href": "/docs/public-api.html",
+    "deletable": true,
+    "file": "docs/public-api.md",
+    "updatedAt": "2026-08-29T12:35:44.714Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "docs/public-api.md",
+      "frontend/public/docs/public-api.html"
+    ]
+  },
+  {
+    "id": "upload-jing-tian-symbolized",
+    "title": "只有一个人在决定这件事以什么形式被记住",
+    "href": "/p/jing-tian-symbolized.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T06:46:04.689Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "frontend/public/p/jing-tian-symbolized.html",
+      "frontend/public/p/jing-tian-symbolized.meta.json"
     ]
   },
   {
@@ -258,11 +244,39 @@
     "deletable": true,
     "file": null,
     "updatedAt": "2026-08-29T06:24:31.117Z",
-    "isNew": true,
+    "isNew": false,
     "private": false,
     "paths": [
       "frontend/public/p/jing-tian-four-lines.html",
       "frontend/public/p/jing-tian-four-lines.meta.json"
+    ]
+  },
+  {
+    "id": "upload-alibaba-one-point",
+    "title": "装着外卖的那个分部,只跌了百分之一",
+    "href": "/p/alibaba-one-point.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T16:25:05.576Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "frontend/public/p/alibaba-one-point.html",
+      "frontend/public/p/alibaba-one-point.meta.json"
+    ]
+  },
+  {
+    "id": "upload-why-cz-could-stop-sun",
+    "title": "赵长鹏那条推里,没有孙宇晨",
+    "href": "/p/why-cz-could-stop-sun.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-29T09:11:11.475Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "frontend/public/p/why-cz-could-stop-sun.html",
+      "frontend/public/p/why-cz-could-stop-sun.meta.json"
     ]
   }
 ]

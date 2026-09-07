@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Optiver Shanghai — Senior SWE, Research Platform (ORP): The Real Requirements · 文章存档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>Optiver Shanghai — Senior SWE, Research Platform (ORP): The Real Requirements</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#1-what-this-role-is-really-asking-for">1. What this role is *really* asking for</a></li>
+<li class="lv2"><a href="#2-decoding-the-bullets">2. Decoding the bullets</a></li>
+<li class="lv3"><a href="#hidden-requirements-not-written-down">Hidden requirements not written down</a></li>
+<li class="lv2"><a href="#3-what-senior-means-here">3. What "Senior" means here</a></li>
+<li class="lv2"><a href="#4-interview--comp-reality-verified-with-caveats">4. Interview &amp; comp reality (verified, with caveats)</a></li>
+<li class="lv3"><a href="#interview">Interview</a></li>
+<li class="lv3"><a href="#comp-rmb">Comp (RMB)</a></li>
+<li class="lv2"><a href="#5-candidate-fit--xianlong-lu">5. Candidate fit — Xianlong Lu</a></li>
+<li class="lv3"><a href="#true-strengths-well-aligned">True strengths (well-aligned)</a></li>
+<li class="lv3"><a href="#true-gaps">True gaps</a></li>
+<li class="lv3"><a href="#the-single-biggest-risk-in-the-loop">The single biggest risk in the loop</a></li>
+<li class="lv3"><a href="#the-34-highest-leverage-prep-actions">The 3–4 highest-leverage prep actions</a></li>
+<li class="lv3"><a href="#bottom-line">Bottom line</a></li>
+</ul>
+</nav>
+<main class="content">
+<p><strong>Role:</strong> Senior Software Engineer – Research Platform (ORP) · Shanghai · Experienced IC<br /><strong>Posting:</strong> https://www.optiver.com/join-us/jobs/technology/shanghai/senior-software-engineer-research-platform/<br /><strong>Prepared for:</strong> Xianlong Lu · 2026-09-07</p>
+<blockquote class="quote"><p>Method: live posting pulled and decoded via a multi-agent analysis — five decode lenses<br />(requirements, business model, seniority, plus web research on interview &amp; comp), two<br />adversarial fact-checkers on the researched claims, and a synthesis. Confidence caveats<br />are carried through honestly.</p></blockquote>
+<hr />
+<h2 id="1-what-this-role-is-really-asking-for">1. What this role is <em>really</em> asking for<a class="anchor" href="#1-what-this-role-is-really-asking-for" aria-label="链接到本节">#</a></h2>
+<p><strong>In one sentence:</strong> they want a senior distributed-systems engineer who can *own an internal<br />research-compute platform as a product* — from scheduler/cluster internals up to the Python/Rust<br />APIs researchers call — and make it measurably faster and more reliable under real load, while<br />setting direction autonomously and having the spine to tell a researcher "no."</p>
+<p>The load-bearing fact is the <strong>business model</strong>. At a market maker, researcher iteration speed<br /><em>is</em> the firm's rate of edge discovery, and edge is directly monetized (that "global profit pool"<br />bonus). So the platform's north-star metric is <strong>human iteration latency — idea → measured result<br />— not cost or uptime.</strong> And because a subtly wrong backtest loses real money,<br /><strong>correctness/reproducibility is a first-order feature</strong>, not a nice-to-have. That is what<br />separates this from a generic FAANG platform job.</p>
+<p><strong>The real filter:</strong> *"Can you build and run a high-throughput, low-turnaround research compute<br />platform, without hand-holding, where every hour of experiment latency has P&amp;L consequences?"*<br />Raw distributed-systems depth + platform-ownership judgment beat trading-domain knowledge or<br />LeetCode skill.</p>
+<hr />
+<h2 id="2-decoding-the-bullets">2. Decoding the bullets<a class="anchor" href="#2-decoding-the-bullets" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Posting phrase</th><th>What it really means</th><th>Bar</th></tr></thead>
+<tbody>
+<tr><td>"service orchestration, job scheduling, cluster management, big-data processing"</td><td>You work on the internal <strong>Slurm/Ray/K8s/Airflow equivalents themselves</strong> — the scheduler and cluster manager, not glue. High blast radius; researchers see regressions instantly.</td><td><strong>Hard gate</strong></td></tr>
+<tr><td>"fully managed compute &amp; data platform layer… in Python &amp; Rust"</td><td>Platform-as-product. Python = the API/orchestration surface; <strong>Rust = the hot paths</strong> (schedulers, data-plane, daemons). They've hit Python's ceiling and are rewriting core in Rust.</td><td><strong>Hard gate</strong> (Python); Rust <em>near-expected</em>, not really "a plus"</td></tr>
+<tr><td>"leading large-scale engineering projects"</td><td><strong>The seniority gate.</strong> Technical ownership of a multi-quarter, multi-person effort you <em>drove</em> — not people-management. Screens out strong-IC-who-only-executes-tickets.</td><td><strong>Hard gate</strong></td></tr>
+<tr><td>"deep understanding of CS fundamentals" + "strong instincts"</td><td>The HFT bar: memory hierarchy, concurrency, OS scheduling, complexity, hardware-perf effects. On a compute platform, <strong>performance is the product.</strong></td><td><strong>Hard gate</strong></td></tr>
+<tr><td>"experience in distributed systems"</td><td>Flat phrasing hides that this is likely the <strong>highest-weight round</strong>. Consistency, partial failure, idempotency, backpressure, scheduling under failure. ORP <em>is</em> a distributed system.</td><td><strong>Hard gate</strong></td></tr>
+<tr><td>"Expertise in Python required; C/C++/Rust a plus"</td><td>"Expertise" (not proficiency) = senior Python: asyncio, GIL, profiling, memory, the C-extension/FFI boundary. Rust "plus" is understated for <em>this</em> team.</td><td><strong>Hard gate</strong> (Python)</td></tr>
+<tr><td>"GPUs and CUDA a plus"</td><td>Genuine differentiator. Note: "<strong>working with</strong> GPUs" = <em>operating/scheduling</em> them (topology, MIG, NCCL, utilization), <strong>not</strong> writing kernels. Infra-side GPU counts. Level/comp lever.</td><td>Differentiator</td></tr>
+<tr><td>"intersection of infrastructure and research enablement"</td><td>Strong infra eng who <em>also</em> enjoys serving researchers as customers. Success = researcher productivity, not infra elegance. A warning to pure-infra purists.</td><td>Differentiator</td></tr>
+<tr><td>"readiness to set technical direction… do the right thing"</td><td>The most loaded line. <strong>Autonomous judgment</strong> in global async gaps + <strong>the spine to resist pressure</strong> (from researchers or your own convenience) to cut corners on correctness. High-trust, low-hand-holding, integrity culture.</td><td><strong>Hard gate</strong></td></tr>
+</tbody>
+</table></div>
+<h3 id="hidden-requirements-not-written-down">Hidden requirements not written down<a class="anchor" href="#hidden-requirements-not-written-down" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>Reproducibility / determinism as first-class</strong> — point-in-time correctness, no lookahead/survivorship bias, deterministic distributed execution. A wrong backtest loses money.</li>
+<li><strong>End-to-end profiling of the whole loop</strong> — the p99 tail (scheduling overhead, data-load, cold-start, result retrieval), not just your own service.</li>
+<li><strong>On-call / operational ownership</strong> — "fully managed" + "reliability" + "directly interface with" = incidents, SLOs, being paged when researchers are blocked.</li>
+<li><strong>Functional-to-fluent English</strong> — globally distributed team; the loop and daily work run in English despite the Shanghai location.</li>
+<li><strong>Willingness to work inconvenient hours</strong> for EU/US/AU sync, plus strong async written comms.</li>
+<li><strong>Hardware-reasoning awareness</strong> — RDMA/InfiniBand, NUMA, storage tiering, GPU topology ("datacenter hardware to tooling").</li>
+<li><strong>Longevity/stability signal</strong> — quant firms invest heavily per hire and dislike job-hoppers for senior platform roles; a coherent increasing-ownership arc matters.</li>
+<li><strong>Level/comp calibration happens in the loop</strong> — GPU/CUDA, Rust depth, and demonstrated direction-setting are the levers that move level and the (large) bonus.</li>
+</ul>
+<hr />
+<h2 id="3-what-senior-means-here">3. What "Senior" means here<a class="anchor" href="#3-what-senior-means-here" aria-label="链接到本节">#</a></h2>
+<p>Optiver runs a <strong>flat, IC-heavy ladder.</strong> "Senior" is a strong hands-on IC with embedded tech<br />leadership — <strong>not</strong> a manager or pure architect. You're expected to be in the codebase shipping<br />Python/Rust <em>and</em> to lead-without-authority (own a workstream, set the approach, unblock others).<br />Capability-wise it maps roughly to big-tech senior→early-staff, but the title just signals<br />"trusted autonomous IC."</p>
+<ul>
+<li><strong>Senior vs mid</strong> = autonomy + direction-setting (owns the design and outcome vs executes a given design).</li>
+<li><strong>Senior vs staff</strong> = scope of influence (one workstream vs platform-wide/cross-office strategy).</li>
+<li>This req is scoped to project-level, so you do <strong>not</strong> need a platform-wide-strategy track record — showing <em>readiness</em> to grow into it is the plus.</li>
+</ul>
+<hr />
+<h2 id="4-interview--comp-reality-verified-with-caveats">4. Interview &amp; comp reality (verified, with caveats)<a class="anchor" href="#4-interview--comp-reality-verified-with-caveats" aria-label="链接到本节">#</a></h2>
+<h3 id="interview">Interview<a class="anchor" href="#interview" aria-label="链接到本节">#</a></h3>
+<ul>
+<li>Optiver officially prioritizes <strong>how you think over LeetCode</strong>: collaborative problem-solving, heavy CS fundamentals, "explain what your language does under the hood" <em>(well-supported, primary source)</em>.</li>
+<li>For <em>this ORP role specifically</em>: <strong>Python-first distributed-systems + system design dominate — the C++ low-latency gauntlet is the trading-systems track, not this one</strong> <em>(well-supported, primary JD)</em>.</li>
+<li>Likely loop: <strong>OA (coding-focused, possibly timed) → recruiter screen → 1–2 technical rounds (live Python + CS fundamentals + distributed-systems design) → project deep-dive + behavioral/values</strong> <em>(shape well-supported)</em>.</li>
+<li><strong>Down-weight these:</strong> the "6-stage Shanghai loop ending in a CTO interview" rests on <strong>one bot-walled Glassdoor snippet — weak, do not rely on it.</strong> Whether senior platform hires face the trader-style mental-math OA is <strong>unconfirmed</strong> (that evidence is mostly grad/trader track). Prep for a <em>possible</em> timed element; don't assume the mental-math gauntlet.</li>
+</ul>
+<h3 id="comp-rmb">Comp (RMB)<a class="anchor" href="#comp-rmb" aria-label="链接到本节">#</a></h3>
+<ul>
+<li>The <strong>global profit pool</strong> bonus is confirmed verbatim on the posting <em>(well-supported)</em>.</li>
+<li><strong>Realistic total ~1.2M–2.0M in the first ~2 years.</strong> Base verified from Liepin listings at ~50–80k/month × 24薪 (~1.2M–1.9M) <em>(well-supported)</em>.</li>
+<li>The oft-cited "<strong>~2M/yr years 1–2, then convert to the global profit pool from year 3</strong>" figure is <strong>one anonymous 1point3acres self-report — plausible, not fact.</strong></li>
+<li><strong>~2–4× the general Shanghai senior-SWE market</strong> (~0.5M avg); upper-middle quant tier, below Jane Street / Citadel Securities HK <em>(plausible)</em>.</li>
+<li><strong>Essentially no meaningful equity in China</strong> — cash base + cash profit-pool bonus; equity/RSU is a US-office feature <em>(plausible, argument-from-absence)</em>.</li>
+<li>Sentiment caveat <em>(low confidence, opinion)</em>: Chinese forums flag a perceived promotion ceiling / narrow lateral mobility for foreign quant firms' China staff.</li>
+</ul>
+<hr />
+<h2 id="5-candidate-fit--xianlong-lu">5. Candidate fit — Xianlong Lu<a class="anchor" href="#5-candidate-fit--xianlong-lu" aria-label="链接到本节">#</a></h2>
+<h3 id="true-strengths-well-aligned">True strengths (well-aligned)<a class="anchor" href="#true-strengths-well-aligned" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>Genuine large-scale distributed-systems ownership</strong> — tech lead of a self-built cloud-native graph DB on K8s powering metadata services; owned Data Lineage in MS Purview end-to-end (extended Apache Atlas + OpenLineage) as a managed platform service. Real platform-as-a-product ownership → hits the seniority gate <em>and</em> the "leading large-scale projects" gate.</li>
+<li><strong>Proven high-throughput scaling under real load</strong> — HBase/Hadoop from hundreds → tens-of-thousands TPS over hundreds of TB, rowkey design to kill hotspots, cache/storage tuning, live incident handling, cluster mgmt/node expansion. Exactly the end-to-end performance + operational-ownership + straggler/hotspot profile; strong war stories for the failure-mode grilling.</li>
+<li><strong>Platform-serving-internal-customers mindset</strong> — multi-tenant schemas, zero-downtime re-sync/index rebuild via MQ pipelines. Maps to "fully managed platform," idempotency, degradation modes.</li>
+<li><strong>Strong CS fundamentals / raw aptitude</strong> — two-time China Physics Olympiad national 2nd prize, strong math. Covers the fundamentals bar and any timed/quantitative screen.</li>
+<li><strong>Current sharp Python</strong> — recent LLM-agent tooling with a reproducible evaluation harness (on-point given the reproducibility/determinism emphasis).</li>
+<li><strong>Coherent 11-year increasing-ownership arc</strong> (CMB → MS 7y as tech lead) — satisfies the longevity signal. First cross-team Istio adopter shows the "evaluate &amp; adopt new tech" differentiator.</li>
+</ul>
+<h3 id="true-gaps">True gaps<a class="anchor" href="#true-gaps" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>No production Rust</strong> — most consequential; for <em>this</em> team Rust is closer to expected than "a plus."</li>
+<li><strong>No CUDA/GPU</strong> — differentiator, not a gate, but a level/comp lever left on the table and a likely soft spot in GPU-scheduling design probes.</li>
+<li><strong>Python depth ≠ infra depth</strong> — deepest systems depth is JVM/infra and C++; the role wants Python <em>expertise at platform-internals depth</em> (asyncio, GIL, C-extension/FFI boundary, profiling).</li>
+<li><strong>No direct scheduler / gang-scheduling / GPU-resource-manager experience</strong> — operated clusters (K8s, Hadoop/HBase) but hasn't built the control-plane that is the literal subject of the highest-weight design round.</li>
+<li><strong>No trading-domain reproducibility exposure</strong> (point-in-time correctness, lookahead/survivorship bias) — learnable, framable via eval-harness work, but not native.</li>
+</ul>
+<h3 id="the-single-biggest-risk-in-the-loop">The single biggest risk in the loop<a class="anchor" href="#the-single-biggest-risk-in-the-loop" aria-label="链接到本节">#</a></h3>
+<p><strong>The distributed-systems system-design round on scheduling/orchestration, colliding with the<br />Rust + Python-internals depth expectation.</strong> You'll design a job scheduler / GPU cluster resource<br />manager — a system you've <em>operated adjacent to but never built</em> — under relentless failure-mode<br />pressure, in a Python/Rust stack where you have zero production Rust. The danger: a strong-but-<br />adjacent background reads as "impressive systems engineer who hasn't built <em>this</em> system in <em>this</em><br />stack," landing you below the senior bar or at a lower level/comp band.<br /><em>(The C++ low-latency gauntlet is NOT the risk — that's the trading-systems track. Don't prep there.)</em></p>
+<h3 id="the-34-highest-leverage-prep-actions">The 3–4 highest-leverage prep actions<a class="anchor" href="#the-34-highest-leverage-prep-actions" aria-label="链接到本节">#</a></h3>
+<ol>
+<li><strong>Build a small but real Rust-on-FFI project</strong> (PyO3/maturin): a Python-callable Rust component — e.g., a mini job scheduler or a fast data-movement/serialization daemon. Converts "no production Rust" into "here's Rust I wrote and why I reached for it over Python," and lets you answer ownership/borrowing follow-ups from experience. <strong>Highest ROI by far.</strong></li>
+<li><strong>Deeply prep the scheduler / cluster-resource-manager system design</strong> — gang scheduling, preemption, fair-share vs priority, bin-packing, <strong>GPU topology-aware placement (NVLink/PCIe/MIG, NCCL, fragmentation, utilization-as-throughput)</strong>, backpressure, node-failure-mid-job, exactly-once vs at-least-once, straggler mitigation. Explicitly bridge from your HBase-hotspot/rowkey and K8s work so experience becomes transferable evidence, not a gap.</li>
+<li><strong>Reframe every project story at senior altitude in the firm's currency</strong> — lead with the ambiguity <em>you</em> resolved and the calls <em>you personally</em> made ("I decided X because Y, tradeoff Z"); tie outcomes to <strong>iteration latency / turnaround / reliability under load</strong>, not lines of code or team size. Pre-build a "leading-without-authority" narrative and a "pushed back / chose the harder correct path" story for the values gate. Weave in reproducibility/determinism via the eval-harness work.</li>
+<li><strong>Shore up senior-depth Python internals + connect to the business model</strong> — GIL/asyncio/concurrency limits, memory, profiling, C-extension boundary (the exact "explain what your language does under the hood" bar). Prepare a specific <strong>"why ORP"</strong> that names <em>turnaround-time-as-directly-monetized-product</em> (generic answers are a documented red flag). Treat GPU-as-infrastructure fluency as a stretch lever for level/comp, not a gate.</li>
+</ol>
+<h3 id="bottom-line">Bottom line<a class="anchor" href="#bottom-line" aria-label="链接到本节">#</a></h3>
+<p>You clear the two hardest, highest-weight gates on paper — genuine large-scale distributed-systems<br />ownership and proven throughput/reliability scaling under real load — and your honesty flags are<br />exactly the right ones, which itself signals the intellectual honesty the culture screens for.<br />You're a credible, in-scope senior candidate. Whether you land the offer (and at what level/comp<br />band) will be decided almost entirely by the <strong>scheduling/orchestration system-design round</strong> and<br />how convincingly you close the <strong>Rust and Python-internals depth gap</strong> before the loop. The Rust<br />FFI project + scheduler design prep are the two actions that move the outcome most.</p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["optiver-shanghai-senior-swe-research-platform-orp-the-real-requi"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["optiver-shanghai-senior-swe-research-platform-orp-the-real-requi"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
