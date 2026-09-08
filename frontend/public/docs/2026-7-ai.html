@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>从"卷模型"到"卷干活"：2026年最挤的7条AI创业赛道，谁在裸泳？ · 文章存档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>从"卷模型"到"卷干活"：2026年最挤的7条AI创业赛道，谁在裸泳？</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#主线这一年故事从造模型变成了用模型">主线：这一年，故事从"造模型"变成了"用模型"</a></li>
+<li class="lv2"><a href="#赛道①-ai智能体agent模型变现的头号出口-">赛道①　AI智能体（Agent）：模型变现的头号出口 🥇</a></li>
+<li class="lv2"><a href="#赛道②-ai基础设施资本部署的震中-">赛道②　AI基础设施：资本部署的震中 💰</a></li>
+<li class="lv2"><a href="#赛道③-具身智能--人形机器人压倒性的中国故事-">赛道③　具身智能 / 人形机器人：压倒性的中国故事 🤖</a></li>
+<li class="lv2"><a href="#赛道④-ai编程--vibe-coding最快pmf最猛变现-️">赛道④　AI编程 / Vibe Coding：最快PMF、最猛变现 ⌨️</a></li>
+<li class="lv2"><a href="#赛道⑤-垂直行业ai护城河从模型ip转向工作流与信任-️">赛道⑤　垂直行业AI：护城河从模型IP转向工作流与信任 🏛️</a></li>
+<li class="lv2"><a href="#赛道⑥-语音--ai视频--多模态创作中国全球领先的一条-">赛道⑥　语音 / AI视频 / 多模态创作：中国全球领先的一条 🎬</a></li>
+<li class="lv2"><a href="#赛道⑦-ai消费硬件与ai眼镜智能手表之后第一个真pmf的新品类-">赛道⑦　AI消费硬件与AI眼镜：智能手表之后，第一个真PMF的新品类 👓</a></li>
+<li class="lv2"><a href="#普通人--小团队怎么上车">普通人 / 小团队，怎么上车？</a></li>
+<li class="lv2"><a href="#结尾那个所有人都在装看不见的秘密">结尾：那个所有人都在装看不见的秘密</a></li>
+</ul>
+</nav>
+<main class="content">
+<p><strong>备选标题：</strong></p>
+<ul>
+<li>《AI眼镜、人形机器人、编程Agent……2026最热的7条赛道，藏着一个所有人都在装看不见的秘密》</li>
+<li>《2026年AI创业：最不缺的是钱和模型，最缺的是"真能用、还持续付钱"》</li>
+<li>《7条最热AI赛道全盘点：巨头全在场，小团队还有戏吗？》</li>
+</ul>
+<blockquote class="quote"><p><strong>数据说明：</strong> 本文涉及的融资、估值、收入、出货量等数字，均来自公开报道、企业官方披露与行业机构测算，可能与最终正式披露有出入，部分为区间或量级估算。全文不构成任何投资建议。</p></blockquote>
+<hr />
+<p>先说一个反差。</p>
+<p>2026年内，一家做人形机器人的中国公司在上交所敲钟。据公开报道，它开盘遭到数千倍超额认购，首日股价翻了数倍，盘中市值一度冲上高位后又快速回落数十亿美元——一场教科书级的过山车。</p>
+<p>同一时期，另一组数字被悄悄压在角落里：MIT NANDA 那份在2025年被反复引用的报告说，约95%的生成式AI试点"未能带来可衡量的营收影响"（注意：这份报告的统计口径后来也有不少争议）；多家机构的CIO调研也显示，真正把智能体部署进生产环境的企业只是少数。</p>
+<p>一边是资本市场的估值狂欢，一边是大部分项目"没算出账"。</p>
+<p>这就是2026年的AI创业——<strong>最不缺的是钱和模型，最缺的是"真能用、还持续付钱"的落地。</strong></p>
+<p>今天这篇，我们把2026年最热的7条AI创业赛道，一条一条掰开：为什么热、谁在场上、中国人的机会在哪，以及——<strong>哪里在裸泳。</strong></p>
+<blockquote class="quote"><p>先说清读者定位：这是一篇写给<strong>AI从业者、创业者和投资人</strong>的硬核盘点。为了照顾非硬核读者，第一次出现的英文缩写我都会用一句大白话解释。</p></blockquote>
+<hr />
+<h2 id="主线这一年故事从造模型变成了用模型">主线：这一年，故事从"造模型"变成了"用模型"<a class="anchor" href="#主线这一年故事从造模型变成了用模型" aria-label="链接到本节">#</a></h2>
+<p>一句话交代大背景。</p>
+<p>2023-2024年是基座大模型的军备竞赛，比的是"谁的模型更强"；2025年是过渡年，主题是"模型即产品"。<strong>而2026年，主角彻底换人了——从"谁的模型强"，变成了"模型能干什么活、能收到多少钱"。</strong></p>
+<p>标志性事件，是几条陡峭得几乎不真实的收入曲线：</p>
+<blockquote class="quote"><p><strong>关键信号</strong></p>
+<ul>
+<li>Anthropic 的 <strong>Claude Code</strong>，据报道一年内做到了<strong>数十亿美元级</strong>的年化运行率收入（run-rate=按当前收入水平折算的年化收入）。</li>
+<li><strong>Cursor</strong>（明星AI编程工具），据报道一年出头就把 <strong>ARR</strong>（Annual Recurring Revenue，年度经常性收入，简单说就是"一年能稳定收到的订阅费"）从约1亿美元推到了<strong>二十亿美元级</strong>，爬坡速度超过很多SaaS前辈。</li>
+<li>法律AI <strong>Harvey</strong>、客服AI <strong>Sierra</strong>，也跑出了SaaS史上最快的收入曲线之一。</li>
+</ul></blockquote>
+<p>钱呢？钱还在往基础设施砸天文数字——OpenAI、Anthropic、xAI 这几家头部实验室的估值，都据报道进入了<strong>千亿美元乃至更高的量级</strong>。但<strong>真正定义这一年的，是两条彼此撕裂的张力：</strong></p>
+<p>一是<strong>"钱砸下去了、价值还没兑现"的巨大鸿沟</strong>（就是前面那个95%）；</p>
+<p>二是<strong>推理成本的雪崩</strong>——据近月报道，部分混合大模型的 token 价格已跌入"每百万 token 1美元以下"的区间，降幅陡峭。</p>
+<p>这两条张力，一条利好应用层的采用故事，另一条利好应用层、却狠狠碾压重资产的算力商。</p>
+<p>记住这个背景，我们开始盘点。</p>
+<hr />
+<h2 id="赛道①-ai智能体agent模型变现的头号出口-">赛道①　AI智能体（Agent）：模型变现的头号出口 🥇<a class="anchor" href="#赛道①-ai智能体agent模型变现的头号出口-" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话定性：</strong> 不是陪你聊天，是替你干活——2026年模型能力变现的第一出口。</p>
+<p><strong>为什么热？</strong> 因为它是前沿模型最清晰的变现路径。Claude Code 证明了：驱动企业收入最快增长的，是"智能体"而不是"对话"。编程、法律、客服这些垂直Agent跑出了真实且高速的ARR，给了VC罕见的"叙事+收入"双击。再加上2026年内，MCP、A2A 这两大智能体互联协议据报道在开源基金会框架下走向整合，让"多个智能体协同"在企业里少了一大障碍——说人话，就是让不同厂家的AI助手开始能"对上话、搭伙干活"。</p>
+<p><strong>玩家：</strong></p>
+<ul>
+<li><strong>国外：</strong> Cognition（旗下 Devin，号称"AI程序员"），据报道以<strong>数百亿美元级估值</strong>完成新融资，估值在数月内翻倍；Sierra（客服Agent）、Harvey（法律AI），据报道均已跑到<strong>数亿美元级ARR</strong>。</li>
+<li><strong>国内：</strong> 智谱 GLM 系列（据其官方基准，在关键Agent任务上已逼近头部闭源模型，且成本低得多——这是厂商自述口径），并上线了 AutoGLM 等桌面智能体；还有蝴蝶效应 Manus。</li>
+</ul>
+<p><strong>中国机会：</strong> 中国在智能体竞赛里是<strong>独立的一极，不是跟随者</strong>。突破口在成本和开源——GLM、DeepSeek 这类具备智能体能力的开放权重模型（开放权重=把模型参数公开，开发者可自行部署改造），让开发者能以远低于闭源前沿模型的成本搭Agent。但真正的空白点是<strong>深度企业工作流的垂直智能体</strong>：目前，还很难看到一个披露ARR能与 Cognition、Harvey 对标的中国玩家。所以机会不在"再做一个通用Agent"，而在<strong>把开源模型嵌进法律、财税、客服、供应链这些有真实付费意愿的本土工作流里，先做深一个。</strong></p>
+<p><strong>冷水：</strong> 现实差距巨大。大部分试点没算出ROI、真部署的是少数，多家机构都警告：相当一部分智能体项目可能因为成本、ROI不清或集成失败被砍掉。几十倍ARR的估值，赌的是"执行零失误+护城河持久"。而同样的模型进步，会让大厂自家Agent<strong>反噬垂直玩家</strong>——你辛苦筑的护城河，可能只是别人产品里的一个新功能。</p>
+<blockquote class="quote"><p><strong>一句话金句：智能体的估值定价了"零失误的未来"，可现实里连试点都还在返工。</strong></p></blockquote>
+<hr />
+<h2 id="赛道②-ai基础设施资本部署的震中-">赛道②　AI基础设施：资本部署的震中 💰<a class="anchor" href="#赛道②-ai基础设施资本部署的震中-" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话定性：</strong> 这一年资本部署的震中——史上最大的私募融资，撞上正在崩塌的推理单位经济。</p>
+<p><strong>为什么热？</strong> 两股相反的力量在这里对撞。一边是史无前例的资本开支和巨额估值；另一边是推理成本的暴跌。智能体和推理模型让每次查询吃掉的 token 激增，所以哪怕单价年年跳水，<strong>总算力开支反而还在涨</strong>——这让"卖铲子"成了最安全的下注。叠加出口管制造成的中美双轨市场，它成了2026年融资最猛的赛道。</p>
+<p><strong>玩家：</strong> OpenAI、Anthropic、xAI；neocloud（"新云"，专做AI算力租赁的新型云厂商，区别于传统三大云）里的 CoreWeave、Nebius，据报道营收都在高速增长；芯片侧还有 Cerebras、SambaNova、Groq。中国这边跑的是<strong>一套由国家塑形的平行栈</strong>：DeepSeek 据报道打破了"不融资"的传统、由国家背景资本领投、以<strong>数百亿美元级估值</strong>融资，其下一代模型据称同时在英伟达和华为芯片上做过验证；芯片侧则是华为昇腾、寒武纪进入采购清单。</p>
+<p><strong>中国机会：</strong> 机会在"<strong>去CUDA化</strong>"的国产推理栈（CUDA是英伟达的软件护城河，"去CUDA化"就是摆脱对它的依赖），以及推理成本战里的极致性价比。国产数据中心的确定性需求，给了本土芯片一块稳定的底盘。短板也清晰——多家智库判断，国产芯片短期内仍难在峰值训练性能上追平英伟达最高端产品。所以中国的位置是：<strong>领先于成本与开源，落后于峰值训练。</strong></p>
+<p><strong>冷水：</strong> 泡沫论已进入主流。"循环融资"（芯片厂给买自家芯片的客户兜底、钱在圈内转）招来了"庞氏"式的类比。AI相关公司在美股大盘里的权重已高到形成系统性敞口。更麻烦的是——token 价格跌破1美元利好应用层，却<strong>碾压那些背着巨额折旧和债务的重资产算力商</strong>。而真正的硬约束，正从芯片转向<strong>电力和电网</strong>。核心问题只有一个：<strong>那些以万亿计的承诺开支，能不能在钱停之前跑出足够的收入来偿付。</strong></p>
+<blockquote class="quote"><p><strong>一句话金句：这一轮基础设施赌的不是算力够不够，而是"电够不够、钱停之前收入回不回得来"。</strong></p></blockquote>
+<hr />
+<h2 id="赛道③-具身智能--人形机器人压倒性的中国故事-">赛道③　具身智能 / 人形机器人：压倒性的中国故事 🤖<a class="anchor" href="#赛道③-具身智能--人形机器人压倒性的中国故事-" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话定性：</strong> 2026最热的硬件AI主题，而且压倒性地是一个中国故事。</p>
+<p><strong>为什么热？</strong> 两股力量汇合。一是 <strong>VLA（视觉-语言-动作）基础模型</strong>——说白了，就是给机器人装一个"通用大脑"，让它能跨任务、跨形态迁移，把"一台机器只会一件事"变成"一个脑子干多种活"。二是<strong>中国制造把物料成本（BOM）打下来、把产量做上去</strong>。据行业机构测算，2026上半年全球人形机器人出货约在<strong>两万台上下的量级</strong>、同比大涨约三倍，其中<strong>绝大多数由中国厂商贡献</strong>（口径为全尺寸及类人形态，不同机构统计范围略有差异）。</p>
+<p><strong>玩家：</strong> 宇树 Unitree、智元 Agibot、银河通用 Galbot、优必选 UBTech；国外的 Figure AI、Physical Intelligence、Skild AI。几组信号感受一下：宇树据报道于2026年内在上交所上市，成为中国大陆首家上市的人形机器人公司；智元据报道已下线第一万五千台、并已递表港交所；优必选2026上半年营收据其披露约<strong>12.7亿元人民币</strong>（同比约翻倍），其中全尺寸人形产品收入激增至约<strong>5.9亿元人民币（约合8100万美元，按7.2汇率折算）</strong>。</p>
+<p><strong>中国机会：</strong> 这<strong>几乎完全是中国的主场</strong>。"具身智能"被写进国家政策，解锁了国家资本、地方政府订单和成本优势供应链。近期真实的商业落地，集中在<strong>工厂、物流和训练中心，而不是家庭</strong>。开源关键资产（如智元开源了 AgiBot World 数据集与 GO-1 模型）是建立生态引力的打法。机会在供应链、零部件、本体成本工程，以及<strong>为真实产线提供拿得出手的自主能力。</strong></p>
+<p><strong>冷水：</strong> 泡沫信号很明确。据报道已有上百家中国人形机器人公司、本体产能已经跑到需求前面，个别标的上市后暴涨暴跌、估值倍数高到难以自圆其说。<strong>绝大多数所谓"部署"，仍是有人盯着的试点、演示编排或遥控操作</strong>，VLA 在开放世界的长程操作上依然脆弱。收入相对估值小得可怜（优必选全尺寸人形收入约8000万美元量级，多数美国实验室干脆零收入）。家用需求还没被验证、大量中国需求靠国家资金而非市场自发。IPO狂欢退潮后，大概率是<strong>整合，以及一轮"down-round"（融资时估值不升反降的"流血轮"）。</strong></p>
+<blockquote class="quote"><p><strong>一句话金句：人形机器人卖的是"未来的想象力"，可账本上大多还是"有人在旁边盯着的遥控演示"。</strong></p></blockquote>
+<hr />
+<blockquote class="quote"><p><strong>📍 中场休息一下。</strong></p>
+<p>如果你已经读累了，记住一件事就够了：<strong>上面这四条赛道，热的逻辑各不相同，但冷水几乎是同一盆——估值在给"尚未到来的采用"定价。</strong></p>
+<p>智能体、基础设施、人形、编程，市场都在为"以后一定会大规模用起来"买单，而现在真正跑出的、可持续的生产级收入，远比估值暗示的要少。</p>
+<p>带着这盆冷水，我们看后面三条。</p></blockquote>
+<hr />
+<h2 id="赛道④-ai编程--vibe-coding最快pmf最猛变现-️">赛道④　AI编程 / Vibe Coding：最快PMF、最猛变现 ⌨️<a class="anchor" href="#赛道④-ai编程--vibe-coding最快pmf最猛变现-️" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话定性：</strong> 整个AI栈里，最快达成PMF、变现最狠的应用品类。（PMF=Product-Market Fit，产品被市场验证"真的有人要、愿意持续用"。）</p>
+<p><strong>为什么热？</strong> 因为代码这件事<strong>可验证、开发者乐意付费、企业看得见直接的ROI</strong>。Cursor 据报道一年出头就把 ARR 从约1亿冲到二十亿量级；模型跨过能力阈值后，Agent能完成真实的多文件、多步骤任务（Cognition 曾在官方博客自述，Devin 写了它自己相当高比例的代码——这是自述口径，不必当作精确事实）；"vibe coding"（凭感觉编程：不写代码、用自然语言把想法"说"成软件）又打开了巨大的非开发者市场（TAM=可触达的总市场）。前沿实验室、超大厂和一整墙VC同时涌入。</p>
+<p><strong>玩家：</strong> Anysphere/Cursor、Cognition/Devin、GitHub Copilot（据报道付费席位已达千万量级）、Lovable、Replit。国内是一场<strong>千亿元人民币级的战略战场</strong>：字节 Trae 在产品上领先，阿里通义灵码搭配开放权重的 Qwen3-Coder，用<strong>每月一美元级起步的定价</strong>冲击西方价格体系，智谱 GLM 系列也在编程基准上据其官方数据正面对标头部闭源模型。</p>
+<p><strong>中国机会：</strong> 中国策略偏好<strong>开放模型、激进定价和企业/B2B分发</strong>，而不是美式高价SaaS。2026年中，围绕海外编程工具安全性的讨论明显升温，也在客观上加速了国产化替代、开源化、以及"更便宜的 token 经济"这条路线。</p>
+<p><strong>冷水：</strong> 过热风险很尖锐。头部玩家用几百亿美元估值，背着仅几十亿美元的ARR，隐含极高的前向倍数。<strong>这个品类的护城河其实很薄</strong>——底层智能来自少数几个基础模型，做IDE/做壳的创业公司面临利润被压缩和平台风险（实验室和超大厂直接下场做编程，还能捆绑、还能低价）。切换成本低，churn（客户流失）是真实威胁。而 vibe coding 让非专家把没审过的代码推上线，本质上是在<strong>积累安全与可维护性的债务</strong>。中国这边还要再叠加一层地缘碎片化和价格战。</p>
+<blockquote class="quote"><p><strong>一句话金句：AI编程是变现最快的赛道，也是护城河最薄的赛道——你的壳，可能就是大厂的下一个免费功能。</strong></p></blockquote>
+<hr />
+<h2 id="赛道⑤-垂直行业ai护城河从模型ip转向工作流与信任-️">赛道⑤　垂直行业AI：护城河从模型IP转向工作流与信任 🏛️<a class="anchor" href="#赛道⑤-垂直行业ai护城河从模型ip转向工作流与信任-️" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话定性：</strong> 2026企业软件的破圈故事——护城河从"模型IP"，转向"工作流、数据与信任"。</p>
+<p><strong>为什么热？</strong> 前沿模型已经够好了，于是难点从"模型本身"转向了<strong>分发、专有数据、集成，以及受监管领域里的工作流与信任</strong>。目标垂直（法律、医疗、财税、客服、销售）都是巨大的人力成本池，ROI清晰。收入模式也从"卖席位"转向<strong>按结果、按用量计费</strong>（比如 Sierra 按成功解决的对话数量收费）。在横向生成式AI试点大面积失败的当下，垂直AI是少数展现出真实企业黏性的品类。</p>
+<p><strong>玩家：</strong> Harvey（法律，据报道ARR已达数亿美元级、服务律师数以十万计，覆盖大量顶级律所）、OpenEvidence（"医生版ChatGPT"，据报道估值百亿美元级、月度临床咨询量巨大）、Abridge、Sierra、Clay、Rillet。国内<strong>医疗是最热的中国垂直</strong>：据报道，商汤医疗2026年内完成超1亿美元级融资，估值进入百亿元人民币量级；据艾瑞等机构调研，大量中国医生已在临床中使用AI工具，AI在医院IT预算中的占比也在明显抬升（这些为调研/测算口径，非精确统计）。法律赛道里，智合AI是国内最接近 Harvey 的对标，但体量仍只是其零头。</p>
+<p><strong>中国机会：</strong> 在<strong>受监管、数据密集、有本地合规壁垒</strong>的行业里，做那套"记录系统 / 行动系统"。这是资本堆不出来、只有执行力强的团队才建得起来的东西。</p>
+<p><strong>冷水：</strong> 护城河正在被侵蚀。一个很值得玩味的信号是——据报道，<strong>Harvey 公开放弃了自研垂直法律模型</strong>，因为前沿通用推理模型在它自家的基准上已经超过了它。这说明很多"垂直"应用本质是<strong>薄壳</strong>，随时可能被模型实验室或巨头（Salesforce、LexisNexis、微软 Copilot 等）反噬。法律、医疗的监管与责任敞口（幻觉引用、临床差错）是生死线。中国还要再叠一层老问题：变现滞后于炒作、企业付费意愿更弱。</p>
+<blockquote class="quote"><p><strong>一句话金句：连 Harvey 都放弃自研模型了——垂直AI的护城河，从来不是模型，是数据、集成和信任。</strong></p></blockquote>
+<hr />
+<h2 id="赛道⑥-语音--ai视频--多模态创作中国全球领先的一条-">赛道⑥　语音 / AI视频 / 多模态创作：中国全球领先的一条 🎬<a class="anchor" href="#赛道⑥-语音--ai视频--多模态创作中国全球领先的一条-" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话定性：</strong> 生成式媒体从"新奇玩具"变成"真金白银"，而中国在AI视频上全球领先。</p>
+<p><strong>为什么热？</strong> 三股力量汇合。一是模型质量跨过了"能用于真实工作和娱乐"的阈值（能做到音画同步对白的视频，如 Sora 2、可灵、Veo）；二是变现路径清晰（ElevenLabs、可灵、Suno 等据报道均已跑到<strong>数亿美元级ARR</strong>）；三是分发飞轮——短视频对廉价视频素材的需求近乎无止境，语音智能体按结果计价，直接替代昂贵的呼叫中心人力。</p>
+<p><strong>玩家：</strong> 国外有 ElevenLabs、Runway、OpenAI Sora、Suno。国内这条尤其亮眼：<strong>快手可灵是全球AI视频收入的领跑者之一</strong>（据报道年中ARR达数亿美元级、创作者数以千万计）；MiniMax（稀宇）据报道于2026年内在港交所上市、估值百亿美元级，且相当大比例收入来自海外；生数科技 Vidu 也在冲港股IPO；字节 Seedance 在多项视频基准里名列前茅。</p>
+<p><strong>中国机会：</strong> 这是中国在生成式AI子领域里，<strong>质量和收入双双超越美国在位者最清晰的例证</strong>。优势很实在：与快手、抖音这类超级App紧耦合，拿到分发和数据；用激进的开放权重把中国模型铺向全球；再加上强劲的海外消费者变现。<strong>这也是中国创业者最有把握"出海"的AI赛道。</strong></p>
+<p><strong>冷水：</strong> 版权和法律是最大的一把悬顶之剑（Suno、Udio 的诉讼，虽有唱片公司和解带来缓和，但训练数据合法性、欧盟AI法案等仍未定）。Deepfake 和肖像滥用招来监管和平台封禁。更现实的是——<strong>视频生成正在快速商品化</strong>，大量近乎同质的模型把"每秒素材的价格"一路压向算力成本，利润被挤薄。而基础实验室（OpenAI、谷歌、字节）本身，就直接威胁着 Runway、Pika 这些独立创业公司。</p>
+<blockquote class="quote"><p><strong>一句话金句：AI视频是中国最有把握出海的一条——前提是熬过版权诉讼，和一场把利润压到贴地的商品化价格战。</strong></p></blockquote>
+<hr />
+<h2 id="赛道⑦-ai消费硬件与ai眼镜智能手表之后第一个真pmf的新品类-">赛道⑦　AI消费硬件与AI眼镜：智能手表之后，第一个真PMF的新品类 👓<a class="anchor" href="#赛道⑦-ai消费硬件与ai眼镜智能手表之后第一个真pmf的新品类-" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话定性：</strong> AI眼镜，是智能手表以来第一个真正跑出PMF的全新消费硬件品类，而中国是重心。</p>
+<p><strong>为什么热？</strong> AI眼镜是2026年的一个拐点。Meta 用带显示的 Ray-Ban 系列验证了需求，Omdia 等机构预测2026年全球出货有望进入<strong>千万台级</strong>。中国则把它变成了一场全民淘金潮（据报道2025年销量同比大幅增长）。软件侧，智能体正在"吃掉浏览器"（如 Perplexity Comet、ChatGPT Atlas），而少数头部助手已经证明消费者愿意规模化付费——据报道，ChatGPT 的年化收入已达<strong>数百亿美元级</strong>、付费订阅数以千万计。</p>
+<p><strong>玩家：</strong> 小米（据报道2026年一季度以约三成份额登顶中国第一）、Rokid（冲港股IPO）、Xreal、Meta；软件侧则有 Perplexity、Character.AI。</p>
+<p><strong>中国机会：</strong> 中国可以说是2026年AI消费硬件的<strong>重心</strong>，哪怕它在前沿消费软件上仍落后。优势很纯粹：<strong>硬件供应链、价格进攻（百元到数百美元的设备，对打 Meta 数百美元的定价）和速度</strong>。机会就在于——把AI做成廉价、能大众普及的物理设备。这，恰恰是中国最擅长的打法。</p>
+<p><strong>冷水：</strong> 助手巨头（ChatGPT、Gemini、Grok）正把消费AI的需求大口吸走，独立App的经济模型很脆弱。陪伴类产品的监管与安全责任，已经上升到<strong>生存级</strong>——比如 Character.AI 在一起指控其产品与未成年人自杀有关的诉讼（wrongful death，即"非正常死亡"，案件仍在审理、因果尚未认定）压力下，于2025年11月全面禁止18岁以下用户进行开放式聊天。AI眼镜则是典型的炒作周期：小基数上的高增长、大量同质厂商、薄利、IPO择时亢奋，一旦复购不及预期就可能反转——<strong>眼镜大多还是"音频/摄像"的新奇物，缺一个日常刚需的杀手级应用</strong>。而 Meta、小米的规模和补贴，让纯玩家很难活。</p>
+<blockquote class="quote"><p><strong>一句话金句：AI眼镜是中国最擅长的硬件戏，但它还缺一个"每天非用不可"的理由。</strong></p></blockquote>
+<hr />
+<h2 id="普通人--小团队怎么上车">普通人 / 小团队，怎么上车？<a class="anchor" href="#普通人--小团队怎么上车" aria-label="链接到本节">#</a></h2>
+<p>七条盘完，你可能更焦虑了：赛道这么挤，巨头全在场，我一个小团队还有戏吗？</p>
+<p>有。但要换个姿势。<strong>别在最贵的地方硬碰硬，去大厂看不上、堆钱也堆不出来的地方。</strong></p>
+<ul>
+<li><strong>别做"下一个通用Agent"，更别再造一个基座大模型。</strong> 这是资本和大厂的游戏，据报道已有厂商收缩通用模型投入、转向应用——小团队一头扎进去，多半是送人头。</li>
+<li><strong>把开源模型（GLM / DeepSeek / Qwen）当水电用，去啃一条窄工作流。</strong> 法律、财税、医疗、供应链——选一个你真正懂、有合规壁垒、有人愿意掏钱的场景，先做深一个，跑出<strong>可披露的真实ARR</strong>，而不是又一个"没算出账"的试点。</li>
+<li><strong>如果你的强项是硬件和供应链</strong>，那么具身智能的零部件、AI眼镜的成本工程，是中国最擅长、也最有确定性需求的地方。</li>
+<li><strong>如果你想出海</strong>，AI视频/多模态是目前中国团队最有把握的一条——质量、成本、分发都站在你这边。</li>
+<li><strong>警惕"薄壳"陷阱。</strong> 连 Harvey 都放弃自研模型了，你的产品如果只是套一层壳、加个 prompt，就得反问自己：<strong>当底层模型再强一档、大厂捆绑进来，我还剩下什么？</strong> 最好的答案是——专有数据、深度集成、和客户的信任。这些是时间和执行堆出来的，不是融资堆出来的。</li>
+</ul>
+<p>一句话：<strong>在这个人人都盯着几十倍ARR估值的年代，最稀缺的能力，是把一个不性感的场景，做到别人抄不动。</strong></p>
+<hr />
+<h2 id="结尾那个所有人都在装看不见的秘密">结尾：那个所有人都在装看不见的秘密<a class="anchor" href="#结尾那个所有人都在装看不见的秘密" aria-label="链接到本节">#</a></h2>
+<p>回到开头那个反差——资本市场的估值狂欢，和大部分"没算出账"的试点。</p>
+<p><strong>2026年真正稀缺的，从来不是资本，也不是模型能力，而是"可持续的生产级采用"。</strong></p>
+<p>而市场的估值，几乎完全定价了<strong>尚未到来的采用</strong>。当所有人盯着那些天价倍数时，被忽视的恰恰是——今天很多所谓的"ARR"，可能只是实验性试点的收入，一旦企业预算收紧，就会大规模流失。</p>
+<p>所以最反共识的判断是这一句：<strong>2026年最被高估的，是估值倍数和"智能体万能"的叙事；最被低估的，是分发、专有数据、集成和信任这些"非技术护城河"。</strong></p>
+<p>前者是资本能堆出来的泡沫，后者是执行力强的团队才砌得起来的墙。</p>
+<p>对中国创业者，这个判断只会更锋利：机会不在模型层的"高举高打"，而在应用层的"脏活累活"；不在对标硅谷的高价SaaS，而在用中国最擅长的成本工程和供应链，把AI变成便宜的物理设备、和能出海的媒体工具。</p>
+<p>风口会退，token 会更便宜，估值会回归。到那时候，还站着的，不会是PPT里ARR最高的那个，而是<strong>产品被真正用起来的那个</strong>。</p>
+<p>2026年最热的赛道是什么？表面上，是Agent、是人形、是AI眼镜。</p>
+<p>但真正的答案，也许是那句被所有人装看不见的老话——<strong>能落地、能收钱、能被信任。</strong></p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["2026-7-ai"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["2026-7-ai"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>

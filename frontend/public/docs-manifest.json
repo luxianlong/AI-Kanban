@@ -1,5 +1,19 @@
 [
   {
+    "id": "2026-7-ai",
+    "title": "从\"卷模型\"到\"卷干活\"：2026年最挤的7条AI创业赛道，谁在裸泳？",
+    "href": "/docs/2026-7-ai.html",
+    "deletable": true,
+    "file": "docs/2026-7-ai.md",
+    "updatedAt": "2026-09-08T05:07:45.376Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/2026-7-ai.md",
+      "frontend/public/docs/2026-7-ai.html"
+    ]
+  },
+  {
     "id": "optiver-shanghai-senior-swe-research-platform-orp-the-real-requi",
     "title": "Optiver Shanghai — Senior SWE, Research Platform (ORP): The Real Requirements",
     "href": "/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html",
@@ -7,7 +21,7 @@
     "file": "docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.md",
     "updatedAt": "2026-09-07T02:57:20.358Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.md",
       "frontend/public/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html"
@@ -49,7 +63,7 @@
     "file": "docs/article-ce2808be.md",
     "updatedAt": "2026-09-04T10:16:10.958Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "docs/article-ce2808be.md",
       "frontend/public/docs/article-ce2808be.html"
@@ -168,20 +182,6 @@
     ]
   },
   {
-    "id": "upload-hyogaki-30man-20260831",
-    "title": "日本给一代人写了一个数字：三年增加30万。七年后那一栏是空的",
-    "href": "/p/hyogaki-30man-20260831.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-31T15:19:12.089Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/hyogaki-30man-20260831.html",
-      "frontend/public/p/hyogaki-30man-20260831.meta.json"
-    ]
-  },
-  {
     "id": "upload-sun-objective-evaluation",
     "title": "「客观评价孙宇晨」:前排答案没有一个在回答客观",
     "href": "/p/sun-objective-evaluation.html",
@@ -235,6 +235,20 @@
     "paths": [
       "frontend/public/p/jing-tian-symbolized.html",
       "frontend/public/p/jing-tian-symbolized.meta.json"
+    ]
+  },
+  {
+    "id": "upload-hyogaki-30man-20260831",
+    "title": "日本给一代人写了一个数字：三年增加30万。七年后那一栏是空的",
+    "href": "/p/hyogaki-30man-20260831.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-08-31T15:19:12.089Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "frontend/public/p/hyogaki-30man-20260831.html",
+      "frontend/public/p/hyogaki-30man-20260831.meta.json"
     ]
   },
   {
