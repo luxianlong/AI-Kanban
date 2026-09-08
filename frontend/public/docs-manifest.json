@@ -1,5 +1,19 @@
 [
   {
+    "id": "40-arr-2026",
+    "title": "一年从零冲到40亿美元ARR：2026年只有编程智能体真的收到了钱",
+    "href": "/docs/40-arr-2026.html",
+    "deletable": true,
+    "file": "docs/40-arr-2026.md",
+    "updatedAt": "2026-09-08T06:59:04.980Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/40-arr-2026.md",
+      "frontend/public/docs/40-arr-2026.html"
+    ]
+  },
+  {
     "id": "2026-3",
     "title": "卖代码的死了，卖\"干完的活\"的赢了：2026 最热赛道只有一个答案",
     "href": "/docs/2026-3.html",
