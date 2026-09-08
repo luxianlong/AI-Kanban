@@ -1,5 +1,19 @@
 [
   {
+    "id": "2026-3",
+    "title": "卖代码的死了，卖\"干完的活\"的赢了：2026 最热赛道只有一个答案",
+    "href": "/docs/2026-3.html",
+    "deletable": true,
+    "file": "docs/2026-3.md",
+    "updatedAt": "2026-09-08T06:10:21.675Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/2026-3.md",
+      "frontend/public/docs/2026-3.html"
+    ]
+  },
+  {
     "id": "ai",
     "title": "今年最热的AI赛道？家人们，最热的其实是\"融资\"",
     "href": "/docs/ai.html",

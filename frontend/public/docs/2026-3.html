@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>卖代码的死了，卖"干完的活"的赢了：2026 最热赛道只有一个答案 · 文章存档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>卖代码的死了，卖"干完的活"的赢了：2026 最热赛道只有一个答案</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#为什么是它而不是别的">为什么是它，而不是别的</a></li>
+<li class="lv2"><a href="#但热不等于赚钱这门生意毛利薄得吓人">但热不等于赚钱，这门生意毛利薄得吓人</a></li>
+<li class="lv2"><a href="#第二名更接地气第三名最会讲故事">第二名更接地气，第三名最会讲故事</a></li>
+<li class="lv2"><a href="#中国的玩法不是纯创业是巨头做庄">中国的玩法：不是纯创业，是巨头做庄</a></li>
+<li class="lv2"><a href="#给想上桌的人">给想上桌的人</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>先说一个反常识的事实。</p>
+<p>过去一年融资跑最快的 AI 公司，不是做大模型的，也不是做机器人的。是一个套在 VS Code 上的编辑器。Cursor，14 个月，ARR 从 1 亿冲到 20 亿美元，估值一路 25 亿、99 亿、293 亿——B2B SaaS 历史上罕见的爬坡速度。</p>
+<p>2026 年 AI 创业的答案，早就不在"谁的模型更大"这道题里了。真正的题面是：谁能把活干完，并且收到钱。</p>
+<p>编程 Agent 是第一个把这件事跑通的赛道。</p>
+<h2 id="为什么是它而不是别的">为什么是它，而不是别的<a class="anchor" href="#为什么是它而不是别的" aria-label="链接到本节">#</a></h2>
+<p>一句话：编程是目前唯一一个 ROI 能当场算清、企业二话不说就掏钱的场景。</p>
+<p>老逻辑是卖 token。你调我 API，按量付费，跟买水买电一个道理，越用越便宜，谁也不忠诚。新逻辑是卖"干完的活"。你要一个功能，Agent 从写到测到跑通，交付一个能 merge 的 PR。你付的不是算力，是一个初级工程师一下午的产出。</p>
+<p>这条曲线陡到什么程度，看数字就够了。</p>
+<p>Cognition 的 Devin，ARR 从 2024 年 9 月的 100 万，到 2025 年 6 月的 7300 万——9 个月 73 倍。9 月拿 4 亿美元融资，估值 102 亿。GitHub Copilot 2025 年 7 月过 2000 万用户，覆盖 90% 的财富 100 强，活跃用户里约 46% 的代码是 AI 写的。据报道，Replit 一年 ARR 从约 280 万涨到约 2.5 亿，接近 90 倍。</p>
+<p>最狠的是 Anthropic 自己下场。Claude Code 2025 年 5 月 GA，到 11 月做到约 10 亿美元年化收入。模型厂商亲手做产品，半年干到 10 亿，这个信号比任何融资新闻都重。</p>
+<p>还嫌不够热？看 Windsurf 那出戏。OpenAI 谈了个约 30 亿的收购，黄了；Google 转头花约 24 亿把 CEO 和核心团队反向挖走；剩下的空壳，Cognition 72 小时内约 2.5 亿接盘。72 小时拆一家公司，只有一种资产会被这么抢——巨头都认为必须拿下的入口。</p>
+<p>企业为什么爽快付钱？因为一个工程师年薪几十万，Agent 一年几万块订阅费能顶掉他三成活，这道除法 CFO 自己就会做。别的 AI 应用还在解释"我能提效"，编程 Agent 直接把省下的人月摆你面前。</p>
+<h2 id="但热不等于赚钱这门生意毛利薄得吓人">但热不等于赚钱，这门生意毛利薄得吓人<a class="anchor" href="#但热不等于赚钱这门生意毛利薄得吓人" aria-label="链接到本节">#</a></h2>
+<p>泼盆冷水。</p>
+<p>应用层每处理一个 token，都在给上游的前沿模型交 API 费。你卖 20 块订阅，成本可能 15 块都进了 Anthropic 和 OpenAI 的口袋。毛利薄，甚至为负——增长越猛，烧得越狠。</p>
+<p>更要命的是，你依赖的那个模型厂商，已经是你最强的对手。Claude Code、OpenAI 的 Codex 明摆在那，他们随时能从上游打下来。你在下游做的所有体验优化，人家一次模型迭代就抹平了。</p>
+<p>再看护城河。市面上一大半是 VS Code 分叉，用户今天用 Cursor 明天换 Trae，切换成本约等于零。ARR 涨得漂亮，可能只是补贴买来的留存假象——你得先问一句，这 20 亿里有多少是烧钱换来的水分。293 亿估值对 20 亿 ARR，29 倍，这个价格定价的是"未来五年一步不错"。一步错，腰斩。</p>
+<p>Gartner 已经把话撂在这儿：到 2027 年底，40% 以上的 agentic AI 项目会因为成本、ROI 说不清、可靠性不达标被砍掉。今天最热的这批，一多半活不过这个筛子。</p>
+<h2 id="第二名更接地气第三名最会讲故事">第二名更接地气，第三名最会讲故事<a class="anchor" href="#第二名更接地气第三名最会讲故事" aria-label="链接到本节">#</a></h2>
+<p>编程 Agent 是状元，但另外两条赛道也挤满了人，位置各不相同。</p>
+<p><strong>垂直应用 SaaS</strong>，也是更适合普通人下手的那个。法律的 Harvey 2025 年 8 月破 1 亿 ARR，只用约 3 年——传统 SaaS 走到这一步平均要 9 年。医疗记录的 Abridge 4 个月估值从 27.5 亿翻到 53 亿，靠的是嵌进 Epic、触达约 38% 的美国医院网络。据报道，OpenEvidence 在美国医生群体里渗透率颇高，5 个月估值从 10 亿翻到 35 亿。</p>
+<p>它们的护城河不是模型，是分发和工作流锁定。你把系统焊进医院的病历流程、律所的文档流程，客户想拔都拔不掉。中国这边讯飞医疗已经港股上市，营收在涨、但仍在亏——增收不等于能盈利，这个提醒对所有赛道都成立。</p>
+<p><strong>具身智能</strong>，也是泡沫最鼓的一个。宇树据报已登陆科创板，首日大涨（具体涨幅与交易日以交易所公告为准），G1 卖到约 1.6 万美元把全球价格底线砸穿；Figure AI 据报估值约 390 亿美元。但把估值和收入放一起看就绷不住了——西方玩家几乎零经常性产品收入，390 亿押在一个基本不赚钱的硬件上。演示里那些丝滑动作，不少是遥操作和剪辑。机器人没有互联网级的动作语料，那套"scaling law 迟早成立"的类比，至今没被验证过。它最吸睛，收入最接近于零，估值全靠叙事和政策撑着。</p>
+<h2 id="中国的玩法不是纯创业是巨头做庄">中国的玩法：不是纯创业，是巨头做庄<a class="anchor" href="#中国的玩法不是纯创业是巨头做庄" aria-label="链接到本节">#</a></h2>
+<p>美国这套是纯 Agent 创业配财务 VC，谁跑得快谁拿钱。中国不一样，是巨头做庄。</p>
+<p>AI 编程在这儿是四大厂的入口战。字节 Trae 主打 AI 原生 IDE，据报年底注册数百万、月活破百万；阿里通义灵码加 Qoder、腾讯 CodeBuddy、百度文心快码密集发布。四家都在补贴，独立 ARR、估值基本不披露——因为它们本来就是战略亏损品，图的是把开发者圈进自家云和模型生态，单独算账没意义。</p>
+<p>大模型六小龙则走另一条路：智谱、MiniMax 借港股 IPO 兑现。注意，热的不是模型本身，是模型之上"能自动干活"的那一层。资本用脚投票，投的是应用，不是底座。</p>
+<h2 id="给想上桌的人">给想上桌的人<a class="anchor" href="#给想上桌的人" aria-label="链接到本节">#</a></h2>
+<p>还有没有机会？有，但别去正面刚 Cursor。</p>
+<p>切口在垂直。通用编程 Agent 是巨头和头部的绞肉机，你拼不过补贴。但把 Agent 塞进一个窄到没人愿意做的工作流里——某个行业的合规代码审查、某类遗留系统的迁移、某个只有老师傅懂的运维脚本——巨头看不上、通用模型不懂，这才是普通人能焊住的地方。护城河从来不是模型，是你比所有人都懂那个客户每天在骂什么。</p>
+<p>记住那道除法：企业买单只认一件事——你替我干完的活，值不值我付的钱。答不上来，融再多也是表演。</p>
+<p>最后留个问题。当模型厂商自己就是最强的 Agent 公司，Claude Code 半年做到 10 亿、Codex 就摆在货架上，今天这批估值最高的"套壳工程"，谁能活到明年这个时候？</p>
+<p>反正我不会把身家押在"上游厂商永远心慈手软"上。</p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["2026-3"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["2026-3"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
