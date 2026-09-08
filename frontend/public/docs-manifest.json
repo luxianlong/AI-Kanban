@@ -1,5 +1,19 @@
 [
   {
+    "id": "ai-tech-map-2026",
+    "title": "梳理 AI 技术发展：一张 2026 年 9 月的技术地图",
+    "href": "/docs/ai-tech-map-2026.html",
+    "deletable": true,
+    "file": "docs/ai-tech-map-2026.md",
+    "updatedAt": "2026-09-08T11:30:28.518Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/ai-tech-map-2026.md",
+      "frontend/public/docs/ai-tech-map-2026.html"
+    ]
+  },
+  {
     "id": "ai-startup-tracks-2026-talk",
     "title": "八条AI赛道我挨个算了一遍：最热的三条，恰好最不该你进",
     "href": "/docs/ai-startup-tracks-2026-talk.html",
