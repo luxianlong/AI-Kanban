@@ -1,5 +1,19 @@
 [
   {
+    "id": "ai",
+    "title": "今年最热的AI赛道？家人们，最热的其实是\"融资\"",
+    "href": "/docs/ai.html",
+    "deletable": true,
+    "file": "docs/ai.md",
+    "updatedAt": "2026-09-08T05:50:50.354Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/ai.md",
+      "frontend/public/docs/ai.html"
+    ]
+  },
+  {
     "id": "2026-7-ai",
     "title": "从\"卷模型\"到\"卷干活\"：2026年最挤的7条AI创业赛道，谁在裸泳？",
     "href": "/docs/2026-7-ai.html",
