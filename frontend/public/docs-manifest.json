@@ -1,5 +1,19 @@
 [
   {
+    "id": "ai-startup-tracks-2026",
+    "title": "2026 AI 创业赛道分析：一份选赛道的决策报告",
+    "href": "/docs/ai-startup-tracks-2026.html",
+    "deletable": true,
+    "file": "docs/ai-startup-tracks-2026.md",
+    "updatedAt": "2026-09-08T08:32:49.675Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/ai-startup-tracks-2026.md",
+      "frontend/public/docs/ai-startup-tracks-2026.html"
+    ]
+  },
+  {
     "id": "2026-3",
     "title": "卖代码的死了，卖\"干完的活\"的赢了：2026 最热赛道只有一个答案",
     "href": "/docs/2026-3.html",

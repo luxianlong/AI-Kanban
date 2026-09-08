@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>2026 AI 创业赛道分析：一份选赛道的决策报告 · 文章存档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>2026 AI 创业赛道分析：一份选赛道的决策报告</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#〇本文数据可信度分级先看这张表">〇、本文数据可信度分级（先看这张表）</a></li>
+<li class="lv2"><a href="#一结论先行">一、结论先行</a></li>
+<li class="lv2"><a href="#二先看清三个底层变化再看赛道">二、先看清三个底层变化，再看赛道</a></li>
+<li class="lv3"><a href="#21-变化一成本曲线和收入曲线第一次同时往下走">2.1 变化一：成本曲线和收入曲线第一次同时往下走</a></li>
+<li class="lv3"><a href="#22-变化二套壳不是骂人是一个可测量的风险敞口">2.2 变化二：「套壳」不是骂人，是一个可测量的风险敞口</a></li>
+<li class="lv3"><a href="#23-变化三中国和美国跑的不是同一场比赛">2.3 变化三：中国和美国跑的不是同一场比赛</a></li>
+<li class="lv2"><a href="#三八条赛道逐条拆">三、八条赛道逐条拆</a></li>
+<li class="lv3"><a href="#打分标尺说明">打分标尺说明</a></li>
+<li class="lv3"><a href="#①-垂直行业-agent本文的第一推荐">① 垂直行业 Agent：本文的第一推荐</a></li>
+<li class="lv3"><a href="#②-窄场景工作流-agent最适合小团队和一个人的赛道">② 窄场景工作流 Agent：最适合小团队和一个人的赛道</a></li>
+<li class="lv3"><a href="#③-agent-基础中间件毛利最好命最不由己">③ Agent 基础中间件：毛利最好，命最不由己</a></li>
+<li class="lv3"><a href="#④-ai-硬件中国供应链的主场但要选对品类">④ AI 硬件：中国供应链的主场，但要选对品类</a></li>
+<li class="lv3"><a href="#⑤-编程-agent最热变现最快最不该由你来做">⑤ 编程 Agent：最热、变现最快、最不该由你来做</a></li>
+<li class="lv3"><a href="#⑥-消费级-ai-应用门槛最低也因此最不值钱">⑥ 消费级 AI 应用：门槛最低，也因此最不值钱</a></li>
+<li class="lv3"><a href="#⑦-具身智能--人形机器人估值最高收入最接近零">⑦ 具身智能 / 人形机器人：估值最高，收入最接近零</a></li>
+<li class="lv3"><a href="#⑧-ai-基础设施--算力--芯片这轮最大的钱和你无关">⑧ AI 基础设施 / 算力 / 芯片：这轮最大的钱，和你无关</a></li>
+<li class="lv2"><a href="#四把赛道换成一道题五个问题的自检清单">四、把赛道换成一道题：五个问题的自检清单</a></li>
+<li class="lv2"><a href="#五分人群结论">五、分人群结论</a></li>
+<li class="lv2"><a href="#六如果选了第一推荐路线12-个月最小路径">六、如果选了第一推荐路线：12 个月最小路径</a></li>
+<li class="lv2"><a href="#七什么信号会证伪本文">七、什么信号会证伪本文</a></li>
+<li class="lv2"><a href="#八数据来源与口径说明">八、数据来源与口径说明</a></li>
+</ul>
+</nav>
+<main class="content">
+<blockquote class="quote"><p><strong>时间锚点：2026 年 9 月 8 日｜面向真正准备下场的创业者、早期投资人、正在犹豫要不要从大厂出来的技术负责人</strong></p>
+<p>本文不做「盘点最热赛道」——那种文章库里已经有两篇（<a href="/docs/ai.html" target="_blank" rel="noopener noreferrer">今年最热的AI赛道？家人们，最热的其实是"融资"</a>、<a href="/docs/2026-3.html" target="_blank" rel="noopener noreferrer">卖代码的死了，卖"干完的活"的赢了</a>）。本文回答的是另一个问题：<strong>把八条赛道放在同一套六维标尺上打分，你这个具体的人，应该进哪一条，不该进哪一条。</strong></p></blockquote>
+<hr />
+<h2 id="〇本文数据可信度分级先看这张表">〇、本文数据可信度分级（先看这张表）<a class="anchor" href="#〇本文数据可信度分级先看这张表" aria-label="链接到本节">#</a></h2>
+<p>一篇要指导真金白银决策的报告，最该先说清楚哪些数字能当骨架、哪些只能当参考量级。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>级别</th><th>含义</th><th>本文属于此级的关键数据</th></tr></thead>
+<tbody>
+<tr><td><strong>A · 一手/可交叉验证</strong></td><td>交易所公告、公司披露、多家独立媒体互证</td><td>Token API 挂牌价（$0.20/百万输入起）、Harvey / Abridge / OpenEvidence 的融资轮次与估值、宇树科创板 73 天过会、AI 眼镜国补口径（15%、单台上限 500 元、单价≤6000 元）、OpenAI Assistants API 2026-08-26 日落</td></tr>
+<tr><td><strong>B · 行业机构估算</strong></td><td>IDC / RevenueCat / HRAA / 各家 VC 基准报告，方向可信、精确值有口径差</td><td>种子轮中位投前估值 ~$1790 万、AI 原生毛利 ~52%、AI 应用 12 个月付费留存 9.2%–11.5%、人形机器人 1H26 全球出货 +272%、中国 AI 眼镜 2026 出货 &gt;500 万台</td></tr>
+<tr><td><strong>C · 单一来源/量级参考</strong></td><td>转引自单篇报道或预测模型，<strong>只能当方向，不能当锚点</strong></td><td>「80% 的 AI 初创会在 2026 年底前死掉」、「OpenAI 2024 年吞掉 200+ 家套壳公司」、AI Agent 场景渗透率（客服 58%/开发 53%）、AI 陪伴市场 2026 年 $240.9 亿</td></tr>
+</tbody>
+</table></div>
+<p><strong>一条纪律</strong>：C 级数字本文一律只用来支撑「方向」（平台风险真实存在、幂律真实存在），绝不当作任何一条结论的唯一支柱。凡是不同口径互相打架的（人形机器人出货量就是典型），本文直接把打架摆出来，不替读者抹平。</p>
+<hr />
+<h2 id="一结论先行">一、结论先行<a class="anchor" href="#一结论先行" aria-label="链接到本节">#</a></h2>
+<p><strong>一句话：2026 年 AI 创业的分水岭不在「你做什么」，在「你卖的东西能不能被上游厂商的下一次版本更新顺手做掉」。</strong> 赛道热度和赛道可创业性，在今年第一次系统性地脱钩了——最热的三条（基础设施、具身智能、编程 Agent）恰好是普通创业者最不该正面进的三条。</p>
+<p><strong>五条最关键的判断：</strong></p>
+<ol>
+<li><strong>应用层的毛利被结构性下调了 20–30 个点，而且回不去。</strong> AI 原生产品 2026 年平均毛利约 <strong>52%</strong>，传统 SaaS 是 75–85%。每 100 万美元 AI 产品收入里，约 <strong>23 万美元</strong>直接作为推理成本流向上游。Agent 类更狠——一次请求扇出成推理链 + 工具调用 + 重试，单会话成本可以翻好几倍。<strong>你不再是在做软件生意，你是在做一门有原材料成本的制造业。</strong></li>
+</ol>
+<ol>
+<li><strong>Token 降价利好用户、利好垂直应用，但会杀死「靠 API 差价活着」的那一层。</strong> 2026 年 8 月初推理均价已跌到约 <strong>$1.16–1.18/百万 token</strong>，比 5 月底的 $2.04 跌了 <strong>43%</strong>；主流 API 地板价被 OpenAI 7 月 30 日那次 80% 降价打到 <strong>$0.20/百万输入 token</strong>；开源权重模型的中位混合价比闭源低 <strong>82%</strong>（$0.53 vs $3.00）。如果你的护城河就是「我批发得便宜、零售得贵」，这个价差正在以每季度两位数的速度归零。</li>
+</ol>
+<ol>
+<li><strong>付费方式正在从「买席位」变成「买干完的活」，这是今年最大的结构性机会。</strong> 按人头收费的厂商占比一年内从 21% 掉到 15%；2026 上半年的买方调研里 43% 偏好按用量、27% 偏好按结果；事实标准是「平台底价 + 用量」的混合制（约 41%）。<strong>只卖席位的产品在 demo 之前就被淘汰掉了。</strong> 对创业者的含义：你必须能把「我替你干完的活」定义成一个可计量、可验收、可开发票的单位。定义不出来，你的定价就没有护城河。</li>
+</ol>
+<ol>
+<li><strong>钱变多了，但拿钱的门变窄了。</strong> 2026 Q1 种子轮交易数同比 <strong>-31%</strong>，但种子总金额 <strong>+30%</strong>——支票少了、单张变大了。种子中位投前估值约 <strong>$1790 万</strong>，但期望值同步抬高到 <strong>$30–50 万 ARR + 连续 6 个月 15–20% 环比增长</strong>；A 轮的中位候选人是 <strong>$300–500 万 ARR</strong>。「纯概念轮」除了明星团队之外基本消失了。中国这边热度更极端：2026 Q1 一级市场 577 起融资、披露总额约 <strong>763.8 亿元</strong>（同比 +144%），单笔均值 3.25 亿元，创两年新高——但早期占比 64.6% 的同时，具身智能一条赛道就吸走 <strong>465.12 亿元</strong>（同比 +342%），上半年约 460 亿只「养肥」了约 20 家公司。<strong>这是一个总量暴涨、分配极度集中的市场。</strong></li>
+</ol>
+<ol>
+<li><strong>平台风险在 2026 年从「理论担忧」变成了「日程表上的事件」。</strong> OpenAI Assistants API 2026 年 8 月 26 日日落；Relay.app 8 月 15 日对免费用户关停、9 月 14 日对付费用户关停。你依赖的那层地基，是别人的产品路线图上的一行 deprecation notice。</li>
+</ol>
+<p><strong>最终建议（一句话版）：把 Agent 塞进一个窄到巨头看不上、通用模型不懂、客户每天在骂的工作流里，用「按干完的活收费」定价，靠专有数据和交付责任筑墙。</strong> 详细的分人群结论见第五节。</p>
+<hr />
+<h2 id="二先看清三个底层变化再看赛道">二、先看清三个底层变化，再看赛道<a class="anchor" href="#二先看清三个底层变化再看赛道" aria-label="链接到本节">#</a></h2>
+<h3 id="21-变化一成本曲线和收入曲线第一次同时往下走">2.1 变化一：成本曲线和收入曲线第一次同时往下走<a class="anchor" href="#21-变化一成本曲线和收入曲线第一次同时往下走" aria-label="链接到本节">#</a></h3>
+<p>过去两年的共识是「token 会越来越便宜，所以应用层毛利会越来越好」。2026 年证明这句话只对了一半。</p>
+<p>token 确实在暴跌（-43%/十周），但同期发生了两件抵消的事：<strong>一是 Agent 化让单次任务消耗的 token 数量暴涨</strong>——推理链、工具调用、失败重试，一次「帮我处理完这张发票」可能是过去一次对话的几十倍 token；<strong>二是模型能力的竞争把「用最好的模型」变成了刚需</strong>，你不敢为了省钱降配，因为客户拿你和 Claude Code / Codex 比。</p>
+<p>结果就是：单价跌了，用量涨得更快，<strong>推理成本占 AI 产品总成本的比例反而从上线前的 20% 升到规模化后的 23%</strong>。</p>
+<p>这里有一条被严重低估的工程杠杆：<strong>对系统提示词稳定、上下文重复度高的产品，认真做一周 prompt caching，有效单次成本可以降一个数量级。</strong> 在一个毛利只有 52% 的行业里，这不是优化，这是 P&amp;L 层面的生死线。<strong>面试你的 CTO 时，问他 caching 命中率——他答不上来，说明这家公司还没意识到自己在做制造业。</strong></p>
+<h3 id="22-变化二套壳不是骂人是一个可测量的风险敞口">2.2 变化二：「套壳」不是骂人，是一个可测量的风险敞口<a class="anchor" href="#22-变化二套壳不是骂人是一个可测量的风险敞口" aria-label="链接到本节">#</a></h3>
+<p>「套壳」这个词被用滥了。给它一个可操作的定义：<strong>如果上游模型厂商在自己的产品里增加一个功能，就能让你 50% 以上的用户失去续费理由，你就是套壳。</strong></p>
+<p>按这个定义，2026 年的现实是：上游厂商的产品节奏本身就是最大的杀手（有报道称 OpenAI 的产品发布在 2024 年一年内就直接吞掉了 200+ 家融资过的 GPT 套壳公司，此为 C 级数据，当量级看）。更重要的是那条被反复引用的机制——<strong>2023 到 2025 年百万 token 推理成本跌了约 80%，对用户是好事，对「唯一护城河是 API 成本与售价之间那个差」的公司是死刑。</strong></p>
+<p>真正扛得住的护城河只有五类，且强度递增：</p>
+<ol>
+<li><strong>切换成本</strong>（数据焊死在你的工作流里）</li>
+<li><strong>专有数据</strong>（客户在你这里沉淀的、别人拿不到的语料/标注/反馈）</li>
+<li><strong>分发</strong>（嵌进 Epic、嵌进律所文档系统、嵌进政企采购目录）</li>
+<li><strong>合规与责任承担</strong>（你替客户签字背书，模型厂商不会）</li>
+<li><strong>物理世界的资产</strong>（产线、供应链、器件、渠道）</li>
+</ol>
+<p><strong>注意第 1、2 类在今天已经不够用了</strong>——上游厂商也在做记忆和企业连接器。2026 年真正稳的是 3、4、5。</p>
+<h3 id="23-变化三中国和美国跑的不是同一场比赛">2.3 变化三：中国和美国跑的不是同一场比赛<a class="anchor" href="#23-变化三中国和美国跑的不是同一场比赛" aria-label="链接到本节">#</a></h3>
+<p>这一点决定了「同一条赛道，在中国和在美国是两种生意」。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>维度</th><th>美国</th><th>中国</th></tr></thead>
+<tbody>
+<tr><td>主导力量</td><td>财务 VC + 独立创业公司</td><td>巨头做庄 + 国家资本 + 地方产业基金</td></tr>
+<tr><td>定价</td><td>高价 SaaS，按结果溢价</td><td>补贴战、低价倾销、开放权重摊薄成本</td></tr>
+<tr><td>分发</td><td>PLG + 企业直销</td><td>云生态捆绑、政企采购、渠道商</td></tr>
+<tr><td>退出</td><td>并购为主、IPO 为辅</td><td>港股 + 科创板双通道，节奏被政策打开</td></tr>
+<tr><td>创业者位置</td><td>可以独立跑出 100 亿美元公司</td><td>更多是「被巨头收编」或「做巨头够不着的窄场景」</td></tr>
+</tbody>
+</table></div>
+<p>有两个 2026 年的实证信号值得记住。</p>
+<p><strong>信号一：中国 AI 应用的变现能力，和融资热度严重不匹配。</strong> 在按 ARR 排名的全球前 100 私营 AI 公司里，只有 4 家中国公司——Glority（约 $1.73 亿）、PLAUD（约 $1.25 亿）、字节（约 $1.16 亿）、作业帮（约 $0.33 亿）——合计约 <strong>$4.47 亿</strong>，只占榜单 $364 亿总量的 <strong>1.23%</strong>。<strong>中国拿到了世界级的融资额，却只拿到了 1% 的世界级 ARR。</strong></p>
+<p><strong>信号二：能赚到钱的中国 AI 应用，收入几乎都在海外。</strong> MiniMax 的 C 端社交与海螺 AI 海外收入占比超过 70%，2026 年 1 月已在港股上市；月之暗面 2026 年 4 月 ARR 突破 $2 亿。<strong>「在国内做付费、在国内收钱」这条路，2026 年仍然没有被跑通的样本。</strong> 这不是价值判断，这是选赛道时必须先接受的地形。</p>
+<p>退出端倒是真的松了：宇树从递表到过会 <strong>73 天</strong>，科创板史上最快；零一万物在推进 Pre-IPO、目标 2027 年港股，并把定位从「中国 OpenAI」调成了「中国 Palantir」——<strong>这个转向本身就是本文核心结论的一个注脚：卖模型的在改行卖交付。</strong></p>
+<hr />
+<h2 id="三八条赛道逐条拆">三、八条赛道逐条拆<a class="anchor" href="#三八条赛道逐条拆" aria-label="链接到本节">#</a></h2>
+<h3 id="打分标尺说明">打分标尺说明<a class="anchor" href="#打分标尺说明" aria-label="链接到本节">#</a></h3>
+<p>六个维度，每项 1–5 分。注意 <strong>B、D 两项是反向的</strong>：分数越高代表越有利于创业者（毛利高 = 分高；被平台碾压的风险低 = 分高）。总分不是加权，只用来对比，不要拿去当估值。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>赛道</th><th>A 进入门槛（低=分高）</th><th>B 毛利结构</th><th>C 护城河可得性</th><th>D 抗巨头碾压</th><th>E 变现确定性</th><th>F 退出通道</th><th>合计</th></tr></thead>
+<tbody>
+<tr><td><strong>① 垂直行业 Agent（法律/医疗/财税/保险）</strong></td><td>3</td><td>4</td><td><strong>5</strong></td><td><strong>5</strong></td><td><strong>5</strong></td><td>4</td><td><strong>26</strong></td></tr>
+<tr><td><strong>② 窄场景工作流 Agent（B2B 细分）</strong></td><td><strong>5</strong></td><td>3</td><td>4</td><td>4</td><td>4</td><td>3</td><td><strong>23</strong></td></tr>
+<tr><td><strong>③ Agent 基础中间件（评测/可观测/数据/安全）</strong></td><td>4</td><td><strong>5</strong></td><td>3</td><td>2</td><td>3</td><td>4</td><td><strong>21</strong></td></tr>
+<tr><td><strong>④ AI 硬件（眼镜/录音笔/穿戴）</strong></td><td>2</td><td>3</td><td>4</td><td>3</td><td>4</td><td>4</td><td><strong>20</strong></td></tr>
+<tr><td><strong>⑤ 编程 Agent</strong></td><td>3</td><td>2</td><td>2</td><td><strong>1</strong></td><td><strong>5</strong></td><td>4</td><td><strong>17</strong></td></tr>
+<tr><td><strong>⑥ 消费级 AI 应用（陪伴/生成/工具）</strong></td><td><strong>5</strong></td><td>3</td><td>1</td><td>2</td><td>2</td><td>2</td><td><strong>15</strong></td></tr>
+<tr><td><strong>⑦ 具身智能 / 人形机器人</strong></td><td><strong>1</strong></td><td>2</td><td>4</td><td>3</td><td>1</td><td><strong>5</strong></td><td><strong>16</strong></td></tr>
+<tr><td><strong>⑧ AI 基础设施 / 算力 / 芯片</strong></td><td><strong>1</strong></td><td>2</td><td>4</td><td>2</td><td>4</td><td><strong>5</strong></td><td><strong>18</strong></td></tr>
+</tbody>
+</table></div>
+<p>下面逐条给理由。<strong>注意：分数低不等于赛道不好，等于「不适合从零开始的创业者进」。</strong> ⑦⑧ 是这轮最赚钱的两条，但它们的入场券是几十亿人民币和国家资源，不是一个想法。</p>
+<hr />
+<h3 id="①-垂直行业-agent本文的第一推荐">① 垂直行业 Agent：本文的第一推荐<a class="anchor" href="#①-垂直行业-agent本文的第一推荐" aria-label="链接到本节">#</a></h3>
+<p><strong>这是 2026 年唯一一条「热度、毛利、护城河、变现确定性」四项同时成立的赛道。</strong></p>
+<p>数据摆在这：Harvey 2025 年底 ARR 约 <strong>$1.95 亿</strong>（同比 +290%），到 2026 年 5 月做到约 <strong>$3 亿</strong>，估值约 <strong>$110 亿</strong>，AmLaw 100 里的多数已是客户；Abridge 合同 ARR 约 <strong>$1.17 亿</strong>，四个月估值翻倍到 <strong>$53 亿</strong>；OpenEvidence 在约 $1 亿收入上先后完成 $2 亿 C 轮（$60 亿估值）和 $2.5 亿 D 轮（$120 亿估值），约 35x EV/Rev。<strong>Harvey、Abridge、OpenEvidence、Legora 四家合计估值约 $340 亿，累计只融了约 $39 亿</strong>——这是应用层资本效率的天花板样本。</p>
+<p>为什么它同时打赢了上面的三个底层变化？</p>
+<ul>
+<li><strong>毛利更好</strong>：垂直场景的上下文高度重复（同一套法条、同一份病历模板），prompt caching 收益最大化；且客户为专业性付溢价，不是为 token 付钱。</li>
+<li><strong>不怕上游</strong>：OpenAI 不会去做 AmLaw 100 的客户成功，也不会替医院过 HIPAA 审计。护城河是第 3、4 类——<strong>分发和责任承担</strong>。</li>
+<li><strong>定价天然按结果</strong>：一份合同审完、一次门诊记录生成完，单位天然存在。你不需要发明计价单位。</li>
+</ul>
+<p><strong>冷水</strong>：Harvey 的 $110 亿估值对 $1.9–3 亿 ARR，前向倍数依然离谱，已经有公开质疑（「Harvey 真值 110 亿吗？」是 2026 年的一个热门问句）。<strong>但估值贵不影响赛道判断——你是要进这条赛道，不是要在这个价格接盘。</strong></p>
+<p><strong>中国的版本怎么做</strong>：不要复制 Harvey，中国律所的付费能力和采购流程完全不同。真正跑得通的是<strong>「合规 + 出证 + 背书」类场景</strong>：财税申报、招投标合规、ESG 披露、药械注册、跨境合规。共同特征是——<strong>有一个明确的监管方，客户怕的是罚款不是效率</strong>，这类需求对价格不敏感、对责任极度敏感，恰好是模型厂商永远不会碰的地方。</p>
+<hr />
+<h3 id="②-窄场景工作流-agent最适合小团队和一个人的赛道">② 窄场景工作流 Agent：最适合小团队和一个人的赛道<a class="anchor" href="#②-窄场景工作流-agent最适合小团队和一个人的赛道" aria-label="链接到本节">#</a></h3>
+<p>如果说 ① 需要你有行业身份（律所背景、临床背景），② 只需要你<strong>极度懂某一个具体流程里的痛苦</strong>。</p>
+<p>Agent 在通用场景的渗透已经很高——客服 58%、营销 56%、软件开发 53%、数据分析 52%（C 级口径，当量级看）。这意味着通用位置已经站满了，<strong>但也意味着买方教育已经完成了</strong>：你不再需要解释「Agent 是什么」，这是 2026 年小团队最大的红利。</p>
+<p>值得进的切口长这样：</p>
+<ul>
+<li>某类遗留系统的迁移（COBOL→Java、老 ERP 数据搬迁）</li>
+<li>某个行业的对账/结算（物流运费对账、医保结算、跨境电商多平台对账）</li>
+<li>某类只有老师傅懂的运维/工艺脚本</li>
+<li>某个监管报送流程的自动填报</li>
+</ul>
+<p>它们的共同点：<strong>客户能立刻说出「现在这活儿要 3 个人干 5 天」，你把它变成 2 小时。</strong>这道除法 CFO 自己会做。而且这些场景的数据脏、边界怪、文档缺失——<strong>恰恰是通用模型最不擅长、巨头最看不上的地方。</strong></p>
+<p><strong>冷水</strong>：天花板明确。这类生意很难长成 10 亿美元公司，更可能是一门年利润几百万到几千万人民币、活得很好但融不到大钱的生意。<strong>如果你的目标是财务自由而不是上市敲钟，这是全表里性价比最高的一格；如果你要融 A 轮，投资人会问你 TAM，你会答不上来。</strong></p>
+<hr />
+<h3 id="③-agent-基础中间件毛利最好命最不由己">③ Agent 基础中间件：毛利最好，命最不由己<a class="anchor" href="#③-agent-基础中间件毛利最好命最不由己" aria-label="链接到本节">#</a></h3>
+<p>评测（evals）、可观测性、Agent 记忆层、工具网关、权限与审计、合成数据。这层的毛利结构是全表最好的——<strong>你卖的是软件和标准，不是推理</strong>，不用给上游交 token 税。</p>
+<p>但它有一个致命结构问题：<strong>你的客户是创业公司，而你的赛道天花板由上游厂商单方面决定。</strong> 2026 年 8 月那一波关停就是教科书案例：OpenAI Assistants API 在 8 月 26 日日落，Relay.app 分两步关停——<strong>这些不是市场竞争的结果，是别人产品路线图上的一行字。</strong> 当模型厂商决定把评测、记忆、工具编排做成官方一等公民（他们正在做），你这一层就被整层抹掉。</p>
+<p><strong>能进的前提只有一个：你的产品要卖给「不能只用一家模型」的客户。</strong> 多模型路由、跨厂商合规审计、私有化部署下的可观测——这些需求内生于「客户不敢单押一家」，而这个恐惧在 2026 年只会更强，不会更弱。<strong>押注客户的恐惧，比押注客户的贪婪安全。</strong></p>
+<hr />
+<h3 id="④-ai-硬件中国供应链的主场但要选对品类">④ AI 硬件：中国供应链的主场，但要选对品类<a class="anchor" href="#④-ai-硬件中国供应链的主场但要选对品类" aria-label="链接到本节">#</a></h3>
+<p>先看数据。2026 年全球智能眼镜出货预计突破 <strong>2368.7 万台</strong>（IDC 全口径），中国突破 <strong>491.5 万台</strong>；另一个更窄的「AI 眼镜」口径是全球约 <strong>1700 万副</strong>、同比 <strong>+105%</strong>，中国突破 <strong>500 万台</strong>、市场规模逼近 <strong>100 亿元</strong>。<strong>两个口径差了 40%，因为「智能眼镜」含了不带 AI 的音频眼镜和 AR 眼镜——看到任何一个 AI 眼镜数据，先问口径。</strong></p>
+<p>2026 年最关键的变量不是技术，是政策：<strong>AI 眼镜首次纳入国补</strong>，补贴产品售价的 15%、单台上限 500 元、要求单价不超过 6000 元。这一条同时做了两件事——<strong>把需求提前透支了一部分，也把价格带死死锁在 6000 元以下</strong>。想做高端 AI 眼镜的，在中国市场今年会很难受。</p>
+<p>更值得注意的是另一个品类的证据：<strong>PLAUD（AI 录音笔）以约 $1.25 亿 ARR 进了全球前 100 私营 AI 公司榜，是四家中国上榜公司之一。</strong> 它不做眼镜、不做通用助手，只做「把会议变成结构化纪要」这一件事，硬件是入口、订阅是收入。<strong>这是「AI 硬件」这条赛道里唯一被验证的商业模型：单一高频场景 + 硬件一次性收入 + 软件订阅复购。</strong></p>
+<p><strong>给创业者的判断</strong>：眼镜赛道已经是巨头（Meta、阿里、华为、讯飞）的军备竞赛，不要正面进。<strong>该进的是「PLAUD 型」品类——某个垂直职业每天要做、现在靠人肉、硬件能采到独家数据的场景</strong>（医生查房、工程巡检、庭审记录、田间农技）。硬件的真正价值不是硬件本身，是<strong>它能采到软件采不到的专有数据</strong>，这是第 2 类护城河里唯一还没被上游厂商侵蚀的部分。</p>
+<hr />
+<h3 id="⑤-编程-agent最热变现最快最不该由你来做">⑤ 编程 Agent：最热、变现最快、最不该由你来做<a class="anchor" href="#⑤-编程-agent最热变现最快最不该由你来做" aria-label="链接到本节">#</a></h3>
+<p>这条赛道的热度和收入是真的（Cursor 14 个月 ARR 从 1 亿到 20 亿、Claude Code 半年做到约 10 亿美元年化、Copilot 覆盖 90% 财富 100 强），库里的<a href="/docs/2026-3.html" target="_blank" rel="noopener noreferrer">另一篇文章</a>已经完整拆过。</p>
+<p>这里只补一句本文框架下的结论：<strong>它在「抗巨头碾压」这一项拿了全表最低的 1 分，因为它是唯一一条「你的供应商就是你的头号竞争对手，而且他做得比你好」的赛道。</strong> Anthropic 有 Claude Code，OpenAI 有 Codex，Google 有 Gemini CLI，字节有 Trae，阿里有通义灵码 + Qoder。你在下游做的所有体验优化，人家一次模型迭代就抹平。</p>
+<p>Gartner 的判断可以直接搬来当风险提示：<strong>到 2027 年底，40% 以上的 agentic AI 项目会因为成本、ROI 说不清、可靠性不达标被砍掉。</strong> 今天估值最高的这批，一多半过不了这个筛子。</p>
+<p><strong>唯一还开着的门</strong>：不做通用编程 Agent，做<strong>某类代码的合规审查</strong>——金融行业的信创迁移审查、车规代码的功能安全审查、医疗软件的注册申报代码审计。<strong>注意这本质上是把赛道 ⑤ 折叠回赛道 ①</strong>，靠的还是责任承担，不是编程能力。</p>
+<hr />
+<h3 id="⑥-消费级-ai-应用门槛最低也因此最不值钱">⑥ 消费级 AI 应用：门槛最低，也因此最不值钱<a class="anchor" href="#⑥-消费级-ai-应用门槛最低也因此最不值钱" aria-label="链接到本节">#</a></h3>
+<p>先给一个乐观的锚：Suno 以约 $3 亿 ARR 拿了 $4 亿 D 轮、估值 $54 亿（约 18x）；生成式 AI 在非游戏应用市场是无可争议的增长引擎，2025 Q2 到 2026 Q1 同比 <strong>+232%</strong>、收入增量超 <strong>$44 亿</strong>；AI 社交陪伴 2026 Q1 全球收入 <strong>$1.5 亿</strong>，是 2023 年同期的 12 倍以上。</p>
+<p>然后给三个杀死这条赛道的数字：</p>
+<ol>
+<li><strong>幂律极端</strong>：AI 陪伴类目里，<strong>头部 10% 的应用拿走 89% 的收入</strong>，全类目只有 <strong>33 个 app</strong> 累计消费破 100 万美元。</li>
+<li><strong>留存结构性差</strong>：AI 月订阅的 12 个月留存比传统 app <strong>差 36%</strong>；12 个月付费留存只有 <strong>9.2%</strong>（App Store）/ <strong>11.5%</strong>（Google Play）；年订阅的取消速度比非 AI 应用<strong>快 30%</strong>。</li>
+<li><strong>护城河 1 分</strong>：唯一被验证有效的留存机制是「深度记忆 + 人格一致性 + 情绪镜像」造出的切换成本——<strong>而这三样正是模型厂商 2026 年集中投入的方向。</strong></li>
+</ol>
+<p><strong>结论</strong>：这是全表最容易开始、最难持续的一格。<strong>它适合作为副业验证或现金流工具，不适合作为需要外部融资的主业。</strong> 如果一定要做，选择「有真实产出物」的方向（Suno 的音乐、剪辑、设计），不要选「只有陪伴」的方向——<strong>有产出物的用户会因为沉淀的作品而留下，只有情绪的用户会因为下一个更好的模型而离开。</strong></p>
+<hr />
+<h3 id="⑦-具身智能--人形机器人估值最高收入最接近零">⑦ 具身智能 / 人形机器人：估值最高，收入最接近零<a class="anchor" href="#⑦-具身智能--人形机器人估值最高收入最接近零" aria-label="链接到本节">#</a></h3>
+<p>先把打架的口径摆出来，这本身就是最重要的信息：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>来源</th><th>口径</th><th>1H 2026 数字</th></tr></thead>
+<tbody>
+<tr><td>DIGITIMES</td><td>中国出货</td><td>&gt; 40,000 台</td></tr>
+<tr><td>CMRA</td><td>中国出货</td><td>&gt; 30,000 台</td></tr>
+<tr><td>Humanoids Daily</td><td>全球出货</td><td>~19,100 台（同比 +272%）</td></tr>
+<tr><td>Bloomberg / HRAA</td><td>中国厂商占全球出货份额</td><td>97%</td></tr>
+</tbody>
+</table></div>
+<p><strong>中国的单口径出货量高于全球口径的两倍——这说明「人形机器人」的定义在不同统计里根本不是同一个东西</strong>（是否含轮式、是否含半人形、是否含教育/展示机）。任何拿单一数字下结论的分析都不可信，包括那些拿它做估值模型的。</p>
+<p>结构性事实倒是清楚的：<strong>中国厂商占全球出货 97%，中国自己又占全球需求 85% 以上</strong>——这是一个高度自循环的市场。智元 1H26 出货约 8400 台（同比 +562%）、全球份额约 44%，已经超过宇树成为全球第一。而 HRAA 预计 2026 年中国产能将超 <strong>10 万台</strong>、出货约 <strong>8.5 万台</strong>——<strong>产能已经跑在需求前面了。</strong></p>
+<p>再看钱：2026 上半年约 <strong>460 亿元</strong>投向具身智能，只集中在约 20 家公司；Q1 单季披露融资 <strong>465.12 亿元</strong>、同比 <strong>+342%</strong>。而收入端——绝大多数所谓「部署」仍是有人盯着的试点、演示编排和遥操作。</p>
+<p><strong>给创业者的判断：这条赛道对创业者已经关门了。</strong> 门票是几十亿人民币的融资能力 + 供应链 + 地方政府关系，前 20 家已经把资金吸干。<strong>唯一还开着的位置是零部件和数据</strong>——灵巧手、关节模组、力控传感器、仿真数据与真机数据采集服务。<strong>卖铲子给淘金者，在一个产能过剩的行业里，比自己淘金安全。</strong> 但要清醒：产能过剩的下一步是价格战和整合，零部件供应商会被同步压价。</p>
+<p><strong>退出通道是全表最好的 5 分</strong>（宇树 73 天过会，后面排队一长串），这也是唯一值得进的理由——<strong>如果你已经在这条赛道里，赶紧上市；如果你还没进去，别进了。</strong></p>
+<hr />
+<h3 id="⑧-ai-基础设施--算力--芯片这轮最大的钱和你无关">⑧ AI 基础设施 / 算力 / 芯片：这轮最大的钱，和你无关<a class="anchor" href="#⑧-ai-基础设施--算力--芯片这轮最大的钱和你无关" aria-label="链接到本节">#</a></h3>
+<p>不展开，因为对个人创业者没有可操作性。只给两条对<strong>其他赛道</strong>有影响的传导：</p>
+<ul>
+<li><strong>token 价格暴跌利好应用层，但正在碾压重资产算力商</strong>。背着巨额折旧和债务的 neocloud，在单价跌破 $1/百万 token 后需要靠量补价。<strong>如果你在应用层，这意味着你的成本还会继续降——但不要把商业模型建立在「成本会一直降」上，因为你的对手成本也在降。</strong></li>
+<li><strong>真正的硬约束已经从芯片转向电力和电网</strong>。这决定了未来 18 个月的算力供给节奏，也决定了你的 API 会不会限流。<strong>给你的产品设计一个降级路径</strong>（主模型不可用时自动切开源权重模型），这在 2026 年是工程常识，不是过度设计。</li>
+</ul>
+<hr />
+<h2 id="四把赛道换成一道题五个问题的自检清单">四、把赛道换成一道题：五个问题的自检清单<a class="anchor" href="#四把赛道换成一道题五个问题的自检清单" aria-label="链接到本节">#</a></h2>
+<p>选赛道最后都会归结到五个问题。<strong>任何一个答不上来，就别投钱进去。</strong></p>
+<ol>
+<li><strong>计价单位是什么？</strong> 你能不能用一句话说出「客户为一个什么单位付多少钱」？（一份合同、一次门诊、一张发票、一次巡检）。答不出来的，只能卖席位，而只卖席位在 2026 年会在 demo 前被淘汰。</li>
+<li><strong>上游厂商的下个版本能不能做掉你？</strong> 具体一点：如果 OpenAI/Anthropic/字节明天在自家产品里加一个和你核心功能重叠的按钮，你有多少比例的用户会失去续费理由？超过 50%，重新想。</li>
+<li><strong>你的毛利在哪一档？</strong> 按 52% 起算，而不是按 SaaS 的 80%。做完这道减法，你的 CAC 回本周期还成立吗？<strong>很多商业模型是在 80% 毛利的假设下算出来的，换成 52% 直接不成立。</strong></li>
+<li><strong>你的护城河属于哪一类？</strong> 对照第 2.2 节那五类。如果只有第 1、2 类（切换成本、专有数据），2026 年已经不够——上游厂商也在做记忆和企业连接器。你需要至少一条第 3、4、5 类（分发/责任/物理资产）。</li>
+<li><strong>谁把钱掏出来，他怕什么？</strong> 效率型需求（省时间）在预算收紧时第一个被砍；<strong>恐惧型需求（怕罚款、怕出事故、怕合规审计不过）是刚性的</strong>。2026 年的经验是：卖给恐惧的，比卖给效率的活得久。</li>
+</ol>
+<hr />
+<h2 id="五分人群结论">五、分人群结论<a class="anchor" href="#五分人群结论" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>你的画像</th><th>判断</th><th>建议路线</th></tr></thead>
+<tbody>
+<tr><td><strong>有强行业身份</strong>（律所/医院/审计/金融合规/制造工艺）</td><td><strong>强烈推荐</strong></td><td>赛道 ①。你的行业身份就是分发和信任，这是全表最难复制的资产，也是模型厂商永远拿不到的东西。<strong>尽快找 3 个愿意签字的设计客户，不要先做产品。</strong></td></tr>
+<tr><td><strong>资深工程师 / 技术负责人，无特殊行业身份</strong></td><td><strong>推荐</strong></td><td>赛道 ②。选一个你在上一家公司亲眼见过的、脏且痛的流程。目标不是融资，是 12 个月内 3–5 个付费客户、年收入几百万。<strong>别去做通用编程 Agent——你的前雇主和你的模型供应商都在那条路上。</strong></td></tr>
+<tr><td><strong>有硬件供应链能力（深圳/东莞体系）</strong></td><td><strong>谨慎推荐</strong></td><td>赛道 ④ 的 PLAUD 型窄品类，不要做眼镜。国补锁死 6000 元价格带，高端在国内没有空间。<strong>先想清楚：你的硬件能采到什么别人采不到的数据？</strong></td></tr>
+<tr><td><strong>想融大钱、赌大方向的连续创业者</strong></td><td><strong>有条件推荐</strong></td><td>赛道 ① 或 ③。③ 要押「客户不敢单押一家模型」这个恐惧，不要押功能领先。<strong>避开 ⑤ ⑦——前者供应商即对手，后者前 20 家已经把钱吸干了。</strong></td></tr>
+<tr><td><strong>一个人 / 小团队，无融资，要现金流</strong></td><td><strong>推荐（但要接受天花板）</strong></td><td>赛道 ②，或 ⑥ 里「有真实产出物」的方向。<strong>接受这是一门生意不是一个 startup</strong>，年入几百万人民币、不融资、不上市，是完全合理的成功。</td></tr>
+<tr><td><strong>没有行业资源、没有工程能力、想赶热点</strong></td><td><strong>不推荐</strong></td><td>任何赛道都不建议。2026 年的门槛是「你比所有人都懂某个客户在骂什么」，热度本身不构成入场券。<strong>先去那个行业里干一年，比现在创业的期望回报高。</strong></td></tr>
+<tr><td><strong>想进具身智能 / 算力 / 芯片</strong></td><td><strong>不推荐（除非已在场内）</strong></td><td>门票是几十亿和国家资源。<strong>已经在场内的：抓住 IPO 窗口；还没进的：去做零部件或数据服务，别做本体。</strong></td></tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="六如果选了第一推荐路线12-个月最小路径">六、如果选了第一推荐路线：12 个月最小路径<a class="anchor" href="#六如果选了第一推荐路线12-个月最小路径" aria-label="链接到本节">#</a></h2>
+<p>给赛道 ①/② 的人一条可执行的路径。这不是通用创业方法论，是针对 2026 年这个具体环境的。</p>
+<ul>
+<li><strong>第 0–2 月：不写代码。</strong> 找 20 个目标行业的从业者，每人聊 1 小时，只问一个问题：「上周你花时间最多、最想让别人替你干的那件事是什么？」<strong>记录他们用的原话</strong>，那就是你未来的产品文案和定价单位。</li>
+<li><strong>第 2–4 月：先卖后做。</strong> 拿一份 PPT 和一个手工交付的方案，签 2–3 个付费设计客户。<strong>前几单允许你人肉交付</strong>——你要验证的是「他愿意付钱」，不是「你能自动化」。这一步同时在积累第 2 类护城河（专有数据）。</li>
+<li><strong>第 4–8 月：把人肉的部分自动化。</strong> 这时才开始认真做产品。<strong>从第一天就上 prompt caching 和成本监控</strong>——在 52% 毛利的行业里，你需要知道每一单的毛利，精确到分。同时设计降级路径（主模型不可用切开源权重模型）。</li>
+<li><strong>第 8–12 月：把定价从席位改成结果。</strong> 用前 8 个月的数据算出「一单交付的真实成本」，然后按「平台底价 + 按件」定价（这是 41% 的事实标准）。<strong>如果你到这一步还算不出单件成本，说明产品还没准备好收费。</strong></li>
+<li><strong>融资时点</strong>：种子的门槛现在是 $30–50 万 ARR + 连续 6 个月 15–20% 环比增长。<strong>倒推：你需要在第 8 个月左右达到约 $20 万 ARR。</strong> 到不了不是失败，是应该继续做生意而不是融资。</li>
+</ul>
+<hr />
+<h2 id="七什么信号会证伪本文">七、什么信号会证伪本文<a class="anchor" href="#七什么信号会证伪本文" aria-label="链接到本节">#</a></h2>
+<p>一份负责任的分析要说清楚自己什么时候会错。以下任一发生，本文的核心结论需要重写：</p>
+<ol>
+<li><strong>上游厂商开始大规模做垂直交付。</strong> 如果 OpenAI 或 Anthropic 开始直接签 AmLaw 100 或医院系统的交付合同（而不只是卖 API），那么赛道 ① 的「分发和责任」护城河会被从上面击穿，本文第一推荐失效。</li>
+<li><strong>推理成本再降一个数量级且 Agent token 消耗不再增长。</strong> 如果 AI 原生毛利回到 70%+，那么本文关于「这是制造业」的整个框架就过度悲观了，⑥ 和 ③ 的评分需要上调。</li>
+<li><strong>人形机器人出现第一个可验证的、非补贴的规模化商业订单。</strong> 目前所有部署几乎都是试点或政府主导需求。如果出现一个纯商业、可复购、有毛利的万台级订单，赛道 ⑦ 的「变现确定性 1 分」立刻作废。</li>
+<li><strong>中国 AI 应用的国内付费被跑通。</strong> 如果 2027 年前出现一家主要收入来自国内 C 端或 B 端付费、ARR 过 $1 亿的中国 AI 应用公司，那么本文「能赚钱的中国 AI 应用收入都在海外」这条地形判断要改。</li>
+<li><strong>按结果定价出现大规模纠纷或回退。</strong> 如果「按干完的活收费」在 2027 年因为验收争议大面积退回席位制，第三条核心判断需要反转。</li>
+</ol>
+<hr />
+<h2 id="八数据来源与口径说明">八、数据来源与口径说明<a class="anchor" href="#八数据来源与口径说明" aria-label="链接到本节">#</a></h2>
+<p><strong>融资与估值基准</strong>：种子/A 轮基准与估值分位数来自 2026 年的多家 VC 基准报告（Eqvista、CRV、Value Add VC、AgentMarketCap）；垂直 AI 的 ARR 与估值来自 2026 年公开报道与融资披露的交叉引用（Euclid Ventures《The Vertical Report 2026》、New Market Pitch）。<strong>这类基准的样本口径各家不同（是否含 pre-seed、是否含中国交易），差异可达 20–30%，请当分布看，不要当阈值看。</strong></p>
+<p><strong>成本与毛利</strong>：AI 原生毛利约 52%、每百万美元收入约 23 万美元推理成本、推理占比 20%→23%，来自 2026 年的 CloudZero / SaaSMag / Avante Ventures 等成本基准分析。<strong>这些是跨行业混合平均，具体到你的产品可能差一倍。</strong></p>
+<p><strong>Token 价格</strong>：2026 年 8 月的推理均价与主流 API 挂牌价来自公开定价页与价格追踪（BenchLM、CloudZero）。挂牌价 ≠ 你的实际成本，企业协议、批处理和缓存会显著改变实际单价。</p>
+<p><strong>人形机器人</strong>：出货口径严重不一致（DIGITIMES / CMRA / Humanoids Daily / Bloomberg-HRAA），本文已在正文中并列展示而非取平均。<strong>不要相信任何给出单一权威出货数字的分析。</strong></p>
+<p><strong>中国融资数据</strong>：2026 Q1 的 577 起/763.8 亿元、具身智能 465.12 亿元等来自国内投融资统计口径，「披露金额」不含未披露交易，且人民币/美元混合统计存在换算差异，<strong>同比增速的可比性弱于绝对量级</strong>。</p>
+<p><strong>消费 AI 留存</strong>：来自 RevenueCat《State of Subscription Apps 2026》口径，样本偏向使用其 SDK 的中小开发者，<strong>大厂自建计费的应用不在样本内</strong>，实际头部留存可能好于此数。</p>
+<p><strong>本文所有判断为市场分析，不构成投资建议。</strong> 任何一个具体决策，都请用第四节那五个问题重新过一遍你自己的情况。</p>
+<hr />
+<p><em>本文由任务 #225「分析AI创业赛道」生成，数据检索时间 2026-09-08。库内相关文章：<a href="/docs/ai.html" target="_blank" rel="noopener noreferrer">今年最热的AI赛道？家人们，最热的其实是"融资"</a>（同题材的轻量盘点版）、<a href="/docs/2026-3.html" target="_blank" rel="noopener noreferrer">卖代码的死了，卖"干完的活"的赢了</a>（编程 Agent 单赛道深挖）。</em></p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["ai-startup-tracks-2026"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["ai-startup-tracks-2026"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
