@@ -42,20 +42,6 @@
     ]
   },
   {
-    "id": "ai",
-    "title": "今年最热的AI赛道？家人们，最热的其实是\"融资\"",
-    "href": "/docs/ai.html",
-    "deletable": true,
-    "file": "docs/ai.md",
-    "updatedAt": "2026-09-08T05:50:50.354Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/ai.md",
-      "frontend/public/docs/ai.html"
-    ]
-  },
-  {
     "id": "optiver-shanghai-senior-swe-research-platform-orp-the-real-requi",
     "title": "Optiver Shanghai — Senior SWE, Research Platform (ORP): The Real Requirements",
     "href": "/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html",
