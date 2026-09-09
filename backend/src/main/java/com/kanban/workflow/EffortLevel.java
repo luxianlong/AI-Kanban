@@ -5,8 +5,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * How hard one node's Claude session thinks — the CLI's {@code --effort} levels,
- * in ascending order.
+ * How hard one node's Claude session thinks — the CLI's {@code --effort} levels.
+ *
+ * <p>{@link #LOW} through {@link #MAX} are one scale, ascending. {@link #ULTRACODE} sits
+ * at the end of the list but is not a sixth notch on that scale — see its own note.
  *
  * <p>This is per <em>node</em> because the steps of a workflow are not the same kind
  * of work. A step that rewrites a paragraph it was handed does not need what a step
@@ -25,7 +27,28 @@ public enum EffortLevel {
     MEDIUM,
     HIGH,
     XHIGH,
-    MAX;
+    MAX,
+
+    /**
+     * Not "one harder than {@link #MAX}". Ultracode is xhigh thinking <em>plus</em> a
+     * standing instruction to orchestrate dynamic workflows, so it changes how many
+     * sessions a step is rather than only how long one of them reasons — which is why
+     * it is worth choosing per step and not worth defaulting to.
+     *
+     * <p>It is listed last because that is where a picker has to put it, not because it
+     * is the top of the scale. Two things follow that the other levels do not carry:
+     * it costs the most by some distance, and it is <em>gated</em> — where ultracode is
+     * unavailable the CLI rejects the session outright instead of falling back, so the
+     * step fails visibly rather than quietly running at the default.
+     *
+     * <p>It is missing from {@code claude --help}'s {@code (low, medium, high, xhigh,
+     * max)} list, which is the whole reason it was absent here: the picker was built
+     * from that help text, and the help text is incomplete. The flag itself works — an
+     * A/B of the same session with and without it differs by ~6,300 cache-creation
+     * tokens, the Workflow tool schema being injected, and {@code --effort ultracode}
+     * produces neither the warning nor the fallback an unknown value produces.
+     */
+    ULTRACODE;
 
     /** The spelling the {@code --effort} flag takes. */
     public String cliValue() {

@@ -926,6 +926,23 @@ class WorkflowApiTest {
     }
 
     @Test
+    void aStepCanBeSavedOnUltracodeAndComesBackOnIt() throws Exception {
+        // The level the picker was missing. It goes the whole way through — parsed on
+        // save, stored on the node, served back — because a level that round-trips as
+        // null would leave the step running at the default with the page showing it set.
+        String id = createWorkflow("""
+                {"name":"Ultracode",
+                 "nodes":[{"id":"a","name":"Dig","prompt":"x","effort":"ultracode"},
+                          {"id":"b","name":"Tidy","prompt":"y","effort":"low"}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+
+        mvc.perform(get("/api/workflows/" + id))
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].effort", is(java.util.List.of("ultracode"))))
+                .andExpect(jsonPath("$.nodes[?(@.id=='b')].effort", is(java.util.List.of("low"))));
+    }
+
+    @Test
     void aLevelIsTakenInAnyCasingAndAnEmptyOneMeansTheDefault() throws Exception {
         String id = createWorkflow("""
                 {"name":"Casing",

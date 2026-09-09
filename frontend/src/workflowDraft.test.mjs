@@ -1,6 +1,8 @@
 // node src/workflowDraft.test.mjs
 import assert from 'node:assert/strict'
-import { EFFORT_LEVELS, blankDraft, draftFingerprint, draftFrom, payloadFrom } from './workflowDraft.js'
+import {
+  EFFORT_LEVELS, ULTRACODE, blankDraft, draftFingerprint, draftFrom, payloadFrom,
+} from './workflowDraft.js'
 
 const workflow = {
   id: 'w1',
@@ -43,6 +45,26 @@ assert.deepEqual(levels.map((n) => n.effort), [null, 'low', null])
 assert.deepEqual(EFFORT_LEVELS, ['low', 'medium', 'high', 'xhigh', 'max'])
 assert.ok(!EFFORT_LEVELS.includes('default'))
 assert.ok(!EFFORT_LEVELS.includes(''))
+
+// Ultracode is offered, but not as the sixth notch of the scale above — the picker
+// renders those two constants as two groups, so folding it into EFFORT_LEVELS is
+// exactly the change that would silently say "one harder than max".
+assert.ok(!EFFORT_LEVELS.includes(ULTRACODE))
+assert.deepEqual([...EFFORT_LEVELS, ULTRACODE],
+  ['low', 'medium', 'high', 'xhigh', 'max', 'ultracode'])
+
+// The spelling is the flag's. The CLI ignores an --effort value it does not know with
+// only a warning on stderr, so a slip here would not fail anything: the step would run
+// at the default while the page kept showing the level that was saved.
+assert.equal(ULTRACODE, 'ultracode')
+
+// A step can be saved on it, and it survives the round trip to the API shape.
+const ultra = draftFrom({
+  id: 7, name: 'w', description: '', entryNodeId: 'a',
+  nodes: [{ id: 'a', name: 'Dig', prompt: 'go', effort: 'ultracode' }], edges: [],
+})
+assert.equal(ultra.nodes[0].effort, 'ultracode')
+assert.equal(payloadFrom(ultra).nodes[0].effort, 'ultracode')
 
 // A brand new step starts on the default rather than on a level somebody has to
 // notice and undo.

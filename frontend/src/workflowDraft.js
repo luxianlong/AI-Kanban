@@ -9,11 +9,16 @@
 
 import { inRunOrder } from './workflowGraph.js'
 
-// The effort levels a step can be set to, lowest first — the CLI's own list, and the
-// same one EffortLevel.java accepts. '' is not a sixth level: it is "leave this step
-// at whatever the CLI's default is", which is deliberately not named here, because a
-// release that moved the default would leave every step claiming the old one.
+// The "think harder" scale, lowest first. '' is not a sixth level: it is "leave this
+// step at whatever the CLI's default is", which is deliberately not named here, because
+// a release that moved the default would leave every step claiming the old one.
 export const EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max']
+
+// Kept out of the scale above on purpose. Ultracode is xhigh thinking plus standing
+// dynamic-workflow orchestration, so it changes how many sessions a step is rather than
+// only how long one reasons — offering it as the notch after 'max' would say the one
+// thing about it that is untrue. The picker shows it, separately.
+export const ULTRACODE = 'ultracode'
 
 export const newId = () =>
   (crypto.randomUUID ? crypto.randomUUID() : `n${Date.now()}${Math.random()}`).slice(0, 36)
