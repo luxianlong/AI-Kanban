@@ -1,5 +1,19 @@
 [
   {
+    "id": "ddd-diagrams",
+    "title": "三张 DDD 图：这个看板的上下文、模型与分层",
+    "href": "/docs/ddd-diagrams.html",
+    "deletable": true,
+    "file": "docs/ddd-diagrams.md",
+    "updatedAt": "2026-09-09T03:11:13.359Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/ddd-diagrams.md",
+      "frontend/public/docs/ddd-diagrams.html"
+    ]
+  },
+  {
     "id": "task-context-isolation",
     "title": "任务间的上下文是怎么管理的，有隔离吗",
     "href": "/docs/task-context-isolation.html",
@@ -7,7 +21,7 @@
     "file": "docs/task-context-isolation.md",
     "updatedAt": "2026-09-09T02:32:19.446Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "docs/task-context-isolation.md",
       "frontend/public/docs/task-context-isolation.html"
