@@ -200,10 +200,13 @@ public class AiStoryClassifier {
             log.warn("Could not create classify scratch dir {}", dir);
         }
         List<String> cmd = List.of(props.getClaudeCommand(), "--output-format", "text", "-p", prompt);
-        Process p = new ProcessBuilder(cmd)
+        ProcessBuilder pb = new ProcessBuilder(cmd)
                 .directory(dir)
-                .redirectErrorStream(true)
-                .start();
+                .redirectErrorStream(true);
+        // Same reason as the neutral scratch dir: keep this throwaway call out of the
+        // CLI's auto-memory store.
+        pb.environment().put("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "1");
+        Process p = pb.start();
         p.getOutputStream().close();
 
         StringBuilder out = new StringBuilder();

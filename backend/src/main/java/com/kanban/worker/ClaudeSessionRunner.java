@@ -74,10 +74,14 @@ public class ClaudeSessionRunner {
         cmd.add("-p");
         cmd.add(prompt);
 
-        Process process = new ProcessBuilder(cmd)
+        ProcessBuilder pb = new ProcessBuilder(cmd)
                 .directory(workDir)
-                .redirectErrorStream(true)
-                .start();
+                .redirectErrorStream(true);
+        // Worker sessions are one-shot task runners, not a continuing conversation with
+        // the user: nothing they learn should be written to (or read from) the CLI's
+        // auto-memory store, which is shared with the interactive sessions run by hand.
+        pb.environment().put("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "1");
+        Process process = pb.start();
         process.getOutputStream().close();
         // Expose the live process so a user can stop this session on demand; always
         // drop it again once the run ends, however it ends.
