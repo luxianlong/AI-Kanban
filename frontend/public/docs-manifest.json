@@ -1,5 +1,19 @@
 [
   {
+    "id": "workflow-effort-ultracode",
+    "title": "Ultracode and the workflow Effort picker",
+    "href": "/docs/workflow-effort-ultracode.html",
+    "deletable": true,
+    "file": "docs/workflow-effort-ultracode.md",
+    "updatedAt": "2026-09-09T13:56:52.730Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/workflow-effort-ultracode.md",
+      "frontend/public/docs/workflow-effort-ultracode.html"
+    ]
+  },
+  {
     "id": "ddd-diagrams",
     "title": "三张 DDD 图：这个看板的上下文、模型与分层",
     "href": "/docs/ddd-diagrams.html",

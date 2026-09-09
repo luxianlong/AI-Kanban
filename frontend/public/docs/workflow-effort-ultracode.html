@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ultracode and the workflow Effort picker · 文章存档</title>
+<meta name="description" content="Short answer. Ultracode is missing from the picker because the picker was built from claude --help , and --help under-documents the flag: it prints --effo…" />
+<link rel="canonical" href="https://youraikanban.com/docs/workflow-effort-ultracode.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>Ultracode and the workflow Effort picker</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#1-what-ultracode-actually-is">1. What ultracode actually is</a></li>
+<li class="lv2"><a href="#2-why-the-picker-has-five-entries">2. Why the picker has five entries</a></li>
+<li class="lv2"><a href="#3-the-measurement">3. The measurement</a></li>
+<li class="lv2"><a href="#4-how-to-enable-it-today-without-touching-the-app">4. How to enable it today, without touching the app</a></li>
+<li class="lv2"><a href="#5-the-actual-fix-when-someone-takes-the-card">5. The actual fix, when someone takes the card</a></li>
+<li class="lv2"><a href="#6-if-you-like-workflows">6. If you like workflows</a></li>
+</ul>
+</nav>
+<main class="content">
+<p><strong>Short answer.</strong> Ultracode is missing from the picker because the picker was built from<br /><code>claude --help</code>, and <code>--help</code> under-documents the flag: it prints<br /><code>--effort &lt;level&gt; (low, medium, high, xhigh, max)</code> and does not mention ultracode. But<br /><strong><code>--effort ultracode</code> is accepted by the CLI</strong> — I measured it. So the option is absent<br />by mistake, not by design, and putting it back is one enum constant plus one array entry.</p>
+<p>Until that ships, you can get most of the way there today with <strong>no code change and no<br />deploy</strong>: set the step's Effort to <code>xhigh</code> and put the word <code>ultracode</code> in the step's<br />prompt.</p>
+<hr />
+<h2 id="1-what-ultracode-actually-is">1. What ultracode actually is<a class="anchor" href="#1-what-ultracode-actually-is" aria-label="链接到本节">#</a></h2>
+<p>It is <strong>not</strong> a sixth effort level. The CLI's own settings schema describes it as:</p>
+<blockquote class="quote"><p>Enable ultracode for the session: <strong>xhigh effort plus standing dynamic-workflow<br />orchestration</strong>. Session-scoped — typically provided via <code>--settings</code> or the<br /><code>apply_flag_settings</code> control.</p></blockquote>
+<p>Two things bundled together:</p>
+<ol>
+<li><strong>xhigh effort</strong> — the level the picker already offers.</li>
+<li><strong>Standing dynamic-workflow orchestration</strong> — a standing instruction to author and run<br />a multi-agent Workflow for every substantive task by default. Without ultracode, the<br />Workflow tool is present but opt-in; with it, the opt-in is permanent for the session.</li>
+</ol>
+<p>That second half is why ultracode is a <em>setting</em> and not a level, and why the <code>--effort</code><br />help text never grew a sixth entry.</p>
+<h2 id="2-why-the-picker-has-five-entries">2. Why the picker has five entries<a class="anchor" href="#2-why-the-picker-has-five-entries" aria-label="链接到本节">#</a></h2>
+<p>Two independent reasons, and both are worth knowing:</p>
+<ul>
+<li><strong><code>workflowDraft.js:13-16</code></strong> says the list is "the same one <code>EffortLevel.java</code> accepts",<br />and <code>EffortLevel</code>'s javadoc says it is "the CLI's <code>--effort</code> levels". When that card<br />(#277) was verified, the check performed was <code>claude --help</code> → five values → picker has<br />five values → match. The check was done correctly against a source that is incomplete.</li>
+<li><strong>Ultracode was in this app and was deliberately removed.</strong> Card #275 gave the <em>entry</em><br />step <code>--settings '{"ultracode":true}'</code>; card #279 reverted it (commit <code>afadbb2</code>, "Run<br />the first step like every other step"), on the reasoning that what a session gets should<br />be decided by what the author wrote for that step, not by its position in the graph.</li>
+</ul>
+<p>Note that #279's reasoning is an argument <strong>for</strong> a per-step ultracode option, not against<br />one. It objected to ultracode being applied automatically to whichever step happened to be<br />first. A value in the Effort picker is the opposite: the author chooses it, per step.</p>
+<h2 id="3-the-measurement">3. The measurement<a class="anchor" href="#3-the-measurement" aria-label="链接到本节">#</a></h2>
+<p>Four sessions, identical but for the flag, <code>--output-format json</code>, each asked to report<br />whether a system-reminder says ultracode is on. <code>cache_creation_input_tokens</code> is the<br />independent corroboration — turning ultracode on injects the standing orchestration<br />instructions, and that shows up as tokens whether the model self-reports honestly or not.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>invocation</th><th>self-report</th><th>cache_creation tokens</th><th>stderr</th></tr></thead>
+<tbody>
+<tr><td><code>--effort xhigh</code></td><td><code>ULTRA_OFF</code></td><td>9,145</td><td>—</td></tr>
+<tr><td><strong><code>--effort ultracode</code></strong></td><td><strong><code>ULTRA_ON</code></strong></td><td><strong>15,413</strong></td><td>—</td></tr>
+<tr><td><code>--settings '{"ultracode":true}'</code></td><td><code>ULTRA_ON</code></td><td>15,413</td><td>—</td></tr>
+<tr><td><code>--effort banana</code></td><td><code>ULTRA_OFF</code></td><td>9,144</td><td><code>Warning: Unknown --effort value 'banana' — ignoring it and using the default effort. Valid values: low, medium, high, xhigh, max.</code></td></tr>
+</tbody>
+</table></div>
+<p>Three things this pins down:</p>
+<ul>
+<li><strong><code>--effort ultracode</code> is a real accepted value</strong>, not silently ignored. The <code>banana</code><br />row is the control: an unknown value takes the warning path and falls back to the<br />default. <code>ultracode</code> takes neither.</li>
+<li><strong>It is byte-for-byte the same session as the settings key</strong> — 15,413 tokens both ways.<br />So <code>--effort ultracode</code> is not an approximation of card #275's mechanism; it is that<br />mechanism, reached through a flag instead of a JSON blob.</li>
+<li><strong><code>--help</code> is wrong</strong>, or at least incomplete — and so is the warning text, which lists<br />five values on a CLI that accepts six.</li>
+</ul>
+<p>I also ran it in the exact shape a workflow node uses, with the read fence alongside:</p>
+<pre class="code"><code>claude --settings '{"permissions":{"blockReadsOutsideWorkingDirectories":true}}' \
+       --effort ultracode -p '...'</code></pre>
+<p>→ <code>ULTRA_ON</code>, 15,388 tokens. <strong>The two do not collide.</strong> This matters: <code>--settings</code> takes<br />a single value and a second occurrence replaces the first, which is why card #276 had to<br />merge the fence and ultracode into one blob. Going through <code>--effort</code> sidesteps that<br />entirely — the fence keeps the settings blob to itself.</p>
+<h2 id="4-how-to-enable-it-today-without-touching-the-app">4. How to enable it today, without touching the app<a class="anchor" href="#4-how-to-enable-it-today-without-touching-the-app" aria-label="链接到本节">#</a></h2>
+<p><strong>Set the step's Effort to <code>xhigh</code>, and include the word <code>ultracode</code> in the step's prompt.</strong></p>
+<p>Both halves are pure user data — a <code>&lt;select&gt;</code> and a textarea on the workflow editor page.<br />No branch, no build, no restart.</p>
+<p>The keyword is a documented CLI trigger: including <code>ultracode</code> in a prompt opts that turn<br />into the Workflow tool. Measured:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>invocation</th><th>ultracode reminder</th><th>Workflow opt-in</th><th>cache_creation</th></tr></thead>
+<tbody>
+<tr><td>plain prompt</td><td>no</td><td>no</td><td>9,127</td></tr>
+<tr><td><code>ultracode</code> in prompt</td><td>no</td><td><strong>yes</strong></td><td>9,133</td></tr>
+<tr><td><code>ultracode</code> in prompt + <code>--effort xhigh</code></td><td>no</td><td><strong>yes</strong></td><td>9,177</td></tr>
+<tr><td><code>--effort ultracode</code></td><td><strong>yes</strong></td><td><strong>yes</strong></td><td>15,442</td></tr>
+</tbody>
+</table></div>
+<p><strong>Be clear about what this does and does not buy you.</strong> The keyword gets you the Workflow<br />opt-in for that turn — which, combined with <code>xhigh</code>, is the part most people actually want.<br />It does <strong>not</strong> install the standing orchestration directive: the ~6,300-token difference<br />in the last row is real and is not reproduced by the keyword. Under the keyword the step<br /><em>may</em> use a workflow; under real ultracode it is told to use one by default.</p>
+<p>There is also a global route — adding <code>--effort ultracode</code> to <code>worker.extra-args</code> in<br /><code>application.yml</code>. <strong>Don't.</strong> That applies to every board task and every workflow node at<br />once, which is exactly the "one effort for the whole graph" that per-node effort existed<br />to fix, and it costs a restart.</p>
+<h2 id="5-the-actual-fix-when-someone-takes-the-card">5. The actual fix, when someone takes the card<a class="anchor" href="#5-the-actual-fix-when-someone-takes-the-card" aria-label="链接到本节">#</a></h2>
+<p>Smaller than it looks, because <code>EffortLevel</code> derives the CLI spelling from the constant<br />name and <code>--effort ultracode</code> is what the CLI wants:</p>
+<ul>
+<li><strong><code>EffortLevel.java</code></strong> — add <code>ULTRACODE</code> after <code>MAX</code>. <code>cliValue()</code> yields <code>"ultracode"</code>,<br /><code>parse()</code> accepts it, <code>allowed()</code> lists it, and <code>sessionArgsFor</code> emits<br /><code>--effort ultracode</code>. Nothing else on the backend changes.</li>
+<li><strong><code>workflowDraft.js:16</code></strong> — add <code>'ultracode'</code> to <code>EFFORT_LEVELS</code>. The picker renders it.</li>
+<li><strong>Exactly one test breaks</strong>: <code>WorkflowRunnerServiceTest:322</code>, which asserts<br /><code>allowed()</code> <code>isEqualTo("low, medium, high, xhigh, max")</code>. The other two assertions on<br />that string (<code>WorkflowApiTest:924</code>, <code>WorkflowRunnerServiceTest:368</code>) use<br /><code>containsString</code> / <code>hasMessageContaining</code> and still pass, since the old list is a prefix<br />of the new one. The loop test at <code>:309</code> covers the new constant for free.</li>
+</ul>
+<p>Three things worth pinning while making the change:</p>
+<ul>
+<li><strong>A test that the flag is really accepted.</strong> The whole reason the option is missing is<br />that <code>--help</code> was trusted. The class's existing comment already warns that a wrong<br />spelling is "ignored silently" — that failure mode is exactly what let this through, and<br />it deserves a check against the CLI rather than against the help text.</li>
+<li><strong>Ultracode is not universally available.</strong> The CLI gates it — "not available for this<br />session (dynamic workflows are off, or the model / your plan…)" — and on a session where<br />it is unavailable, <code>--effort ultracode</code> is rejected as an invalid argument rather than<br />downgraded. It worked here on the default model; it will not work everywhere. A node set<br />to <code>ultracode</code> should fail loudly and legibly, not mysteriously.</li>
+<li><strong>Say what it costs in the UI.</strong> The other five levels change how hard one session<br />thinks. This one also changes <em>how many sessions there are</em> — sub-agents are in-process,<br />so it is paid in tokens and wall-clock rather than in the ~270 MB per extra process<br />measured in the parallel-workers analysis. Still, it is not "one notch above <code>max</code>", and<br />a picker that lists it sixth in a row of five will read as if it is.</li>
+</ul>
+<h2 id="6-if-you-like-workflows">6. If you like workflows<a class="anchor" href="#6-if-you-like-workflows" aria-label="链接到本节">#</a></h2>
+<p>Two different things share the name and it is easy to conflate them:</p>
+<ul>
+<li><strong>This board's workflows</strong> — the DAG of steps on the Workflows page. Each step is one<br />Claude session, wired by edges, with its own prompt, effort level and scratch directory.</li>
+<li><strong>The CLI's dynamic workflows</strong> — what ultracode turns on <em>inside</em> a single step: that<br />one session spawns a fan-out of sub-agents to answer its own prompt.</li>
+</ul>
+<p>They compose rather than compete. Setting a step to ultracode means that step becomes a<br />small multi-agent orchestration of its own, inside one node of your graph. The natural<br />place for it is a step that has to go find and reconcile material — not a step handed a<br />draft to tighten, which has nothing to fan out over.</p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["workflow-effort-ultracode"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["workflow-effort-ultracode"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
