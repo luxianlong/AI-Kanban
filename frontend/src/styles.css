@@ -1360,7 +1360,11 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .wf-blank h2 { font-family: var(--font-head); font-size: var(--f-lg); margin: var(--s-3) 0 var(--s-2); color: var(--ink); }
 .wf-blank p { font-size: var(--f-base); line-height: 1.6; margin-bottom: var(--s-4); }
 
-/* Graph picture: columns left→right in the order the runner works through them. */
+/* The DAG: columns left→right in the order the runner works through them. It is
+   the editing surface, not a decoration — a box is a button that opens the step
+   below it, and the same picture is redrawn under a run with the boxes coloured by
+   how each step went. Wide graphs scroll sideways rather than shrinking to
+   illegible; the boxes have a fixed size in the SVG's own units. */
 .wf-graph {
   background: var(--col);
   border: 1px solid var(--hair);
@@ -1368,13 +1372,41 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   padding: var(--s-2);
   overflow-x: auto;
 }
+.wf-graph svg { display: block; }
 .wf-edge { fill: none; stroke: var(--board-line); stroke-width: 2; }
+.wf-edge.on { stroke: var(--brand); }
+.wf-arrowhead { fill: var(--board-line); }
 .wf-gnode rect { fill: #fff; stroke: var(--hair); stroke-width: 1.5; }
-.wf-gnode text { font-size: 11px; font-weight: 600; fill: var(--ink); font-family: Inter, sans-serif; }
+.wf-gnode text { font-family: Inter, sans-serif; fill: var(--ink); }
+.wf-gnode-name { font-size: 12px; font-weight: 600; }
+.wf-gnode-num { font-size: 10px; font-weight: 700; fill: var(--faint); font-variant-numeric: tabular-nums; }
+.wf-gnode-sub { font-size: 10px; font-weight: 600; fill: var(--muted); letter-spacing: 0.02em; }
 .wf-gnode.entry rect { fill: var(--brand-100); stroke: var(--brand); }
-.wf-gnode.entry text { fill: var(--brand-ink); }
+.wf-gnode.entry .wf-gnode-name { fill: var(--brand-ink); }
 .wf-gnode.unreached rect { stroke-dasharray: 4 3; stroke: var(--faint); fill: var(--col); }
 .wf-gnode.unreached text { fill: var(--faint); }
+
+.wf-gnode.pickable { cursor: pointer; }
+.wf-gnode.pickable:hover rect { stroke: var(--brand); }
+.wf-gnode.pickable:focus { outline: none; }
+.wf-gnode.pickable:focus-visible rect { stroke: var(--brand); stroke-width: 2.5; }
+/* Selected box: a halo around it, so the fill can keep saying how the run went and
+   the border can keep saying "entry". */
+.wf-gnode.on > rect:not(.wf-gnode-ring) { stroke: var(--brand); stroke-width: 2; }
+.wf-gnode-ring { fill: none; stroke: var(--brand-200); stroke-width: 3; }
+
+/* Run colours reuse the board's state tokens, so a green box here and a green
+   chip on the card mean the same thing. */
+.wf-gnode.running rect { fill: var(--warn-bg); stroke: var(--warn-border); }
+.wf-gnode.running .wf-gnode-sub { fill: var(--warn-ink); }
+.wf-gnode.succeeded rect { fill: var(--done-bg); stroke: var(--done-border); }
+.wf-gnode.succeeded .wf-gnode-sub { fill: var(--done-ink); }
+.wf-gnode.failed rect { fill: var(--fail-bg); stroke: var(--fail-border); }
+.wf-gnode.failed .wf-gnode-sub { fill: var(--fail-ink); }
+.wf-gnode.skipped rect, .wf-gnode.cancelled rect { fill: var(--col); }
+.wf-gnode.skipped text, .wf-gnode.cancelled text { fill: var(--faint); }
+
+.wf-graph-bar { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
 
 .wf-nodes { display: flex; flex-direction: column; gap: var(--s-3); }
 .wf-node {
@@ -1527,6 +1559,7 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .wf-noderun { border: 1px solid var(--hair); border-radius: var(--r-sm); background: var(--col); }
 .wf-noderun.running { border-color: var(--warn-border); background: var(--warn-bg); }
 .wf-noderun.failed { border-color: var(--fail-border); }
+.wf-noderun.open { border-color: var(--brand-200); background: #fff; }
 .wf-noderun-head {
   width: 100%; display: flex; align-items: center; gap: var(--s-2);
   padding: 6px var(--s-2); border: none; background: transparent;
