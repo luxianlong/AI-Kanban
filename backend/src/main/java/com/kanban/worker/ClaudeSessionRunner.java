@@ -38,6 +38,26 @@ public class ClaudeSessionRunner {
      */
     public static final String FAIL_SENTINEL = "[[TASK_FAILED]]";
 
+    /**
+     * The CLI prints this — as plain text, not as a stream-json event — when it stops
+     * waiting for background work a session started and terminates it. The rest of the
+     * line carries how long it waited.
+     *
+     * <p>It has to be matched on text. The terminal {@code result} event that follows
+     * looks exactly like a clean finish, and the session's answer is whatever it said
+     * <em>before</em> the wait — typically a promise to report back about work that has
+     * just been destroyed. Without this the run is recorded as a success holding a
+     * stand-in for an answer.
+     *
+     * <p>The stream does carry a {@code system/task_updated} event with
+     * {@code status: "killed"} for each task torn down, which looks like the structured
+     * signal to use instead, but it is a broader thing: leftover tasks are killed on the
+     * way out of a session that answered perfectly well, and a task the agent stopped
+     * itself reads the same. Only this line means "the wait ran out", which is the case
+     * worth failing on.
+     */
+    static final String BACKGROUND_WORK_ABANDONED = "Background tasks still running after";
+
     private final WorkerProperties props;
     private final LiveLogRegistry liveLog;
     private final RunningSessionRegistry sessions;
@@ -50,9 +70,17 @@ public class ClaudeSessionRunner {
         this.sessions = sessions;
     }
 
-    /** What one finished session produced. */
+    /**
+     * What one finished session produced.
+     *
+     * @param abandonedBackgroundWork the session ended while background work it had
+     *                                started was still running, so the CLI terminated
+     *                                that work — {@link #finalOutput()} was written
+     *                                before it and cannot describe its results
+     */
     public record ProcessResult(int exitCode, String finalOutput, boolean timedOut,
-                                Double costUsd, Long durationMs) {
+                                Double costUsd, Long durationMs,
+                                boolean abandonedBackgroundWork) {
     }
 
     /**
@@ -107,6 +135,14 @@ public class ClaudeSessionRunner {
         // the user: nothing they learn should be written to (or read from) the CLI's
         // auto-memory store, which is shared with the interactive sessions run by hand.
         pb.environment().put("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "1");
+        // How long the CLI may wait, after the last turn, for background work this
+        // session started before killing it. Its own default is 600s, which is both
+        // much shorter than the timeout enforced below and silent when it fires — see
+        // WorkerProperties#getBackgroundWaitSeconds. Waiting is the whole point: work
+        // that lands inside the ceiling gets the session another turn, and that turn is
+        // what the caller reads back.
+        pb.environment().put("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS",
+                Long.toString(Math.max(0, props.getBackgroundWaitSeconds()) * 1000L));
         Process process = pb.start();
         process.getOutputStream().close();
         // Expose the live process so a user can stop this session on demand; always
@@ -127,11 +163,12 @@ public class ClaudeSessionRunner {
                 process.destroyForcibly();
                 process.waitFor(10, TimeUnit.SECONDS);
                 reader.join(5_000);
-                return new ProcessResult(-1, finalOutput.toString(), true, metrics.costUsd, metrics.durationMs);
+                return new ProcessResult(-1, finalOutput.toString(), true, metrics.costUsd,
+                        metrics.durationMs, metrics.abandonedBackgroundWork);
             }
             reader.join(5_000);
             return new ProcessResult(process.exitValue(), finalOutput.toString(), false,
-                    metrics.costUsd, metrics.durationMs);
+                    metrics.costUsd, metrics.durationMs, metrics.abandonedBackgroundWork);
         } finally {
             sessions.unregister(sessionKey);
         }
@@ -150,6 +187,12 @@ public class ClaudeSessionRunner {
             while ((line = br.readLine()) != null) {
                 if (line.isBlank()) {
                     continue;
+                }
+                if (line.contains(BACKGROUND_WORK_ABANDONED)) {
+                    // Recorded rather than acted on here: the line arrives before the
+                    // terminal result event, which then replaces finalOutput with the
+                    // session's answer and erases every trace of it.
+                    metrics.abandonedBackgroundWork = true;
                 }
                 JsonNode event = tryParse(line);
                 if (event == null) {
@@ -285,5 +328,6 @@ public class ClaudeSessionRunner {
     private static final class RunMetrics {
         Double costUsd;
         Long durationMs;
+        boolean abandonedBackgroundWork;
     }
 }

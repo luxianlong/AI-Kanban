@@ -41,6 +41,15 @@ public enum EffortLevel {
      * unavailable the CLI rejects the session outright instead of falling back, so the
      * step fails visibly rather than quietly running at the default.
      *
+     * <p>Those workflows run in the <em>background</em>, which is what makes this level
+     * the one most likely to end a step's turn before the step's actual work exists: the
+     * session says "I'll report back when it lands" and that sentence is what a run
+     * stores. Two things stop that — {@code worker.background-wait-seconds}, which is how
+     * long the session is allowed to wait for the workflow (the CLI's own ceiling is
+     * three times shorter than a step's timeout), and
+     * {@code ProcessResult#abandonedBackgroundWork()}, which fails the step rather than
+     * passing that sentence down the graph when the wait does run out.
+     *
      * <p>It is missing from {@code claude --help}'s {@code (low, medium, high, xhigh,
      * max)} list, which is the whole reason it was absent here: the picker was built
      * from that help text, and the help text is incomplete. The flag itself works — an

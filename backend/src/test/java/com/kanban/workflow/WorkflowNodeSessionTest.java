@@ -104,7 +104,7 @@ class WorkflowNodeSessionTest {
             promptByNode.put(node, prompt);
             workDirByNode.put(node, call.getArgument(2));
             argsByNode.put(node, call.getArgument(3));
-            return new ProcessResult(0, "done", false, 0.01, 5L);
+            return new ProcessResult(0, "done", false, 0.01, 5L, false);
         });
     }
 

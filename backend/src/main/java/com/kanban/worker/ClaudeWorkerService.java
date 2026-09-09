@@ -258,6 +258,18 @@ public class ClaudeWorkerService {
             } else if (r.exitCode() != 0) {
                 liveLog.append(todo.getId(), "✗ Claude exited with code " + r.exitCode() + ".");
                 fail(todo, "Claude exited with code " + r.exitCode() + ".\n\n" + r.finalOutput());
+            } else if (r.abandonedBackgroundWork()) {
+                // Same failure the workflow runner guards against: the session handed its
+                // work to a dynamic workflow or a background sub-session, the CLI ran out
+                // of patience and killed it, and what the session said before that is a
+                // promise to report back. Sending that to Done would file a stand-in as
+                // the task's answer.
+                liveLog.append(todo.getId(), "✗ Background work was still running and was terminated.");
+                fail(todo, "The session ended while background work it had started was still"
+                        + " running, so the CLI terminated that work after "
+                        + props.getBackgroundWaitSeconds() + "s. What the session replied was"
+                        + " written before then and describes results it never received:\n\n"
+                        + r.finalOutput());
             } else if (r.finalOutput().contains(FAIL_SENTINEL)) {
                 // The agent signalled semantic failure (e.g. a guarded deploy whose
                 // tests failed) even though the CLI exited cleanly.

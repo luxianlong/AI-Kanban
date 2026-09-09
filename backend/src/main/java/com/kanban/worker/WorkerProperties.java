@@ -31,6 +31,34 @@ public class WorkerProperties {
     /** Hard timeout for a single item, in seconds (default 30 min). */
     private long timeoutSeconds = 1800;
 
+    /**
+     * How long a session may wait, after its last turn, for background work it started
+     * — a dynamic workflow, a background subagent — before the CLI gives up and
+     * terminates that work. Passed to the CLI as
+     * {@code CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS}; {@code 0} means wait indefinitely.
+     *
+     * <p>This exists because the CLI's own default is 600s, which is far shorter than
+     * {@link #timeoutSeconds} and is applied silently: a session that hands its real
+     * work to a dynamic workflow ends its turn with "I'll report back when it's done",
+     * the CLI waits 600s, kills the workflow, and then emits that same stand-in
+     * sentence as the session's answer. The session looks successful and its answer
+     * describes results nobody ever received.
+     *
+     * <p>Waiting is what the session needs, and waiting works: when the background work
+     * lands inside the ceiling the CLI hands the session a fresh turn, and the answer it
+     * writes then is the one that gets reported. So the only question is how long, and
+     * the answer should be "as long as this session is allowed to live" rather than a
+     * number three times smaller that nothing here chose.
+     *
+     * <p>Deliberately a little under {@link #timeoutSeconds} rather than equal to it.
+     * The two clocks start at different moments — this one when the last turn ends, the
+     * hard timeout when the process starts — so leaving slack is what lets the CLI wind
+     * up and report cost, duration and a reason, instead of being force-killed with
+     * none of them. If the turns themselves eat the slack the hard timeout still fires
+     * first, which is a worse report but not a wrong one.
+     */
+    private long backgroundWaitSeconds = 1500;
+
     /** Max pending items handled per poll tick. */
     private int batchSize = 1;
 
@@ -99,6 +127,14 @@ public class WorkerProperties {
 
     public void setTimeoutSeconds(long timeoutSeconds) {
         this.timeoutSeconds = timeoutSeconds;
+    }
+
+    public long getBackgroundWaitSeconds() {
+        return backgroundWaitSeconds;
+    }
+
+    public void setBackgroundWaitSeconds(long backgroundWaitSeconds) {
+        this.backgroundWaitSeconds = backgroundWaitSeconds;
     }
 
     public int getBatchSize() {

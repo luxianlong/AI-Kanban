@@ -443,6 +443,20 @@ public class WorkflowRunnerService {
                 failNode(run, key, "Timed out after " + props.getTimeoutSeconds() + "s.");
             } else if (result.exitCode() != 0) {
                 failNode(run, key, "Claude exited with code " + result.exitCode() + ".\n\n" + output);
+            } else if (result.abandonedBackgroundWork()) {
+                // The step handed its real work to something running in the background —
+                // a dynamic workflow is the usual case, which is exactly what the
+                // ultracode effort level asks for — and the CLI killed that work when it
+                // ran out of patience. The text below was written before the kill, so it
+                // is a promise to report back rather than an answer. Recording it as a
+                // success is the damage: it is what crosses every edge below this step,
+                // and the steps downstream then have nothing to work on and say so in
+                // their own outputs, so one abandoned step quietly spoils a whole run.
+                failNode(run, key, "The step ended while background work it had started was"
+                        + " still running, so the CLI terminated that work after "
+                        + props.getBackgroundWaitSeconds() + "s.\n\nWhat the step replied was"
+                        + " written before then and describes results it never received, so it"
+                        + " is not passed on:\n\n" + output);
             } else if (output.contains(ClaudeSessionRunner.FAIL_SENTINEL)) {
                 failNode(run, key, output);
             } else {
