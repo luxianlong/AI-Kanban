@@ -7,6 +7,10 @@ import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
+// The editor's working copy and its conversions to/from what the API stores —
+// nodes carry their own `inputs` rather than a separate edge list, because that is
+// how they are edited. See workflowDraft.js.
+import { blankDraft, draftFingerprint, draftFrom, newId, payloadFrom } from './workflowDraft.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
 // produced on the right. Both halves live on one page because they are two views of
@@ -17,57 +21,6 @@ import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // upstream node's output text, pasted into the next node's input. So the editor
 // talks about "input from", and an execution shows each node's input next to its
 // output rather than one merged transcript.
-
-// ---------------------------------------------------------------------------
-// Draft shape
-// ---------------------------------------------------------------------------
-// The editor holds a working copy: nodes carry their own `inputs` (the ids feeding
-// them) instead of a separate edge list, because that is how they are edited. It is
-// flattened back into { nodes, edges } only when saving.
-
-const newId = () =>
-  (crypto.randomUUID ? crypto.randomUUID() : `n${Date.now()}${Math.random()}`).slice(0, 36)
-
-function blankDraft() {
-  const entry = newId()
-  return {
-    id: null,
-    name: '',
-    description: '',
-    entryNodeId: entry,
-    nodes: [{ id: entry, name: 'Step 1', prompt: '', inputs: [] }],
-  }
-}
-
-function draftFrom(workflow) {
-  const nodes = workflow.nodes.map((n) => ({
-    id: n.id,
-    name: n.name,
-    prompt: n.prompt || '',
-    inputs: workflow.edges.filter((e) => e.to === n.id).map((e) => e.from),
-  }))
-  return {
-    id: workflow.id,
-    name: workflow.name,
-    description: workflow.description || '',
-    entryNodeId: workflow.entryNodeId,
-    // Listed in run order, so a card's number means "this step runs Nth" and the
-    // entry is always first. The saved order is only insertion order, which after a
-    // reload can put a step above the one that feeds it — and then the numbering
-    // says the opposite of what the graph does.
-    nodes: inRunOrder(nodes),
-  }
-}
-
-function payloadFrom(draft) {
-  return {
-    name: draft.name.trim(),
-    description: draft.description.trim() || null,
-    entryNodeId: draft.entryNodeId,
-    nodes: draft.nodes.map((n) => ({ id: n.id, name: n.name.trim() || 'Untitled step', prompt: n.prompt })),
-    edges: draft.nodes.flatMap((n) => n.inputs.map((from) => ({ from, to: n.id }))),
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Page
@@ -170,6 +123,37 @@ export default function WorkflowsPage({ onBack }) {
       await api.runWorkflow(draft.id, input || null)
       setScopeAll(false)
       await loadExecutions()
+    } catch (e) {
+      setError(cleanError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  /**
+   * Copy the open workflow into a new one and open the copy — how a variant of a
+   * working graph gets started without retyping every prompt.
+   *
+   * The server copies the STORED workflow, not the draft on screen: that way the
+   * copy carries everything the row holds, including what the editor doesn't round-
+   * trip. The cost is that unsaved edits wouldn't be in it, so say so first rather
+   * than let them quietly go missing.
+   */
+  async function duplicate() {
+    if (!draft?.id) return
+    const saved = workflows.find((w) => w.id === draft.id)
+    const unsaved = saved && draftFingerprint(draft) !== draftFingerprint(draftFrom(saved))
+    if (unsaved && !window.confirm(
+      `"${saved.name}" has unsaved edits. The copy is made from the last saved version, `
+      + 'so those edits will not be in it. Duplicate anyway?')) return
+    setBusy(true)
+    setError(null)
+    try {
+      const copy = await api.duplicateWorkflow(draft.id)
+      await loadWorkflows()
+      // Open the copy: renaming it is the next thing anyone does.
+      setSelectedId(copy.id)
+      setDraft(draftFrom(copy))
     } catch (e) {
       setError(cleanError(e))
     } finally {
@@ -297,6 +281,7 @@ export default function WorkflowsPage({ onBack }) {
               onChange={setDraft}
               onSave={save}
               onRun={run}
+              onDuplicate={draft.id ? duplicate : null}
               onDelete={draft.id ? remove : null}
               busy={busy}
             />
@@ -435,7 +420,7 @@ function PaneHide({ label, dir, onClick }) {
 // Editor
 // ---------------------------------------------------------------------------
 
-function WorkflowEditor({ draft, onChange, onSave, onRun, onDelete, busy }) {
+function WorkflowEditor({ draft, onChange, onSave, onRun, onDuplicate, onDelete, busy }) {
   const [runInput, setRunInput] = useState('')
   // The graph is the editing surface: click a step in the picture and its card
   // opens underneath. Every prompt shown at once turned the page into a column of
@@ -546,6 +531,17 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDelete, busy }) {
         <button type="button" className="btn primary" onClick={onSave} disabled={!canSave}>
           {draft.id ? 'Save changes' : 'Create workflow'}
         </button>
+        {onDuplicate && (
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={onDuplicate}
+            disabled={busy}
+            title="Create a copy of this workflow to edit separately"
+          >
+            <Icon name="copy" size={13} /> Duplicate
+          </button>
+        )}
         {onDelete && (
           <button type="button" className="btn danger-ghost" onClick={onDelete} disabled={busy}>
             Delete

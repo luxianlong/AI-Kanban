@@ -145,6 +145,13 @@ export const api = {
       body: JSON.stringify(graph),
     }).then(json),
 
+  // Copy a workflow's graph into a new one, named "<name> (copy)". The copy is
+  // made server-side from the stored rows — not from the editor's draft — so it
+  // carries fields the editor doesn't round-trip, and it starts with no runs.
+  // Returns the copy.
+  duplicateWorkflow: (id) =>
+    fetch(`${BASE}/workflows/${id}/duplicate`, { method: 'POST' }).then(json),
+
   // Delete a workflow, its graph and its run history.
   deleteWorkflow: (id) =>
     fetch(`${BASE}/workflows/${id}`, { method: 'DELETE' }).then(json),

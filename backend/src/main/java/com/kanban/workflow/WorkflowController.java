@@ -93,6 +93,16 @@ public class WorkflowController {
         return service.replace(id, req);
     }
 
+    /**
+     * Copy a workflow's graph into a new workflow — the copy starts with no runs.
+     * Returns the copy, which is what the page then opens for editing.
+     */
+    @PostMapping("/{id}/duplicate")
+    @ResponseStatus(HttpStatus.CREATED)
+    public WorkflowView duplicate(@PathVariable String id) {
+        return service.duplicate(id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {

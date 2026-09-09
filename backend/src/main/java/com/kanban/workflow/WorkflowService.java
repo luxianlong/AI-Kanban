@@ -15,10 +15,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Everything the workflow API does apart from actually running sessions (that is
@@ -117,6 +119,69 @@ public class WorkflowService {
             edges.save(new WorkflowEdge(workflow.getId(), e.from(), e.to()));
         }
         return view(workflow);
+    }
+
+    /**
+     * Copy a workflow into a brand new one — the usual way a variant of a working
+     * graph gets started, without retyping every prompt.
+     *
+     * <p>The copy is made from the stored rows rather than from anything the client
+     * sends, so it carries fields the editor doesn't round-trip (a node's canvas
+     * position) and cannot be used to smuggle in a graph that was never validated.
+     * Node ids are kept verbatim: they are unique only within a workflow, so the
+     * edges copy across untouched and the copy reads in the editor exactly as the
+     * original does.
+     *
+     * <p>Run history is deliberately <em>not</em> copied. An execution is a record of
+     * something that happened, and the copy has never run.
+     */
+    @Transactional
+    public WorkflowView duplicate(String id) {
+        Workflow original = find(id);
+        Set<String> taken = new HashSet<>(workflows.findAllByOrderByCreatedAtDesc().stream()
+                .map(Workflow::getName).toList());
+
+        Workflow copy = new Workflow(UUID.randomUUID().toString(), copyName(original.getName(), taken));
+        copy.setDescription(original.getDescription());
+        copy.setEntryNodeId(original.getEntryNodeId());
+        workflows.save(copy);
+
+        for (WorkflowNode n : nodes.findByWorkflowIdOrderByIdAsc(id)) {
+            nodes.save(new WorkflowNode(n.getNodeId(), copy.getId(), n.getName(), n.getPrompt(),
+                    n.getPosX(), n.getPosY()));
+        }
+        for (WorkflowEdge e : edges.findByWorkflowId(id)) {
+            edges.save(new WorkflowEdge(copy.getId(), e.getFromNodeId(), e.getToNodeId()));
+        }
+        return view(copy);
+    }
+
+    /** Longest name the API accepts ({@code SaveWorkflowRequest.name}). */
+    private static final int MAX_NAME = 200;
+
+    /** A trailing "(copy)" or "(copy 7)" that {@link #copyName} put there before. */
+    private static final Pattern COPY_SUFFIX = Pattern.compile("\\s*\\(copy(?: \\d+)?\\)$");
+
+    /**
+     * Name for a copy of {@code original}: "Research (copy)", then "(copy 2)" and on,
+     * skipping names already in use so the list never shows two identical rows.
+     *
+     * <p>An existing suffix is stripped first — duplicating a duplicate should give
+     * "Research (copy 3)", not "Research (copy) (copy) (copy)". The base is truncated
+     * so the result still fits {@link #MAX_NAME}; a copy the editor could not save
+     * back would be a trap.
+     */
+    static String copyName(String original, Set<String> taken) {
+        String stripped = original == null ? "" : COPY_SUFFIX.matcher(original.trim()).replaceFirst("").trim();
+        String base = stripped.isEmpty() ? "Workflow" : stripped;
+        for (int n = 1; ; n++) {
+            String suffix = n == 1 ? " (copy)" : " (copy " + n + ")";
+            int room = MAX_NAME - suffix.length();
+            String candidate = (base.length() > room ? base.substring(0, room).trim() : base) + suffix;
+            if (!taken.contains(candidate)) {
+                return candidate;
+            }
+        }
     }
 
     /**
