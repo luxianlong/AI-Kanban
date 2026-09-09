@@ -1,4 +1,4 @@
-# Claude Code Kanban
+# AI Kanban
 
 A kanban board where you create **todo items** and a scheduled **Claude Code session**
 regularly picks them up and tries to resolve them — writing the result back for you to read.
