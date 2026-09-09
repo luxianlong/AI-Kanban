@@ -525,7 +525,7 @@ function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, d
         <span className="mark" aria-hidden />
         <div>
           <h1>Kanban</h1>
-          <p className="tagline">Queue a task — a Claude Code agent picks it up and works it.</p>
+          <p className="tagline">Queue a task — an AI agent picks it up and works it.</p>
         </div>
       </div>
       <div className="status">
