@@ -46,11 +46,31 @@ class BackgroundWorkWaitTest {
      * lines a real one prints, in the real order: the plain-text warning first, the
      * stream-json result event last.
      */
-    private void writeStub(Path dir, String... lines) throws Exception {
+    private void writeStub(Path dir, String... stdoutLines) throws Exception {
+        writeStub(dir, List.of(), List.of(stdoutLines));
+    }
+
+    /**
+     * Writes a stub CLI that prints {@code stderrLines} to stderr and {@code stdoutLines}
+     * to stdout, in that order.
+     *
+     * <p>Which stream a line goes to is not a detail here. The real CLI prints the
+     * abandoned-work warning on <b>stderr</b>, while its stream-json events come back on
+     * stdout, and {@link ClaudeSessionRunner} reads exactly one stream. Detection
+     * therefore works in production only because the runner sets
+     * {@code redirectErrorStream(true)} — and a stub that printed the warning to stdout
+     * would pass just the same with that redirect deleted, leaving the whole guard dead
+     * against a green suite.
+     */
+    private void writeStub(Path dir, List<String> stderrLines, List<String> stdoutLines)
+            throws Exception {
         StringBuilder script = new StringBuilder("#!/bin/sh\n");
         script.append("printf '%s' \"$CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS\" > ")
                 .append(dir.resolve("ceiling.txt")).append('\n');
-        for (String line : lines) {
+        for (String line : stderrLines) {
+            script.append("cat >&2 <<'CLAUDE_STUB_EOF'\n").append(line).append("\nCLAUDE_STUB_EOF\n");
+        }
+        for (String line : stdoutLines) {
             script.append("cat <<'CLAUDE_STUB_EOF'\n").append(line).append("\nCLAUDE_STUB_EOF\n");
         }
         Path stub = dir.resolve("claude-stub.sh");
@@ -73,6 +93,19 @@ class BackgroundWorkWaitTest {
         return runnerFor(dir, new WorkerProperties().getBackgroundWaitSeconds());
     }
 
+    /**
+     * A wait that is deliberately not {@link WorkerProperties}' default.
+     *
+     * <p>It has to be. A child process inherits its parent's environment, and the parent
+     * here is this project's own worker session, which sets
+     * {@code CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS} to exactly the default — so a stub
+     * asked about the default reads back the right number whether the runner set it or
+     * not. Asserting the default made this test pass with the runner's own
+     * {@code environment().put(...)} deleted, every time the suite ran through
+     * {@code scripts/deploy.sh}, which is every time it guards a release.
+     */
+    private static final long UNUSUAL_WAIT_SECONDS = 1234;
+
     @Test
     void aSessionIsAllowedToWaitForItsBackgroundWorkForAsLongAsTheConfigSays(@TempDir Path dir)
             throws Exception {
@@ -81,11 +114,28 @@ class BackgroundWorkWaitTest {
         // so the ceiling has to be passed in rather than inherited.
         writeStub(dir, RESULT_EVENT);
 
-        runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of());
+        runnerFor(dir, UNUSUAL_WAIT_SECONDS).run("todo:1", "go", dir.toFile(), List.of());
 
         assertThat(Files.readString(dir.resolve("ceiling.txt")))
                 .as("the session should be given the configured wait, in milliseconds")
-                .isEqualTo("1500000");
+                .isEqualTo("1234000");
+    }
+
+    @Test
+    void theWaitIsGivenToTheSessionRatherThanLeftToWhateverTheParentHappenedToExport(
+            @TempDir Path dir) throws Exception {
+        // The companion to the above, stated as its own rule because it is the one the
+        // inherited environment can hide: whatever this project configures has to reach
+        // the session, and it must not be possible to satisfy that by doing nothing.
+        writeStub(dir, RESULT_EVENT);
+        String inherited = System.getenv("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS");
+
+        runnerFor(dir, UNUSUAL_WAIT_SECONDS).run("todo:1", "go", dir.toFile(), List.of());
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt")))
+                .as("the configured wait must win over anything the parent exported (%s)", inherited)
+                .isEqualTo("1234000")
+                .isNotEqualTo(inherited);
     }
 
     @Test
@@ -104,7 +154,9 @@ class BackgroundWorkWaitTest {
         // Everything about this run looks successful: exit 0, a terminal result event, a
         // cost, and an answer. The only thing that says otherwise is the warning line,
         // and it is gone from the output by the time the caller sees it.
-        writeStub(dir, CEILING_HIT, RESULT_EVENT);
+        // The warning goes to stderr because that is where the real CLI puts it; the
+        // result event to stdout. The runner only sees both because it merges the two.
+        writeStub(dir, List.of(CEILING_HIT), List.of(RESULT_EVENT));
 
         ProcessResult result = runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of());
 
