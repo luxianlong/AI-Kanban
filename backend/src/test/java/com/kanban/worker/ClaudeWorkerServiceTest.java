@@ -28,7 +28,7 @@ class ClaudeWorkerServiceTest {
 
     private final AttachmentService attachments = mock(AttachmentService.class);
     private final ClaudeWorkerService service =
-            new ClaudeWorkerService(null, null, null, null, attachments);
+            new ClaudeWorkerService(null, null, null, null, null, attachments);
 
     private Todo task(String title, boolean projectImprovement) {
         Todo t = new Todo();
@@ -102,7 +102,7 @@ class ClaudeWorkerServiceTest {
         when(repository.findByClassifyingTrue()).thenReturn(List.of());
         when(props.getMaxAttempts()).thenReturn(3);
 
-        new ClaudeWorkerService(repository, props, null, null, attachments).requeueOrphans();
+        new ClaudeWorkerService(repository, props, null, null, null, attachments).requeueOrphans();
 
         // Our own killed session is re-queued...
         assertThat(ourOwnSession.getStatus()).isEqualTo(TodoStatus.PENDING);
@@ -169,7 +169,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null, null).requeueOrphans();
 
         // One automatic recovery retry is still allowed after a genuine crash.
         assertThat(t.getStatus()).isEqualTo(TodoStatus.PENDING);
@@ -183,7 +183,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
         assertThat(t.getResult()).contains("Interrupted by a backend restart");
@@ -199,7 +199,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
     }

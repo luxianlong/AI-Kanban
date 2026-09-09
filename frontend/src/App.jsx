@@ -3,6 +3,8 @@ import { api } from './api.js'
 import Markdown from './Markdown.jsx'
 import Icon from './Icon.jsx'
 import { buildDocIndex, linkifyDocRefs } from './docLinks.js'
+import { relTime } from './time.js'
+import WorkflowsPage from './Workflows.jsx'
 
 // The board's status columns, in flow order (left→right). This is the HORIZONTAL
 // axis of the matrix; the vertical axis is one row per story. A task starts queued
@@ -16,6 +18,11 @@ const COLUMNS = [
 ]
 
 export default function App() {
+  // The board and the workflow page are the app's two screens. A hash route keeps
+  // them one SPA — the board's polling and state unmount cleanly when you leave,
+  // and #/workflows stays a shareable, back-button-able link — without pulling in
+  // a router for two routes.
+  const route = useHashRoute()
   const [todos, setTodos] = useState([])
   // Persisted stories (from /api/stories) — includes empty ones whose task chain
   // has been cleared, so an empty story keeps its row on the board until deleted.
@@ -69,11 +76,14 @@ export default function App() {
     }
   }, [])
 
+  // Board data only matters while the board is on screen; the workflow page has
+  // its own poll. Keep fetching once on entry so returning to the board is instant.
   useEffect(() => {
     refresh()
+    if (route !== 'board') return undefined
     const t = setInterval(refresh, 4000)
     return () => clearInterval(t)
-  }, [refresh])
+  }, [refresh, route])
 
   // The 4-second poll is only a fallback. A status change made outside this tab —
   // in another open board tab, or by the worker on the server — would otherwise
@@ -267,10 +277,11 @@ export default function App() {
       if (selectedRef.current != null) ids.add(selectedRef.current)
       ids.forEach(fetchLog)
     }
+    if (route !== 'board') return undefined
     tick()
     const t = setInterval(tick, 1500)
     return () => clearInterval(t)
-  }, [fetchLog])
+  }, [fetchLog, route])
 
   async function createTodo(title, description, projectImprovement, attachmentIds, delegated) {
     await api.createTodo(title, description, projectImprovement, attachmentIds, delegated)
@@ -372,6 +383,10 @@ export default function App() {
   )
   // Phones can't use the wide story×status matrix — swap to a stacked layout.
   const isMobile = useIsMobile()
+
+  if (route === 'workflows') {
+    return <WorkflowsPage onBack={() => { window.location.hash = '' }} />
+  }
 
   return (
     <div className="page">
@@ -534,6 +549,14 @@ function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, d
           onOpen={onOpenUnread}
           onMarkAllRead={onMarkAllRead}
         />
+        <a
+          className="docs-link wf-link"
+          href="#/workflows"
+          title="Workflows — chain prompts into a graph and run it"
+        >
+          <Icon name="workflow" size={16} />
+          <span className="label">Workflows</span>
+        </a>
         <a
           className={`docs-link ${docsNew > 0 ? 'has-new' : ''}`}
           href="/docs.html"
@@ -893,6 +916,22 @@ function SwipeToDelete({ onDelete, children }) {
 
 // Track a CSS media query in React so we can swap whole layouts (not merely
 // restyle) below a breakpoint. Kept in sync with the 720px breakpoint in the CSS.
+/**
+ * The current screen, from the URL hash: 'workflows' for #/workflows, otherwise
+ * the board. Listening to `hashchange` is what makes the browser's back button
+ * move between the two.
+ */
+function useHashRoute() {
+  const read = () => (window.location.hash.replace(/^#\/?/, '') === 'workflows' ? 'workflows' : 'board')
+  const [route, setRoute] = useState(read)
+  useEffect(() => {
+    const onChange = () => setRoute(read())
+    window.addEventListener('hashchange', onChange)
+    return () => window.removeEventListener('hashchange', onChange)
+  }, [])
+  return route
+}
+
 function useIsMobile(query = '(max-width: 720px)') {
   const [match, setMatch] = useState(
     () => typeof window !== 'undefined' && window.matchMedia(query).matches,
@@ -1876,11 +1915,3 @@ function label(status) {
   )
 }
 
-function relTime(iso) {
-  if (!iso) return ''
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  return `${Math.floor(diff / 86400)}d ago`
-}

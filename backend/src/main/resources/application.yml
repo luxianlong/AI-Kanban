@@ -89,6 +89,15 @@ worker:
   poll-interval-ms: 15000
   initial-delay-ms: 10000
 
+# --- Workflow runner (a DAG of prompt tasks) ---
+# Runs one node per tick and then hands the tick back, so the board's task queue is
+# never starved by a long graph. Both this and the worker above sit on Spring's single
+# scheduler thread, which is what guarantees only one Claude process is alive at a time;
+# a node inherits worker.timeout-seconds and worker.working-directory.
+workflow:
+  poll-interval-ms: 5000
+  initial-delay-ms: 12000
+
 logging:
   level:
     com.kanban: INFO
