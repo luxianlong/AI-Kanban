@@ -136,3 +136,18 @@ export function followedNode(openNodeId, runningNodeId, following) {
   if (!following || !runningNodeId) return openNodeId
   return runningNodeId
 }
+
+/**
+ * Which step a run started from — the one drawn as the entry and run in ultracode
+ * mode (see WorkflowRunnerService).
+ *
+ * The run records its own entry, and that is the answer wherever it exists: a
+ * topological order can legitimately put a different node first, so "the first row"
+ * is a guess that is right most of the time, which is the worst kind. It stays as the
+ * fallback only for runs recorded before the entry was snapshotted, where it is the
+ * only answer available.
+ */
+export function entryNodeIdOf(execution) {
+  if (!execution) return null
+  return execution.entryNodeId ?? execution.nodes?.[0]?.nodeId ?? null
+}

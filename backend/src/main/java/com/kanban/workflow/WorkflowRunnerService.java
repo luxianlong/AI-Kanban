@@ -39,6 +39,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * makes a workflow composable: a node's behaviour depends only on its own prompt and
  * the input it is handed, not on what some earlier node happened to talk about.
  *
+ * <p><strong>The entry node is run differently.</strong> It is the one step with no
+ * upstream text, so it is the step that has to go and find the material the rest of the
+ * graph then works on — and everything below it inherits whatever it got wrong. It
+ * therefore starts in ultracode mode ({@link #ULTRACODE_ARGS}) and is told to read the
+ * web through the chrome-devtools MCP browser rather than WebSearch/WebFetch
+ * ({@link #BROWSER_PREAMBLE}). Both are switchable —
+ * {@code workflow.entry-node-ultracode} and {@code workflow.entry-node-prefer-browser} —
+ * because both buy quality with tokens and wall-clock.
+ *
  * <p><strong>Runs go in parallel; a single run stays sequential.</strong> The tick does
  * not run anything itself — it hands each eligible execution to a lane of a small pool
  * ({@code workflow.max-concurrent-executions}) and returns immediately, so a node that
@@ -77,6 +86,44 @@ public class WorkflowRunnerService {
     /** How many executions may have a node in flight at once. */
     private final int lanes;
 
+    /** Whether the entry node's session is started in ultracode mode. */
+    private final boolean entryUltracode;
+
+    /** Whether the entry node is told to browse with Chrome rather than fetch pages. */
+    private final boolean entryPrefersBrowser;
+
+    /**
+     * Turns ultracode on for one session: xhigh effort plus standing dynamic-workflow
+     * orchestration, so the node may fan work out over sub-agents instead of answering
+     * in one pass. Passed as {@code --settings}, which the CLI <em>merges</em> into the
+     * settings already in force — the MCP servers, skills and permissions a session
+     * normally gets are all still there.
+     *
+     * <p>Only the entry node gets it, and that is the point: it is the step with no
+     * upstream text to work from, so it is the one that has to go and find the
+     * material. Every node below it is handed an answer to improve, where a wider
+     * search buys less than it costs. Sub-agents are in-process, so this multiplies
+     * tokens rather than the ~270 MB of a second CLI process.
+     */
+    static final List<String> ULTRACODE_ARGS = List.of("--settings", "{\"ultracode\":true}");
+
+    /**
+     * Prepended to the entry node's prompt when {@code workflow.entry-node-prefer-browser}
+     * is on. Deliberately about <em>which tool to read the web with</em> and nothing
+     * else: {@link #buildPrompt} explains why anything resembling a filesystem hint
+     * cost us more than it bought.
+     *
+     * <p>Named tools rather than "use a browser", because the preference is only
+     * actionable if the node knows what to call. WebSearch and WebFetch are named too:
+     * the default habit is to reach for them, and a preference that doesn't say what it
+     * is preferred <em>over</em> doesn't change that habit.
+     */
+    static final String BROWSER_PREAMBLE =
+            "When you need to read something on the web, drive the real browser through the "
+            + "chrome-devtools MCP tools (mcp__chrome-devtools__navigate_page, take_snapshot, "
+            + "evaluate_script, list_network_requests). Prefer them over WebSearch and WebFetch, "
+            + "which see a stripped copy of a page and nothing that renders after load.";
+
     /**
      * One thread per lane. Sized to {@link #lanes} and only ever handed as many tasks
      * as there are free lanes, so nothing queues here: a submitted execution starts
@@ -104,7 +151,9 @@ public class WorkflowRunnerService {
     public WorkflowRunnerService(WorkflowExecutionRepository executions, NodeExecutionRepository nodeRuns,
                                  ClaudeSessionRunner runner, LiveLogRegistry liveLog,
                                  RunningSessionRegistry sessions, WorkerProperties props,
-                                 @Value("${workflow.max-concurrent-executions:2}") int maxConcurrentExecutions) {
+                                 @Value("${workflow.max-concurrent-executions:2}") int maxConcurrentExecutions,
+                                 @Value("${workflow.entry-node-ultracode:true}") boolean entryUltracode,
+                                 @Value("${workflow.entry-node-prefer-browser:true}") boolean entryPrefersBrowser) {
         this.executions = executions;
         this.nodeRuns = nodeRuns;
         this.runner = runner;
@@ -112,6 +161,8 @@ public class WorkflowRunnerService {
         this.sessions = sessions;
         this.props = props;
         this.lanes = Math.max(1, maxConcurrentExecutions);
+        this.entryUltracode = entryUltracode;
+        this.entryPrefersBrowser = entryPrefersBrowser;
         this.pool = Executors.newFixedThreadPool(this.lanes, new LaneThreads());
     }
 
@@ -361,16 +412,27 @@ public class WorkflowRunnerService {
         run.setInput(input);
         nodeRuns.save(run);
 
+        boolean entry = isEntryNode(execution, run);
+        List<String> sessionArgs = sessionArgsFor(entry);
+
         String key = LiveLogRegistry.nodeKey(run.getId());
         liveLog.start(key);
         liveLog.append(key, "● Node \"" + run.getNodeName() + "\" ("
                 + (run.getOrderIndex() + 1) + "/" + totalNodes + ")"
                 + (run.getAttempt() > 1 ? ", attempt " + run.getAttempt() + "," : "")
                 + " started.");
-        log.info("Workflow execution #{}: running node \"{}\".", execution.getId(), run.getNodeName());
+        if (entry && !sessionArgs.isEmpty()) {
+            // Say it, because it is the one place two runs of the same prompt would
+            // differ in what they cost and how long they take.
+            liveLog.append(key, "● Entry step — ultracode mode (xhigh effort, may fan out "
+                    + "over sub-agents).");
+        }
+        log.info("Workflow execution #{}: running node \"{}\"{}.", execution.getId(), run.getNodeName(),
+                entry ? " (entry)" : "");
 
         try {
-            ProcessResult result = runner.run(key, buildPrompt(run, input), workDirFor(execution));
+            ProcessResult result =
+                    runner.run(key, buildPrompt(run, input, entry), workDirFor(execution), sessionArgs);
             // Added to, not replaced: on a retried node these are what the node has
             // cost across every attempt. An attempt that failed was billed all the
             // same, and a total that quietly forgot it would understate the run.
@@ -504,27 +566,62 @@ public class WorkflowRunnerService {
 
     /**
      * The whole prompt for one node: the text it was handed, then the node's own
-     * instructions — and nothing else.
+     * instructions — and, on the entry node only, one line about which tool to read
+     * the web with.
      *
-     * <p>Deliberately free of scaffolding. Everything the runner used to prepend (the
-     * node's name and place in the graph, "you are a fresh session", the failure
-     * sentinel, the guardrail that named {@code docs/} and {@code research/}) was the
-     * only concrete filesystem hint a node ever saw, and nodes acted on it: they wrote
-     * their material into {@code research/} instead of replying with it, and the nodes
-     * downstream went hunting through that directory rather than reading the input they
-     * had been given. A node now sees exactly what the user wrote for it, plus what
+     * <p>Otherwise deliberately free of scaffolding. Everything the runner used to
+     * prepend (the node's name and place in the graph, "you are a fresh session", the
+     * failure sentinel, the guardrail that named {@code docs/} and {@code research/})
+     * was the only concrete filesystem hint a node ever saw, and nodes acted on it:
+     * they wrote their material into {@code research/} instead of replying with it, and
+     * the nodes downstream went hunting through that directory rather than reading the
+     * input they had been given. A node still sees what the user wrote for it, plus what
      * came across its edges.
+     *
+     * <p>{@link #BROWSER_PREAMBLE} is allowed back in on one node because it names no
+     * place to put anything — it changes only which tool answers "read this page", and
+     * only for the step whose job is to go and find the material. It leads rather than
+     * trails so the node's own instruction keeps the last word.
      */
-    String buildPrompt(NodeExecution run, String input) {
+    String buildPrompt(NodeExecution run, String input, boolean entryNode) {
         String instructions = run.getPrompt() == null ? "" : run.getPrompt().strip();
         String handed = input == null ? "" : input.strip();
+        String body;
         if (handed.isEmpty()) {
-            return instructions;
+            body = instructions;
+        } else if (instructions.isEmpty()) {
+            body = handed;
+        } else {
+            body = handed + "\n\n" + instructions;
         }
-        if (instructions.isEmpty()) {
-            return handed;
+        if (!entryNode || !entryPrefersBrowser) {
+            return body;
         }
-        return handed + "\n\n" + instructions;
+        return body.isEmpty() ? BROWSER_PREAMBLE : BROWSER_PREAMBLE + "\n\n" + body;
+    }
+
+    /**
+     * Extra CLI args for this node's session: ultracode on the entry node, nothing
+     * anywhere else.
+     */
+    List<String> sessionArgsFor(boolean entryNode) {
+        return entryNode && entryUltracode ? ULTRACODE_ARGS : List.of();
+    }
+
+    /**
+     * Whether this run is the execution's entry step — the one with no upstream text,
+     * which is what the ultracode and browser settings key off.
+     *
+     * <p>Runs recorded before the entry was snapshotted don't know theirs. For those,
+     * "has no dependencies" is the same question for anything that actually gets here:
+     * a node the entry never reached is recorded {@link RunState#SKIPPED} when the run
+     * is created and is never handed to a session.
+     */
+    static boolean isEntryNode(WorkflowExecution execution, NodeExecution run) {
+        String entryNodeId = execution.getEntryNodeId();
+        return entryNodeId == null
+                ? run.dependencyIds().isEmpty()
+                : entryNodeId.equals(run.getNodeId());
     }
 
     /**

@@ -74,6 +74,20 @@ public class ClaudeSessionRunner {
      */
     public ProcessResult run(String sessionKey, String prompt, File workDir)
             throws IOException, InterruptedException {
+        return run(sessionKey, prompt, workDir, List.of());
+    }
+
+    /**
+     * As {@link #run(String, String, File)}, but with extra CLI args for this one
+     * session, appended after {@code worker.extra-args}.
+     *
+     * <p>This is for a difference that belongs to a single run rather than to the
+     * worker — the workflow runner uses it to start an entry node in ultracode mode
+     * (see {@code WorkflowRunnerService#sessionArgsFor}). Configuration that applies to
+     * <em>every</em> session belongs in {@code worker.extra-args} instead.
+     */
+    public ProcessResult run(String sessionKey, String prompt, File workDir, List<String> sessionArgs)
+            throws IOException, InterruptedException {
         if (!workDir.exists() && !workDir.mkdirs()) {
             liveLog.append(sessionKey, "! Could not create working directory " + workDir);
         }
@@ -81,6 +95,7 @@ public class ClaudeSessionRunner {
         List<String> cmd = new ArrayList<>();
         cmd.add(props.getClaudeCommand());
         cmd.addAll(props.getExtraArgs());
+        cmd.addAll(sessionArgs);
         cmd.add("-p");
         cmd.add(prompt);
 

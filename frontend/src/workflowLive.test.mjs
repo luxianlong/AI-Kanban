@@ -1,7 +1,8 @@
 // node src/workflowLive.test.mjs
 import assert from 'node:assert/strict'
 import {
-  followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt, sameValue,
+  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt,
+  sameValue,
 } from './workflowLive.js'
 
 const node = (over = {}) => ({
@@ -174,5 +175,21 @@ assert.deepEqual([...nodesWithStaleInput([
 // Junk in, empty set out — the panel calls this on whatever the poll last returned.
 assert.deepEqual([...nodesWithStaleInput(undefined)], [])
 assert.deepEqual([...nodesWithStaleInput([])], [])
+
+// --- entryNodeIdOf ---------------------------------------------------------
+
+// The run's own record wins over position. This is the case the old "first row"
+// guess got wrong: a topological order can put a node the entry feeds ahead of the
+// entry itself, and the wrong step would then be drawn — and described — as the one
+// that runs in ultracode mode.
+assert.equal(entryNodeIdOf({ entryNodeId: 'b', nodes: [node({ nodeId: 'a' }), node({ nodeId: 'b' })] }), 'b')
+
+// Runs recorded before the entry was snapshotted have no answer to give, so the
+// first row is the only one available.
+assert.equal(entryNodeIdOf({ nodes: [node({ nodeId: 'a' }), node({ nodeId: 'b' })] }), 'a')
+
+// Junk in, null out — the panel calls this on whatever the poll last returned.
+assert.equal(entryNodeIdOf(undefined), null)
+assert.equal(entryNodeIdOf({ nodes: [] }), null)
 
 console.log('ok')
