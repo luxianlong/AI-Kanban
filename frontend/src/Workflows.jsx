@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { api } from './api.js'
 import Icon from './Icon.jsx'
 import Markdown from './Markdown.jsx'
@@ -6,6 +6,7 @@ import { relTime, runMeta } from './time.js'
 import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
+import { followedNode, mergeExecutions } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
 // nodes carry their own `inputs` rather than a separate edge list, because that is
@@ -53,7 +54,12 @@ export default function WorkflowsPage({ onBack }) {
 
   const loadExecutions = useCallback(async () => {
     try {
-      setExecutions(await api.listExecutions())
+      const list = await api.listExecutions()
+      // Fold the poll into what is on screen rather than replacing it: an unchanged
+      // run keeps its object, and a memo'd card then skips re-rendering altogether.
+      // Reading a step's output is the slowest thing anyone does here, and a run
+      // finishing elsewhere has no business disturbing it. See workflowLive.js.
+      setExecutions((prev) => mergeExecutions(prev, list))
     } catch (e) {
       setError(e.message)
     }
@@ -717,10 +723,19 @@ function WorkflowGraph({
   // Still too wide to fit at MIN_SCALE: it scrolls sideways, and "Add step" selects
   // the step it just made — which would otherwise appear off the right edge and
   // look like nothing happened.
+  //
+  // Only ever on a *change* of selection or scale, though. `layout` is a fresh
+  // object on every poll of a live run, so running this whenever it changes identity
+  // would smooth-scroll the graph back every 2.5 seconds — undoing the scroll of
+  // anyone reading the far end of a wide run.
+  const broughtIntoView = useRef({ id: null, scale: 0 })
   useEffect(() => {
     const box = boxRef.current
     const at = selectedId && layout.positions.get(selectedId)
     if (!box || !at) return
+    const done = broughtIntoView.current
+    if (done.id === selectedId && done.scale === scale) return
+    broughtIntoView.current = { id: selectedId, scale }
     const left = at.x * scale - 16
     const right = (at.x + NODE_W) * scale + 16
     if (left < box.scrollLeft) box.scrollTo({ left, behavior: 'smooth' })
@@ -837,13 +852,24 @@ const touches = (edge, nodeId) => !!nodeId && (edge.from === nodeId || edge.to =
 // Executions
 // ---------------------------------------------------------------------------
 
-function ExecutionCard({ execution, showWorkflowName, onChanged }) {
+const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName, onChanged }) {
   const [open, setOpen] = useState(false)
   // Which step's detail is expanded. A run's picture is the same graph the editor
   // draws, so picking a box here means the same thing it does there: show me this
   // step. The list underneath stays — it is where the input, output and log live.
   const [openNodeId, setOpenNodeId] = useState(null)
+  // Whether the card is still following the run. See the effect below.
+  const [following, setFollowing] = useState(true)
   const live = execution.status === 'PENDING' || execution.status === 'RUNNING'
+
+  // Picking a step is how you say "this is the one I'm reading" — so it also stops
+  // the card following the run. Toggling the same step shut is still a deliberate
+  // pick, and following stays off; otherwise closing a panel would hand control
+  // back to the poll, which is the opposite of what closing it meant.
+  const pickNode = (id) => {
+    setFollowing(false)
+    setOpenNodeId((current) => (current === id ? null : id))
+  }
 
   const graphNodes = useMemo(
     () => execution.nodes.map((n) => ({ id: n.nodeId, name: n.nodeName, inputs: n.dependsOn || [] })),
@@ -854,12 +880,15 @@ function ExecutionCard({ execution, showWorkflowName, onChanged }) {
     [execution.nodes],
   )
 
-  // Whatever is running is what you want open; it is also the only thing with a
-  // live log to follow.
+  // On a run you just started, whatever is running is what you want open — it is
+  // the only step with anything to show yet. But once you have picked a step
+  // yourself you are reading it, and a step finishing must not move the panel out
+  // from under you. So following is sticky-off: it survives until the first
+  // deliberate pick, and only the "Follow the run" button turns it back on.
   const runningNodeId = execution.nodes.find((n) => n.status === 'RUNNING')?.nodeId
   useEffect(() => {
-    if (runningNodeId) setOpenNodeId(runningNodeId)
-  }, [runningNodeId])
+    setOpenNodeId((current) => followedNode(current, runningNodeId, following))
+  }, [runningNodeId, following])
 
   async function cancel(e) {
     e.stopPropagation()
@@ -913,6 +942,11 @@ function ExecutionCard({ execution, showWorkflowName, onChanged }) {
                 <Icon name="delete" size={13} /> Delete run
               </button>
             )}
+            {live && !following && (
+              <button type="button" className="btn ghost" onClick={() => setFollowing(true)}>
+                <Icon name="play" size={13} /> Follow the run
+              </button>
+            )}
             {execution.costUsd != null && (
               <span className="wf-run-hint">${execution.costUsd.toFixed(4)} total</span>
             )}
@@ -931,7 +965,7 @@ function ExecutionCard({ execution, showWorkflowName, onChanged }) {
             entryNodeId={execution.nodes[0]?.nodeId}
             statuses={statuses}
             selectedId={openNodeId}
-            onSelect={(id) => setOpenNodeId((current) => (current === id ? null : id))}
+            onSelect={pickNode}
             label={`Run #${execution.id} graph — pick a step to see what it did`}
           />
 
@@ -941,7 +975,7 @@ function ExecutionCard({ execution, showWorkflowName, onChanged }) {
                 key={run.id}
                 run={run}
                 open={openNodeId === run.nodeId}
-                onToggle={() => setOpenNodeId((current) => (current === run.nodeId ? null : run.nodeId))}
+                onToggle={() => pickNode(run.nodeId)}
               />
             ))}
           </ol>
@@ -949,7 +983,7 @@ function ExecutionCard({ execution, showWorkflowName, onChanged }) {
       )}
     </li>
   )
-}
+})
 
 function NodeRun({ run, open, onToggle }) {
   const [log, setLog] = useState('')
@@ -965,7 +999,9 @@ function NodeRun({ run, open, onToggle }) {
     const tick = async () => {
       try {
         const { log: text } = await api.nodeRunLog(runIdRef.current)
-        if (!cancelled) setLog(text)
+        // Same transcript as last tick: leave the <pre> alone. Re-setting it would
+        // rewrite the text node and drop any selection made inside it.
+        if (!cancelled) setLog((current) => (current === text ? current : text))
       } catch {
         /* transient — keep the last transcript */
       }
