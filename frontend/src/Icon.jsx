@@ -92,6 +92,24 @@ const GLYPHS = {
     </>
   ),
   check: <polyline points="20 6 9 17 4 12" />,
+  // A branching graph: one node feeding two — the shape a workflow makes.
+  workflow: (
+    <>
+      <circle cx="5" cy="12" r="2.5" />
+      <circle cx="19" cy="6" r="2.5" />
+      <circle cx="19" cy="18" r="2.5" />
+      <path d="M7.5 11 16.6 6.9" />
+      <path d="M7.5 13l9.1 4.1" />
+    </>
+  ),
+  back: (
+    <>
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </>
+  ),
+  play: <polygon points="6 3 20 12 6 21 6 3" />,
+  chevron: <polyline points="9 18 15 12 9 6" />,
   alert: (
     <>
       <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />

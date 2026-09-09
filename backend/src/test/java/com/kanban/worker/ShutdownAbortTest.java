@@ -72,7 +72,7 @@ class ShutdownAbortTest {
         RunningSessionRegistry sessions = new RunningSessionRegistry();
         ClaudeWorkerService service = new ClaudeWorkerService(
                 repository, props, mock(LiveLogRegistry.class), sessions,
-                mock(AttachmentService.class));
+                mock(ClaudeSessionRunner.class), mock(AttachmentService.class));
 
         service.shutdown();
         service.poll();

@@ -151,6 +151,16 @@ enabling this — the session will run tools without prompting.
 | `GET` | `/api/stories` | List stories with their ordered steps. |
 | `POST` | `/api/stories` | Create a story `{ "name": "...", "steps": [{ "title": "...", "description": "..." }] }`. |
 | `GET` | `/api/worker/status` | Worker config (enabled, interval, ...). |
+| `GET` | `/api/workflows` | List workflows with their full graph. |
+| `POST` | `/api/workflows` | Create one from a whole graph: `{ "name": "...", "nodes": [{ "id": "...", "name": "...", "prompt": "..." }], "edges": [{ "from": "...", "to": "..." }], "entryNodeId": "..." }`. `entryNodeId` may be omitted when exactly one node has no incoming edge. |
+| `PUT` | `/api/workflows/{id}` | Replace name, description and whole graph. |
+| `DELETE` | `/api/workflows/{id}` | Delete the workflow, its graph and its runs. |
+| `POST` | `/api/workflows/{id}/run` | Queue a run: `{ "input": "..." }` (optional) is handed to the entry node. |
+| `GET` | `/api/workflows/executions` | Runs, newest first. `?workflowId=` narrows to one workflow. |
+| `GET` | `/api/workflows/executions/{id}` | One run with every node's input, output and status. |
+| `POST` | `/api/workflows/executions/{id}/cancel` | Stop a run: kill the live node session and close the run out. |
+| `DELETE` | `/api/workflows/executions/{id}` | Delete a run. |
+| `GET` | `/api/workflows/node-runs/{id}/log` | Live transcript of one node's session (poll while it runs). |
 
 **Public (no password) — delegated tasks:**
 
@@ -203,6 +213,40 @@ step in its chain has RESOLVED, so later steps can safely build on earlier resul
 and the chain halts if a step fails. Each card shows a `Story · n/total` badge; blocked
 steps are dimmed until their turn. Standalone todos are unaffected (their story fields
 are `null`).
+
+### Workflows — a DAG of prompts
+
+A **story** is a straight line of tasks. A **workflow** is the same idea as a
+*graph*: nodes fan out and join back up, so one step's answer can feed two, and two
+answers can feed one. Open it from **Workflows** in the board header (or
+`/#/workflows`) — the graph editor and its runs sit on the same page.
+
+```
+                 ┌── Bull case ──┐
+   Collect ──────┤               ├────── Verdict
+                 └── Bear case ──┘
+```
+
+Each node holds a prompt you write. Every **workflow execution** starts at the
+single entry node, which receives whatever text you type when starting the run;
+each later node runs once every node feeding it has succeeded.
+
+**Nodes do not share context.** Every node is a brand-new headless session —
+nothing is resumed, and no conversation history crosses an edge. The only thing a
+node inherits is the *output text* of the node(s) feeding it, pasted into its
+prompt as an `INPUT` block above its own instructions. A node with two parents gets
+both, each labelled with the node it came from. That is what makes a workflow
+composable: what a node does depends only on its own prompt plus the input it was
+handed, never on something an earlier node happened to mention.
+
+The runner works one node per tick and then yields, so a long graph never starves
+the board's task queue; both share the single scheduler thread, so exactly one
+Claude process is alive at a time. If a node fails (or prints `[[TASK_FAILED]]`),
+only what depends on it is skipped — an independent branch still finishes, and the
+run is recorded as failed with every node's output still readable.
+
+An execution snapshots each node's name, prompt and dependencies when it starts, so
+editing or deleting the workflow afterwards never rewrites what a past run did.
 
 ---
 

@@ -118,6 +118,61 @@ export const api = {
 
   workerStatus: () => fetch(`${BASE}/worker/status`).then(json),
 
+  // --- Workflows: a DAG of prompt tasks, and the runs it produces ---------
+  // Each node of the graph runs as its own fresh Claude session; the only thing
+  // that crosses an edge is the upstream node's output text. See Workflows.jsx.
+
+  listWorkflows: () => fetch(`${BASE}/workflows`).then(json),
+
+  getWorkflow: (id) => fetch(`${BASE}/workflows/${id}`).then(json),
+
+  // Create a workflow from a whole graph. `nodes` are { id, name, prompt, x, y }
+  // with editor-chosen ids, `edges` are { from, to } referencing those ids, and
+  // `entryNodeId` may be omitted when exactly one node has no incoming edge.
+  createWorkflow: (graph) =>
+    fetch(`${BASE}/workflows`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(graph),
+    }).then(json),
+
+  // Replace a workflow's name, description and whole graph. The editor holds the
+  // working copy and saves it wholesale, so there is no partial-update path.
+  saveWorkflow: (id, graph) =>
+    fetch(`${BASE}/workflows/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(graph),
+    }).then(json),
+
+  // Delete a workflow, its graph and its run history.
+  deleteWorkflow: (id) =>
+    fetch(`${BASE}/workflows/${id}`, { method: 'DELETE' }).then(json),
+
+  // Queue a run. `input` is optional starting text handed to the entry node —
+  // what lets one workflow be re-run against a different subject.
+  runWorkflow: (id, input) =>
+    fetch(`${BASE}/workflows/${id}/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input }),
+    }).then(json),
+
+  // Runs of every workflow, newest first — or of one, with a workflowId.
+  listExecutions: (workflowId) =>
+    fetch(`${BASE}/workflows/executions${workflowId ? `?workflowId=${encodeURIComponent(workflowId)}` : ''}`)
+      .then(json),
+
+  // Stop a run in flight: kills the live node session and closes the run out.
+  cancelExecution: (executionId) =>
+    fetch(`${BASE}/workflows/executions/${executionId}/cancel`, { method: 'POST' }).then(json),
+
+  deleteExecution: (executionId) =>
+    fetch(`${BASE}/workflows/executions/${executionId}`, { method: 'DELETE' }).then(json),
+
+  // Live transcript of one node's session — poll it while that node runs.
+  nodeRunLog: (nodeRunId) => fetch(`${BASE}/workflows/node-runs/${nodeRunId}/log`).then(json),
+
   // The manifest ids of docs the user has already opened. Diffed against the docs
   // manifest to size the "new docs" badge — server-side so it's the same on every
   // device the user browses from. A doc is marked read by the static docs page
