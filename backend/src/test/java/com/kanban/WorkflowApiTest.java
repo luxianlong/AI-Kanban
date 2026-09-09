@@ -551,6 +551,110 @@ class WorkflowApiTest {
         mvc.perform(post("/api/workflows/executions/999999/retry")).andExpect(status().isNotFound());
     }
 
+    // --- re-running one step the user picked ------------------------------
+
+    private long nodeRunId(long executionId, String nodeId) {
+        return nodeRuns.findByExecutionIdOrderByOrderIndexAsc(executionId).stream()
+                .filter(n -> n.getNodeId().equals(nodeId)).findFirst().orElseThrow().getId();
+    }
+
+    @Test
+    void aStepThatSucceededCanBeReRunAndTakesEverythingBelowItWithIt() throws Exception {
+        // Nothing failed here. "Summarise" produced a perfectly good answer to the
+        // wrong question, which is the case a whole-run retry has no handle on.
+        String id = createWorkflow(chainNamed("Re-run a good step"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "three sources");
+        settle(executionId, "b", RunState.SUCCEEDED, "the wrong angle");
+        settle(executionId, "c", RunState.SUCCEEDED, "published");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        // A finished run has nothing to retry, yet every step can be re-run by hand —
+        // and each says how many steps that would redo.
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.retryableNodes", is(0)))
+                .andExpect(jsonPath("$.nodes[0].rerunFromCount", is(3)))
+                .andExpect(jsonPath("$.nodes[1].rerunFromCount", is(2)))
+                .andExpect(jsonPath("$.nodes[2].rerunFromCount", is(1)));
+
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "b") + "/retry"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                // Untouched: its output is the input the redone step is handed.
+                .andExpect(jsonPath("$.nodes[0].status", is("SUCCEEDED")))
+                .andExpect(jsonPath("$.nodes[0].output", is("three sources")))
+                .andExpect(jsonPath("$.nodes[0].attempt", is(1)))
+                // The picked step, cleared for a second attempt.
+                .andExpect(jsonPath("$.nodes[1].status", is("PENDING")))
+                .andExpect(jsonPath("$.nodes[1].output").doesNotExist())
+                .andExpect(jsonPath("$.nodes[1].attempt", is(2)))
+                // It read the old output, so its answer is no longer about anything.
+                .andExpect(jsonPath("$.nodes[2].status", is("PENDING")))
+                .andExpect(jsonPath("$.nodes[2].output").doesNotExist())
+                .andExpect(jsonPath("$.nodes[2].attempt", is(2)))
+                // The bill for the first attempt stands; it was really spent.
+                .andExpect(jsonPath("$.nodes[1].costUsd", is(0.5)));
+    }
+
+    @Test
+    void reRunningTheLastStepLeavesEveryOtherStepAlone() throws Exception {
+        String id = createWorkflow(chainNamed("Re-run the last step"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "one");
+        settle(executionId, "b", RunState.SUCCEEDED, "two");
+        settle(executionId, "c", RunState.SUCCEEDED, "three");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "c") + "/retry"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[0].status", is("SUCCEEDED")))
+                .andExpect(jsonPath("$.nodes[1].status", is("SUCCEEDED")))
+                .andExpect(jsonPath("$.nodes[1].output", is("two")))
+                .andExpect(jsonPath("$.nodes[2].status", is("PENDING")));
+    }
+
+    @Test
+    void aStepTheEntryNeverReachedCannotBeStartedByHand() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Re-run with an orphan",
+                 "nodes":[{"id":"a","name":"A","prompt":"x"},
+                          {"id":"b","name":"B","prompt":"y"},
+                          {"id":"orphan","name":"Orphan","prompt":"z"}],
+                 "edges":[{"from":"a","to":"b"}],"entryNodeId":"a"}
+                """);
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "one");
+        settle(executionId, "b", RunState.SUCCEEDED, "two");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        // The button isn't offered for it, and the service doesn't rely on that.
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.nodes[?(@.nodeName=='Orphan')].rerunFromCount",
+                        is(java.util.List.of(0))));
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "orphan") + "/retry"))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .hasMessageContaining("isn't wired in"));
+    }
+
+    @Test
+    void noStepOfALiveRunCanBeReRunUnderneathTheRunner() throws Exception {
+        String id = createWorkflow(chainNamed("Re-run live"));
+        long executionId = startRun(id);
+
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.nodes[0].rerunFromCount", is(0)));
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "a") + "/retry"))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .hasMessageContaining("still going"));
+    }
+
+    @Test
+    void reRunningAStepThatIsNotThereAnswers404() throws Exception {
+        mvc.perform(post("/api/workflows/node-runs/999999/retry")).andExpect(status().isNotFound());
+    }
+
     @Test
     void deletingAWorkflowTakesItsRunsWithIt() throws Exception {
         String id = createWorkflow(CHAIN);

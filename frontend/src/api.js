@@ -181,6 +181,13 @@ export const api = {
   retryExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}/retry`, { method: 'POST' }).then(json),
 
+  // Run one step of a finished run again — including one that succeeded — plus every
+  // step downstream of it, whose input that step's output is. The steps above it keep
+  // their output. Returns the whole run, since re-queueing it changes its state too.
+  // 409 if the run is still going, or if the entry never reached that step.
+  retryNodeRun: (nodeRunId) =>
+    fetch(`${BASE}/workflows/node-runs/${nodeRunId}/retry`, { method: 'POST' }).then(json),
+
   deleteExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}`, { method: 'DELETE' }).then(json),
 

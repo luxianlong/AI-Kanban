@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /** Request/response payloads for the workflow API. */
 public final class WorkflowDtos {
@@ -113,9 +114,10 @@ public final class WorkflowDtos {
             Instant finishedAt,
             Double costUsd,
             Long durationMs,
-            int attempt) {
+            int attempt,
+            int rerunFromCount) {
 
-        static NodeRunView from(NodeExecution n) {
+        static NodeRunView from(NodeExecution n, int rerunFromCount) {
             return new NodeRunView(
                     n.getId(),
                     n.getNodeId(),
@@ -131,7 +133,8 @@ public final class WorkflowDtos {
                     n.getFinishedAt(),
                     n.getCostUsd(),
                     n.getDurationMs(),
-                    n.getAttempt());
+                    n.getAttempt(),
+                    rerunFromCount);
         }
     }
 
@@ -145,6 +148,11 @@ public final class WorkflowDtos {
      * the button. It is derived server-side for the same reason: which steps a retry
      * touches is the retry's own rule (see {@link WorkflowService#nodesToRetry}), and
      * a client re-deriving it would eventually disagree with the server that acts on it.
+     *
+     * <p>Each node carries the same number for itself in {@code rerunFromCount}: how
+     * many steps re-running <em>that</em> step would redo, itself included. 0 means the
+     * step can't be started by hand — the run is still going, or the entry never
+     * reached it (see {@link WorkflowService#nodesToRerunFrom}).
      */
     public record ExecutionView(
             Long id,
@@ -162,7 +170,8 @@ public final class WorkflowDtos {
             int retryableNodes,
             List<NodeRunView> nodes) {
 
-        static ExecutionView from(WorkflowExecution e, List<NodeExecution> nodes, int retryableNodes) {
+        static ExecutionView from(WorkflowExecution e, List<NodeExecution> nodes, int retryableNodes,
+                                  Map<String, Integer> rerunFromCounts) {
             long done = nodes.stream().filter(n -> n.getStatus().isTerminal()).count();
             return new ExecutionView(
                     e.getId(),
@@ -178,7 +187,9 @@ public final class WorkflowDtos {
                     (int) done,
                     nodes.size(),
                     retryableNodes,
-                    nodes.stream().map(NodeRunView::from).toList());
+                    nodes.stream()
+                            .map(n -> NodeRunView.from(n, rerunFromCounts.getOrDefault(n.getNodeId(), 0)))
+                            .toList());
         }
     }
 }

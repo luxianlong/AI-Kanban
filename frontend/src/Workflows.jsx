@@ -928,6 +928,32 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
     }
   }
 
+  // Re-running one step is the other question retrying answers. Retry asks the run
+  // which steps need doing over; this asks the user, because a step can succeed and
+  // still be wrong — and the answer costs a fresh session per step, so the count of
+  // what goes with it is the thing to put in front of them.
+  async function rerunFrom(run) {
+    const also = run.rerunFromCount - 1
+    const ok = window.confirm(
+      `Re-run "${run.nodeName}"${also ? ` and the ${plural(also, 'step')} after it` : ''}?\n\n`
+      + `${also ? 'Those steps read this one\'s output, so what they produced is discarded and each ' : 'It '}`
+      + `runs a fresh Claude session — real minutes and real money. The steps before `
+      + `"${run.nodeName}" are untouched and keep their output.`,
+    )
+    if (!ok) return
+    try {
+      await api.retryNodeRun(run.id)
+      // Live again, and the step to watch is the one being redone.
+      setFollowing(true)
+      onChanged()
+    } catch {
+      // Same reasoning as retry(): a refusal means the run moved under the page.
+      window.alert('This run has changed since the page last read it, so that step was '
+        + 'not re-run. The runs list has been refreshed.')
+      onChanged()
+    }
+  }
+
   async function remove(e) {
     e.stopPropagation()
     if (!window.confirm('Delete this run and everything it produced?')) return
@@ -1017,6 +1043,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
                 where={`${execution.workflowName} · Run #${execution.id}`}
                 open={openNodeId === run.nodeId}
                 onToggle={() => pickNode(run.nodeId)}
+                onRerun={() => rerunFrom(run)}
               />
             ))}
           </ol>
@@ -1026,9 +1053,19 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   )
 })
 
-function NodeRun({ run, where, open, onToggle }) {
+function NodeRun({ run, where, open, onToggle, onRerun }) {
   const [log, setLog] = useState('')
+  const [rerunning, setRerunning] = useState(false)
   const running = run.status === 'RUNNING'
+
+  async function rerun() {
+    setRerunning(true)
+    try {
+      await onRerun()
+    } finally {
+      setRerunning(false)
+    }
+  }
 
   // Stream the session transcript while this node is working. Polled only for the
   // node that is actually running — a finished node's durable output is on the row.
@@ -1070,6 +1107,21 @@ function NodeRun({ run, where, open, onToggle }) {
 
       {open && (
         <div className="wf-noderun-body">
+          {/* Zero on a live run and on a step the entry never reached — the server
+              decides both, so the button is offered exactly when it would work. */}
+          {run.rerunFromCount > 0 && (
+            <div className="wf-noderun-actions">
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={rerun}
+                disabled={rerunning}
+                title="Run this step again from its own input, and every step that reads its output. The steps before it keep what they produced."
+              >
+                <Icon name="run" size={13} /> {rerunning ? 'Queueing…' : rerunLabel(run.rerunFromCount)}
+              </button>
+            </div>
+          )}
           {run.input && (
             <details className="wf-details">
               <summary>Input it was given</summary>
@@ -1137,6 +1189,14 @@ function stateLabel(status) {
     SKIPPED: 'Skipped',
     CANCELLED: 'Cancelled',
   }[status] || status
+}
+
+/**
+ * What re-running one step actually redoes. The count is the whole warning: clicking
+ * "Re-run this step" is a small decision, "+ 5 steps after it" is not the same one.
+ */
+function rerunLabel(count) {
+  return count === 1 ? 'Re-run this step' : `Re-run this step + ${plural(count - 1, 'step')} after it`
 }
 
 /** "1 step" / "3 steps" — the count is the point, so it stays in front. */
