@@ -1,5 +1,7 @@
 package com.kanban.workflow;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.kanban.worker.ClaudeSessionRunner;
 import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
 import com.kanban.worker.LiveLogRegistry;
@@ -39,14 +41,24 @@ import java.util.concurrent.locks.ReentrantLock;
  * makes a workflow composable: a node's behaviour depends only on its own prompt and
  * the input it is handed, not on what some earlier node happened to talk about.
  *
+ * <p><strong>Nor do they share a filesystem.</strong> That claim used to hold for the
+ * conversation only: every node of a run shared one scratch directory and, under
+ * {@code --dangerously-skip-permissions}, could read anything else on the box as well.
+ * Now each node runs in a directory of its own ({@link #workDirFor}) and its session is
+ * fenced into it ({@link #FENCE_KEY}), so an edge is the only way anything reaches a
+ * node — not a file a sibling left behind, not this repo, not another session's
+ * transcript. Switchable with {@code workflow.node-fence-reads} for a node that
+ * genuinely needs to read the machine.
+ *
  * <p><strong>The entry node is run differently.</strong> It is the one step with no
  * upstream text, so it is the step that has to go and find the material the rest of the
  * graph then works on — and everything below it inherits whatever it got wrong. It
- * therefore starts in ultracode mode ({@link #ULTRACODE_ARGS}) and is told to read the
+ * therefore starts in ultracode mode ({@link #ULTRACODE_KEY}) and is told to read the
  * web through the chrome-devtools MCP browser rather than WebSearch/WebFetch
  * ({@link #BROWSER_PREAMBLE}). Both are switchable —
  * {@code workflow.entry-node-ultracode} and {@code workflow.entry-node-prefer-browser} —
- * because both buy quality with tokens and wall-clock.
+ * because both buy quality with tokens and wall-clock. The fence applies to it too: the
+ * web is not the filesystem, and the MCP browser is not a file tool.
  *
  * <p><strong>Runs go in parallel; a single run stays sequential.</strong> The tick does
  * not run anything itself — it hands each eligible execution to a lane of a small pool
@@ -92,12 +104,13 @@ public class WorkflowRunnerService {
     /** Whether the entry node is told to browse with Chrome rather than fetch pages. */
     private final boolean entryPrefersBrowser;
 
+    /** Whether a node's session is fenced into its own directory. */
+    private final boolean fenceReads;
+
     /**
-     * Turns ultracode on for one session: xhigh effort plus standing dynamic-workflow
-     * orchestration, so the node may fan work out over sub-agents instead of answering
-     * in one pass. Passed as {@code --settings}, which the CLI <em>merges</em> into the
-     * settings already in force — the MCP servers, skills and permissions a session
-     * normally gets are all still there.
+     * Settings key that turns ultracode on for one session: xhigh effort plus standing
+     * dynamic-workflow orchestration, so the node may fan work out over sub-agents
+     * instead of answering in one pass.
      *
      * <p>Only the entry node gets it, and that is the point: it is the step with no
      * upstream text to work from, so it is the one that has to go and find the
@@ -105,7 +118,22 @@ public class WorkflowRunnerService {
      * search buys less than it costs. Sub-agents are in-process, so this multiplies
      * tokens rather than the ~270 MB of a second CLI process.
      */
-    static final List<String> ULTRACODE_ARGS = List.of("--settings", "{\"ultracode\":true}");
+    static final String ULTRACODE_KEY = "ultracode";
+
+    /**
+     * Settings key that refuses file-tool reads (Read, Grep, Glob, LSP) outside the
+     * session's working directory. Paired with {@link #workDirFor}, which gives every
+     * node a directory of its own, this is what makes a node unable to see anything but
+     * its own files.
+     *
+     * <p>It is the right key rather than a set of {@code permissions.deny} globs because
+     * the CLI applies it <em>in every permission mode</em> — including the
+     * {@code bypassPermissions} that {@code worker.extra-args} switches on with
+     * {@code --dangerously-skip-permissions}. A deny list would also have to enumerate
+     * everything on the box; this one names what is allowed instead, so a path nobody
+     * thought of is out by default.
+     */
+    static final String FENCE_KEY = "blockReadsOutsideWorkingDirectories";
 
     /**
      * Prepended to the entry node's prompt when {@code workflow.entry-node-prefer-browser}
@@ -153,7 +181,8 @@ public class WorkflowRunnerService {
                                  RunningSessionRegistry sessions, WorkerProperties props,
                                  @Value("${workflow.max-concurrent-executions:2}") int maxConcurrentExecutions,
                                  @Value("${workflow.entry-node-ultracode:true}") boolean entryUltracode,
-                                 @Value("${workflow.entry-node-prefer-browser:true}") boolean entryPrefersBrowser) {
+                                 @Value("${workflow.entry-node-prefer-browser:true}") boolean entryPrefersBrowser,
+                                 @Value("${workflow.node-fence-reads:true}") boolean fenceReads) {
         this.executions = executions;
         this.nodeRuns = nodeRuns;
         this.runner = runner;
@@ -163,6 +192,7 @@ public class WorkflowRunnerService {
         this.lanes = Math.max(1, maxConcurrentExecutions);
         this.entryUltracode = entryUltracode;
         this.entryPrefersBrowser = entryPrefersBrowser;
+        this.fenceReads = fenceReads;
         this.pool = Executors.newFixedThreadPool(this.lanes, new LaneThreads());
     }
 
@@ -432,7 +462,7 @@ public class WorkflowRunnerService {
 
         try {
             ProcessResult result =
-                    runner.run(key, buildPrompt(run, input, entry), workDirFor(execution), sessionArgs);
+                    runner.run(key, buildPrompt(run, input, entry), workDirFor(execution, run), sessionArgs);
             // Added to, not replaced: on a retried node these are what the node has
             // cost across every attempt. An attempt that failed was billed all the
             // same, and a total that quietly forgot it would understate the run.
@@ -601,11 +631,26 @@ public class WorkflowRunnerService {
     }
 
     /**
-     * Extra CLI args for this node's session: ultracode on the entry node, nothing
-     * anywhere else.
+     * Extra CLI args for this node's session: the read fence on every node, ultracode on
+     * the entry node only.
+     *
+     * <p>Both travel in <em>one</em> {@code --settings} blob, and they have to.
+     * {@code --settings} takes a single value, so a second occurrence replaces the first
+     * rather than adding to it — passing the fence separately would silently switch
+     * ultracode back off on the one node that is supposed to have it. The blob is built
+     * with Jackson rather than concatenated, because in {@code --print} mode a settings
+     * value that fails to parse is <em>ignored without a word</em>: a stray escape would
+     * not fail the build or log anything, it would just quietly unfence every node.
      */
     List<String> sessionArgsFor(boolean entryNode) {
-        return entryNode && entryUltracode ? ULTRACODE_ARGS : List.of();
+        ObjectNode settings = JsonNodeFactory.instance.objectNode();
+        if (entryNode && entryUltracode) {
+            settings.put(ULTRACODE_KEY, true);
+        }
+        if (fenceReads) {
+            settings.putObject("permissions").put(FENCE_KEY, true);
+        }
+        return settings.isEmpty() ? List.of() : List.of("--settings", settings.toString());
     }
 
     /**
@@ -625,7 +670,7 @@ public class WorkflowRunnerService {
     }
 
     /**
-     * The directory a node's session runs in: a scratch directory of its own, per run,
+     * The directory a node's session runs in: one of its own, per <em>node run</em>,
      * outside this repo.
      *
      * <p>{@code worker.working-directory} points the board's task worker at the repo,
@@ -634,9 +679,22 @@ public class WorkflowRunnerService {
      * into the working tree (and pick up the repo's {@code CLAUDE.md} as uninvited
      * context). Under {@code java.io.tmpdir} it can still write scratch files if it wants
      * to; nothing it writes lands in the project.
+     *
+     * <p>It is keyed on the node run and not just the execution because that is what
+     * makes {@link #FENCE_KEY} mean anything per <em>step</em>. Nodes of one run used to
+     * share a directory, so the fence would have drawn its line around the whole graph:
+     * a step could still have read the scratch files of the step before it, which is the
+     * one leak most likely to actually happen here — a node that writes its material to
+     * a file instead of answering with it, and a node below that goes looking for the
+     * file rather than reading the input it was handed. Each step now gets its own walls,
+     * and the only thing that crosses an edge is the text in {@link #buildPrompt}.
+     *
+     * <p>Keyed on the node run's id rather than its node id, so a re-run of one step
+     * (which reuses the row and bumps {@code attempt}) lands back in its own directory
+     * and not in a sibling's.
      */
-    private static File workDirFor(WorkflowExecution execution) {
+    static File workDirFor(WorkflowExecution execution, NodeExecution run) {
         return new File(System.getProperty("java.io.tmpdir"),
-                "kanban-workflow/run-" + execution.getId());
+                "kanban-workflow/run-" + execution.getId() + "/node-" + run.getId());
     }
 }

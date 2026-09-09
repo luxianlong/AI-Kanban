@@ -1,5 +1,8 @@
 package com.kanban.workflow;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.kanban.worker.ClaudeSessionRunner;
 import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,15 +25,25 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
- * That the entry step is actually <em>started</em> differently — the claim
+ * How a node's session is actually <em>started</em> — the claim
  * {@link WorkflowRunnerServiceTest} can't make on its own, because that one tests the
- * two pure functions and would stay green against a {@code runNode} that computed the
- * ultracode args and then never passed them to the CLI.
+ * pure functions and would stay green against a {@code runNode} that computed the args
+ * and the working directory and then handed the CLI something else.
  *
  * <p>So this drives a real two-step run through the real service with only the session
- * runner stubbed, and reads back the arguments each session was launched with. The
- * downstream step is half the assertion, not padding: "the entry step gets ultracode"
- * is only a feature if the other eight steps of a nine-step graph don't.
+ * runner stubbed, and reads back the arguments and directory each session was launched
+ * with. Two separate claims live here:
+ *
+ * <ul>
+ *   <li><strong>What only the entry step gets</strong> — ultracode and the browser line.
+ *       The downstream step is half the assertion, not padding: "the entry step gets
+ *       ultracode" is only a feature if the other eight steps of a nine-step graph
+ *       don't.</li>
+ *   <li><strong>What every step gets</strong> — its own directory, and a session fenced
+ *       into it. Here the downstream step is the other half for the opposite reason: a
+ *       fence that stopped at the entry step would leave the fence unenforced on the
+ *       steps most likely to go looking for a file.</li>
+ * </ul>
  */
 @SpringBootTest
 @TestPropertySource(properties = {
@@ -59,6 +72,7 @@ class WorkflowEntryNodeTest {
     /** What each node's session was launched with, keyed by the node's name. */
     private final Map<String, List<String>> argsByNode = new ConcurrentHashMap<>();
     private final Map<String, String> promptByNode = new ConcurrentHashMap<>();
+    private final Map<String, File> workDirByNode = new ConcurrentHashMap<>();
 
     @BeforeEach
     void clearQueue() throws Exception {
@@ -67,6 +81,7 @@ class WorkflowEntryNodeTest {
         executions.deleteAll();
         argsByNode.clear();
         promptByNode.clear();
+        workDirByNode.clear();
     }
 
     /**
@@ -96,6 +111,7 @@ class WorkflowEntryNodeTest {
             String prompt = call.getArgument(1);
             String node = prompt.contains("Find the sources") ? "Collect" : "Summarise";
             promptByNode.put(node, prompt);
+            workDirByNode.put(node, call.getArgument(2));
             argsByNode.put(node, call.getArgument(3));
             return new ProcessResult(0, "done", false, 0.01, 5L);
         });
@@ -108,12 +124,49 @@ class WorkflowEntryNodeTest {
 
         runToCompletion(run);
 
-        assertThat(argsByNode.get("Collect"))
-                .as("the entry step's session should carry the ultracode settings flag")
-                .containsExactlyElementsOf(WorkflowRunnerService.ULTRACODE_ARGS);
-        assertThat(argsByNode.get("Summarise"))
+        assertThat(settings("Collect").path(WorkflowRunnerService.ULTRACODE_KEY).asBoolean())
+                .as("the entry step's session should carry the ultracode setting")
+                .isTrue();
+        assertThat(settings("Summarise").has(WorkflowRunnerService.ULTRACODE_KEY))
                 .as("a step that is handed an answer has nothing to search for")
-                .isEmpty();
+                .isFalse();
+    }
+
+    @Test
+    void everyStepIsLaunchedFencedIntoItsWorkingDirectory() throws Exception {
+        // The half WorkflowRunnerServiceTest cannot claim: it would stay green against a
+        // runNode that built the fenced settings and then handed the CLI something else.
+        recordSessions();
+        Long run = queueChain();
+
+        runToCompletion(run);
+
+        for (String node : List.of("Collect", "Summarise")) {
+            assertThat(settings(node).path("permissions")
+                    .path(WorkflowRunnerService.FENCE_KEY).asBoolean())
+                    .as(node + "'s session should be fenced into its working directory")
+                    .isTrue();
+            assertThat(argsByNode.get(node)).filteredOn("--settings"::equals).hasSize(1);
+        }
+    }
+
+    @Test
+    void eachStepIsLaunchedInADirectoryOfItsOwn() throws Exception {
+        // Without this the fence would draw its line around the whole run: both steps
+        // would share one directory and each could read what the other left in it.
+        recordSessions();
+        Long run = queueChain();
+
+        runToCompletion(run);
+
+        File collect = workDirByNode.get("Collect");
+        File summarise = workDirByNode.get("Summarise");
+        assertThat(collect).isNotNull().isNotEqualTo(summarise);
+        assertThat(summarise.toPath().startsWith(collect.toPath())).isFalse();
+        assertThat(collect.toPath().startsWith(summarise.toPath())).isFalse();
+        // Grouped under the run, and nowhere near the repo.
+        assertThat(collect.getParentFile()).isEqualTo(summarise.getParentFile());
+        assertThat(collect.getPath()).startsWith(System.getProperty("java.io.tmpdir"));
     }
 
     @Test
@@ -129,6 +182,15 @@ class WorkflowEntryNodeTest {
         assertThat(promptByNode.get("Collect"))
                 .contains("gold prices in 2026")
                 .endsWith("Find the sources");
+    }
+
+    /** The settings blob the CLI would parse out of the args a node was launched with. */
+    private JsonNode settings(String node) throws Exception {
+        List<String> args = argsByNode.get(node);
+        assertThat(args).as("no session was recorded for " + node).isNotNull();
+        int at = args.indexOf("--settings");
+        return at < 0 ? JsonNodeFactory.instance.objectNode()
+                : new ObjectMapper().readTree(args.get(at + 1));
     }
 
     /** Tick until the run closes out; a lane finishes after the tick has returned. */
