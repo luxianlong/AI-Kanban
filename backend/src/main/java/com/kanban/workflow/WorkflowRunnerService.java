@@ -91,6 +91,16 @@ public class WorkflowRunnerService {
      */
     private final Set<Long> inFlight = ConcurrentHashMap.newKeySet();
 
+    /**
+     * How many executions currently occupy a lane. Visible for tests: a lane releases
+     * its claim just <em>after</em> it has written the node's result, so a test that
+     * waits only on the stored state can tick again while the claim is still held and
+     * see nothing dispatched.
+     */
+    int lanesInUse() {
+        return inFlight.size();
+    }
+
     public WorkflowRunnerService(WorkflowExecutionRepository executions, NodeExecutionRepository nodeRuns,
                                  ClaudeSessionRunner runner, LiveLogRegistry liveLog,
                                  RunningSessionRegistry sessions, WorkerProperties props,
