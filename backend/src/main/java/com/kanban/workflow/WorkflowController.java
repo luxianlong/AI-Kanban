@@ -87,13 +87,17 @@ public class WorkflowController {
     }
 
     /**
-     * Run one step of a finished run again — even one that succeeded — along with every
-     * step downstream of it, whose inputs it invalidates. The steps above it keep their
-     * output. 409 if the run is still going, or if the entry never reached that step.
+     * Run one step of a finished run again — even one that succeeded. By default every
+     * step downstream of it goes too, since its output is their input; pass
+     * {@code ?downstream=false} to redo just that one step and leave the rest of the
+     * run as it is. The steps above it keep their output either way. 409 if the run is
+     * still going, if the entry never reached that step, or — for the single-step form
+     * only — if the step it reads from didn't succeed, leaving it no input.
      */
     @PostMapping("/node-runs/{nodeRunId}/retry")
-    public ExecutionView retryNode(@PathVariable Long nodeRunId) {
-        return service.retryNode(nodeRunId);
+    public ExecutionView retryNode(@PathVariable Long nodeRunId,
+                                   @RequestParam(defaultValue = "true") boolean downstream) {
+        return service.retryNode(nodeRunId, downstream);
     }
 
     /**

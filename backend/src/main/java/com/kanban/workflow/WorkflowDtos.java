@@ -130,9 +130,10 @@ public final class WorkflowDtos {
             Double costUsd,
             Long durationMs,
             int attempt,
-            int rerunFromCount) {
+            int rerunFromCount,
+            boolean canRerunAlone) {
 
-        static NodeRunView from(NodeExecution n, int rerunFromCount) {
+        static NodeRunView from(NodeExecution n, int rerunFromCount, boolean canRerunAlone) {
             return new NodeRunView(
                     n.getId(),
                     n.getNodeId(),
@@ -150,7 +151,8 @@ public final class WorkflowDtos {
                     n.getCostUsd(),
                     n.getDurationMs(),
                     n.getAttempt(),
-                    rerunFromCount);
+                    rerunFromCount,
+                    canRerunAlone);
         }
     }
 
@@ -169,6 +171,12 @@ public final class WorkflowDtos {
      * many steps re-running <em>that</em> step would redo, itself included. 0 means the
      * step can't be started by hand — the run is still going, or the entry never
      * reached it (see {@link WorkflowService#nodesToRerunFrom}).
+     *
+     * <p>{@code canRerunAlone} is the narrower question the other button asks: whether
+     * that step can be redone <em>without</em> the ones below it. It is false wherever
+     * {@code rerunFromCount} is 0, and false as well on a step whose upstream never
+     * succeeded — there is no stored input to hand it a second time
+     * (see {@link WorkflowService#canRerunAlone}).
      */
     public record ExecutionView(
             Long id,
@@ -187,7 +195,8 @@ public final class WorkflowDtos {
             List<NodeRunView> nodes) {
 
         static ExecutionView from(WorkflowExecution e, List<NodeExecution> nodes, int retryableNodes,
-                                  Map<String, Integer> rerunFromCounts) {
+                                  Map<String, Integer> rerunFromCounts,
+                                  Map<String, Boolean> rerunAloneFlags) {
             long done = nodes.stream().filter(n -> n.getStatus().isTerminal()).count();
             return new ExecutionView(
                     e.getId(),
@@ -204,7 +213,9 @@ public final class WorkflowDtos {
                     nodes.size(),
                     retryableNodes,
                     nodes.stream()
-                            .map(n -> NodeRunView.from(n, rerunFromCounts.getOrDefault(n.getNodeId(), 0)))
+                            .map(n -> NodeRunView.from(n,
+                                    rerunFromCounts.getOrDefault(n.getNodeId(), 0),
+                                    rerunAloneFlags.getOrDefault(n.getNodeId(), false)))
                             .toList());
         }
     }
