@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WorkflowRunnerServiceTest {
 
     private final WorkflowRunnerService service =
-            new WorkflowRunnerService(null, null, null, null, null, null);
+            new WorkflowRunnerService(null, null, null, null, null, null, 1);
 
     private WorkflowNode node(String id, String name, String prompt) {
         return new WorkflowNode(id, "wf", name, prompt, null, null);

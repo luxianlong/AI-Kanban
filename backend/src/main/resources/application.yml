@@ -19,10 +19,11 @@ spring:
         # wall-clock was spent waiting for the thread (62% on the worst run) — see
         # docs/workflow-parallel-workers.md for the numbers.
         #
-        # This raises nobody's concurrency: the board still takes worker.batch-size (1)
-        # task per tick and the runner still runs one node per tick. It only stops the
-        # two from queueing behind each other. The cost is that peak concurrent Claude
-        # sessions goes from 1 to 2 (~270 MB each), so keep an eye on free memory.
+        # This raises nobody's concurrency on its own: the board still takes
+        # worker.batch-size (1) task per tick, and the runner still advances one node at
+        # a time per run. It only stops the two pollers from queueing behind each other.
+        # How many workflow runs go at once is workflow.max-concurrent-executions below;
+        # a Claude session is ~270 MB, so keep an eye on free memory.
         size: 2
   datasource:
     # File-based H2 so todos survive restarts.
@@ -108,16 +109,28 @@ worker:
   initial-delay-ms: 10000
 
 # --- Workflow runner (a DAG of prompt tasks) ---
-# Runs one node per tick and then hands the tick back, so the board's task queue is
-# never starved by a long graph. This and the worker above now get a scheduler thread
-# each (spring.task.scheduling.pool.size above), so neither waits on the other; each
-# still runs at most one session at a time, so the invariant is "one board task and one
-# workflow node", not "one Claude process on the machine" — AiStoryClassifier runs its
-# own sessions off a separate pool. A node inherits worker.timeout-seconds and
-# worker.working-directory.
+# The tick dispatches rather than runs: each eligible execution gets a lane of the
+# runner's own pool and the scheduler thread returns immediately, so a nine-minute node
+# no longer blocks anything. This and the worker above also get a scheduler thread each
+# (spring.task.scheduling.pool.size above), so neither waits on the other. A node
+# inherits worker.timeout-seconds; it runs in a per-run scratch directory under
+# java.io.tmpdir, not worker.working-directory.
 workflow:
   poll-interval-ms: 5000
   initial-delay-ms: 12000
+  # How many runs may have a node in flight at once — this is what lets two executions
+  # of the same workflow, or of different workflows, progress at the same time instead
+  # of queueing behind each other.
+  #
+  # It is a cap on RUNS, not on nodes: one execution still occupies exactly one lane and
+  # advances one node at a time, even where its graph has independent branches. That is
+  # deliberate — it is what makes "exactly one thread touches a run's rows" true, so no
+  # two lanes can claim the same node and pay for the same session twice.
+  #
+  # The ceiling is memory, not CPU: a Claude session is ~270 MB, and peak processes on
+  # this machine is this number + one board task + AiStoryClassifier's pool (2). Check
+  # `free -m` before raising it; 1 restores the old strictly-serial behaviour.
+  max-concurrent-executions: 2
 
 logging:
   level:

@@ -6,22 +6,31 @@ import com.kanban.worker.LiveLogRegistry;
 import com.kanban.worker.RunningSessionRegistry;
 import com.kanban.worker.WorkerProperties;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Drives workflow executions forward: on each tick it finds the oldest run that
- * still owes work, picks the next node whose inputs are all ready, and runs it as a
- * headless Claude session.
+ * Drives workflow executions forward: on each tick it finds the oldest runs that
+ * still owe work and gives each one a lane, which picks that run's next node whose
+ * inputs are all ready and runs it as a headless Claude session.
  *
  * <p><strong>Nodes do not share context.</strong> Every node is a brand-new session
  * — nothing is resumed, and no conversation history crosses an edge. The only thing
@@ -30,13 +39,27 @@ import java.util.concurrent.locks.ReentrantLock;
  * makes a workflow composable: a node's behaviour depends only on its own prompt and
  * the input it is handed, not on what some earlier node happened to talk about.
  *
- * <p><strong>One node per tick.</strong> The tick returns as soon as a node finishes
- * rather than draining the whole graph, so no single graph hogs the runner. This poller
- * and {@code ClaudeWorkerService} get a scheduler thread each
- * ({@code spring.task.scheduling.pool.size}), so a long board task no longer freezes a
- * workflow or the other way round. Each side still runs one session at a time, so the
- * invariant is "at most one board task and one workflow node", not "one Claude process
- * on the machine" — {@code AiStoryClassifier} runs its own sessions off a separate pool.
+ * <p><strong>Runs go in parallel; a single run stays sequential.</strong> The tick does
+ * not run anything itself — it hands each eligible execution to a lane of a small pool
+ * ({@code workflow.max-concurrent-executions}) and returns immediately, so a node that
+ * takes nine minutes no longer holds the scheduler thread. Different runs of the same
+ * workflow, and runs of different workflows, therefore make progress at the same time.
+ *
+ * <p>What is deliberately <em>not</em> parallel is one execution's own graph: an
+ * execution occupies at most one lane, so it still advances one node at a time even
+ * where its DAG has independent branches. That is what keeps the claim of a node
+ * correct without any locking or {@code @Version} column — an execution is dispatched
+ * by the single scheduler thread and only after it is added to {@link #inFlight}, so
+ * exactly one thread ever reads or writes that run's node rows, and two lanes can never
+ * pick the same {@code PENDING} node and pay for it twice. Widening this to run sibling
+ * branches concurrently would need that claim to become atomic first.
+ *
+ * <p>This poller and {@code ClaudeWorkerService} also get a scheduler thread each
+ * ({@code spring.task.scheduling.pool.size}), so a long board task never freezes a
+ * workflow or the other way round. Peak concurrent Claude processes on the machine is
+ * therefore {@code max-concurrent-executions} + one board task + whatever
+ * {@code AiStoryClassifier} has on its own pool; at roughly 270 MB each that is the
+ * number to keep an eye on when raising the setting.
  */
 @Service
 public class WorkflowRunnerService {
@@ -51,15 +74,68 @@ public class WorkflowRunnerService {
     private final WorkerProperties props;
     private final ReentrantLock tickLock = new ReentrantLock();
 
+    /** How many executions may have a node in flight at once. */
+    private final int lanes;
+
+    /**
+     * One thread per lane. Sized to {@link #lanes} and only ever handed as many tasks
+     * as there are free lanes, so nothing queues here: a submitted execution starts
+     * running immediately.
+     */
+    private final ExecutorService pool;
+
+    /**
+     * The executions that currently occupy a lane. Added by the scheduler thread
+     * <em>before</em> the lane is handed the work and removed by the lane when it is
+     * done, which is what makes "one thread per execution" true rather than likely.
+     */
+    private final Set<Long> inFlight = ConcurrentHashMap.newKeySet();
+
     public WorkflowRunnerService(WorkflowExecutionRepository executions, NodeExecutionRepository nodeRuns,
                                  ClaudeSessionRunner runner, LiveLogRegistry liveLog,
-                                 RunningSessionRegistry sessions, WorkerProperties props) {
+                                 RunningSessionRegistry sessions, WorkerProperties props,
+                                 @Value("${workflow.max-concurrent-executions:2}") int maxConcurrentExecutions) {
         this.executions = executions;
         this.nodeRuns = nodeRuns;
         this.runner = runner;
         this.liveLog = liveLog;
         this.sessions = sessions;
         this.props = props;
+        this.lanes = Math.max(1, maxConcurrentExecutions);
+        this.pool = Executors.newFixedThreadPool(this.lanes, new LaneThreads());
+    }
+
+    /** Named daemon threads, so a stuck lane is identifiable in a thread dump. */
+    private static final class LaneThreads implements java.util.concurrent.ThreadFactory {
+        private int next = 1;
+
+        @Override
+        public synchronized Thread newThread(Runnable r) {
+            Thread t = new Thread(r, "workflow-lane-" + next++);
+            t.setDaemon(true);
+            return t;
+        }
+    }
+
+    /**
+     * Stop handing out lanes on the way down. The sessions themselves are killed by
+     * {@code ClaudeWorkerService}'s shutdown hook (both kinds share one
+     * {@link RunningSessionRegistry}), which makes each lane's {@code waitFor} return;
+     * the lane then sees {@link RunningSessionRegistry#isShuttingDown()} and leaves its
+     * node row RUNNING for {@link #recoverOrphans()} to record on the next start.
+     *
+     * <p>Deliberately {@code shutdown()} and not {@code shutdownNow()}: interrupting a
+     * lane mid-session would surface as a generic runner error and record a node as
+     * genuinely failed, when what actually happened is a restart.
+     */
+    @PreDestroy
+    void shutdownLanes() {
+        pool.shutdown();
+        try {
+            pool.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -102,9 +178,23 @@ public class WorkflowRunnerService {
         try {
             List<WorkflowExecution> active =
                     executions.findByStatusInOrderByCreatedAtAsc(List.of(RunState.PENDING, RunState.RUNNING));
-            for (WorkflowExecution execution : active) {
-                if (advance(execution)) {
-                    // A node ran; hand the tick back so the task queue isn't starved.
+            for (Long executionId : dispatchable(active, inFlight, lanes)) {
+                // Claimed here, on the one thread that dispatches, and released by the
+                // lane in its own finally — so the claim can't be lost or doubled.
+                inFlight.add(executionId);
+                try {
+                    pool.execute(() -> {
+                        try {
+                            advanceById(executionId);
+                        } catch (RuntimeException e) {
+                            log.error("Workflow execution #{}: lane errored", executionId, e);
+                        } finally {
+                            inFlight.remove(executionId);
+                        }
+                    });
+                } catch (RejectedExecutionException e) {
+                    // The pool closed between the shutdown check and here.
+                    inFlight.remove(executionId);
                     return;
                 }
             }
@@ -114,14 +204,58 @@ public class WorkflowRunnerService {
     }
 
     /**
-     * Move one execution as far as it can go without launching more than one session.
-     * Returns {@code true} if a node was actually run on this call.
+     * Which executions this tick should start work on: the oldest ones that aren't
+     * already occupying a lane, capped at the number of free lanes.
+     *
+     * <p>Oldest-first is what keeps the queue fair across workflows — a workflow that
+     * is started twice does not get both lanes ahead of a run that has been waiting
+     * longer. Runs that are already in flight are skipped rather than counted against
+     * the cap twice, which is also why a run that finished its node between two ticks
+     * is picked straight back up on the next one.
      */
-    private boolean advance(WorkflowExecution execution) {
+    static List<Long> dispatchable(List<WorkflowExecution> active, Set<Long> inFlight, int lanes) {
+        List<Long> toStart = new ArrayList<>();
+        int free = lanes - inFlight.size();
+        for (WorkflowExecution execution : active) {
+            if (free <= 0) {
+                break;
+            }
+            if (inFlight.contains(execution.getId())) {
+                continue;
+            }
+            toStart.add(execution.getId());
+            free--;
+        }
+        return toStart;
+    }
+
+    /**
+     * Advance one execution from its <em>current</em> stored state.
+     *
+     * <p>Re-read rather than trusting the row the tick listed, because a user can
+     * cancel or delete a run in the moment between the two. Cancelling writes the
+     * terminal state for the whole run, and an advance working from the stale copy
+     * would put it back to RUNNING and then close it out as if it had succeeded.
+     */
+    private void advanceById(Long executionId) {
+        WorkflowExecution execution = executions.findById(executionId).orElse(null);
+        if (execution == null || execution.getStatus().isTerminal()) {
+            return;
+        }
+        advance(execution);
+    }
+
+    /**
+     * Run at most one of this execution's nodes, on the lane that called in — one node
+     * per call rather than draining the graph, so the lane is handed back between nodes,
+     * a cancel lands promptly, and the run's state on disk is never more than one node
+     * ahead of what the page shows.
+     */
+    private void advance(WorkflowExecution execution) {
         List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId());
         if (runs.isEmpty()) {
             finish(execution, runs, "This run has no nodes.");
-            return false;
+            return;
         }
         if (execution.getStatus() == RunState.PENDING) {
             execution.setStatus(RunState.RUNNING);
@@ -147,22 +281,22 @@ public class WorkflowRunnerService {
                 .orElse(null);
         if (ready != null) {
             runNode(execution, ready, byNodeId, runs.size());
-            return true;
+            return;
         }
         if (runs.stream().anyMatch(r -> r.getStatus() == RunState.RUNNING)) {
-            // Only reachable if a session outlived its tick, which shouldn't happen —
-            // leave the run alone rather than closing it out under a live node.
-            return false;
+            // Unreachable in normal operation: this lane owns the run and runs its
+            // node synchronously, so nothing of this run's can still be RUNNING here.
+            // Leave the run alone rather than closing it out under a live node.
+            return;
         }
         if (runs.stream().anyMatch(r -> r.getStatus() == RunState.PENDING)) {
             // Nothing ready, nothing running, yet work is left: the snapshot's
             // dependencies don't resolve. Close the run out rather than spinning.
             finish(execution, runs, "Stuck: some nodes never became runnable. "
                     + "Their recorded dependencies don't resolve — re-save the workflow and try again.");
-            return false;
+            return;
         }
         finish(execution, runs, null);
-        return false;
     }
 
     /**
@@ -262,6 +396,13 @@ public class WorkflowRunnerService {
                 liveLog.append(key, "✔ Node done.");
             }
         } catch (Exception e) {
+            if (sessions.isShuttingDown()) {
+                // Same case as the clean return above, reached the other way: a lane
+                // interrupted on the way down. Leave the row RUNNING so recoverOrphans()
+                // records it as a restart rather than as a genuine failure.
+                liveLog.append(key, "■ Backend shutting down — this node was interrupted.");
+                return;
+            }
             log.error("Workflow execution #{}: node \"{}\" errored", execution.getId(), run.getNodeName(), e);
             failNode(run, key, "Runner error: " + e.getMessage());
         }
