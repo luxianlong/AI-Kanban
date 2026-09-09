@@ -67,6 +67,33 @@ class WorkflowDispatchTest {
                 .containsExactly(1L, 2L);
     }
 
+    @Test
+    void fourRunsGetALaneEachWhenFourAreConfigured() {
+        // The board's shipped cap. Arithmetic, not threading — the overlap itself is
+        // WorkflowParallelExecutionTest's job — but this is what the tick asks before
+        // it hands anything to a lane.
+        assertThat(WorkflowRunnerService.dispatchable(queue(1, 2, 3, 4), inFlight(), 4))
+                .containsExactly(1L, 2L, 3L, 4L);
+    }
+
+    @Test
+    void aFifthRunWaitsForAFreeLane() {
+        assertThat(WorkflowRunnerService.dispatchable(queue(1, 2, 3, 4, 5), inFlight(), 4))
+                .containsExactly(1L, 2L, 3L, 4L);
+        assertThat(WorkflowRunnerService.dispatchable(queue(1, 2, 3, 4, 5), inFlight(1L, 2L, 3L, 4L), 4))
+                .isEmpty();
+    }
+
+    @Test
+    void raisingTheCapOnlyEverAddsLanes() {
+        // Two busy runs used to mean nothing else could start; at four they leave two
+        // free. This is the whole behavioural difference the raise buys.
+        assertThat(WorkflowRunnerService.dispatchable(queue(1, 2, 3, 4), inFlight(1L, 2L), 2))
+                .isEmpty();
+        assertThat(WorkflowRunnerService.dispatchable(queue(1, 2, 3, 4), inFlight(1L, 2L), 4))
+                .containsExactly(3L, 4L);
+    }
+
     // --- what stops it doubling up ---------------------------------------
 
     @Test
