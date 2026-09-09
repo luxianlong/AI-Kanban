@@ -91,7 +91,13 @@ public final class WorkflowDtos {
         }
     }
 
-    /** One node's run: what went in, what came out, and how it went. */
+    /**
+     * One node's run: what went in, what came out, and how it went.
+     *
+     * <p>{@code attempt} is 1 unless the run was retried; {@code costUsd} and
+     * {@code durationMs} are then the totals across every attempt, since a failed
+     * attempt was billed too.
+     */
     public record NodeRunView(
             Long id,
             String nodeId,
@@ -106,7 +112,8 @@ public final class WorkflowDtos {
             Instant startedAt,
             Instant finishedAt,
             Double costUsd,
-            Long durationMs) {
+            Long durationMs,
+            int attempt) {
 
         static NodeRunView from(NodeExecution n) {
             return new NodeRunView(
@@ -123,7 +130,8 @@ public final class WorkflowDtos {
                     n.getStartedAt(),
                     n.getFinishedAt(),
                     n.getCostUsd(),
-                    n.getDurationMs());
+                    n.getDurationMs(),
+                    n.getAttempt());
         }
     }
 
@@ -131,6 +139,12 @@ public final class WorkflowDtos {
      * A run and every node in it. {@code doneNodes}/{@code totalNodes} are computed
      * server-side so the list and the detail agree on progress without the client
      * re-deriving it.
+     *
+     * <p>{@code retryableNodes} is how many steps a retry of this run would re-run —
+     * 0 when there is nothing to retry, which is how the page decides whether to offer
+     * the button. It is derived server-side for the same reason: which steps a retry
+     * touches is the retry's own rule (see {@link WorkflowService#nodesToRetry}), and
+     * a client re-deriving it would eventually disagree with the server that acts on it.
      */
     public record ExecutionView(
             Long id,
@@ -145,9 +159,10 @@ public final class WorkflowDtos {
             Double costUsd,
             int doneNodes,
             int totalNodes,
+            int retryableNodes,
             List<NodeRunView> nodes) {
 
-        static ExecutionView from(WorkflowExecution e, List<NodeExecution> nodes) {
+        static ExecutionView from(WorkflowExecution e, List<NodeExecution> nodes, int retryableNodes) {
             long done = nodes.stream().filter(n -> n.getStatus().isTerminal()).count();
             return new ExecutionView(
                     e.getId(),
@@ -162,6 +177,7 @@ public final class WorkflowDtos {
                     e.getCostUsd(),
                     (int) done,
                     nodes.size(),
+                    retryableNodes,
                     nodes.stream().map(NodeRunView::from).toList());
         }
     }

@@ -70,6 +70,15 @@ public class WorkflowController {
         return service.cancel(executionId);
     }
 
+    /**
+     * Queue a finished run again from the step that broke. The steps that succeeded
+     * keep their output; the failed one and everything blocked behind it run afresh.
+     */
+    @PostMapping("/executions/{executionId}/retry")
+    public ExecutionView retry(@PathVariable Long executionId) {
+        return service.retry(executionId);
+    }
+
     @DeleteMapping("/executions/{executionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteExecution(@PathVariable Long executionId) {

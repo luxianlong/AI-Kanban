@@ -75,7 +75,8 @@ public class WorkflowRunnerService {
      * the node may already have had side effects, and re-running it would silently
      * duplicate them halfway through a graph. It is failed instead, which lets the
      * normal "an upstream node didn't succeed" cascade close the run out on the next
-     * tick, leaving the finished nodes' outputs readable.
+     * tick, leaving the finished nodes' outputs readable — and leaving the run in
+     * exactly the state Retry is for, if the user decides another attempt is safe.
      */
     @PostConstruct
     void recoverOrphans() {
@@ -83,8 +84,8 @@ public class WorkflowRunnerService {
         for (NodeExecution run : orphans) {
             run.setStatus(RunState.FAILED);
             run.setError("Interrupted by a backend restart. Not re-run automatically, because "
-                    + "this node may already have done part of its work — start the workflow again "
-                    + "if you want another attempt.");
+                    + "this node may already have done part of its work — retry the run if you "
+                    + "decide another attempt is safe.");
             run.setFinishedAt(Instant.now());
             nodeRuns.save(run);
         }
@@ -131,7 +132,12 @@ public class WorkflowRunnerService {
         }
         if (execution.getStatus() == RunState.PENDING) {
             execution.setStatus(RunState.RUNNING);
-            execution.setStartedAt(Instant.now());
+            if (execution.getStartedAt() == null) {
+                // Only the first time. A retried run is queued again, but it still
+                // began when it began — restamping it would erase how long it has
+                // really been going.
+                execution.setStartedAt(Instant.now());
+            }
             executions.save(execution);
             log.info("Workflow execution #{} ({}) started.", execution.getId(), execution.getWorkflowName());
         }
@@ -221,13 +227,18 @@ public class WorkflowRunnerService {
         String key = LiveLogRegistry.nodeKey(run.getId());
         liveLog.start(key);
         liveLog.append(key, "● Node \"" + run.getNodeName() + "\" ("
-                + (run.getOrderIndex() + 1) + "/" + totalNodes + ") started.");
+                + (run.getOrderIndex() + 1) + "/" + totalNodes + ")"
+                + (run.getAttempt() > 1 ? ", attempt " + run.getAttempt() + "," : "")
+                + " started.");
         log.info("Workflow execution #{}: running node \"{}\".", execution.getId(), run.getNodeName());
 
         try {
             ProcessResult result = runner.run(key, buildPrompt(execution, run, input, totalNodes));
-            run.setCostUsd(result.costUsd());
-            run.setDurationMs(result.durationMs());
+            // Added to, not replaced: on a retried node these are what the node has
+            // cost across every attempt. An attempt that failed was billed all the
+            // same, and a total that quietly forgot it would understate the run.
+            run.setCostUsd(plus(run.getCostUsd(), result.costUsd()));
+            run.setDurationMs(plus(run.getDurationMs(), result.durationMs()));
 
             if (sessions.isShuttingDown()) {
                 // Shutdown killed this session — it neither failed nor timed out. Leave
@@ -261,6 +272,20 @@ public class WorkflowRunnerService {
             log.error("Workflow execution #{}: node \"{}\" errored", execution.getId(), run.getNodeName(), e);
             failNode(run, key, "Runner error: " + e.getMessage());
         }
+    }
+
+    private static Double plus(Double sofar, Double attempt) {
+        if (attempt == null) {
+            return sofar;
+        }
+        return sofar == null ? attempt : sofar + attempt;
+    }
+
+    private static Long plus(Long sofar, Long attempt) {
+        if (attempt == null) {
+            return sofar;
+        }
+        return sofar == null ? attempt : sofar + attempt;
     }
 
     private void failNode(NodeExecution run, String key, String message) {
