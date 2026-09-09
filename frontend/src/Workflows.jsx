@@ -7,7 +7,7 @@ import { relTime, runMeta } from './time.js'
 import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
-import { followedNode, mergeExecutions } from './workflowLive.js'
+import { followedNode, mergeExecutions, outputPredatesPrompt } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
 // nodes carry their own `inputs` rather than a separate edge list, because that is
@@ -954,6 +954,16 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
     }
   }
 
+  // Editing a step's prompt in the run rather than in the workflow. The run holds its
+  // own copy of every prompt — that is what makes this a cheap experiment: change the
+  // wording, re-run that one step, and the step is handed exactly the input it had
+  // before, so the prompt is the only thing that moved. The error is handed back to
+  // the box rather than swallowed, because the text the user typed is still in it.
+  async function editPrompt(run, prompt) {
+    await api.editNodeRunPrompt(run.id, prompt)
+    onChanged()
+  }
+
   async function remove(e) {
     e.stopPropagation()
     if (!window.confirm('Delete this run and everything it produced?')) return
@@ -1044,6 +1054,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
                 open={openNodeId === run.nodeId}
                 onToggle={() => pickNode(run.nodeId)}
                 onRerun={() => rerunFrom(run)}
+                onEditPrompt={(prompt) => editPrompt(run, prompt)}
               />
             ))}
           </ol>
@@ -1053,7 +1064,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   )
 })
 
-function NodeRun({ run, where, open, onToggle, onRerun }) {
+function NodeRun({ run, where, open, onToggle, onRerun, onEditPrompt }) {
   const [log, setLog] = useState('')
   const [rerunning, setRerunning] = useState(false)
   const running = run.status === 'RUNNING'
@@ -1092,7 +1103,15 @@ function NodeRun({ run, where, open, onToggle, onRerun }) {
   // A retried step is the same box with a second history behind it, so say which
   // attempt this is — otherwise a step that reads "Done" with a failure in its log
   // looks like the page is lying. runMeta's figures are totals across the attempts.
-  const meta = [run.attempt > 1 ? `attempt ${run.attempt}` : '', runMeta(run)]
+  // "prompt edited" rides along on the collapsed row for the same reason: the row says
+  // "Done" over an answer the prompt in the box no longer asked for, and that is worth
+  // knowing without opening the step.
+  const stale = outputPredatesPrompt(run)
+  const meta = [
+    run.attempt > 1 ? `attempt ${run.attempt}` : '',
+    stale ? 'prompt edited' : '',
+    runMeta(run),
+  ]
     .filter(Boolean)
     .join(' · ')
 
@@ -1122,6 +1141,15 @@ function NodeRun({ run, where, open, onToggle, onRerun }) {
               </button>
             </div>
           )}
+          <NodeRunPrompt
+            run={run}
+            /* Editable exactly where the re-run button is offered — the server enforces
+               the same rule, since changing a prompt that can never be run would only
+               falsify the record of what this run did. */
+            editable={run.rerunFromCount > 0}
+            stale={stale}
+            onSave={onEditPrompt}
+          />
           {run.input && (
             <details className="wf-details">
               <summary>Input it was given</summary>
@@ -1133,6 +1161,12 @@ function NodeRun({ run, where, open, onToggle, onRerun }) {
               <span className="section-label live">Live session</span>
               <pre className="logbox wf-log">{log || 'Starting…'}</pre>
             </div>
+          )}
+          {stale && (run.output || run.error) && (
+            <p className="wf-node-warn">
+              The prompt was edited after this ran, so what's below is the previous
+              prompt's answer. Re-run the step to test the change.
+            </p>
           )}
           {run.output && (
             <div className="wf-block">
@@ -1173,6 +1207,98 @@ function NodeRun({ run, where, open, onToggle, onRerun }) {
         </div>
       )}
     </li>
+  )
+}
+
+/**
+ * One step's prompt, as this run holds it — and, on a finished run, editable.
+ *
+ * The pair "edit the prompt, re-run this step" is the whole point. Before it, trying a
+ * different wording meant editing the workflow and running the graph from the top: you
+ * paid for every step above the one in question and compared the new answer against a
+ * freshly-generated everything-else. Editing the run's own copy changes one variable —
+ * the step is handed exactly the input it was handed before — and costs one session.
+ *
+ * The edit stays in the run. A wording that turns out to be better is copied into the
+ * editor by hand, which is the moment it stops being an experiment.
+ */
+function NodeRunPrompt({ run, editable, stale, onSave }) {
+  const server = run.prompt || ''
+  const [draft, setDraft] = useState(server)
+  const [saving, setSaving] = useState(false)
+  const [problem, setProblem] = useState(null)
+  // Open on its own when the box is the thing to look at: the prompt has been changed
+  // and the output below it is the old prompt's work.
+  const [open, setOpen] = useState(stale)
+
+  // The runs pane polls, so `server` can move underneath the box — a re-run finishing,
+  // or the same run edited in another tab. Adopt the new text only when there is
+  // nothing to lose by it; half-typed keystrokes outrank a poll.
+  const seen = useRef(server)
+  useEffect(() => {
+    setDraft((current) => (current === seen.current ? server : current))
+    seen.current = server
+  }, [server])
+
+  const dirty = draft !== server
+
+  async function save() {
+    setSaving(true)
+    setProblem(null)
+    try {
+      await onSave(draft)
+    } catch (e) {
+      // Keep the draft: it is what the user typed, and the usual cause is that the run
+      // moved (someone started it again), which they can act on without retyping.
+      setProblem(cleanError(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <details
+      className="wf-details"
+      open={open}
+      onToggle={(e) => setOpen(e.currentTarget.open)}
+    >
+      <summary>
+        Prompt{run.promptEditedAt ? ` · edited ${relTime(run.promptEditedAt)}` : ''}
+      </summary>
+      {editable ? (
+        <div className="wf-prompt-edit">
+          <textarea
+            className="composer-desc wf-node-prompt"
+            rows={6}
+            value={draft}
+            spellCheck={false}
+            disabled={saving}
+            onChange={(e) => setDraft(e.target.value)}
+            aria-label={`Prompt for ${run.nodeName}`}
+          />
+          <div className="wf-noderun-actions">
+            <button type="button" className="btn" onClick={save} disabled={!dirty || saving}>
+              {saving ? 'Saving…' : 'Save prompt'}
+            </button>
+            {dirty && !saving && (
+              <button type="button" className="btn ghost" onClick={() => setDraft(server)}>
+                Discard
+              </button>
+            )}
+            <span className="wf-run-hint">
+              {dirty
+                ? 'Unsaved — saving changes this run only; the workflow keeps its own copy.'
+                : run.promptEditedAt
+                  ? 'Saved to this run. Re-run the step above to see the effect.'
+                  : 'This run\u2019s own copy. Edit it, then re-run the step to test the change.'}
+            </span>
+          </div>
+          {problem && <p className="wf-node-warn">{problem}</p>}
+        </div>
+      ) : (
+        <pre className="wf-pre">{server || 'This step has no prompt of its own.'}</pre>
+      )}
+    </details>
   )
 }
 

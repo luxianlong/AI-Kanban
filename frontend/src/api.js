@@ -188,6 +188,17 @@ export const api = {
   retryNodeRun: (nodeRunId) =>
     fetch(`${BASE}/workflows/node-runs/${nodeRunId}/retry`, { method: 'POST' }).then(json),
 
+  // Rewrite one step's prompt inside one finished run. The workflow keeps its own
+  // text — this is the run's private copy, which is what makes trying a wording cost
+  // one session (edit here, then retryNodeRun) instead of a whole graph. Returns the
+  // whole run. 409 while the run is live, or on a step the entry never reached.
+  editNodeRunPrompt: (nodeRunId, prompt) =>
+    fetch(`${BASE}/workflows/node-runs/${nodeRunId}/prompt`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    }).then(json),
+
   deleteExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}`, { method: 'DELETE' }).then(json),
 

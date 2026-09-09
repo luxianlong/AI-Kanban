@@ -55,6 +55,24 @@ export function mergeExecutions(prev, next) {
 }
 
 /**
+ * Whether the output on a step was produced by a prompt that has since been edited.
+ *
+ * A run holds its own copy of every prompt and lets a finished step's copy be
+ * rewritten, so that one step can be re-run against a new wording without paying for
+ * the graph above it. Between the edit and the re-run the panel shows a step reading
+ * "Done", an answer, and a prompt box that asks something else — three things that
+ * look like one story and are two. This is what the page labels instead.
+ *
+ * The stamps are parsed rather than compared as strings: both are ISO instants, but
+ * their fractional seconds are only as long as they need to be, so "…:30Z" sorts
+ * after "…:30.5Z" lexically and before it in fact.
+ */
+export function outputPredatesPrompt(run) {
+  if (!run?.promptEditedAt || !run.finishedAt) return false
+  return Date.parse(run.promptEditedAt) > Date.parse(run.finishedAt)
+}
+
+/**
  * Which step a run card should have open, given what it had open and what is
  * running now.
  *

@@ -474,6 +474,52 @@ public class WorkflowService {
     }
 
     /**
+     * Rewrite one step's prompt inside one finished run, without touching the workflow
+     * it came from — the edit is this run's alone.
+     *
+     * <p>This exists so a prompt can be <em>tried</em>. Until now the only way to find
+     * out whether a different wording produces a better answer was to edit the
+     * workflow and run the whole graph, which pays for every step upstream of the one
+     * in question and mixes the change in with a fresh set of everything else. Editing
+     * the run's own copy and re-running that one step (see {@link #retryNode}) is the
+     * same experiment with one variable and one session's bill: the step is handed
+     * exactly the input it was handed before, so what changed is the prompt and only
+     * the prompt.
+     *
+     * <p>Allowed on exactly the steps {@link #retryNode} would start, and refused on
+     * the rest. That is not a coincidence — the whole reason to change the text is to
+     * run it, so on a step that can never be run the edit would do nothing but falsify
+     * the record of what the run did. It also keeps the page honest: the same
+     * {@code rerunFromCount} that decides whether the re-run button is offered decides
+     * whether the box is editable.
+     *
+     * <p>The workflow is deliberately left as it was. A wording that turns out to be
+     * better is then copied into the editor by hand, which is the moment it stops being
+     * an experiment and starts being what every future run does.
+     */
+    @Transactional
+    public ExecutionView editNodePrompt(Long nodeRunId, String prompt) {
+        NodeExecution target = nodeRuns.findById(nodeRunId).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Node run not found: " + nodeRunId));
+        WorkflowExecution execution = findExecution(target.getExecutionId());
+        if (!execution.getStatus().isTerminal()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Run #" + execution.getId() + " is still going (" + execution.getStatus()
+                            + ") — wait for it, or cancel it, before editing one of its prompts.");
+        }
+        List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId());
+        if (nodesToRerunFrom(runs, execution, target.getNodeId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Step \"" + target.getNodeName() + "\" can't be re-run in this run — it isn't "
+                            + "wired in below the entry node — so editing its prompt would change "
+                            + "the record without ever testing the change.");
+        }
+        target.editPrompt(blankToNull(prompt));
+        nodeRuns.save(target);
+        return executionView(execution);
+    }
+
+    /**
      * The node runs that re-running {@code nodeId} would redo: that node and every node
      * downstream of it in the graph the run snapshotted.
      *

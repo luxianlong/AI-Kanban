@@ -655,6 +655,120 @@ class WorkflowApiTest {
         mvc.perform(post("/api/workflows/node-runs/999999/retry")).andExpect(status().isNotFound());
     }
 
+    // --- editing a step's prompt inside one run ---------------------------
+
+    private static String promptBody(String prompt) {
+        return "{\"prompt\":\"" + prompt + "\"}";
+    }
+
+    @Test
+    void aStepsPromptCanBeRewrittenInTheRunAndTheRewriteIsWhatTheReRunUses() throws Exception {
+        String id = createWorkflow(chainNamed("Edit a prompt"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "three sources");
+        settle(executionId, "b", RunState.SUCCEEDED, "the wrong angle");
+        settle(executionId, "c", RunState.SUCCEEDED, "published");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(put("/api/workflows/node-runs/" + nodeRunId(executionId, "b") + "/prompt")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(promptBody("Summarise the input in one paragraph")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[1].prompt", is("Summarise the input in one paragraph")))
+                .andExpect(jsonPath("$.nodes[1].promptEditedAt").exists())
+                // Only that step. The others are still the workflow's text.
+                .andExpect(jsonPath("$.nodes[0].prompt", is("Find sources")))
+                .andExpect(jsonPath("$.nodes[0].promptEditedAt").doesNotExist())
+                // Nothing has been re-run, so the answer on the row is still the old
+                // prompt's — the edit alone must not disturb the record.
+                .andExpect(jsonPath("$.nodes[1].status", is("SUCCEEDED")))
+                .andExpect(jsonPath("$.nodes[1].output", is("the wrong angle")));
+
+        // The workflow itself is untouched: an experiment, not a change of policy.
+        mvc.perform(get("/api/workflows/" + id))
+                .andExpect(jsonPath("$.nodes[1].prompt", is("Summarise the input")));
+
+        // And the re-run carries the new text into the next attempt — which is the
+        // whole point of editing it here rather than in the editor.
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "b") + "/retry"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[1].status", is("PENDING")))
+                .andExpect(jsonPath("$.nodes[1].attempt", is(2)))
+                .andExpect(jsonPath("$.nodes[1].prompt", is("Summarise the input in one paragraph")))
+                .andExpect(jsonPath("$.nodes[1].promptEditedAt").exists());
+    }
+
+    @Test
+    void savingTheSameTextIsNotAnEdit() throws Exception {
+        // Otherwise opening the box and closing it again would mark the step's output
+        // as produced by an older prompt, which is exactly what the stamp denies.
+        String id = createWorkflow(chainNamed("Edit nothing"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "one");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(put("/api/workflows/node-runs/" + nodeRunId(executionId, "a") + "/prompt")
+                        .contentType(MediaType.APPLICATION_JSON).content(promptBody("Find sources")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[0].prompt", is("Find sources")))
+                .andExpect(jsonPath("$.nodes[0].promptEditedAt").doesNotExist());
+    }
+
+    @Test
+    void noPromptOfALiveRunCanBeEditedUnderneathTheRunner() throws Exception {
+        String id = createWorkflow(chainNamed("Edit live"));
+        long executionId = startRun(id);
+
+        mvc.perform(put("/api/workflows/node-runs/" + nodeRunId(executionId, "a") + "/prompt")
+                        .contentType(MediaType.APPLICATION_JSON).content(promptBody("Something else")))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .hasMessageContaining("still going"));
+    }
+
+    @Test
+    void thePromptOfAStepTheEntryNeverReachedCannotBeEdited() throws Exception {
+        // Editable exactly where re-runnable: on a step that can never run, the edit
+        // would change the record of what this run did and never be tested.
+        String id = createWorkflow("""
+                {"name":"Edit an orphan",
+                 "nodes":[{"id":"a","name":"A","prompt":"x"},
+                          {"id":"b","name":"B","prompt":"y"},
+                          {"id":"orphan","name":"Orphan","prompt":"z"}],
+                 "edges":[{"from":"a","to":"b"}],"entryNodeId":"a"}
+                """);
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "one");
+        settle(executionId, "b", RunState.SUCCEEDED, "two");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(put("/api/workflows/node-runs/" + nodeRunId(executionId, "orphan") + "/prompt")
+                        .contentType(MediaType.APPLICATION_JSON).content(promptBody("z2")))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .hasMessageContaining("isn't wired in"));
+    }
+
+    @Test
+    void aPromptTooLongForTheEditorIsRefusedHereToo() throws Exception {
+        String id = createWorkflow(chainNamed("Edit too long"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "one");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(put("/api/workflows/node-runs/" + nodeRunId(executionId, "a") + "/prompt")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(promptBody("x".repeat(20_001))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void editingThePromptOfAStepThatIsNotThereAnswers404() throws Exception {
+        mvc.perform(put("/api/workflows/node-runs/999999/prompt")
+                        .contentType(MediaType.APPLICATION_JSON).content(promptBody("hi")))
+                .andExpect(status().isNotFound());
+    }
+
     @Test
     void deletingAWorkflowTakesItsRunsWithIt() throws Exception {
         String id = createWorkflow(CHAIN);

@@ -1,5 +1,6 @@
 package com.kanban.workflow;
 
+import com.kanban.workflow.WorkflowDtos.EditNodePromptRequest;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
 import com.kanban.workflow.WorkflowDtos.RunWorkflowRequest;
 import com.kanban.workflow.WorkflowDtos.SaveWorkflowRequest;
@@ -93,6 +94,18 @@ public class WorkflowController {
     @PostMapping("/node-runs/{nodeRunId}/retry")
     public ExecutionView retryNode(@PathVariable Long nodeRunId) {
         return service.retryNode(nodeRunId);
+    }
+
+    /**
+     * Rewrite one step's prompt inside this run only — the workflow keeps its own text.
+     * Pair it with the re-run above to try a wording for the price of one session
+     * instead of a whole graph. 409 while the run is live, or if the entry never
+     * reached that step (there would be no way to test the change).
+     */
+    @PutMapping("/node-runs/{nodeRunId}/prompt")
+    public ExecutionView editNodePrompt(@PathVariable Long nodeRunId,
+                                        @Valid @RequestBody EditNodePromptRequest req) {
+        return service.editNodePrompt(nodeRunId, req.prompt());
     }
 
     /** Live transcript of one node's Claude session — poll it while the node runs. */
