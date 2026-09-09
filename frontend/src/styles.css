@@ -1363,8 +1363,9 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 /* The DAG: columns left→right in the order the runner works through them. It is
    the editing surface, not a decoration — a box is a button that opens the step
    below it, and the same picture is redrawn under a run with the boxes coloured by
-   how each step went. Wide graphs scroll sideways rather than shrinking to
-   illegible; the boxes have a fixed size in the SVG's own units. */
+   how each step went. A graph wider than the page is scaled down to fit (the SVG
+   keeps its own units; only the rendered size changes) and only starts scrolling
+   sideways once shrinking further would leave the labels illegible. */
 .wf-graph {
   background: var(--col);
   border: 1px solid var(--hair);
@@ -1373,6 +1374,9 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   overflow-x: auto;
 }
 .wf-graph svg { display: block; }
+/* Strokes are the one thing that shouldn't shrink with the picture: at 0.6 a 1.5px
+   border is a smudge. vector-effect is per-shape — it doesn't inherit from <svg>. */
+.wf-edge, .wf-gnode rect { vector-effect: non-scaling-stroke; }
 .wf-edge { fill: none; stroke: var(--board-line); stroke-width: 2; }
 .wf-edge.on { stroke: var(--brand); }
 .wf-arrowhead { fill: var(--board-line); }

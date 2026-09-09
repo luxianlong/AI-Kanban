@@ -4,7 +4,7 @@ import Icon from './Icon.jsx'
 import Markdown from './Markdown.jsx'
 import { relTime, runMeta } from './time.js'
 import {
-  NODE_H, NODE_W, descendantsOf, inRunOrder, layoutGraph, reachableFrom,
+  NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
@@ -551,6 +551,9 @@ function NodeEditor({
   )
 }
 
+/** How far the picture may shrink before the labels stop being words. */
+const MIN_SCALE = 0.6
+
 /**
  * The DAG itself: one column per depth, curved edges with arrowheads, drawn from
  * the layout in workflowGraph.js. This is the page's main view of a workflow, in
@@ -560,6 +563,11 @@ function NodeEditor({
  * Nodes are selectable (click, or Enter/Space when focused); edges are not drawn
  * or dragged here — connections stay on the "Input from" chips, where a wrong one
  * is a mis-click rather than a mis-aimed line.
+ *
+ * The picture shrinks to whatever width it is given rather than making a narrow
+ * window scroll at once: the layout keeps its own units and only the rendered size
+ * changes. It stops shrinking at MIN_SCALE, below which the labels stop being
+ * words, and scrolls sideways from there.
  */
 function WorkflowGraph({
   nodes, entryNodeId, reachable, selectedId, onSelect, statuses, label,
@@ -575,20 +583,44 @@ function WorkflowGraph({
   // run has one) and duplicate SVG ids resolve to whichever came first.
   const arrow = `wf-arrow-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
-  // A long chain scrolls sideways, and "Add step" selects the step it just made —
-  // which would otherwise appear off the right edge and look like nothing happened.
+  // Fit the drawing to the room it has. clientWidth is the scroll box's own padding
+  // box, so it stays the width of the space available however wide the SVG inside it
+  // grows — scrollWidth is the one that would report the graph back to us.
   const boxRef = useRef(null)
+  const [scale, setScale] = useState(1)
+  useEffect(() => {
+    const el = boxRef.current
+    if (!el) return undefined
+    const fit = () => {
+      const pad = getComputedStyle(el)
+      const room = el.clientWidth
+        - (parseFloat(pad.paddingLeft) || 0) - (parseFloat(pad.paddingRight) || 0)
+      if (room > 0) setScale(Math.min(1, Math.max(MIN_SCALE, room / layout.width)))
+    }
+    fit()
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', fit)
+      return () => window.removeEventListener('resize', fit)
+    }
+    const observer = new ResizeObserver(fit)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [layout.width])
+
+  // Still too wide to fit at MIN_SCALE: it scrolls sideways, and "Add step" selects
+  // the step it just made — which would otherwise appear off the right edge and
+  // look like nothing happened.
   useEffect(() => {
     const box = boxRef.current
     const at = selectedId && layout.positions.get(selectedId)
     if (!box || !at) return
-    const left = at.x - 16
-    const right = at.x + NODE_W + 16
+    const left = at.x * scale - 16
+    const right = (at.x + NODE_W) * scale + 16
     if (left < box.scrollLeft) box.scrollTo({ left, behavior: 'smooth' })
     else if (right > box.scrollLeft + box.clientWidth) {
       box.scrollTo({ left: right - box.clientWidth, behavior: 'smooth' })
     }
-  }, [selectedId, layout])
+  }, [selectedId, layout, scale])
 
   if (!nodes.length) return null
 
@@ -596,8 +628,8 @@ function WorkflowGraph({
     <div className="wf-graph" ref={boxRef}>
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
-        width={layout.width}
-        height={layout.height}
+        width={Math.round(layout.width * scale)}
+        height={Math.round(layout.height * scale)}
         role="img"
         aria-label={label || 'Workflow graph'}
       >
@@ -615,26 +647,18 @@ function WorkflowGraph({
           </marker>
         </defs>
 
-        {nodes.flatMap((node) =>
-          node.inputs.map((fromId) => {
-            const from = layout.positions.get(fromId)
-            const to = layout.positions.get(node.id)
-            if (!from || !to) return null
-            const x1 = from.x + NODE_W
-            const y1 = from.y + NODE_H / 2
-            const x2 = to.x
-            const y2 = to.y + NODE_H / 2
-            const mid = (x1 + x2) / 2
-            return (
-              <path
-                key={`${fromId}-${node.id}`}
-                className={`wf-edge ${selectedId === node.id || selectedId === fromId ? 'on' : ''}`}
-                markerEnd={`url(#${arrow})`}
-                d={`M${x1} ${y1} C${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`}
-              />
-            )
-          }),
-        )}
+        {/* Edges last-to-first would hide the highlighted one under its neighbours,
+            so the ones touching the selected step are drawn after the rest. */}
+        {[...layout.edges]
+          .sort((a, b) => Number(touches(a, selectedId)) - Number(touches(b, selectedId)))
+          .map((edge) => (
+            <path
+              key={`${edge.from}-${edge.to}`}
+              className={`wf-edge ${touches(edge, selectedId) ? 'on' : ''}`}
+              markerEnd={`url(#${arrow})`}
+              d={edgePath(edge.points)}
+            />
+          ))}
 
         {nodes.map((node) => {
           const at = layout.positions.get(node.id)
@@ -699,6 +723,8 @@ function WorkflowGraph({
     </div>
   )
 }
+
+const touches = (edge, nodeId) => !!nodeId && (edge.from === nodeId || edge.to === nodeId)
 
 // ---------------------------------------------------------------------------
 // Executions
