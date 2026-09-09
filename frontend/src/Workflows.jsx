@@ -7,7 +7,7 @@ import { relTime, runMeta } from './time.js'
 import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
-import { followedNode, mergeExecutions, outputPredatesPrompt } from './workflowLive.js'
+import { followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
 // nodes carry their own `inputs` rather than a separate edge list, because that is
@@ -881,6 +881,10 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
     () => new Map(execution.nodes.map((n) => [n.nodeId, n.status])),
     [execution.nodes],
   )
+  // Which steps a single-step re-run has left behind: their output is still there and
+  // still says "Done", but the input it was written from has moved since. Derived for
+  // the whole run at once because it is a question about the graph, not about a row.
+  const staleInput = useMemo(() => nodesWithStaleInput(execution.nodes), [execution.nodes])
 
   // On a run you just started, whatever is running is what you want open — it is
   // the only step with anything to show yet. But once you have picked a step
@@ -932,17 +936,30 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // which steps need doing over; this asks the user, because a step can succeed and
   // still be wrong — and the answer costs a fresh session per step, so the count of
   // what goes with it is the thing to put in front of them.
-  async function rerunFrom(run) {
+  //
+  // `downstream` is the choice between the two honest answers to "what else does this
+  // invalidate". With it, the steps below are redone, which is correct and can cost
+  // eight sessions to check one wording. Without it, one session — and the steps below
+  // are left describing an output that has moved, which the panel then says out loud
+  // rather than leaving to be discovered. Whichever the user picks, the confirm spells
+  // out that half of the trade, because it is the half that isn't in the button.
+  async function rerunFrom(run, downstream) {
     const also = run.rerunFromCount - 1
     const ok = window.confirm(
-      `Re-run "${run.nodeName}"${also ? ` and the ${plural(also, 'step')} after it` : ''}?\n\n`
-      + `${also ? 'Those steps read this one\'s output, so what they produced is discarded and each ' : 'It '}`
-      + `runs a fresh Claude session — real minutes and real money. The steps before `
-      + `"${run.nodeName}" are untouched and keep their output.`,
+      downstream
+        ? `Re-run "${run.nodeName}"${also ? ` and the ${plural(also, 'step')} after it` : ''}?\n\n`
+          + `${also ? 'Those steps read this one\'s output, so what they produced is discarded and each ' : 'It '}`
+          + `runs a fresh Claude session — real minutes and real money. The steps before `
+          + `"${run.nodeName}" are untouched and keep their output.`
+        : `Re-run only "${run.nodeName}"?\n\n`
+          + `One fresh Claude session, and nothing else in this run is touched. The `
+          + `${plural(also, 'step')} after it will keep what they produced — which was `
+          + `written from this step's previous output, so they will be marked as reading `
+          + `an input that has since changed. Re-run them too when the new output looks right.`,
     )
     if (!ok) return
     try {
-      await api.retryNodeRun(run.id)
+      await api.retryNodeRun(run.id, { downstream })
       // Live again, and the step to watch is the one being redone.
       setFollowing(true)
       onChanged()
@@ -1052,8 +1069,9 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
                 run={run}
                 where={`${execution.workflowName} · Run #${execution.id}`}
                 open={openNodeId === run.nodeId}
+                staleInput={staleInput.has(run.nodeId)}
                 onToggle={() => pickNode(run.nodeId)}
-                onRerun={() => rerunFrom(run)}
+                onRerun={(downstream) => rerunFrom(run, downstream)}
                 onEditPrompt={(prompt) => editPrompt(run, prompt)}
               />
             ))}
@@ -1064,15 +1082,15 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   )
 })
 
-function NodeRun({ run, where, open, onToggle, onRerun, onEditPrompt }) {
+function NodeRun({ run, where, open, staleInput, onToggle, onRerun, onEditPrompt }) {
   const [log, setLog] = useState('')
   const [rerunning, setRerunning] = useState(false)
   const running = run.status === 'RUNNING'
 
-  async function rerun() {
+  async function rerun(downstream) {
     setRerunning(true)
     try {
-      await onRerun()
+      await onRerun(downstream)
     } finally {
       setRerunning(false)
     }
@@ -1110,6 +1128,7 @@ function NodeRun({ run, where, open, onToggle, onRerun, onEditPrompt }) {
   const meta = [
     run.attempt > 1 ? `attempt ${run.attempt}` : '',
     stale ? 'prompt edited' : '',
+    staleInput ? 'input changed' : '',
     runMeta(run),
   ]
     .filter(Boolean)
@@ -1133,12 +1152,28 @@ function NodeRun({ run, where, open, onToggle, onRerun, onEditPrompt }) {
               <button
                 type="button"
                 className="btn ghost"
-                onClick={rerun}
+                onClick={() => rerun(true)}
                 disabled={rerunning}
                 title="Run this step again from its own input, and every step that reads its output. The steps before it keep what they produced."
               >
                 <Icon name="run" size={13} /> {rerunning ? 'Queueing…' : rerunLabel(run.rerunFromCount)}
               </button>
+              {/* Only where it is a different offer from the button beside it: on the
+                  last step of a branch the cascade is already one step. `canRerunAlone`
+                  is the server's own answer, false where the step has no stored input
+                  waiting for it — the one case redoing it alone would just discard the
+                  output and skip. */}
+              {run.canRerunAlone && run.rerunFromCount > 1 && (
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => rerun(false)}
+                  disabled={rerunning}
+                  title="Run only this step, for one session. The steps after it keep what they produced — which was written from this step's previous output."
+                >
+                  <Icon name="run" size={13} /> {rerunning ? 'Queueing…' : 'Just this step'}
+                </button>
+              )}
             </div>
           )}
           <NodeRunPrompt
@@ -1166,6 +1201,16 @@ function NodeRun({ run, where, open, onToggle, onRerun, onEditPrompt }) {
             <p className="wf-node-warn">
               The prompt was edited after this ran, so what's below is the previous
               prompt's answer. Re-run the step to test the change.
+            </p>
+          )}
+          {/* Same shape of warning, one step removed: there the prompt moved under the
+              answer, here the input did. Both say "this row reads Done over something
+              that is no longer the current question". */}
+          {staleInput && (run.output || run.error) && (
+            <p className="wf-node-warn">
+              A step above this one was re-run on its own after this ran, so what's below
+              was written from an input that has since changed. Re-run this step to bring
+              it up to date.
             </p>
           )}
           {run.output && (

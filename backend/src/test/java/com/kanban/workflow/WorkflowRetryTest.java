@@ -314,6 +314,90 @@ class WorkflowRetryTest {
         assertThat(retriedIds(runs, execution)).containsExactly("b", "c");
     }
 
+    // --- re-running one step and nothing else -----------------------------
+
+    @Test
+    void aStepWhoseUpstreamSucceededCanBeReRunOnItsOwn() {
+        // The case the option exists for: "Summarise" is worth another try, and the
+        // seven steps below it are not worth paying for to find that out.
+        List<NodeExecution> runs = successfulChain();
+
+        assertThat(WorkflowService.canRerunAlone(runs, succeededRun("a"), "b")).isTrue();
+        // Which is a strictly narrower offer than the cascade beside it.
+        assertThat(rerunIdsFrom(runs, succeededRun("a"), "b")).containsExactly("b", "c");
+    }
+
+    @Test
+    void theEntryStepCanBeReRunOnItsOwnBecauseItDependsOnNothing() {
+        assertThat(WorkflowService.canRerunAlone(successfulChain(), succeededRun("a"), "a")).isTrue();
+    }
+
+    @Test
+    void aStepWhoseUpstreamNeverSucceededCannotBeReRunAlone() {
+        // Alone, the step is handed its upstream's stored output — and there isn't one.
+        // The runner would mark the reset row SKIPPED on the next tick, so the click
+        // would spend nothing and destroy the output the row was holding. The cascade
+        // is still offered: it resets "a" too, which is what produces the input.
+        List<NodeExecution> runs = chainWithAnOrphan();
+        find(runs, "a").setStatus(RunState.FAILED);
+        find(runs, "b").setStatus(RunState.SKIPPED);
+        find(runs, "c").setStatus(RunState.SKIPPED);
+        find(runs, "orphan").setStatus(RunState.SKIPPED);
+        WorkflowExecution execution = failedRun("a");
+
+        assertThat(WorkflowService.canRerunAlone(runs, execution, "b")).isFalse();
+        assertThat(rerunIdsFrom(runs, execution, "b")).containsExactly("b", "c");
+        // The one that broke has nothing above it that failed, so it stands alone fine.
+        assertThat(WorkflowService.canRerunAlone(runs, execution, "a")).isTrue();
+    }
+
+    @Test
+    void aJoinNeedsBothItsBranchesToHaveSucceededBeforeItCanBeReRunAlone() {
+        // a → b → d and a → c → d. "b" produced its half, "c" didn't, so "d" has only
+        // half an input sitting there — not enough to re-run it against.
+        List<NodeExecution> runs = new ArrayList<>();
+        runs.add(nodeRun("a", "Collect", List.of(), 0));
+        runs.add(nodeRun("b", "Angle one", List.of("a"), 1));
+        runs.add(nodeRun("c", "Angle two", List.of("a"), 2));
+        runs.add(nodeRun("d", "Merge", List.of("b", "c"), 3));
+        find(runs, "a").setStatus(RunState.SUCCEEDED);
+        find(runs, "b").setStatus(RunState.SUCCEEDED);
+        find(runs, "c").setStatus(RunState.FAILED);
+        find(runs, "d").setStatus(RunState.SKIPPED);
+        WorkflowExecution execution = failedRun("a");
+
+        assertThat(WorkflowService.canRerunAlone(runs, execution, "d")).isFalse();
+        assertThat(WorkflowService.canRerunAlone(runs, execution, "c")).isTrue();
+    }
+
+    @Test
+    void aStepTheEntryCouldNeverReachCannotBeReRunAloneEither() {
+        // The narrower rule includes the wider one: whatever the cascade refuses,
+        // this refuses too.
+        assertThat(WorkflowService.canRerunAlone(successfulChain(), succeededRun("a"), "orphan"))
+                .isFalse();
+    }
+
+    @Test
+    void noStepOfALiveRunCanBeReRunAlone() {
+        List<NodeExecution> runs = chainWithAnOrphan();
+        find(runs, "a").setStatus(RunState.SUCCEEDED);
+        find(runs, "b").setStatus(RunState.RUNNING);
+        WorkflowExecution execution = failedRun("a");
+        execution.setStatus(RunState.RUNNING);
+
+        assertThat(WorkflowService.canRerunAlone(runs, execution, "a")).isFalse();
+        assertThat(WorkflowService.rerunAloneFlags(runs, execution)).isEmpty();
+    }
+
+    @Test
+    void theFlagOnEachStepIsWhetherItCanBeReRunAlone() {
+        // What the page reads to decide whether to offer the second button — same
+        // function the service enforces with, so the two cannot drift apart.
+        assertThat(WorkflowService.rerunAloneFlags(successfulChain(), succeededRun("a")))
+                .isEqualTo(Map.of("a", true, "b", true, "c", true, "orphan", false));
+    }
+
     @Test
     void withoutASnapshottedEntryAStepThatRanCanStillBeReRun() {
         List<NodeExecution> runs = successfulChain();

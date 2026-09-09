@@ -1,6 +1,8 @@
 // node src/workflowLive.test.mjs
 import assert from 'node:assert/strict'
-import { followedNode, mergeExecutions, outputPredatesPrompt, sameValue } from './workflowLive.js'
+import {
+  followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt, sameValue,
+} from './workflowLive.js'
 
 const node = (over = {}) => ({
   id: 1, nodeId: 'a', nodeName: 'Step', status: 'SUCCEEDED', output: 'hi', dependsOn: [], ...over,
@@ -110,5 +112,67 @@ assert.equal(outputPredatesPrompt(node({
   finishedAt: '2026-09-09T10:00:00Z',
   promptEditedAt: '2026-09-09T10:00:00.5Z',
 })), true)
+
+// --- nodesWithStaleInput --------------------------------------------------
+
+// A chain a → b → c, run once, top to bottom. `at` is minutes past the hour.
+const chain = (aMin, bMin, cMin) => [
+  node({ nodeId: 'a', dependsOn: [], finishedAt: `2026-09-09T10:0${aMin}:00Z` }),
+  node({ nodeId: 'b', dependsOn: ['a'], finishedAt: `2026-09-09T10:0${bMin}:00Z` }),
+  node({ nodeId: 'c', dependsOn: ['b'], finishedAt: `2026-09-09T10:0${cMin}:00Z` }),
+]
+
+// A run nobody has touched: every step finished after the step it reads from,
+// because it could not have started before. Nothing is stale, ever.
+assert.deepEqual([...nodesWithStaleInput(chain(1, 2, 3))], [])
+
+// "b" re-run on its own at :09. "c" is now describing b's previous output — and so is
+// nothing else, because "a" is above the change.
+assert.deepEqual([...nodesWithStaleInput(chain(1, 9, 3))], ['c'])
+
+// The fixpoint is the point: re-running "a" alone leaves "b" stale by its own stamp
+// and "c" stale only by inheritance — c finished after b, so a single pass over the
+// direct edges would call it fine.
+assert.deepEqual([...nodesWithStaleInput(chain(9, 2, 3))].sort(), ['b', 'c'])
+
+// The re-run step itself is not stale — it is the thing everything else is behind.
+assert.equal(nodesWithStaleInput(chain(1, 9, 3)).has('b'), false)
+
+// Being re-run right now: no finishedAt, so nothing on the row to mislabel, and it
+// doesn't drag its downstream in either (that is settled when it finishes).
+assert.deepEqual([...nodesWithStaleInput([
+  node({ nodeId: 'a', dependsOn: [], finishedAt: '2026-09-09T10:01:00Z' }),
+  node({ nodeId: 'b', dependsOn: ['a'], status: 'PENDING', finishedAt: null }),
+  node({ nodeId: 'c', dependsOn: ['b'], finishedAt: '2026-09-09T10:03:00Z' }),
+])], [])
+
+// Parallel branches are not compared with each other — only with what they read. "c"
+// finishing after "b" says nothing about either; both read "a", which is older.
+assert.deepEqual([...nodesWithStaleInput([
+  node({ nodeId: 'a', dependsOn: [], finishedAt: '2026-09-09T10:01:00Z' }),
+  node({ nodeId: 'b', dependsOn: ['a'], finishedAt: '2026-09-09T10:02:00Z' }),
+  node({ nodeId: 'c', dependsOn: ['a'], finishedAt: '2026-09-09T10:03:00Z' }),
+  node({ nodeId: 'd', dependsOn: ['b', 'c'], finishedAt: '2026-09-09T10:04:00Z' }),
+])], [])
+
+// A join goes stale from either side: re-running just "c" leaves the merge below it
+// reading half an input that has moved.
+assert.deepEqual([...nodesWithStaleInput([
+  node({ nodeId: 'a', dependsOn: [], finishedAt: '2026-09-09T10:01:00Z' }),
+  node({ nodeId: 'b', dependsOn: ['a'], finishedAt: '2026-09-09T10:02:00Z' }),
+  node({ nodeId: 'c', dependsOn: ['a'], finishedAt: '2026-09-09T10:09:00Z' }),
+  node({ nodeId: 'd', dependsOn: ['b', 'c'], finishedAt: '2026-09-09T10:04:00Z' }),
+])], ['d'])
+
+// Same fractional-second trap as outputPredatesPrompt: '.5Z' sorts before 'Z' as text
+// and after it in fact, so these are parsed rather than compared as strings.
+assert.deepEqual([...nodesWithStaleInput([
+  node({ nodeId: 'a', dependsOn: [], finishedAt: '2026-09-09T10:00:00.5Z' }),
+  node({ nodeId: 'b', dependsOn: ['a'], finishedAt: '2026-09-09T10:00:00Z' }),
+])], ['b'])
+
+// Junk in, empty set out — the panel calls this on whatever the poll last returned.
+assert.deepEqual([...nodesWithStaleInput(undefined)], [])
+assert.deepEqual([...nodesWithStaleInput([])], [])
 
 console.log('ok')

@@ -651,6 +651,85 @@ class WorkflowApiTest {
     }
 
     @Test
+    void aStepCanBeReRunOnItsOwnLeavingTheStepsBelowItWithWhatTheyProduced() throws Exception {
+        // The choice the card is about. Same click as above, one query parameter apart,
+        // and the difference is eight sessions on a nine-step chain.
+        String id = createWorkflow(chainNamed("Re-run just one step"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "three sources");
+        settle(executionId, "b", RunState.SUCCEEDED, "the wrong angle");
+        settle(executionId, "c", RunState.SUCCEEDED, "published");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.nodes[1].rerunFromCount", is(2)))
+                .andExpect(jsonPath("$.nodes[1].canRerunAlone", is(true)));
+
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "b") + "/retry")
+                        .param("downstream", "false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                // Above it: untouched, as with the cascade — its output is the input.
+                .andExpect(jsonPath("$.nodes[0].status", is("SUCCEEDED")))
+                .andExpect(jsonPath("$.nodes[0].output", is("three sources")))
+                // The picked step, and only it, cleared for a second attempt.
+                .andExpect(jsonPath("$.nodes[1].status", is("PENDING")))
+                .andExpect(jsonPath("$.nodes[1].output").doesNotExist())
+                .andExpect(jsonPath("$.nodes[1].attempt", is(2)))
+                // Below it: kept, which is the whole difference from the cascade. What
+                // it says is now an answer to an earlier version of its input, which is
+                // what the page labels rather than what the API discards.
+                .andExpect(jsonPath("$.nodes[2].status", is("SUCCEEDED")))
+                .andExpect(jsonPath("$.nodes[2].output", is("published")))
+                .andExpect(jsonPath("$.nodes[2].attempt", is(1)));
+    }
+
+    @Test
+    void aStepWithNoInputWaitingForItCannotBeReRunOnItsOwn() throws Exception {
+        // "a" failed, so "b" was skipped and there is no stored output to hand it. On
+        // its own the runner would skip the reset row straight away, having thrown its
+        // previous state away for nothing — so the API refuses and names the way out.
+        String id = createWorkflow(chainNamed("Re-run alone with no input"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.FAILED, null);
+        settle(executionId, "b", RunState.SKIPPED, null);
+        settle(executionId, "c", RunState.SKIPPED, null);
+        settleRun(executionId, RunState.FAILED);
+
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.nodes[1].rerunFromCount", is(2)))
+                .andExpect(jsonPath("$.nodes[1].canRerunAlone", is(false)));
+
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "b") + "/retry")
+                        .param("downstream", "false"))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .hasMessageContaining("no input waiting for it"));
+
+        // The cascade from the same step is still on offer: it resets "a" as well, and
+        // that is what produces the input.
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "b") + "/retry")
+                        .param("downstream", "true"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void reRunningAStepTakesEverythingBelowItUnlessToldOtherwise() throws Exception {
+        // The default is the cautious one, so an older client that doesn't know about
+        // the parameter keeps getting the behaviour it was written against.
+        String id = createWorkflow(chainNamed("Re-run default"));
+        long executionId = startRun(id);
+        settle(executionId, "a", RunState.SUCCEEDED, "one");
+        settle(executionId, "b", RunState.SUCCEEDED, "two");
+        settle(executionId, "c", RunState.SUCCEEDED, "three");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(post("/api/workflows/node-runs/" + nodeRunId(executionId, "b") + "/retry"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[2].status", is("PENDING")));
+    }
+
+    @Test
     void reRunningAStepThatIsNotThereAnswers404() throws Exception {
         mvc.perform(post("/api/workflows/node-runs/999999/retry")).andExpect(status().isNotFound());
     }

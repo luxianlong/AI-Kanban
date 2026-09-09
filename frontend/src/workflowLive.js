@@ -73,6 +73,53 @@ export function outputPredatesPrompt(run) {
 }
 
 /**
+ * The steps whose output was computed from an input that has since changed —
+ * because a step above them was re-run on its own, without them.
+ *
+ * Re-running one step alone is deliberately cheap: it redoes that step and leaves
+ * the rest of the run standing. The cost is that the rest of the run is now an
+ * answer to an earlier version of the question. Nothing about a row says so — it
+ * still reads "Done", with an output that was right when it was written — so this
+ * is what the page labels, the same way `outputPredatesPrompt` labels a step whose
+ * prompt moved out from under its answer.
+ *
+ * A step is stale when anything it transitively depends on finished after it did.
+ * In a run nobody has touched that is impossible: a step cannot start until its
+ * upstream has finished, so upstream stamps are always earlier. The comparison is
+ * therefore only ever true because someone re-ran the upstream since. Propagation
+ * is a fixpoint rather than one pass over the direct edges, because a step two
+ * below the re-run one still finished after its own parent — it is stale by
+ * inheritance, not by its own stamp.
+ *
+ * Returns a Set of node ids. Steps with no `finishedAt` (queued, running, or being
+ * re-run right now) are never in it: there is no output on them to mislead anyone.
+ */
+export function nodesWithStaleInput(nodes) {
+  const stale = new Set()
+  if (!Array.isArray(nodes)) return stale
+  const finishedAt = new Map()
+  for (const n of nodes) {
+    if (n?.finishedAt) finishedAt.set(n.nodeId, Date.parse(n.finishedAt))
+  }
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const node of nodes) {
+      if (!node?.finishedAt || stale.has(node.nodeId)) continue
+      const own = finishedAt.get(node.nodeId)
+      const inherited = (node.dependsOn || []).some(
+        (up) => stale.has(up) || (finishedAt.has(up) && finishedAt.get(up) > own),
+      )
+      if (inherited) {
+        stale.add(node.nodeId)
+        changed = true
+      }
+    }
+  }
+  return stale
+}
+
+/**
  * Which step a run card should have open, given what it had open and what is
  * running now.
  *

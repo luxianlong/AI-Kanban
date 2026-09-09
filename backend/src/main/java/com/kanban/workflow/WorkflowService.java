@@ -419,10 +419,17 @@ public class WorkflowService {
         return cone;
     }
 
+    /** Re-run one step and, with it, everything that reads its output. */
+    @Transactional
+    public ExecutionView retryNode(Long nodeRunId) {
+        return retryNode(nodeRunId, true);
+    }
+
     /**
      * Queue a finished run again from one particular step — <em>including</em> one that
-     * succeeded. That step and everything downstream of it go back to PENDING; the run
-     * itself is re-queued and the runner picks it up on the next tick.
+     * succeeded. That step goes back to PENDING, along with everything downstream of it
+     * when {@code downstream} is set; the run itself is re-queued and the runner picks
+     * it up on the next tick.
      *
      * <p>This is the other half of {@link #retry(Long)}, and the difference is who
      * decides a step needs doing over. Retry asks the run: it takes the steps that
@@ -431,18 +438,34 @@ public class WorkflowService {
      * written before the source it should have used existed — and the only way to fix
      * it used to be running the whole graph from the top.
      *
-     * <p>Everything downstream goes with it, necessarily. A node's input is its
-     * upstream's stored output, so redoing a step invalidates every answer computed
-     * from the old one; leaving those in place would show a run whose later steps
-     * describe material that is no longer there. Everything <em>upstream</em> is
-     * untouched and keeps its output — that is what makes this cheaper than a re-run.
+     * <p>Everything downstream goes with it by default, and that default is the
+     * cautious one. A node's input is its upstream's stored output, so redoing a step
+     * invalidates every answer computed from the old one; leaving those in place shows
+     * a run whose later steps describe material that is no longer there. Everything
+     * <em>upstream</em> is untouched and keeps its output — that is what makes this
+     * cheaper than a re-run.
      *
-     * <p>The rule about what may be started is the same one {@link #retryableNodeIds}
-     * enforces: a step the entry could never reach stays out, because starting it would
-     * run a branch the user built but never wired in.
+     * <p>{@code downstream = false} buys back the other half of that trade. Redoing a
+     * nine-step chain from step two because step two's wording was off pays for seven
+     * sessions to find out whether one of them helped, and the answer is usually
+     * visible in step two's own output. So this variant redoes exactly the one step:
+     * one session, one bill, and the steps below keep what they produced. What they
+     * produced is then a fraction older than its own input, which is a real thing to
+     * get wrong — so the run says so rather than letting it pass silently
+     * (see {@code NodeRunView.inputChangedAfterRun} in the page's derivation). Once the
+     * new output looks right, the cascade is the button next to it.
+     *
+     * <p>Two rules about what may be started. A step the entry could never reach stays
+     * out, exactly as {@link #retryableNodeIds} has it, because starting it would run a
+     * branch the user built but never wired in. And on its own, a step is refused
+     * unless everything it depends on succeeded: with no cascade above it to produce
+     * that input, the runner would take one look at the reset row, find its upstream
+     * dead, and mark it SKIPPED — spending nothing, but throwing away the output the
+     * row was holding. Whole-run retry is the answer for that case, and the message
+     * says so.
      */
     @Transactional
-    public ExecutionView retryNode(Long nodeRunId) {
+    public ExecutionView retryNode(Long nodeRunId, boolean downstream) {
         NodeExecution target = nodeRuns.findById(nodeRunId).orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND, "Node run not found: " + nodeRunId));
         WorkflowExecution execution = findExecution(target.getExecutionId());
@@ -457,6 +480,15 @@ public class WorkflowService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Step \"" + target.getNodeName() + "\" can't be started on its own — this run "
                             + "never reached it, so it isn't wired in below the entry node.");
+        }
+        if (!downstream) {
+            if (!dependenciesSucceeded(runs, target)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Step \"" + target.getNodeName() + "\" can't be run on its own — the step it "
+                                + "reads from didn't succeed, so there is no input waiting for it. "
+                                + "Retry the run, or re-run from the step that broke.");
+            }
+            rerunning = List.of(target);
         }
         for (NodeExecution run : rerunning) {
             // Same reason as in retry(): the transcript on this key belongs to the
@@ -550,6 +582,53 @@ public class WorkflowService {
     }
 
     /**
+     * Whether one step can be re-run <em>by itself</em>, leaving the steps below it
+     * with the output they already have.
+     *
+     * <p>Everything {@link #nodesToRerunFrom} allows, minus the steps whose input never
+     * arrived. Redoing a step alone hands it its upstream's stored output, so a step
+     * whose upstream failed, was cancelled or was skipped has nothing to be handed:
+     * the runner would mark the reset row SKIPPED on the next tick and the row's old
+     * output would be gone for nothing. The cascade doesn't have that problem — it
+     * resets the upstream too — which is why this is the narrower of the two rules and
+     * not simply {@code rerunFromCount > 0}.
+     */
+    static boolean canRerunAlone(List<NodeExecution> runs, WorkflowExecution execution, String nodeId) {
+        if (nodesToRerunFrom(runs, execution, nodeId).isEmpty()) {
+            return false;
+        }
+        return runs.stream()
+                .filter(r -> r.getNodeId().equals(nodeId))
+                .findFirst()
+                .map(target -> dependenciesSucceeded(runs, target))
+                .orElse(false);
+    }
+
+    /** Which of a run's steps can be re-run on their own, by node id. */
+    static Map<String, Boolean> rerunAloneFlags(List<NodeExecution> runs, WorkflowExecution execution) {
+        if (!execution.getStatus().isTerminal()) {
+            return Map.of();
+        }
+        Map<String, Boolean> flags = new HashMap<>();
+        for (NodeExecution run : runs) {
+            flags.put(run.getNodeId(), canRerunAlone(runs, execution, run.getNodeId()));
+        }
+        return flags;
+    }
+
+    /**
+     * Whether every step this one reads from produced an answer — i.e. its input is
+     * sitting there ready to be handed to it again.
+     */
+    private static boolean dependenciesSucceeded(List<NodeExecution> runs, NodeExecution target) {
+        Map<String, RunState> states = new HashMap<>();
+        for (NodeExecution run : runs) {
+            states.put(run.getNodeId(), run.getStatus());
+        }
+        return target.dependencyIds().stream().allMatch(id -> states.get(id) == RunState.SUCCEEDED);
+    }
+
+    /**
      * Whether the run could ever have got to this node — i.e. it is wired in below the
      * entry, rather than a branch left dangling in the editor.
      *
@@ -614,7 +693,7 @@ public class WorkflowService {
 
     private static ExecutionView view(WorkflowExecution execution, List<NodeExecution> runs) {
         return ExecutionView.from(execution, runs, nodesToRetry(runs, execution).size(),
-                rerunFromCounts(runs, execution));
+                rerunFromCounts(runs, execution), rerunAloneFlags(runs, execution));
     }
 
     private WorkflowExecution findExecution(Long id) {

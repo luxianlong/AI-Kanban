@@ -181,12 +181,17 @@ export const api = {
   retryExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}/retry`, { method: 'POST' }).then(json),
 
-  // Run one step of a finished run again — including one that succeeded — plus every
-  // step downstream of it, whose input that step's output is. The steps above it keep
-  // their output. Returns the whole run, since re-queueing it changes its state too.
-  // 409 if the run is still going, or if the entry never reached that step.
-  retryNodeRun: (nodeRunId) =>
-    fetch(`${BASE}/workflows/node-runs/${nodeRunId}/retry`, { method: 'POST' }).then(json),
+  // Run one step of a finished run again — including one that succeeded. By default
+  // every step downstream of it goes too, whose input that step's output is; pass
+  // `{ downstream: false }` to redo just that step and leave the rest of the run with
+  // what it produced. The steps above it keep their output either way. Returns the
+  // whole run, since re-queueing it changes its state too. 409 if the run is still
+  // going, if the entry never reached that step, or — single-step only — if what it
+  // reads from didn't succeed, so there is no input to hand it.
+  retryNodeRun: (nodeRunId, { downstream = true } = {}) =>
+    fetch(`${BASE}/workflows/node-runs/${nodeRunId}/retry?downstream=${downstream}`, {
+      method: 'POST',
+    }).then(json),
 
   // Rewrite one step's prompt inside one finished run. The workflow keeps its own
   // text — this is the run's private copy, which is what makes trying a wording cost
