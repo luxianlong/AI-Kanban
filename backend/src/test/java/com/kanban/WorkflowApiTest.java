@@ -2,6 +2,11 @@ package com.kanban;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kanban.workflow.NodeExecution;
+import com.kanban.workflow.NodeExecutionRepository;
+import com.kanban.workflow.RunState;
+import com.kanban.workflow.WorkflowExecution;
+import com.kanban.workflow.WorkflowExecutionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -35,6 +40,17 @@ class WorkflowApiTest {
 
     @Autowired
     MockMvc mvc;
+
+    /**
+     * The worker is off in this test, so no node ever actually runs. A run that has
+     * failed part-way — the only interesting input to retry — is therefore written
+     * straight to the repositories rather than waited for.
+     */
+    @Autowired
+    NodeExecutionRepository nodeRuns;
+
+    @Autowired
+    WorkflowExecutionRepository executionRepo;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -383,6 +399,156 @@ class WorkflowApiTest {
                 .andExpect(jsonPath("$.workflowName", is("Research")))
                 .andExpect(jsonPath("$.nodes", hasSize(3)))
                 .andExpect(jsonPath("$.nodes[0].prompt", is("Find sources")));
+    }
+
+    // --- retrying a run that broke ---------------------------------------
+
+    /** Start a run of {@code workflowId} and return its id. */
+    private long startRun(String workflowId) throws Exception {
+        return mapper.readTree(mvc.perform(post("/api/workflows/" + workflowId + "/run")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"input\":\"gold prices\"}"))
+                .andReturn().getResponse().getContentAsString()).get("id").asLong();
+    }
+
+    /** Put a node run into a terminal state, as the runner would have. */
+    private void settle(long executionId, String nodeId, RunState status, String outputOrError) {
+        NodeExecution run = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(executionId).stream()
+                .filter(n -> n.getNodeId().equals(nodeId)).findFirst().orElseThrow();
+        run.setStatus(status);
+        if (status == RunState.SUCCEEDED) {
+            run.setOutput(outputOrError);
+            run.setCostUsd(0.5);
+        } else {
+            run.setError(outputOrError);
+        }
+        nodeRuns.save(run);
+    }
+
+    private void settleRun(long executionId, RunState status) {
+        WorkflowExecution execution = executionRepo.findById(executionId).orElseThrow();
+        execution.setStatus(status);
+        executionRepo.save(execution);
+    }
+
+    @Test
+    void aRetryReRunsTheFailedStepAndWhatItBlocked() throws Exception {
+        String id = createWorkflow(chainNamed("Retry chain"));
+        long executionId = startRun(id);
+
+        // "Collect" worked, "Summarise" timed out, "Publish" never got a chance.
+        settle(executionId, "a", RunState.SUCCEEDED, "three sources");
+        settle(executionId, "b", RunState.FAILED, "Timed out after 3600s.");
+        settle(executionId, "c", RunState.SKIPPED, "Skipped: the node it depends on did not succeed.");
+        settleRun(executionId, RunState.FAILED);
+
+        // The page reads the count off the run rather than working it out itself.
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.retryableNodes", is(2)));
+
+        mvc.perform(post("/api/workflows/executions/" + executionId + "/retry"))
+                .andExpect(status().isOk())
+                // Queued again, and the reason it stopped is no longer current.
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                // The step that worked keeps its output — the point of retrying at all.
+                .andExpect(jsonPath("$.nodes[0].status", is("SUCCEEDED")))
+                .andExpect(jsonPath("$.nodes[0].output", is("three sources")))
+                .andExpect(jsonPath("$.nodes[0].attempt", is(1)))
+                // The failure and the step behind it are back in the queue, clean.
+                .andExpect(jsonPath("$.nodes[1].status", is("PENDING")))
+                .andExpect(jsonPath("$.nodes[1].error").doesNotExist())
+                .andExpect(jsonPath("$.nodes[1].attempt", is(2)))
+                .andExpect(jsonPath("$.nodes[2].status", is("PENDING")))
+                .andExpect(jsonPath("$.nodes[2].attempt", is(2)))
+                // It replays the prompts the RUN snapshotted, not the workflow's today.
+                .andExpect(jsonPath("$.nodes[1].prompt", is("Summarise the input")))
+                .andExpect(jsonPath("$.nodes[1].dependsOn[0]", is("a")));
+    }
+
+    @Test
+    void aRetryDoesNotStartAStepTheEntryNeverReached() throws Exception {
+        // "orphan" is a node the user built but never wired in: it was SKIPPED the
+        // moment the run was created. It has no dependencies, so a retry that reset
+        // it would hand the runner a session nobody asked for.
+        String id = createWorkflow("""
+                {"name":"Retry with an orphan",
+                 "nodes":[{"id":"a","name":"A","prompt":"x"},
+                          {"id":"b","name":"B","prompt":"y"},
+                          {"id":"orphan","name":"Orphan","prompt":"z"}],
+                 "edges":[{"from":"a","to":"b"}],"entryNodeId":"a"}
+                """);
+        long executionId = startRun(id);
+
+        settle(executionId, "a", RunState.FAILED, "Claude exited with code 1.");
+        settle(executionId, "b", RunState.SKIPPED, "Skipped: the node it depends on did not succeed.");
+        settleRun(executionId, RunState.FAILED);
+
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.retryableNodes", is(2)));
+
+        mvc.perform(post("/api/workflows/executions/" + executionId + "/retry"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[?(@.nodeName=='A')].status", is(java.util.List.of("PENDING"))))
+                .andExpect(jsonPath("$.nodes[?(@.nodeName=='B')].status", is(java.util.List.of("PENDING"))))
+                .andExpect(jsonPath("$.nodes[?(@.nodeName=='Orphan')].status",
+                        is(java.util.List.of("SKIPPED"))));
+    }
+
+    @Test
+    void aCancelledRunCanBeStartedAgainFromWhereItStopped() throws Exception {
+        String id = createWorkflow(chainNamed("Retry after cancel"));
+        long executionId = startRun(id);
+
+        mvc.perform(post("/api/workflows/executions/" + executionId + "/cancel"))
+                .andExpect(jsonPath("$.status", is("CANCELLED")))
+                .andExpect(jsonPath("$.nodes[0].status", is("SKIPPED")))
+                // Cancelling leaves three steps a retry would pick back up.
+                .andExpect(jsonPath("$.retryableNodes", is(3)));
+
+        mvc.perform(post("/api/workflows/executions/" + executionId + "/retry"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                .andExpect(jsonPath("$.error").doesNotExist())
+                .andExpect(jsonPath("$.nodes[0].status", is("PENDING")))
+                .andExpect(jsonPath("$.nodes[2].status", is("PENDING")));
+    }
+
+    @Test
+    void aRunWithNothingLeftToRetryIsRefusedRatherThanQueuedAgain() throws Exception {
+        String id = createWorkflow(chainNamed("Retry nothing"));
+        long executionId = startRun(id);
+
+        settle(executionId, "a", RunState.SUCCEEDED, "one");
+        settle(executionId, "b", RunState.SUCCEEDED, "two");
+        settle(executionId, "c", RunState.SUCCEEDED, "three");
+        settleRun(executionId, RunState.SUCCEEDED);
+
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.retryableNodes", is(0)));
+        mvc.perform(post("/api/workflows/executions/" + executionId + "/retry"))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .hasMessageContaining("already succeeded"));
+    }
+
+    @Test
+    void aRunThatIsStillGoingCannotBeRetriedUnderneathItself() throws Exception {
+        String id = createWorkflow(chainNamed("Retry live"));
+        long executionId = startRun(id);
+
+        // Freshly queued, so still in flight. Resetting rows now would fight the runner.
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(jsonPath("$.status", is("PENDING")))
+                .andExpect(jsonPath("$.retryableNodes", is(0)));
+        mvc.perform(post("/api/workflows/executions/" + executionId + "/retry"))
+                .andExpect(status().isConflict())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .hasMessageContaining("cancel it"));
+    }
+
+    @Test
+    void retryingARunThatIsNotThereAnswers404() throws Exception {
+        mvc.perform(post("/api/workflows/executions/999999/retry")).andExpect(status().isNotFound());
     }
 
     @Test

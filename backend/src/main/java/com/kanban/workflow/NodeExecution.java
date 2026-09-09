@@ -89,6 +89,14 @@ public class NodeExecution {
 
     private Long durationMs;
 
+    /**
+     * Which attempt this row is recording, counting from 1. A node is retried in
+     * place rather than as a second row: the run is a picture of the graph, and two
+     * rows for one node would draw the same box twice. Null on rows written before
+     * retries existed — {@link #getAttempt()} reads that as the first attempt.
+     */
+    private Integer attempt;
+
     protected NodeExecution() {
     }
 
@@ -199,5 +207,29 @@ public class NodeExecution {
 
     public void setDurationMs(Long durationMs) {
         this.durationMs = durationMs;
+    }
+
+    public int getAttempt() {
+        return attempt == null ? 1 : attempt;
+    }
+
+    /**
+     * Clear the last attempt so the runner queues this node again, keeping everything
+     * the run snapshotted — name, prompt, dependencies. A retry re-runs the node the
+     * <em>run</em> recorded, not whatever the workflow says today; an execution is a
+     * record of one particular graph, and half-updating it would be a record of neither.
+     *
+     * <p>{@link #costUsd} and {@link #durationMs} are deliberately <em>not</em> cleared.
+     * They are what this node has cost so far, and a failed attempt was still billed —
+     * the runner adds the next attempt's figures to them.
+     */
+    void resetForRetry() {
+        this.attempt = getAttempt() + 1;
+        this.status = RunState.PENDING;
+        this.input = null;
+        this.output = null;
+        this.error = null;
+        this.startedAt = null;
+        this.finishedAt = null;
     }
 }

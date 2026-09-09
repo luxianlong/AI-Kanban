@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -235,8 +236,9 @@ public class WorkflowService {
             throw badRequest("This workflow can't run: " + problem);
         }
 
-        WorkflowExecution execution = executions.save(
-                new WorkflowExecution(workflowId, workflow.getName(), blankToNull(input)));
+        WorkflowExecution execution = new WorkflowExecution(workflowId, workflow.getName(), blankToNull(input));
+        execution.setEntryNodeId(workflow.getEntryNodeId());
+        execution = executions.save(execution);
 
         Map<String, WorkflowNode> byId = new HashMap<>();
         for (WorkflowNode n : graphNodes) {
@@ -275,7 +277,7 @@ public class WorkflowService {
             byExecution.computeIfAbsent(n.getExecutionId(), k -> new ArrayList<>()).add(n);
         }
         return page.stream()
-                .map(e -> ExecutionView.from(e, byExecution.getOrDefault(e.getId(), List.of())))
+                .map(e -> view(e, byExecution.getOrDefault(e.getId(), List.of())))
                 .toList();
     }
 
@@ -320,6 +322,110 @@ public class WorkflowService {
         return executionView(execution);
     }
 
+    /**
+     * Queue a finished run again from where it broke: every step that didn't succeed
+     * goes back to PENDING and the runner picks the execution up on its next tick.
+     *
+     * <p>The steps that <em>did</em> succeed keep their output, which is the whole
+     * point — a workflow node is a Claude session that costs real money and real
+     * minutes, so re-running a six-step graph because the last step timed out pays
+     * five times over for work that already came out fine. The failed step is handed
+     * exactly the input it was handed before, because that input is its upstream's
+     * stored output and nothing upstream has moved.
+     *
+     * <p>Two things this deliberately does not do. It does not pick up edits to the
+     * workflow — the run replays the prompts it snapshotted, since an execution is a
+     * record of one particular graph and half-updating it would be a record of
+     * neither. And it does not touch a step the entry could never reach; see
+     * {@link #retryableNodeIds}.
+     */
+    @Transactional
+    public ExecutionView retry(Long executionId) {
+        WorkflowExecution execution = findExecution(executionId);
+        if (!execution.getStatus().isTerminal()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Run #" + executionId + " is still going (" + execution.getStatus()
+                            + ") — cancel it before starting it over.");
+        }
+        List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(executionId);
+        List<NodeExecution> retrying = nodesToRetry(runs, execution);
+        if (retrying.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Nothing to retry in run #" + executionId
+                            + " — every step it could reach already succeeded.");
+        }
+        for (NodeExecution run : retrying) {
+            // The transcript on this key belongs to the attempt that failed. Drop it
+            // rather than let the new attempt append to it: the node's own `error`
+            // field already keeps why it stopped, and a log that runs two attempts
+            // together reads as one long session that contradicts itself.
+            liveLog.clear(LiveLogRegistry.nodeKey(run.getId()));
+            run.resetForRetry();
+            nodeRuns.save(run);
+        }
+        // Back in the queue. startedAt is left alone — the run began when it began,
+        // and the runner only stamps it when it is still unset.
+        execution.setStatus(RunState.PENDING);
+        execution.setError(null);
+        execution.setFinishedAt(null);
+        executions.save(execution);
+        return executionView(execution);
+    }
+
+    /**
+     * The node runs a retry of {@code execution} would re-run: everything that didn't
+     * succeed, among the nodes the run could ever have reached.
+     *
+     * <p>Empty for a run still in flight and for one where everything worked, so its
+     * size doubles as "can this run be retried at all" — which is what the page reads
+     * off {@code ExecutionView.retryableNodes}.
+     */
+    static List<NodeExecution> nodesToRetry(List<NodeExecution> runs, WorkflowExecution execution) {
+        if (!execution.getStatus().isTerminal()) {
+            return List.of();
+        }
+        Set<String> reachable = retryableNodeIds(runs, execution.getEntryNodeId());
+        return runs.stream()
+                .filter(r -> r.getStatus() != RunState.SUCCEEDED && reachable.contains(r.getNodeId()))
+                .toList();
+    }
+
+    /**
+     * Which of a run's nodes a retry is allowed to touch: those reachable from the
+     * entry node in the graph the run snapshotted.
+     *
+     * <p>The exclusion is the reason this exists. A node the entry cannot reach was
+     * recorded SKIPPED the moment the run was created — the user had built it but not
+     * wired it in — and, having no dependencies to wait on, it would look perfectly
+     * runnable if a retry reset it to PENDING. The runner would then start a session
+     * the original run deliberately never started, on a branch nobody asked to run.
+     *
+     * <p>Runs recorded before the entry was snapshotted don't know theirs. Those fall
+     * back to the cone below whatever actually broke — the failed or cancelled nodes
+     * and everything downstream of them. Anything downstream of a node the run reached
+     * is reachable too, so the fallback is always a subset of the real answer: it can
+     * retry less than it might, never something unwired.
+     */
+    static Set<String> retryableNodeIds(List<NodeExecution> runs, String entryNodeId) {
+        List<String> nodeIds = runs.stream().map(NodeExecution::getNodeId).toList();
+        List<WorkflowGraph.Edge> graphEdges = new ArrayList<>();
+        for (NodeExecution run : runs) {
+            for (String dependency : run.dependencyIds()) {
+                graphEdges.add(new WorkflowGraph.Edge(dependency, run.getNodeId()));
+            }
+        }
+        if (entryNodeId != null && nodeIds.contains(entryNodeId)) {
+            return new WorkflowGraph(nodeIds, graphEdges, entryNodeId).reachable();
+        }
+        Set<String> cone = new LinkedHashSet<>();
+        for (NodeExecution run : runs) {
+            if (run.getStatus() == RunState.FAILED || run.getStatus() == RunState.CANCELLED) {
+                cone.addAll(new WorkflowGraph(nodeIds, graphEdges, run.getNodeId()).reachable());
+            }
+        }
+        return cone;
+    }
+
     @Transactional
     public void deleteExecution(Long executionId) {
         deleteExecutionRows(findExecution(executionId));
@@ -346,8 +452,11 @@ public class WorkflowService {
     }
 
     private ExecutionView executionView(WorkflowExecution execution) {
-        return ExecutionView.from(execution,
-                nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId()));
+        return view(execution, nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId()));
+    }
+
+    private static ExecutionView view(WorkflowExecution execution, List<NodeExecution> runs) {
+        return ExecutionView.from(execution, runs, nodesToRetry(runs, execution).size());
     }
 
     private WorkflowExecution findExecution(Long id) {

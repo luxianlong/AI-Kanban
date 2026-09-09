@@ -861,6 +861,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   const [openNodeId, setOpenNodeId] = useState(null)
   // Whether the card is still following the run. See the effect below.
   const [following, setFollowing] = useState(true)
+  const [retrying, setRetrying] = useState(false)
   const live = execution.status === 'PENDING' || execution.status === 'RUNNING'
 
   // Picking a step is how you say "this is the one I'm reading" — so it also stops
@@ -898,6 +899,32 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
       onChanged()
     } catch {
       /* the poll will show whatever really happened */
+    }
+  }
+
+  // Retrying is queueing the same run again from the step that broke — which is
+  // why the button says how many steps that is. Starting the whole workflow over
+  // is the other button, on the editor; the difference between them is money.
+  async function retry(e) {
+    e.stopPropagation()
+    setRetrying(true)
+    try {
+      await api.retryExecution(execution.id)
+      // The run is live again and the step to watch is the one being redone, so
+      // hand the card back to the run — the same state a fresh run starts in.
+      setFollowing(true)
+      onChanged()
+    } catch {
+      // A refusal here means the run moved since the page last looked at it — it
+      // went live again, or someone else already retried it. The API says which in
+      // a sentence the error response doesn't carry (see cleanError), so relaying
+      // it would only show "409 Conflict". Re-read the run instead: its new state
+      // is the answer, and it is what makes the button correct again.
+      window.alert('This run has changed since the page last read it, so it was not '
+        + 'retried. The runs list has been refreshed.')
+      onChanged()
+    } finally {
+      setRetrying(false)
     }
   }
 
@@ -941,6 +968,18 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
             ) : (
               <button type="button" className="btn danger-ghost" onClick={remove}>
                 <Icon name="delete" size={13} /> Delete run
+              </button>
+            )}
+            {!live && execution.retryableNodes > 0 && (
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={retry}
+                disabled={retrying}
+                title="Run the failed step again, and everything that was waiting on it. The steps that already succeeded keep their output."
+              >
+                <Icon name="run" size={13} />{' '}
+                {retrying ? 'Queueing…' : `Retry ${plural(execution.retryableNodes, 'step')}`}
               </button>
             )}
             {live && !following && (
@@ -1013,7 +1052,12 @@ function NodeRun({ run, where, open, onToggle }) {
     return () => { cancelled = true; clearInterval(t) }
   }, [running])
 
-  const meta = runMeta(run)
+  // A retried step is the same box with a second history behind it, so say which
+  // attempt this is — otherwise a step that reads "Done" with a failure in its log
+  // looks like the page is lying. runMeta's figures are totals across the attempts.
+  const meta = [run.attempt > 1 ? `attempt ${run.attempt}` : '', runMeta(run)]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <li className={`wf-noderun ${run.status.toLowerCase()} ${open ? 'open' : ''}`}>
@@ -1093,6 +1137,11 @@ function stateLabel(status) {
     SKIPPED: 'Skipped',
     CANCELLED: 'Cancelled',
   }[status] || status
+}
+
+/** "1 step" / "3 steps" — the count is the point, so it stays in front. */
+function plural(count, noun) {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`
 }
 
 function truncate(text, max) {

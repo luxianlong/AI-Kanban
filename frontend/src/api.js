@@ -174,6 +174,13 @@ export const api = {
   cancelExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}/cancel`, { method: 'POST' }).then(json),
 
+  // Queue a finished run again from the step that broke. The steps that succeeded
+  // keep their output, so this pays only for the failure and what was blocked
+  // behind it — not for the whole graph a second time. 409 if the run is still
+  // going, or if there is nothing in it left to retry.
+  retryExecution: (executionId) =>
+    fetch(`${BASE}/workflows/executions/${executionId}/retry`, { method: 'POST' }).then(json),
+
   deleteExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}`, { method: 'DELETE' }).then(json),
 

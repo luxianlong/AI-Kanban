@@ -49,6 +49,16 @@ public class WorkflowExecution {
     @Column(columnDefinition = "TEXT")
     private String input;
 
+    /**
+     * The node this run starts from, snapshotted alongside the node rows so the run
+     * knows its own shape even after the workflow is edited or deleted. That is what
+     * lets a retry tell "this node failed" apart from "the user never wired this node
+     * in" — see {@link WorkflowService#retryableNodeIds}.
+     *
+     * <p>Null on runs recorded before it was kept; the retry path falls back for those.
+     */
+    private String entryNodeId;
+
     /** Why the run ended the way it did, when that isn't obvious from the nodes. */
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -88,6 +98,14 @@ public class WorkflowExecution {
 
     public String getWorkflowName() {
         return workflowName;
+    }
+
+    public String getEntryNodeId() {
+        return entryNodeId;
+    }
+
+    public void setEntryNodeId(String entryNodeId) {
+        this.entryNodeId = entryNodeId;
     }
 
     public RunState getStatus() {
