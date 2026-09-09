@@ -56,14 +56,24 @@ public class ClaudeSessionRunner {
     }
 
     /**
-     * Launch {@code claude -p <prompt>} in the configured working directory and
-     * block until it finishes or hits {@code worker.timeout-seconds}.
+     * Launch {@code claude -p <prompt>} in {@code worker.working-directory} and block
+     * until it finishes or hits {@code worker.timeout-seconds}.
      *
      * @param sessionKey the key this run logs under and can be stopped by — see
      *                   {@link LiveLogRegistry#todoKey}/{@link LiveLogRegistry#nodeKey}
      */
     public ProcessResult run(String sessionKey, String prompt) throws IOException, InterruptedException {
-        File workDir = new File(props.getWorkingDirectory());
+        return run(sessionKey, prompt, new File(props.getWorkingDirectory()));
+    }
+
+    /**
+     * As {@link #run(String, String)}, but in a caller-chosen directory. The workflow
+     * runner uses this to keep its nodes out of the repo: a node transforms text and has
+     * no business writing into the working tree, so it gets a scratch directory instead
+     * of the shared {@code worker.working-directory}.
+     */
+    public ProcessResult run(String sessionKey, String prompt, File workDir)
+            throws IOException, InterruptedException {
         if (!workDir.exists() && !workDir.mkdirs()) {
             liveLog.append(sessionKey, "! Could not create working directory " + workDir);
         }
