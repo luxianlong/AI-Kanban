@@ -1316,17 +1316,61 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 232px minmax(0, 1fr) minmax(320px, 420px);
+  /* Set per-pane by bodyColumns() so folding one hands its width to another; the
+     fallbacks are the all-open layout, and the stacked layout below overrides the
+     whole shorthand. */
+  grid-template-columns:
+    var(--wf-col-list, 232px)
+    var(--wf-col-editor, minmax(0, 1fr))
+    var(--wf-col-runs, minmax(320px, 420px));
   gap: var(--s-4);
   padding: var(--s-4) var(--s-6) var(--s-6);
 }
-.wf-rail, .wf-editor-pane, .wf-runs-pane { min-height: 0; overflow-y: auto; }
+/* min-width:0 so a wide graph can't push its column past the track it was given —
+   .wf-graph scrolls itself. Stacked, that overflow used to widen the whole page and
+   carry each pane's fold control off the right edge. */
+.wf-rail, .wf-editor-pane, .wf-runs-pane { min-width: 0; min-height: 0; overflow-y: auto; }
 
 .wf-rail-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--s-2); margin-bottom: var(--s-2);
 }
 .wf-rail-head .section-label { margin-bottom: 0; }
+.wf-head-actions { display: flex; align-items: center; gap: var(--s-2); }
+/* The editor's header exists only to hold its fold control, so it stays quiet. */
+.wf-editor-head { margin-bottom: var(--s-1); }
+
+/* ---------- Folding a pane ----------
+   Any of the three can be folded when you aren't using it — usually the list and
+   the runs, so a wide graph gets the window. A folded pane keeps a spine: it names
+   what is hidden and how much of it, and the whole spine is the button back. */
+.wf-pane.collapsed { overflow: hidden; }
+.wf-pane-strip {
+  width: 100%; height: 100%; min-height: 160px;
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-2);
+  padding: var(--s-2) 0;
+  border: 1px solid var(--hair); border-radius: var(--r-md);
+  background: var(--col); color: var(--muted);
+  font: inherit; cursor: pointer;
+  transition: color 0.14s, border-color 0.14s, background 0.14s;
+}
+.wf-pane-strip:hover { color: var(--brand); border-color: var(--brand-200); background: var(--brand-50); }
+.wf-pane-strip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Vertical text so the spine can stay narrow — the label is the only thing left
+   saying what this column is. */
+.wf-pane-strip-label {
+  writing-mode: vertical-rl;
+  font-size: var(--f-sm); font-weight: 600; letter-spacing: 0.04em;
+}
+.wf-pane-strip-hint {
+  writing-mode: vertical-rl;
+  font-size: var(--f-xs); color: var(--faint);
+  max-height: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wf-pane-hide { flex: none; color: var(--faint); }
+.wf-pane-hide:hover { color: var(--brand); }
+/* The chevron points at where the pane is going, or coming back from. */
+.wf-chev.left { transform: rotate(180deg); }
 .wf-new { padding: 4px var(--s-2); display: inline-flex; align-items: center; gap: 5px; }
 
 .wf-empty { color: var(--faint); font-size: var(--f-sm); line-height: 1.6; margin: var(--s-2) 0; }
@@ -1600,6 +1644,17 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
     padding: var(--s-3) var(--s-4) var(--s-5);
   }
   .wf-rail, .wf-editor-pane, .wf-runs-pane { overflow: visible; }
+  /* Stacked, a folded pane is a bar across the page, not a spine down the side. */
+  .wf-pane-strip {
+    height: auto; min-height: 0;
+    flex-direction: row; justify-content: flex-start; gap: var(--s-2);
+    padding: var(--s-2) var(--s-3);
+  }
+  .wf-pane-strip-label, .wf-pane-strip-hint {
+    writing-mode: horizontal-tb; max-height: none;
+  }
+  .wf-pane-strip .wf-chev { transform: rotate(90deg); }
+  .wf-pane-hide .wf-chev { transform: rotate(-90deg); }
   .wf-list { flex-direction: row; flex-wrap: wrap; }
   .wf-list-item { width: auto; }
   .wf-blank { margin-top: var(--s-5); }

@@ -6,6 +6,7 @@ import { relTime, runMeta } from './time.js'
 import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
+import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
 // produced on the right. Both halves live on one page because they are two views of
@@ -81,6 +82,15 @@ export default function WorkflowsPage({ onBack }) {
   const [busy, setBusy] = useState(false)
   // Scope of the executions panel: the open workflow's runs, or every run.
   const [scopeAll, setScopeAll] = useState(false)
+  // Which of the three panes are folded to a spine. Remembered per browser: on a
+  // laptop the graph needs the whole window, and re-folding the list and the runs
+  // on every visit is the kind of chore that makes people stop folding them.
+  const [collapsed, setCollapsed] = useState(readCollapsed)
+  const togglePane = (key) => setCollapsed((c) => {
+    const next = { ...c, [key]: !c[key] }
+    writeCollapsed(next)
+    return next
+  })
 
   const loadWorkflows = useCallback(async () => {
     const list = await api.listWorkflows()
@@ -214,13 +224,25 @@ export default function WorkflowsPage({ onBack }) {
 
       {error && <div className="error"><Icon name="alert" size={15} /> {error}</div>}
 
-      <div className="wf-body">
-        <aside className="wf-rail">
+      <div className="wf-body" style={bodyColumns(collapsed)}>
+        <aside className={paneClass('wf-rail', collapsed.list)}>
+          {collapsed.list ? (
+            <PaneStrip
+              label="Workflows"
+              hint={countLabel(workflows.length, 'workflow')}
+              dir="right"
+              onClick={() => togglePane('list')}
+            />
+          ) : (
+          <>
           <div className="wf-rail-head">
             <span className="section-label">Workflows</span>
-            <button type="button" className="btn ghost wf-new" onClick={startNew}>
-              <Icon name="plus" size={14} /> New
-            </button>
+            <div className="wf-head-actions">
+              <button type="button" className="btn ghost wf-new" onClick={startNew}>
+                <Icon name="plus" size={14} /> New
+              </button>
+              <PaneHide label="Workflows" dir="left" onClick={() => togglePane('list')} />
+            </div>
           </div>
           {workflows.length === 0 && !draft && (
             <p className="wf-empty">No workflows yet. Create one to get started.</p>
@@ -249,9 +271,26 @@ export default function WorkflowsPage({ onBack }) {
               </li>
             )}
           </ul>
+          </>
+          )}
         </aside>
 
-        <main className="wf-editor-pane">
+        <main className={paneClass('wf-editor-pane', collapsed.editor)}>
+          {collapsed.editor ? (
+            <PaneStrip
+              label="Editor"
+              hint={draft ? draft.name || 'Untitled workflow' : null}
+              dir="right"
+              onClick={() => togglePane('editor')}
+            />
+          ) : (
+          <>
+          <div className="wf-rail-head wf-editor-head">
+            <span className="section-label">
+              {draft ? (draft.id ? 'Editing' : 'New workflow') : 'Editor'}
+            </span>
+            <PaneHide label="the editor" dir="left" onClick={() => togglePane('editor')} />
+          </div>
           {draft ? (
             <WorkflowEditor
               draft={draft}
@@ -275,11 +314,23 @@ export default function WorkflowsPage({ onBack }) {
               </button>
             </div>
           )}
+          </>
+          )}
         </main>
 
-        <aside className="wf-runs-pane">
+        <aside className={paneClass('wf-runs-pane', collapsed.runs)}>
+          {collapsed.runs ? (
+            <PaneStrip
+              label="Executions"
+              hint={countLabel(shown.length, 'run')}
+              dir="left"
+              onClick={() => togglePane('runs')}
+            />
+          ) : (
+          <>
           <div className="wf-rail-head">
             <span className="section-label">Executions</span>
+            <div className="wf-head-actions">
             <div className="wf-scope">
               <button
                 type="button"
@@ -296,6 +347,8 @@ export default function WorkflowsPage({ onBack }) {
               >
                 All
               </button>
+            </div>
+            <PaneHide label="Executions" dir="right" onClick={() => togglePane('runs')} />
             </div>
           </div>
           {shown.length === 0 ? (
@@ -314,9 +367,67 @@ export default function WorkflowsPage({ onBack }) {
               ))}
             </ul>
           )}
+          </>
+          )}
         </aside>
       </div>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Folding a pane
+// ---------------------------------------------------------------------------
+// A folded pane leaves a spine behind rather than vanishing: an empty gutter gives
+// you nothing to click, and no way to tell that something is hidden from something
+// that was never there. The spine says what it is and how much of it there is.
+
+const paneClass = (base, isCollapsed) =>
+  `wf-pane ${base}${isCollapsed ? ' collapsed' : ''}`
+
+/**
+ * Grid tracks as custom properties rather than `grid-template-columns` directly:
+ * an inline shorthand would beat the stacked layout's media query, and the panes
+ * would stay in three columns on a phone.
+ */
+function bodyColumns(collapsed) {
+  const [list, editor, runs] = paneColumns(collapsed)
+  return { '--wf-col-list': list, '--wf-col-editor': editor, '--wf-col-runs': runs }
+}
+
+const countLabel = (n, noun) => (n ? `${n} ${noun}${n === 1 ? '' : 's'}` : `no ${noun}s`)
+
+/** The folded pane: the whole spine is the button that brings it back. */
+function PaneStrip({ label, hint, dir, onClick }) {
+  return (
+    <button
+      type="button"
+      className="wf-pane-strip"
+      onClick={onClick}
+      aria-expanded={false}
+      aria-label={`Show ${label}`}
+      title={`Show ${label}`}
+    >
+      <Icon name="chevron" size={14} className={`wf-chev ${dir}`} />
+      <span className="wf-pane-strip-label">{label}</span>
+      {hint && <span className="wf-pane-strip-hint">{hint}</span>}
+    </button>
+  )
+}
+
+/** The fold control, sitting in an open pane's header. */
+function PaneHide({ label, dir, onClick }) {
+  return (
+    <button
+      type="button"
+      className="icon-btn wf-pane-hide"
+      onClick={onClick}
+      aria-expanded
+      aria-label={`Hide ${label}`}
+      title={`Hide ${label}`}
+    >
+      <Icon name="chevron" size={14} className={`wf-chev ${dir}`} />
+    </button>
   )
 }
 
