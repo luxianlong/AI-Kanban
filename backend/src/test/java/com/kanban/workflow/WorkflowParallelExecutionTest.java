@@ -164,7 +164,7 @@ class WorkflowParallelExecutionTest {
             workDirs.add(call.getArgument(2));
             allArrived.countDown();
             allArrived.await(10, TimeUnit.SECONDS);
-            return new ProcessResult(0, "done", false, 0.01, 5L);
+            return new ProcessResult(0, "done", false, 0.01, 5L, false);
         });
         return allArrived;
     }

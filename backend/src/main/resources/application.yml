@@ -104,6 +104,27 @@ worker:
   # anything that browses or runs many tools) can take tens of minutes — 30 min
   # is a safer default than a few minutes. Raise it for very long jobs.
   timeout-seconds: 1800
+  # How long a session may wait, AFTER its last turn, for background work it started —
+  # a dynamic workflow (what the ultracode effort level exists to run), a background
+  # sub-session — before the CLI gives up and kills that work. Passed through as
+  # CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS; 0 means wait indefinitely.
+  #
+  # The CLI's own default is 600s, and it is set here because that default is both far
+  # shorter than timeout-seconds above and silent when it fires. A step that hands its
+  # work to a dynamic workflow ends its turn with "I'll report back when it's done"; the
+  # CLI waits, kills the workflow, and then reports that same stand-in sentence as the
+  # step's answer. Nothing marks it: the step is recorded as SUCCEEDED, its cost is
+  # real, and the sentence is what every step downstream is handed instead of the work.
+  #
+  # Waiting is the fix and waiting works — when the background work lands inside the
+  # ceiling the CLI gives the session a fresh turn, and the answer written in that turn
+  # is the one reported. So the ceiling should be "as long as this session may live".
+  #
+  # Kept a little UNDER timeout-seconds rather than equal to it: the two clocks start at
+  # different moments (this one at the end of the last turn, the timeout at process
+  # start), and the slack is what lets the CLI wind up and report cost, duration and a
+  # reason instead of being force-killed with none of them. Raise both together.
+  background-wait-seconds: 1500
   batch-size: 1
   poll-interval-ms: 15000
   initial-delay-ms: 10000
