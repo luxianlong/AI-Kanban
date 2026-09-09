@@ -75,8 +75,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * ({@code spring.task.scheduling.pool.size}), so a long board task never freezes a
  * workflow or the other way round. Peak concurrent Claude processes on the machine is
  * therefore {@code max-concurrent-executions} + one board task + whatever
- * {@code AiStoryClassifier} has on its own pool; at roughly 270 MB each that is the
- * number to keep an eye on when raising the setting.
+ * {@code AiStoryClassifier} has on its own pool; at roughly 200 MB of PSS each that is
+ * the number to keep an eye on when raising the setting, because the box has no swap
+ * and an over-commit kills the backend rather than slowing it down.
  */
 @Service
 public class WorkflowRunnerService {
@@ -139,7 +140,7 @@ public class WorkflowRunnerService {
     public WorkflowRunnerService(WorkflowExecutionRepository executions, NodeExecutionRepository nodeRuns,
                                  ClaudeSessionRunner runner, LiveLogRegistry liveLog,
                                  RunningSessionRegistry sessions, WorkerProperties props,
-                                 @Value("${workflow.max-concurrent-executions:2}") int maxConcurrentExecutions,
+                                 @Value("${workflow.max-concurrent-executions:4}") int maxConcurrentExecutions,
                                  @Value("${workflow.node-fence-reads:true}") boolean fenceReads) {
         this.executions = executions;
         this.nodeRuns = nodeRuns;

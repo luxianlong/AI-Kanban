@@ -27,11 +27,12 @@ import static org.mockito.Mockito.when;
  * That two runs really do go at once — the claim {@link WorkflowDispatchTest} can't
  * make, because the interesting part is threads, not arithmetic.
  *
- * <p>The session runner is stubbed to block until <em>two</em> callers have arrived.
+ * <p>The session runner is stubbed to block until <em>every</em> expected caller has
+ * arrived — two for the pair below, and all four for the cap the board ships with.
  * That inverts the usual shape of a concurrency test: it can't pass by luck or by
- * timing, because a serial runner never reaches the second call and the latch simply
- * never opens. This is the test that would have failed against the old tick, which
- * ran a node inline and did not come back until it was done.
+ * timing, because a runner with fewer lanes never reaches the last call and the latch
+ * simply never opens. This is the test that would have failed against the old tick,
+ * which ran a node inline and did not come back until it was done.
  *
  * <p>Both halves are covered separately because they can break separately: runs of
  * <em>different</em> workflows overlapping only needs the tick not to block, while two
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @TestPropertySource(properties = {
         "worker.enabled=true",
-        "workflow.max-concurrent-executions=2",
+        "workflow.max-concurrent-executions=4",
         // Poll only when this test says so: the schedulers must not fire underneath it.
         "workflow.initial-delay-ms=3600000",
         "worker.initial-delay-ms=3600000",
@@ -69,8 +70,8 @@ class WorkflowParallelExecutionTest {
      */
     @BeforeEach
     void clearQueue() throws Exception {
-        // Both lanes have to be handed back first, or this test starts with fewer
-        // free lanes than the two runs it is about to watch.
+        // Every lane has to be handed back first, or this test starts with fewer
+        // free lanes than the runs it is about to watch.
         await(() -> service.lanesInUse() == 0, "A lane was still held from an earlier test.");
         nodeRuns.deleteAll();
         executions.deleteAll();
@@ -94,7 +95,7 @@ class WorkflowParallelExecutionTest {
         Long second = queueRun("wf-a", "Collect");
 
         Set<File> workDirs = ConcurrentHashMap.newKeySet();
-        CountDownLatch bothArrived = arriveAndBlock(workDirs);
+        CountDownLatch bothArrived = arriveAndBlock(2, workDirs);
 
         service.poll();
 
@@ -107,7 +108,7 @@ class WorkflowParallelExecutionTest {
         // are not writing over each other.
         assertThat(workDirs).as("each run needs its own scratch directory").hasSize(2);
 
-        settleAndAssertBothSucceeded(first, second);
+        settleAndAssertAllSucceeded(first, second);
     }
 
     @Test
@@ -115,7 +116,7 @@ class WorkflowParallelExecutionTest {
         Long first = queueRun("wf-a", "Collect");
         Long second = queueRun("wf-b", "Draft");
 
-        CountDownLatch bothArrived = arriveAndBlock(ConcurrentHashMap.newKeySet());
+        CountDownLatch bothArrived = arriveAndBlock(2, ConcurrentHashMap.newKeySet());
 
         service.poll();
 
@@ -123,23 +124,49 @@ class WorkflowParallelExecutionTest {
                 .as("runs of two workflows should have a session open at the same time")
                 .isTrue();
 
-        settleAndAssertBothSucceeded(first, second);
+        settleAndAssertAllSucceeded(first, second);
+    }
+
+    @Test
+    void fourRunsHaveASessionInFlightAtTheSameTime() throws Exception {
+        // The cap the board is configured for. Two of these runs share a workflow and
+        // two do not, so nothing about the number four rests on either half alone.
+        Long first = queueRun("wf-a", "Collect");
+        Long second = queueRun("wf-a", "Collect");
+        Long third = queueRun("wf-b", "Draft");
+        Long fourth = queueRun("wf-c", "Draft");
+
+        Set<File> workDirs = ConcurrentHashMap.newKeySet();
+        CountDownLatch allArrived = arriveAndBlock(4, workDirs);
+
+        service.poll();
+
+        assertThat(allArrived.await(10, TimeUnit.SECONDS))
+                .as("four runs should have a session open at the same time")
+                .isTrue();
+
+        // One scratch directory per run, not per workflow: with two of these runs
+        // sharing wf-a, a directory keyed on the workflow would silently give three.
+        assertThat(workDirs).as("each of the four runs needs its own scratch directory").hasSize(4);
+
+        settleAndAssertAllSucceeded(first, second, third, fourth);
     }
 
     /**
-     * Stub the runner so every caller waits until two of them have arrived, recording
-     * the directory each was handed. With a serial runner the second call never
-     * happens and the returned latch never opens.
+     * Stub the runner so every caller waits until {@code arrivals} of them have
+     * arrived, recording the directory each was handed. With fewer lanes than that the
+     * last call never happens and the returned latch never opens — which is what makes
+     * this test unable to pass by luck or by timing.
      */
-    private CountDownLatch arriveAndBlock(Set<File> workDirs) throws Exception {
-        CountDownLatch bothArrived = new CountDownLatch(2);
+    private CountDownLatch arriveAndBlock(int arrivals, Set<File> workDirs) throws Exception {
+        CountDownLatch allArrived = new CountDownLatch(arrivals);
         when(runner.run(anyString(), anyString(), any(File.class), anyList())).thenAnswer(call -> {
             workDirs.add(call.getArgument(2));
-            bothArrived.countDown();
-            bothArrived.await(10, TimeUnit.SECONDS);
+            allArrived.countDown();
+            allArrived.await(10, TimeUnit.SECONDS);
             return new ProcessResult(0, "done", false, 0.01, 5L);
         });
-        return bothArrived;
+        return allArrived;
     }
 
     /**
@@ -152,14 +179,14 @@ class WorkflowParallelExecutionTest {
      * so a single tick fired the moment the result appears can still find the run
      * claimed and dispatch nothing.
      */
-    private void settleAndAssertBothSucceeded(Long first, Long second) throws Exception {
-        awaitNodeSucceeded(first);
-        awaitNodeSucceeded(second);
-
-        awaitExecutionTerminal(first);
-        awaitExecutionTerminal(second);
-        assertThat(executions.findById(first).orElseThrow().getStatus()).isEqualTo(RunState.SUCCEEDED);
-        assertThat(executions.findById(second).orElseThrow().getStatus()).isEqualTo(RunState.SUCCEEDED);
+    private void settleAndAssertAllSucceeded(Long... runs) throws Exception {
+        for (Long run : runs) {
+            awaitNodeSucceeded(run);
+        }
+        for (Long run : runs) {
+            awaitExecutionTerminal(run);
+            assertThat(executions.findById(run).orElseThrow().getStatus()).isEqualTo(RunState.SUCCEEDED);
+        }
     }
 
     /**
