@@ -4,12 +4,30 @@
 // monospace <pre>, so headings, lists, **bold**, `code`, and links showed as raw
 // syntax. This renders the common subset to real React elements — no innerHTML, so
 // there's no XSS surface. Anything it doesn't recognise falls back to plain text.
+//
+// Diff blocks, colour spans and tables get the same treatment for a specific
+// reason: a workflow step asked to "show the changes in red and green" answers
+// in exactly those three shapes, and until they were handled the comparison
+// arrived as a wall of grey monospace.
+
+import { COLOR_SPAN_RE, classifyDiffLine, colorSpanParts, parseTableBlock } from './markdownParts.js'
 
 // --- inline: **bold**, *italic* / _italic_, `code`, [text](url) --------------
 // Returns an array of strings / React elements for a single line of text.
 function renderInline(text, keyPrefix) {
   // Ordered by precedence; each pattern captures its inner content.
   const patterns = [
+    {
+      re: COLOR_SPAN_RE,
+      node: (m, k) => {
+        const { color, inner } = colorSpanParts(m)
+        return (
+          <span key={k} className={`md-mark md-mark-${color}`}>
+            {renderInline(inner, k)}
+          </span>
+        )
+      },
+    },
     { re: /`([^`]+)`/, node: (m, k) => <code key={k} className="md-code">{m[1]}</code> },
     { re: /\*\*([^*]+)\*\*/, node: (m, k) => <strong key={k}>{renderInline(m[1], k)}</strong> },
     { re: /(?:\*([^*]+)\*|_([^_]+)_)/, node: (m, k) => <em key={k}>{renderInline(m[1] ?? m[2], k)}</em> },
@@ -62,16 +80,36 @@ export default function Markdown({ text, className }) {
     const line = lines[i]
 
     // fenced code block
-    if (/^\s*```/.test(line)) {
+    const fence = /^\s*```+\s*([\w+#-]*)/.exec(line)
+    if (fence) {
+      const lang = fence[1].toLowerCase()
       const buf = []
       i++
       while (i < lines.length && !/^\s*```/.test(lines[i])) buf.push(lines[i++])
       i++ // closing fence
-      blocks.push(
-        <pre key={`c${blocks.length}`} className="md-pre">
-          <code>{buf.join('\n')}</code>
-        </pre>,
-      )
+      if (lang === 'diff' || lang === 'patch') {
+        // One block-level span per line so each can carry its own colour. No
+        // trailing newline: the spans are display:block, and a newline inside a
+        // <pre> on top of that would double-space the whole diff. Empty lines
+        // get a non-breaking space so they keep their height.
+        blocks.push(
+          <pre key={`c${blocks.length}`} className="md-pre md-diff">
+            <code>
+              {buf.map((l, n) => (
+                <span key={n} className={`md-diff-line md-diff-${classifyDiffLine(l)}`}>
+                  {l === '' ? '\u00a0' : l}
+                </span>
+              ))}
+            </code>
+          </pre>,
+        )
+      } else {
+        blocks.push(
+          <pre key={`c${blocks.length}`} className="md-pre">
+            <code>{buf.join('\n')}</code>
+          </pre>,
+        )
+      }
       continue
     }
 
@@ -114,6 +152,33 @@ export default function Markdown({ text, className }) {
       continue
     }
 
+    // table
+    const table = parseTableBlock(lines, i)
+    if (table) {
+      const key = `t${blocks.length}`
+      const cell = (Tag, text, n, r) => (
+        <Tag key={n} style={table.align[n] ? { textAlign: table.align[n] } : undefined}>
+          {renderInline(text, `${key}-${r}-${n}`)}
+        </Tag>
+      )
+      blocks.push(
+        <div key={key} className="md-table-wrap">
+          <table className="md-table">
+            <thead>
+              <tr>{table.header.map((c, n) => cell('th', c, n, 'h'))}</tr>
+            </thead>
+            <tbody>
+              {table.rows.map((row, r) => (
+                <tr key={r}>{row.map((c, n) => cell('td', c, n, r))}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      )
+      i = table.next
+      continue
+    }
+
     // unordered list
     if (/^\s*[-*+]\s+/.test(line)) {
       const items = []
@@ -143,7 +208,8 @@ export default function Markdown({ text, className }) {
       !/^(#{1,6})\s+/.test(lines[i]) &&
       !/^\s*[-*+]\s+/.test(lines[i]) &&
       !/^\s*\d+[.)]\s+/.test(lines[i]) &&
-      !/^\s*>\s?/.test(lines[i])
+      !/^\s*>\s?/.test(lines[i]) &&
+      !parseTableBlock(lines, i)
     ) {
       buf.push(lines[i++])
     }

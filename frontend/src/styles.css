@@ -1045,6 +1045,37 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   white-space: pre;
 }
 .md-pre code { font-family: var(--font-mono); font-size: var(--f-sm); }
+
+/* ```diff blocks — a workflow step told to mark its changes red and green
+   answers with one of these, so the colours are the content, not decoration.
+   Wrapped rather than scrolled: the "lines" here are prose paragraphs, and a
+   400-character line in a 340px-tall output box is unreadable sideways. */
+.md-pre.md-diff { white-space: pre-wrap; overflow-wrap: anywhere; }
+.md-diff-line {
+  display: block;
+  margin: 0 -13px;                        /* full-bleed inside .md-pre's padding */
+  padding: 0 13px 0 calc(13px + 1.4em);
+  text-indent: -1.4em;                    /* wrapped text lines up past the +/- */
+}
+.md-diff-add { color: #7ee787; background: rgba(46, 160, 67, 0.2); }
+.md-diff-del { color: #ffa198; background: rgba(248, 81, 73, 0.2); }
+.md-diff-meta { color: var(--faint); }
+
+/* Inline <span style="color:red"> from the model, mapped to our own palette. */
+.md-mark { font-weight: 600; }
+.md-mark-red { color: var(--fail-ink); }
+.md-mark-green { color: var(--done-ink); }
+
+.md-table-wrap { overflow-x: auto; margin: var(--s-3) 0; }
+.md-table { border-collapse: collapse; font-size: var(--f-sm); }
+.md-table th,
+.md-table td {
+  border: 1px solid var(--hair);
+  padding: 5px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+.md-table th { background: var(--col); font-weight: 600; }
 .md-link { color: var(--brand); text-decoration: underline; }
 .md-quote {
   margin: var(--s-3) 0;
