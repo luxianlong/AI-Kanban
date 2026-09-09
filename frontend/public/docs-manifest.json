@@ -1,5 +1,19 @@
 [
   {
+    "id": "task-context-isolation",
+    "title": "任务间的上下文是怎么管理的，有隔离吗",
+    "href": "/docs/task-context-isolation.html",
+    "deletable": true,
+    "file": "docs/task-context-isolation.md",
+    "updatedAt": "2026-09-09T02:32:19.446Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/task-context-isolation.md",
+      "frontend/public/docs/task-context-isolation.html"
+    ]
+  },
+  {
     "id": "ai-tech-map-2026",
     "title": "梳理 AI 技术发展：一张 2026 年 9 月的技术地图",
     "href": "/docs/ai-tech-map-2026.html",

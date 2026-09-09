@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>任务间的上下文是怎么管理的，有隔离吗 · 文章存档</title>
+<meta name="description" content="先给结论： 有隔离，但隔离的是「对话」，不是「环境」。" />
+<link rel="canonical" href="https://youraikanban.com/docs/task-context-isolation.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>任务间的上下文是怎么管理的，有隔离吗</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#一个任务的完整生命周期">一个任务的完整生命周期</a></li>
+<li class="lv2"><a href="#隔离住了的部分会话层">隔离住了的部分（会话层）</a></li>
+<li class="lv2"><a href="#没有隔离的部分环境层-这才是问题的正面">没有隔离的部分（环境层）—— 这才是问题的正面</a></li>
+<li class="lv2"><a href="#唯一的正规跨任务通道story-步骤链">唯一的正规跨任务通道：story 步骤链</a></li>
+<li class="lv2"><a href="#三个实际后果">三个实际后果</a></li>
+<li class="lv2"><a href="#如果要真隔离本次没做只是记下来">如果要真隔离（本次没做，只是记下来）</a></li>
+<li class="lv2"><a href="#一句话">一句话</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>先给结论：<strong>有隔离，但隔离的是「对话」，不是「环境」。</strong></p>
+<p>每个任务都是一次全新的 <code>claude -p</code> 进程，不带 <code>--resume</code> / <code>--continue</code>，所以<strong>上一个任务的对话记忆一个字都传不过来</strong>。但所有任务共用同一个仓库工作区、同一棵 git 工作树、同一份 <code>CLAUDE.md</code>、同一个 <code>~/.claude</code> 记忆目录、同一个浏览器登录态。</p>
+<p>跨任务传上下文的<strong>正规通道只有一条</strong>：story 的步骤链 —— 前序步骤的 <code>result</code> 被拼进下一步的 prompt。除此之外任何「串味」都是通过共享文件系统发生的，不是设计出来的。</p>
+<p>本页是对任务 #228 的回答，代码位置全部标到行号（<code>ClaudeWorkerService.java</code>,<code>AiStoryClassifier.java</code>, <code>scripts/env.sh</code>），并附本机实测数字（2026-09-09）。</p>
+<h2 id="一个任务的完整生命周期">一个任务的完整生命周期<a class="anchor" href="#一个任务的完整生命周期" aria-label="链接到本节">#</a></h2>
+<p><code>ClaudeWorkerService.poll()</code> (:160) 每 5 秒跑一次（<code>WORKER_POLL_MS=5000</code>）：</p>
+<ol>
+<li><code>tickLock.tryLock()</code> (:164) —— 上一 tick 没跑完就直接跳过。</li>
+<li>取 <code>PENDING</code>，过 <code>isEligible()</code> (:198)：代理任务不归本机跑、正在分类的任务先押着、story 步骤按序等前序步骤 RESOLVED (<code>isBlockedByStory</code> :208)。</li>
+<li><code>batch-size: 1</code>（application.yml:88），且 <code>@Scheduled</code> 跑在单线程调度器上 —— <strong>同一时刻本机只会有一个 worker 会话</strong>。</li>
+<li><code>buildPrompt()</code> (:295) 拼 prompt → <code>runClaude()</code> (:444) 起进程：</li>
+</ol>
+<pre class="code"><code>claude --output-format stream-json --verbose --dangerously-skip-permissions -p &lt;整段 prompt&gt;</code></pre>
+<p>工作目录 <code>WORKER_WORK_DIR</code>（env.sh:80）= <strong>仓库本身</strong> <code>/home/xianllu/Dashboard</code>。</p>
+<p>命令行里<strong>没有</strong> <code>--resume</code>、<code>--continue</code>、<code>--session-id</code>。这就是隔离的根源：会话是一次性的，上下文只能来自两处 —— <strong>prompt 文本</strong>，和 <strong>cwd 里那些文件</strong>。</p>
+<h2 id="隔离住了的部分会话层">隔离住了的部分（会话层）<a class="anchor" href="#隔离住了的部分会话层" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>维度</th><th>隔离</th><th>机制</th></tr></thead>
+<tbody>
+<tr><td>对话历史</td><td>✅ 完全</td><td>每任务新进程，无 resume；上一任务的推理过程不可见</td></tr>
+<tr><td>实时日志</td><td>✅ 按任务</td><td><code>LiveLogRegistry</code> 按 todo id 存，<code>start()</code> (:232) 丢弃旧转录</td></tr>
+<tr><td>运行中的进程</td><td>✅ 按任务</td><td><code>RunningSessionRegistry</code> 按 todo id 注册，可单独 stop / 单独判定「用户停止」</td></tr>
+<tr><td>并发</td><td>✅ 串行</td><td><code>tickLock</code> + <code>batch-size: 1</code>，不存在两个任务同时写同一棵工作树</td></tr>
+<tr><td>故事分类器</td><td>✅ 换了 cwd</td><td><code>AiStoryClassifier.runClaude()</code> (:196-198) 故意跑在 <code>/tmp/kanban-classify</code>，好让这次纯文本提问<strong>不加载仓库的 CLAUDE.md 和文件</strong></td></tr>
+</tbody>
+</table></div>
+<p>分类器那条隔离是本仓库里唯一一处<strong>主动</strong>做的上下文隔离，而且它是有效的：<code>~/.claude/projects/</code> 下 <code>-tmp-kanban-classify</code> 攒了 <strong>90</strong> 个会话文件，与 <code>-home-xianllu-Dashboard</code> 的 <strong>31</strong> 个各归各。</p>
+<h2 id="没有隔离的部分环境层-这才是问题的正面">没有隔离的部分（环境层）—— 这才是问题的正面<a class="anchor" href="#没有隔离的部分环境层-这才是问题的正面" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>共享物</th><th>后果</th></tr></thead>
+<tbody>
+<tr><td>cwd = 仓库本身</td><td>git 工作树、<strong>当前分支</strong>是全局状态。本机现有 <strong>61</strong> 个 <code>auto/*</code> 分支；一个任务被 deploy 重启打断时停在哪个分支，下一个任务就从哪个分支开始</td></tr>
+<tr><td><code>~/.claude/projects/-home-xianllu-Dashboard/memory/</code></td><td><code>MEMORY.md</code>（当前 6 条）<strong>每个会话自动注入</strong> —— 这是有意的长期跨任务记忆，也是最强的一条串味通道</td></tr>
+<tr><td>同目录 31 个 <code>.jsonl</code> 转录</td><td>任何任务都能读到别的任务的<strong>完整转录</strong>（含全部工具返回）。不自动加载，但一个 <code>grep</code> 就够</td></tr>
+<tr><td><code>CLAUDE.md</code> / <code>settings.json</code> / skills / MCP</td><td>同一份规则、同一个 Stop 钩子（推送）、同一个 Chrome 与其登录态</td></tr>
+<tr><td><code>/tmp</code>、H2 数据库、<code>frontend/public/</code></td><td>一个任务写的文件，下一个任务看得见</td></tr>
+<tr><td><code>--dangerously-skip-permissions</code>（env.sh:83）</td><td>没有权限门。「不要改看板自己的代码」这类隔离<strong>只靠 prompt 里的一段文字</strong>约束</td></tr>
+<tr><td>prompt 走 argv</td><td>整段 prompt（含前序步骤全文）出现在 <code>ps -ef</code> 里，本机任何用户可读。本次实测 <strong>7406 字符 / 11863 字节</strong></td></tr>
+</tbody>
+</table></div>
+<h2 id="唯一的正规跨任务通道story-步骤链">唯一的正规跨任务通道：story 步骤链<a class="anchor" href="#唯一的正规跨任务通道story-步骤链" aria-label="链接到本节">#</a></h2>
+<p><code>appendStoryContext()</code> (:409)：</p>
+<ul>
+<li><strong>只取 <code>storyOrder</code> 更小的步骤</strong>，按序拼进 prompt —— 单向，后面看得到前面，前面看不到后面。</li>
+<li>每步的 <code>result</code> 截到 <code>STORY_RESULT_BUDGET = 4000</code> 字符 (:402, :436)，超了加 <code>…(truncated)</code>。</li>
+<li>传的是<strong>最终 result，不是转录</strong>：前一步怎么想的、试错过什么、读了哪些文件，全部丢弃，只留它自己写的那份总结。</li>
+<li>门控在 <code>isBlockedByStory()</code> (:208)：任一前序步骤不是 RESOLVED 就一直等 —— 一步失败，整条链停住，不会带着半截上下文往下跑。</li>
+<li><strong>独立任务之间是零上下文</strong>，连标题都不给对方。</li>
+</ul>
+<p>实测（本板 18 条有结果的任务）：结果长度中位 <strong>1473</strong>、最长 <strong>2843</strong> 字符 —— <strong>4000 的截断阈值到今天一次都没触发过</strong>。prompt 随步数线性增长：本次是第 6 步，带了前 5 步共 <strong>5908</strong> 字符的结果。按这个体量，story 长到 20 步以上截断才会开始咬人。</p>
+<h2 id="三个实际后果">三个实际后果<a class="anchor" href="#三个实际后果" aria-label="链接到本节">#</a></h2>
+<ol>
+<li><strong>「上下文隔离」实为约定，不是机制。</strong> 会话层隔得很干净，但两个任务共用一棵工作树、一份记忆、一个浏览器 —— 真正防止串味的是 prompt 里的措辞和 <code>batch-size: 1</code> 的串行，不是沙箱。步骤 3 在 MyMacbook 里查到的那个 harvest bug 是同一类问题的镜像：判据扫的是整个转录（含工具返回），于是别的题的工作流被采了进来。<strong>共享的文件系统会把「另一个任务提到过这个路径」变成「这就是这个任务的东西」。</strong></li>
+<li><strong>分支残留。</strong> 61 个 <code>auto/*</code> 分支还在原地，工作树共享。任务里 <code>git checkout</code> 的效果是全局的、跨任务的。</li>
+<li><strong>重启会重跑。</strong> deploy 重启杀掉在跑的会话，任务留在 <code>IN_PROGRESS</code>，下次启动由 <code>requeueOrphans()</code> 收回队列；到 <code>maxAttempts</code>（默认 2）才转 Needs Attention —— 这就是记忆里那条「story 步骤在 deploy 重启后被重跑」的由来。</li>
+</ol>
+<h2 id="如果要真隔离本次没做只是记下来">如果要真隔离（本次没做，只是记下来）<a class="anchor" href="#如果要真隔离本次没做只是记下来" aria-label="链接到本节">#</a></h2>
+<ul>
+<li><strong>每任务一个 <code>git worktree</code></strong>：分支状态天然隔离，且能安全放开串行；改动小，是性价比最高的一步。</li>
+<li><strong>prompt 走 stdin 而不是 argv</strong>：把 prompt 从进程表里拿掉。</li>
+<li><strong>记忆目录按任务/story 分区</strong>：现在是一份全局 <code>MEMORY.md</code>，好处坏处都归它。</li>
+<li>真正的沙箱（容器/用户隔离）代价大得多，在 <code>--dangerously-skip-permissions</code> 已经开着的前提下，才是唯一能挡住「任务改了不该改的东西」的东西。</li>
+</ul>
+<p>现状下最便宜的护栏其实已经在用了：<code>batch-size: 1</code> 的串行 + 部署前的测试门 + 部署前的数据库快照。</p>
+<h2 id="一句话">一句话<a class="anchor" href="#一句话" aria-label="链接到本节">#</a></h2>
+<p><strong>会话层强隔离（每任务全新进程、零对话记忆），环境层零隔离（同一棵工作树、同一份长期记忆、同一个浏览器），中间由 story 步骤链做唯一一条受控的单向上下文传递 —— 每步上限 4000 字符，只传最终结果，一步失败整条链停。</strong></p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["task-context-isolation"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["task-context-isolation"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
