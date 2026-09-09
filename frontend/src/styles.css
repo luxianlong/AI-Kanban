@@ -968,6 +968,22 @@ body {
   display: flex; align-items: center; gap: var(--s-2);
 }
 .section-label.live { color: var(--warn-ink); }
+
+/* "Maximize" — lifts one result out of its scroll box onto a page of its own.
+   Rides on the section label (already a flex row) and pushes itself to the far
+   end, so it reads as belonging to that block rather than to the drawer. The
+   label's uppercasing is undone: it is a control, not a heading. */
+.label-action {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  font: inherit; font-size: var(--f-2xs); font-weight: 600;
+  text-transform: none; letter-spacing: 0;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--hair); border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.label-action:hover { background: #fff; color: var(--ink); }
 .drawer-desc { margin: 0; font-size: var(--f-md); color: var(--ink); white-space: pre-wrap; line-height: 1.5; }
 .drawer-desc.muted { color: var(--faint); }
 .drawer-delegated { margin: 0; font-size: var(--f-sm); color: var(--ink); line-height: 1.5; }
@@ -1303,6 +1319,9 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   .btn { min-height: var(--tap); padding: 10px var(--s-4); }
   .icon-btn, .add-toggle { min-width: var(--tap); min-height: var(--tap); }
   .status-tab, .card-promote, .story-add { min-height: var(--tap); }
+  /* Not a full 44px: it sits on a label line, and a tap target that tall
+     would push the result down the sheet on every block that has one. */
+  .label-action { min-height: 32px; padding: 5px 10px; }
 
   /* Drawer becomes a full-width sheet that scrolls as ONE surface (no nested
      scroll for the static result). The live session log keeps its own scroll. */

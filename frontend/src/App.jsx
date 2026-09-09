@@ -3,6 +3,7 @@ import { api } from './api.js'
 import Markdown from './Markdown.jsx'
 import Icon from './Icon.jsx'
 import { buildDocIndex, linkifyDocRefs } from './docLinks.js'
+import { MaximizeButton } from './resultWindow.jsx'
 import { relTime } from './time.js'
 import WorkflowsPage from './Workflows.jsx'
 
@@ -1616,7 +1617,21 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
 
         {!running && (todo.result || log) && (
           <div className="drawer-section grow">
-            <div className="section-label">{todo.status === 'FAILED' ? 'Failure detail' : 'Result'}</div>
+            <div className="section-label">
+              {todo.status === 'FAILED' ? 'Failure detail' : 'Result'}
+              {/* The drawer is a column beside the board; a long result is read
+                  through a slot in it. Maximize gives that one result the page. */}
+              {todo.result && (
+                <MaximizeButton
+                  title={todo.title}
+                  subtitle={`Task #${todo.id}`}
+                  meta={[label(todo.status), costMeta(todo), todo.createdAt && `created ${relTime(todo.createdAt)}`]}
+                  text={todo.status === 'FAILED' ? todo.result : linkifyDocRefs(todo.result, docIndex)}
+                  mono={todo.status === 'FAILED'}
+                  what={todo.status === 'FAILED' ? 'failure detail' : 'result'}
+                />
+              )}
+            </div>
             {todo.result
               // Agent results are Markdown; render them. Failure detail is usually
               // raw error/log text, so keep it monospaced and unparsed. For a
