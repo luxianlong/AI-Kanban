@@ -196,9 +196,8 @@ public final class WorkflowDtos {
      *
      * <p>{@code entryNodeId} is the step this run started from, snapshotted with the
      * rest of the graph. The page needs it by name rather than by position: the entry
-     * step is drawn differently and is the one run in ultracode mode (see
-     * {@link WorkflowRunnerService}), and a topological order can legitimately put
-     * another node first. Null on runs recorded before the entry was snapshotted.
+     * step is drawn differently, and a topological order can legitimately put another
+     * node first. Null on runs recorded before the entry was snapshotted.
      */
     public record ExecutionView(
             Long id,

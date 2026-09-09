@@ -138,8 +138,7 @@ export function followedNode(openNodeId, runningNodeId, following) {
 }
 
 /**
- * Which step a run started from — the one drawn as the entry and run in ultracode
- * mode (see WorkflowRunnerService).
+ * Which step a run started from — the one drawn and labelled as the entry.
  *
  * The run records its own entry, and that is the answer wherever it exists: a
  * topological order can legitimately put a different node first, so "the first row"

@@ -132,22 +132,6 @@ workflow:
   # this machine is this number + one board task + AiStoryClassifier's pool (2). Check
   # `free -m` before raising it; 1 restores the old strictly-serial behaviour.
   max-concurrent-executions: 2
-  # --- How the ENTRY step is run (the first node; every other node is unaffected) ---
-  # The entry step is the only one with no upstream text: it goes and finds the material
-  # the whole graph then works on, and every step below it inherits whatever it got
-  # wrong. So it is worth more effort there than anywhere else.
-  #
-  # ultracode = xhigh effort plus dynamic-workflow orchestration, passed to the CLI as
-  # --settings '{"ultracode":true}' (merged into the normal settings, so MCP servers and
-  # permissions are unchanged). Its sub-agents are in-process, so this costs tokens and
-  # wall-clock, not another ~270 MB process. Set to false to run the entry step like any
-  # other node.
-  entry-node-ultracode: true
-  # Prepends one line to the entry step's prompt asking it to read the web through the
-  # chrome-devtools MCP browser instead of WebSearch/WebFetch — a rendered page rather
-  # than a stripped copy of one. Needs the chrome-devtools MCP server to be configured
-  # for the CLI; without it the node simply falls back to the tools it does have.
-  entry-node-prefer-browser: true
   # --- What a step can SEE (every node, entry included) ---
   # Each step already runs in a scratch directory of its own. This is what keeps it
   # there: it passes permissions.blockReadsOutsideWorkingDirectories to the CLI, which
