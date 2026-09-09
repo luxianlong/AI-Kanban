@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
@@ -45,6 +46,11 @@ class WorkflowApiTest {
                       {"id":"c","name":"Publish","prompt":"Write it up"}],
              "edges":[{"from":"a","to":"b"},{"from":"b","to":"c"}]}
             """;
+
+    /** The same three-step chain under a given name, so a test owns its own names. */
+    private static String chainNamed(String name) {
+        return CHAIN.replace("\"name\":\"Research\"", "\"name\":\"" + name + "\"");
+    }
 
     private String createWorkflow(String body) throws Exception {
         String json = mvc.perform(post("/api/workflows")
@@ -190,6 +196,104 @@ class WorkflowApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Empty\",\"nodes\":[]}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    // --- duplicating ------------------------------------------------------
+
+    @Test
+    void duplicatingAWorkflowCopiesItsWholeGraphIntoANewOne() throws Exception {
+        String id = createWorkflow(chainNamed("Dup graph"));
+
+        String json = mvc.perform(post("/api/workflows/" + id + "/duplicate"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name", is("Dup graph (copy)")))
+                .andExpect(jsonPath("$.description", is("three steps")))
+                .andExpect(jsonPath("$.entryNodeId", is("a")))
+                .andExpect(jsonPath("$.nodes", hasSize(3)))
+                .andExpect(jsonPath("$.edges", hasSize(2)))
+                // Prompts come along — retyping them is the whole reason to duplicate.
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].prompt", is(java.util.List.of("Find sources"))))
+                .andReturn().getResponse().getContentAsString();
+
+        String copyId = mapper.readTree(json).get("id").asText();
+        assertThat(copyId).isNotEqualTo(id);
+        // Both are now on the list — the copy is a workflow, not a variant of one.
+        mvc.perform(get("/api/workflows"))
+                .andExpect(jsonPath("$[?(@.id=='" + id + "')]", hasSize(1)))
+                .andExpect(jsonPath("$[?(@.id=='" + copyId + "')]", hasSize(1)));
+    }
+
+    @Test
+    void theCopyIsIndependentOfTheOriginal() throws Exception {
+        // Node ids are reused verbatim (they only have to be unique within their own
+        // workflow), so this is the case that would break if the copy's rows were
+        // ever addressed by node id alone.
+        String id = createWorkflow(chainNamed("Dup independence"));
+        String copyId = mapper.readTree(mvc.perform(post("/api/workflows/" + id + "/duplicate"))
+                .andReturn().getResponse().getContentAsString()).get("id").asText();
+
+        mvc.perform(put("/api/workflows/" + copyId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Rewritten copy",
+                                 "nodes":[{"id":"a","name":"Only step","prompt":"changed"}],
+                                 "edges":[],"entryNodeId":"a"}
+                                """))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/workflows/" + id))
+                .andExpect(jsonPath("$.name", is("Dup independence")))
+                .andExpect(jsonPath("$.nodes", hasSize(3)))
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].prompt", is(java.util.List.of("Find sources"))));
+
+        // And deleting the original leaves the copy whole.
+        mvc.perform(delete("/api/workflows/" + id)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/workflows/" + copyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes", hasSize(1)));
+    }
+
+    @Test
+    void theCopyStartsWithNoRunHistory() throws Exception {
+        String id = createWorkflow(chainNamed("Dup runs"));
+        mvc.perform(post("/api/workflows/" + id + "/run")
+                .contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isCreated());
+
+        String copyId = mapper.readTree(mvc.perform(post("/api/workflows/" + id + "/duplicate"))
+                .andReturn().getResponse().getContentAsString()).get("id").asText();
+
+        // An execution is a record of something that happened; the copy never ran.
+        mvc.perform(get("/api/workflows/executions?workflowId=" + copyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+        mvc.perform(get("/api/workflows/executions?workflowId=" + id))
+                .andExpect(jsonPath("$", hasSize(1)));
+
+        // The copy is runnable in its own right — the graph came across valid.
+        mvc.perform(post("/api/workflows/" + copyId + "/run")
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.workflowName", is("Dup runs (copy)")))
+                .andExpect(jsonPath("$.totalNodes", is(3)));
+    }
+
+    @Test
+    void copiesOfCopiesAreNumberedRatherThanNamedTheSame() throws Exception {
+        String id = createWorkflow(chainNamed("Dup naming"));
+        String first = mapper.readTree(mvc.perform(post("/api/workflows/" + id + "/duplicate"))
+                .andExpect(jsonPath("$.name", is("Dup naming (copy)")))
+                .andReturn().getResponse().getContentAsString()).get("id").asText();
+
+        mvc.perform(post("/api/workflows/" + id + "/duplicate"))
+                .andExpect(jsonPath("$.name", is("Dup naming (copy 2)")));
+        // Duplicating the copy itself lands in the same series, not "(copy) (copy)".
+        mvc.perform(post("/api/workflows/" + first + "/duplicate"))
+                .andExpect(jsonPath("$.name", is("Dup naming (copy 3)")));
+    }
+
+    @Test
+    void duplicatingAWorkflowThatIsNotThereAnswers404() throws Exception {
+        mvc.perform(post("/api/workflows/nope/duplicate")).andExpect(status().isNotFound());
     }
 
     // --- executions -------------------------------------------------------
