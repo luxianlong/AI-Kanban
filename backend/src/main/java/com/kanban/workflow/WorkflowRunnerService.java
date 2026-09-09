@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p><strong>Nodes do not share context.</strong> Every node is a brand-new session
  * — nothing is resumed, and no conversation history crosses an edge. The only thing
  * a node inherits is the <em>text</em> its upstream node(s) produced, which is
- * written into its prompt as an INPUT block (see {@link #buildPrompt}). That is what
+ * handed to it as its prompt (see {@link #buildPrompt}). That is what
  * makes a workflow composable: a node's behaviour depends only on its own prompt and
  * the input it is handed, not on what some earlier node happened to talk about.
  *
@@ -41,14 +42,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class WorkflowRunnerService {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowRunnerService.class);
-
-    /**
-     * Max characters of one upstream node's output carried into a downstream node's
-     * prompt. Generous, because in a workflow the previous output <em>is</em> the
-     * task material — but still bounded, so a runaway node can't blow up every node
-     * after it.
-     */
-    static final int INPUT_BUDGET_PER_DEPENDENCY = 12_000;
 
     private final WorkflowExecutionRepository executions;
     private final NodeExecutionRepository nodeRuns;
@@ -233,7 +226,7 @@ public class WorkflowRunnerService {
         log.info("Workflow execution #{}: running node \"{}\".", execution.getId(), run.getNodeName());
 
         try {
-            ProcessResult result = runner.run(key, buildPrompt(execution, run, input, totalNodes));
+            ProcessResult result = runner.run(key, buildPrompt(run, input), workDirFor(execution));
             // Added to, not replaced: on a retried node these are what the node has
             // cost across every attempt. An attempt that failed was billed all the
             // same, and a total that quietly forgot it would understate the run.
@@ -351,8 +344,6 @@ public class WorkflowRunnerService {
             String output = upstream.getOutput();
             if (output == null || output.isBlank()) {
                 sb.append("(this node produced no output)\n");
-            } else if (output.length() > INPUT_BUDGET_PER_DEPENDENCY) {
-                sb.append(output, 0, INPUT_BUDGET_PER_DEPENDENCY).append("\n…(truncated)\n");
             } else {
                 sb.append(output).append('\n');
             }
@@ -361,56 +352,43 @@ public class WorkflowRunnerService {
     }
 
     /**
-     * The full prompt for one node: what the node is, the input it was handed, and
-     * the user's own prompt for it — in that order, so the instructions are the last
-     * thing read.
+     * The whole prompt for one node: the text it was handed, then the node's own
+     * instructions — and nothing else.
      *
-     * <p>It says explicitly that the reply becomes the next node's input, because a
-     * session that doesn't know that tends to answer conversationally ("I've updated
-     * the file") instead of producing the material the rest of the graph needs.
+     * <p>Deliberately free of scaffolding. Everything the runner used to prepend (the
+     * node's name and place in the graph, "you are a fresh session", the failure
+     * sentinel, the guardrail that named {@code docs/} and {@code research/}) was the
+     * only concrete filesystem hint a node ever saw, and nodes acted on it: they wrote
+     * their material into {@code research/} instead of replying with it, and the nodes
+     * downstream went hunting through that directory rather than reading the input they
+     * had been given. A node now sees exactly what the user wrote for it, plus what
+     * came across its edges.
      */
-    String buildPrompt(WorkflowExecution execution, NodeExecution run, String input, int totalNodes) {
-        StringBuilder sb = new StringBuilder();
-        boolean isEntry = run.dependencyIds().isEmpty();
-
-        sb.append("You are running ONE node of a workflow named \"")
-                .append(execution.getWorkflowName()).append("\" (run #").append(execution.getId())
-                .append("). This node is \"").append(run.getNodeName()).append("\", step ")
-                .append(run.getOrderIndex() + 1).append(" of ").append(totalNodes).append(".\n\n");
-
-        sb.append("How a workflow node works:\n");
-        sb.append("- You are a FRESH session. You cannot see what any other node did, ")
-                .append("beyond the INPUT reproduced below — there is no shared history to recall.\n");
-        sb.append("- Your final reply is passed on verbatim as the INPUT of the node(s) that come ")
-                .append("after this one. Make it complete and self-contained: put the actual ")
-                .append("material in the reply rather than pointing at where you left it.\n");
-        sb.append("- Do only what THIS node asks. The later nodes have their own instructions.\n");
-        sb.append("- If this node genuinely cannot be completed, end your reply with a line ")
-                .append("containing exactly ").append(ClaudeSessionRunner.FAIL_SENTINEL)
-                .append(" followed by a brief reason; the rest of the workflow is then skipped.\n\n");
-
-        // Same guardrail a general board task gets: a workflow node produces output and
-        // resources, it does not rebuild or redeploy the app it happens to run inside.
-        sb.append("You MAY create or change RESOURCE/output files your work produces (documents, ")
-                .append("research artifacts, data files, images — e.g. under docs/ or research/). ")
-                .append("Do NOT modify the Kanban application's own code, do NOT run ")
-                .append("scripts/deploy.sh, and do NOT rebuild or restart the website or its backend.\n\n");
-
-        sb.append("INPUT — ");
-        if (isEntry) {
-            sb.append("this is the workflow's ENTRY node, so the input is what the user supplied ")
-                    .append("when starting the run:\n");
-        } else {
-            sb.append("the output of the node(s) feeding this one:\n");
+    String buildPrompt(NodeExecution run, String input) {
+        String instructions = run.getPrompt() == null ? "" : run.getPrompt().strip();
+        String handed = input == null ? "" : input.strip();
+        if (handed.isEmpty()) {
+            return instructions;
         }
-        sb.append(input == null || input.isBlank()
-                ? (isEntry ? "(the user started this run without any input)\n" : "(nothing)\n")
-                : input + "\n");
+        if (instructions.isEmpty()) {
+            return handed;
+        }
+        return handed + "\n\n" + instructions;
+    }
 
-        sb.append("\nINSTRUCTIONS FOR THIS NODE (\"").append(run.getNodeName()).append("\"):\n");
-        sb.append(run.getPrompt() == null || run.getPrompt().isBlank()
-                ? "(this node has no instructions of its own — pass the input through, tidied up)\n"
-                : run.getPrompt() + "\n");
-        return sb.toString();
+    /**
+     * The directory a node's session runs in: a scratch directory of its own, per run,
+     * outside this repo.
+     *
+     * <p>{@code worker.working-directory} points the board's task worker at the repo,
+     * because a board task may legitimately be about improving this app. A workflow node
+     * is not — it transforms text — and running it in the repo let every node drop files
+     * into the working tree (and pick up the repo's {@code CLAUDE.md} as uninvited
+     * context). Under {@code java.io.tmpdir} it can still write scratch files if it wants
+     * to; nothing it writes lands in the project.
+     */
+    private static File workDirFor(WorkflowExecution execution) {
+        return new File(System.getProperty("java.io.tmpdir"),
+                "kanban-workflow/run-" + execution.getId());
     }
 }

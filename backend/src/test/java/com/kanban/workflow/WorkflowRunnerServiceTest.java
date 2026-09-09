@@ -15,6 +15,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * between nodes. Assembling it wrong doesn't crash anything — it quietly produces a
  * node that answers without its input.
  *
+ * <p>The prompt is the user's node instructions and the upstream text, and nothing
+ * else — see {@link WorkflowRunnerService#buildPrompt} for why the runner adds no
+ * preamble of its own.
+ *
  * <p>{@code buildPrompt}/{@code assembleInput} touch none of the service's
  * collaborators, so the service is constructed with nulls.
  */
@@ -74,15 +78,19 @@ class WorkflowRunnerServiceTest {
     }
 
     @Test
-    void aHugeUpstreamOutputIsTruncatedRatherThanPassedOnWhole() {
+    void aHugeUpstreamOutputIsPassedOnWhole() {
+        // A node that compares a draft against a rewrite needs both in full. Clipping
+        // the longer one used to hand it a half-truncated article, which is exactly
+        // when a node gives up on its input and goes looking for files instead.
+        String article = "x".repeat(40_000);
         NodeExecution upstream = run(node("a", "Collect", ""), List.of(), 0);
-        upstream.setOutput("x".repeat(WorkflowRunnerService.INPUT_BUDGET_PER_DEPENDENCY + 5_000));
+        upstream.setOutput(article);
         NodeExecution downstream = run(node("b", "Summarise", ""), List.of("a"), 1);
 
         String input = service.assembleInput(execution(null), downstream, Map.of("a", upstream));
 
-        assertThat(input).contains("…(truncated)");
-        assertThat(input.length()).isLessThan(WorkflowRunnerService.INPUT_BUDGET_PER_DEPENDENCY + 500);
+        assertThat(input).contains(article);
+        assertThat(input).doesNotContain("truncated");
     }
 
     @Test
@@ -97,53 +105,45 @@ class WorkflowRunnerServiceTest {
     // --- the prompt ------------------------------------------------------
 
     @Test
-    void thePromptTellsTheNodeItHasNoSharedContextAndFeedsTheNextNode() {
+    void thePromptIsTheInputThenTheNodesOwnInstructionsAndNothingElse() {
         NodeExecution run = run(node("b", "Summarise", "Summarise the input in five bullets"),
                 List.of("a"), 1);
 
-        String prompt = service.buildPrompt(execution(null), run, "some upstream text", 3);
+        String prompt = service.buildPrompt(run, "some upstream text");
 
-        // The two facts a node cannot work correctly without.
-        assertThat(prompt).contains("FRESH session");
-        assertThat(prompt).contains("passed on verbatim as the INPUT");
-        // Its own identity and place in the graph.
-        assertThat(prompt).contains("Research pipeline");
-        assertThat(prompt).contains("\"Summarise\"");
-        assertThat(prompt).contains("step 2 of 3");
-        // The input, then the instructions last.
-        assertThat(prompt).contains("some upstream text");
-        assertThat(prompt).contains("Summarise the input in five bullets");
-        assertThat(prompt.indexOf("some upstream text"))
-                .isLessThan(prompt.indexOf("Summarise the input in five bullets"));
+        assertThat(prompt).isEqualTo("some upstream text\n\nSummarise the input in five bullets");
     }
 
     @Test
-    void aFailingNodeIsToldHowToSaySo() {
-        NodeExecution run = run(node("a", "Collect", "Find sources"), List.of(), 0);
+    void thePromptCarriesNoScaffoldingOfItsOwn() {
+        NodeExecution run = run(node("b", "Summarise", "Summarise the input"), List.of("a"), 1);
 
-        assertThat(service.buildPrompt(execution("topic"), run, "topic", 1))
-                .contains("[[TASK_FAILED]]");
+        String prompt = service.buildPrompt(run, "some upstream text");
+
+        // Naming a directory made it the one filesystem landmark a fresh node had, so
+        // nodes wrote their material there and later nodes read files instead of input.
+        assertThat(prompt).doesNotContain("research");
+        assertThat(prompt).doesNotContain("docs/");
+        // The rest of the old preamble: identity, graph position, deploy guardrail,
+        // failure sentinel. None of it is the user's instruction for this node.
+        assertThat(prompt).doesNotContain("FRESH session");
+        assertThat(prompt).doesNotContain("Research pipeline");
+        assertThat(prompt).doesNotContain("step 2 of");
+        assertThat(prompt).doesNotContain("scripts/deploy.sh");
+        assertThat(prompt).doesNotContain("[[TASK_FAILED]]");
     }
 
     @Test
-    void aNodeIsNotPointedAtTheDeployFlow() {
+    void anEntryNodeStartedWithoutInputGetsJustItsInstructions() {
         NodeExecution run = run(node("a", "Collect", "Find sources"), List.of(), 0);
 
-        String prompt = service.buildPrompt(execution("topic"), run, "topic", 1);
-
-        // A workflow node produces output; it must not redeploy the app it runs inside.
-        assertThat(prompt).contains("do NOT run");
-        assertThat(prompt).contains("scripts/deploy.sh");
-        assertThat(prompt).contains("restart the website");
+        assertThat(service.buildPrompt(run, "")).isEqualTo("Find sources");
     }
 
     @Test
-    void anEntryNodeStartedWithoutInputIsToldThatPlainly() {
-        NodeExecution run = run(node("a", "Collect", "Find sources"), List.of(), 0);
+    void aNodeWithNoInstructionsOfItsOwnGetsJustTheInput() {
+        NodeExecution run = run(node("b", "Passthrough", ""), List.of("a"), 1);
 
-        String prompt = service.buildPrompt(execution(null), run, "", 1);
-
-        assertThat(prompt).contains("ENTRY node");
-        assertThat(prompt).contains("without any input");
+        assertThat(service.buildPrompt(run, "upstream text")).isEqualTo("upstream text");
     }
 }

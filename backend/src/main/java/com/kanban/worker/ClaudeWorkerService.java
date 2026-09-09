@@ -301,9 +301,10 @@ public class ClaudeWorkerService {
                     .append("to this project and how to file follow-up tasks.\n\n");
         } else {
             // General task: it is NOT about improving this Kanban app itself. It MAY
-            // create/change the RESOURCES it produces — result pages, docs, research
-            // artifacts, data files, images (e.g. under docs/, research/,
-            // frontend/public/) — so the work is persisted and reachable. But it must
+            // create/change the RESOURCES it produces — result pages, docs, data files,
+            // images — so the work is persisted and reachable. No example directory is
+            // named: naming one made it the only filesystem landmark a fresh session had,
+            // and tasks piled their output there whether it belonged or not. But it must
             // NOT change the Kanban's OWN CODE (backend, frontend source, build scripts,
             // config), and it must NOT deploy or restart the running website. Only
             // project-improvement tasks change app code and go through the guarded
@@ -311,8 +312,8 @@ public class ClaudeWorkerService {
             // needless churn.
             sb.append("This is a GENERAL task — it is NOT about improving this Kanban project itself. ")
                     .append("You MAY create or change RESOURCE/output files that this task produces — for ")
-                    .append("example result pages, documents, research artifacts, data files or images (e.g. ")
-                    .append("under docs/, research/ or frontend/public/) — so your work is saved and reachable. ")
+                    .append("example result pages, documents, data files or images — so your work is ")
+                    .append("saved and reachable. ")
                     .append("But do NOT modify the Kanban application's OWN CODE (its backend, frontend source, ")
                     .append("build scripts or config), do NOT run scripts/deploy.sh, and do NOT rebuild or ")
                     .append("restart the website or its backend. There is no need to redeploy the app for this ")
