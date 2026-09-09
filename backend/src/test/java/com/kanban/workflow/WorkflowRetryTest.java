@@ -30,7 +30,7 @@ class WorkflowRetryTest {
     }
 
     private NodeExecution nodeRun(String id, String name, List<String> dependsOn, int order) {
-        return new NodeExecution(1L, new WorkflowNode(id, "wf", name, "do the thing", null, null),
+        return new NodeExecution(1L, new WorkflowNode(id, "wf", name, "do the thing", null, null, null),
                 dependsOn, order);
     }
 

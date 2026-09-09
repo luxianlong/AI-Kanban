@@ -2,6 +2,8 @@ package com.kanban.workflow;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -47,6 +49,19 @@ public class WorkflowNode {
     @Column(columnDefinition = "TEXT")
     private String prompt;
 
+    /**
+     * How hard this step's session thinks, or null to leave it at the CLI's default.
+     *
+     * <p>Stored on the node rather than on the workflow because it is a property of
+     * the <em>work</em>: within one graph a step that has to reason its way to an
+     * answer and a step that tidies the paragraph it was handed do not want the same
+     * setting, and a single graph-wide dial can only be right for one of them.
+     *
+     * <p>Null is a real value here and not a missing one — see {@link EffortLevel}.
+     */
+    @Enumerated(EnumType.STRING)
+    private EffortLevel effort;
+
     /** Editor layout only — where the node sits on the canvas. Never used at run time. */
     private Integer posX;
 
@@ -56,11 +71,12 @@ public class WorkflowNode {
     }
 
     public WorkflowNode(String nodeId, String workflowId, String name, String prompt,
-                        Integer posX, Integer posY) {
+                        EffortLevel effort, Integer posX, Integer posY) {
         this.nodeId = nodeId;
         this.workflowId = workflowId;
         this.name = name;
         this.prompt = prompt;
+        this.effort = effort;
         this.posX = posX;
         this.posY = posY;
     }
@@ -79,6 +95,10 @@ public class WorkflowNode {
 
     public String getPrompt() {
         return prompt;
+    }
+
+    public EffortLevel getEffort() {
+        return effort;
     }
 
     public Integer getPosX() {

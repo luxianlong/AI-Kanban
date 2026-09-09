@@ -14,7 +14,9 @@ import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
 // nodes carry their own `inputs` rather than a separate edge list, because that is
 // how they are edited. See workflowDraft.js.
-import { blankDraft, draftFingerprint, draftFrom, newId, payloadFrom } from './workflowDraft.js'
+import {
+  EFFORT_LEVELS, blankDraft, draftFingerprint, draftFrom, newId, payloadFrom,
+} from './workflowDraft.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
 // produced on the right. Both halves live on one page because they are two views of
@@ -35,6 +37,16 @@ export const ENTRY_MODE_HINT =
   'Every run starts here. This step runs in ultracode mode — more effort, and it may '
   + 'fan out over sub-agents — and it is asked to read the web through the Chrome '
   + 'browser rather than plain web search. Later steps run normally.'
+
+// How hard a step thinks. Said once, and shown wherever the level is: it is the one
+// setting on a step that changes what the step costs without changing what it says it
+// does, so the picker has to make "more" and "less" legible rather than just listing
+// five words. "Default" is not a sixth level — it means no --effort flag at all, so
+// the CLI decides (see EffortLevel.java).
+export const EFFORT_HINT =
+  'How hard this step thinks. Higher levels reason for longer and cost more; leave it '
+  + 'on Default unless a step is either the one doing the hard thinking or the one just '
+  + 'tidying up what it was handed.'
 
 // ---------------------------------------------------------------------------
 // Page
@@ -616,6 +628,9 @@ function NodeEditor({
           onChange={(e) => onChange({ name: e.target.value })}
           maxLength={200}
         />
+        {node.effort && (
+          <span className="wf-badge effort-badge" title={EFFORT_HINT}>{node.effort}</span>
+        )}
         {isEntry ? (
           <span
             className="wf-badge entry-badge"
@@ -652,6 +667,34 @@ function NodeEditor({
         onChange={(e) => onChange({ prompt: e.target.value })}
         maxLength={20000}
       />
+
+      <div className="wf-node-effort">
+        <label className="wf-inputs-label" htmlFor={`effort-${node.id}`}>Effort</label>
+        <select
+          id={`effort-${node.id}`}
+          className="wf-effort-select"
+          value={node.effort || ''}
+          title={EFFORT_HINT}
+          onChange={(e) => onChange({ effort: e.target.value })}
+        >
+          <option value="">Default</option>
+          {EFFORT_LEVELS.map((level) => (
+            <option key={level} value={level}>{level}</option>
+          ))}
+        </select>
+        {/* Only when it is set: a line under every step saying "this is normal" is
+            noise, and the point of the label is that this step is not. */}
+        {node.effort && (
+          <span className="wf-effort-note">
+            {isEntry
+              // The entry step is already boosted, so its picker is the one that can
+              // read as redundant or as a contradiction. Measured: the level set here
+              // is the one that applies, and ultracode keeps its other half.
+              ? `This overrides the entry step's ultracode effort — it still fans out over sub-agents, but thinks at ${node.effort}.`
+              : `Runs at ${node.effort} instead of the default.`}
+          </span>
+        )}
+      </div>
 
       <div className="wf-inputs">
         <span className="wf-inputs-label">Input from</span>
@@ -1150,6 +1193,10 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
   const stale = outputPredatesPrompt(run)
   const meta = [
     run.attempt > 1 ? `attempt ${run.attempt}` : '',
+    // The level this step's session was actually started with, which the run
+    // snapshotted — so a run keeps saying what it did after the workflow moves on.
+    // Absent on a step left at the default, where there is nothing to explain.
+    run.effort ? `effort ${run.effort}` : '',
     stale ? 'prompt edited' : '',
     staleInput ? 'input changed' : '',
     runMeta(run),

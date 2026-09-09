@@ -443,7 +443,8 @@ public class WorkflowRunnerService {
         nodeRuns.save(run);
 
         boolean entry = isEntryNode(execution, run);
-        List<String> sessionArgs = sessionArgsFor(entry);
+        EffortLevel effort = run.getEffort();
+        List<String> sessionArgs = sessionArgsFor(entry, effort);
 
         String key = LiveLogRegistry.nodeKey(run.getId());
         liveLog.start(key);
@@ -451,11 +452,19 @@ public class WorkflowRunnerService {
                 + (run.getOrderIndex() + 1) + "/" + totalNodes + ")"
                 + (run.getAttempt() > 1 ? ", attempt " + run.getAttempt() + "," : "")
                 + " started.");
-        if (entry && !sessionArgs.isEmpty()) {
-            // Say it, because it is the one place two runs of the same prompt would
-            // differ in what they cost and how long they take.
+        // Say both, because they are the places two runs of the same prompt differ in
+        // what they cost and how long they take. The ultracode line is keyed on the
+        // setting rather than on "some args were passed": the fence adds args to every
+        // node, so the old check announced ultracode mode even with it switched off.
+        if (entry && entryUltracode) {
             liveLog.append(key, "● Entry step — ultracode mode (xhigh effort, may fan out "
                     + "over sub-agents).");
+        }
+        if (effort != null) {
+            liveLog.append(key, "● Effort: " + effort.cliValue()
+                    + (entry && entryUltracode
+                            ? " — this step's own setting, which wins over ultracode's xhigh."
+                            : "."));
         }
         log.info("Workflow execution #{}: running node \"{}\"{}.", execution.getId(), run.getNodeName(),
                 entry ? " (entry)" : "");
@@ -632,17 +641,26 @@ public class WorkflowRunnerService {
 
     /**
      * Extra CLI args for this node's session: the read fence on every node, ultracode on
-     * the entry node only.
+     * the entry node only, and this node's own effort level when it has one.
      *
-     * <p>Both travel in <em>one</em> {@code --settings} blob, and they have to.
-     * {@code --settings} takes a single value, so a second occurrence replaces the first
-     * rather than adding to it — passing the fence separately would silently switch
-     * ultracode back off on the one node that is supposed to have it. The blob is built
-     * with Jackson rather than concatenated, because in {@code --print} mode a settings
-     * value that fails to parse is <em>ignored without a word</em>: a stray escape would
-     * not fail the build or log anything, it would just quietly unfence every node.
+     * <p>The fence and ultracode travel in <em>one</em> {@code --settings} blob, and they
+     * have to. {@code --settings} takes a single value, so a second occurrence replaces
+     * the first rather than adding to it — passing the fence separately would silently
+     * switch ultracode back off on the one node that is supposed to have it. The blob is
+     * built with Jackson rather than concatenated, because in {@code --print} mode a
+     * settings value that fails to parse is <em>ignored without a word</em>: a stray
+     * escape would not fail the build or log anything, it would just quietly unfence
+     * every node.
+     *
+     * <p>Effort is its own {@code --effort} flag instead, because the CLI has one and it
+     * is the half of ultracode a node may want to disagree with. Measured, on the same
+     * prompt: ultracode alone produced 348 output tokens, ultracode with
+     * {@code --effort low} produced 169, and {@code --effort low} by itself produced 170.
+     * So the flag wins over the xhigh that ultracode implies, while the entry node keeps
+     * ultracode's other half — its standing orchestration — which is the behaviour this
+     * relies on: a level set on a step is the level that step thinks at, entry or not.
      */
-    List<String> sessionArgsFor(boolean entryNode) {
+    List<String> sessionArgsFor(boolean entryNode, EffortLevel effort) {
         ObjectNode settings = JsonNodeFactory.instance.objectNode();
         if (entryNode && entryUltracode) {
             settings.put(ULTRACODE_KEY, true);
@@ -650,7 +668,16 @@ public class WorkflowRunnerService {
         if (fenceReads) {
             settings.putObject("permissions").put(FENCE_KEY, true);
         }
-        return settings.isEmpty() ? List.of() : List.of("--settings", settings.toString());
+        List<String> args = new ArrayList<>();
+        if (!settings.isEmpty()) {
+            args.add("--settings");
+            args.add(settings.toString());
+        }
+        if (effort != null) {
+            args.add("--effort");
+            args.add(effort.cliValue());
+        }
+        return List.copyOf(args);
     }
 
     /**

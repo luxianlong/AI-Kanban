@@ -884,4 +884,103 @@ class WorkflowApiTest {
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isNotFound());
     }
+
+    // --- a step's own effort level ---------------------------------------
+
+    /** What a step with no level of its own reads as: present, and null. */
+    private static final java.util.List<String> DEFAULT_EFFORT =
+            java.util.Collections.singletonList(null);
+
+    @Test
+    void aStepsEffortLevelIsSavedAndReadBackWhileTheOthersStayOnTheDefault() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Mixed effort",
+                 "nodes":[{"id":"a","name":"Reason it out","prompt":"x","effort":"max"},
+                          {"id":"b","name":"Tidy the wording","prompt":"y","effort":"low"},
+                          {"id":"c","name":"Whatever the CLI does","prompt":"z"}],
+                 "edges":[{"from":"a","to":"b"},{"from":"b","to":"c"}]}
+                """);
+
+        mvc.perform(get("/api/workflows/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].effort", is(java.util.List.of("max"))))
+                .andExpect(jsonPath("$.nodes[?(@.id=='b')].effort", is(java.util.List.of("low"))))
+                // Null, not "medium": the step is left to the CLI's own default, and
+                // naming a level here would pin it to today's default forever.
+                .andExpect(jsonPath("$.nodes[?(@.id=='c')].effort", is(DEFAULT_EFFORT)));
+    }
+
+    @Test
+    void aLevelThatIsNotOneOfTheListedOnesIsRefusedInsteadOfSilentlyIgnored() throws Exception {
+        // The CLI's own handling of a bad --effort value is a warning on stderr and a
+        // run at the default, which nothing on the page would ever show. This 400 is
+        // the only place the mistake is visible.
+        mvc.perform(post("/api/workflows").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"name":"Bad level",
+                         "nodes":[{"id":"a","name":"Reason it out","prompt":"x","effort":"extreme"}],
+                         "edges":[]}
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(status().reason(containsString("low, medium, high, xhigh, max")))
+                .andExpect(status().reason(containsString("Reason it out")));
+    }
+
+    @Test
+    void aLevelIsTakenInAnyCasingAndAnEmptyOneMeansTheDefault() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Casing",
+                 "nodes":[{"id":"a","name":"A","prompt":"x","effort":"XHigh"},
+                          {"id":"b","name":"B","prompt":"y","effort":""}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+
+        mvc.perform(get("/api/workflows/" + id))
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].effort", is(java.util.List.of("xhigh"))))
+                .andExpect(jsonPath("$.nodes[?(@.id=='b')].effort", is(DEFAULT_EFFORT)));
+    }
+
+    @Test
+    void aRunSnapshotsTheLevelEachStepWasAuthoredWithAndKeepsItWhenTheWorkflowChanges()
+            throws Exception {
+        String id = createWorkflow("""
+                {"name":"Snapshot effort",
+                 "nodes":[{"id":"a","name":"A","prompt":"x","effort":"max"},
+                          {"id":"b","name":"B","prompt":"y"}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+        String run = mvc.perform(post("/api/workflows/" + id + "/run")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"input\":\"go\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long executionId = mapper.readTree(run).get("id").asLong();
+
+        // Re-author the whole graph downward. The run already made its copy.
+        mvc.perform(put("/api/workflows/" + id).contentType(MediaType.APPLICATION_JSON).content("""
+                        {"name":"Snapshot effort",
+                         "nodes":[{"id":"a","name":"A","prompt":"x","effort":"low"},
+                                  {"id":"b","name":"B","prompt":"y","effort":"low"}],
+                         "edges":[{"from":"a","to":"b"}]}
+                        """))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[?(@.nodeId=='a')].effort", is(java.util.List.of("max"))))
+                .andExpect(jsonPath("$.nodes[?(@.nodeId=='b')].effort", is(DEFAULT_EFFORT)));
+    }
+
+    @Test
+    void duplicatingAWorkflowCarriesEachStepsLevelAcross() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Effort original",
+                 "nodes":[{"id":"a","name":"A","prompt":"x","effort":"high"},
+                          {"id":"b","name":"B","prompt":"y"}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+
+        mvc.perform(post("/api/workflows/" + id + "/duplicate"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].effort", is(java.util.List.of("high"))))
+                .andExpect(jsonPath("$.nodes[?(@.id=='b')].effort", is(DEFAULT_EFFORT)));
+    }
 }

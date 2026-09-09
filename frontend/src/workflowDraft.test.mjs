@@ -1,6 +1,6 @@
 // node src/workflowDraft.test.mjs
 import assert from 'node:assert/strict'
-import { blankDraft, draftFingerprint, draftFrom, payloadFrom } from './workflowDraft.js'
+import { EFFORT_LEVELS, blankDraft, draftFingerprint, draftFrom, payloadFrom } from './workflowDraft.js'
 
 const workflow = {
   id: 'w1',
@@ -10,7 +10,7 @@ const workflow = {
   nodes: [
     { id: 'c', name: 'Publish', prompt: 'Write it up' },
     { id: 'a', name: 'Collect', prompt: 'Find sources' },
-    { id: 'b', name: 'Summarise', prompt: null },
+    { id: 'b', name: 'Summarise', prompt: null, effort: 'low' },
   ],
   edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }],
 }
@@ -21,6 +21,44 @@ const draft = draftFrom(workflow)
 assert.deepEqual(draft.nodes.map((n) => n.id), ['a', 'b', 'c'])
 assert.deepEqual(draft.nodes.map((n) => n.inputs), [[], ['a'], ['b']])
 assert.equal(draft.nodes[1].prompt, '') // a null prompt edits as empty text, not "null"
+
+// --- a step's own effort level ----------------------------------------------
+
+// A stored level edits as itself; a step without one edits as '', which is the value
+// the picker's "Default" option carries — not the string "null", and not undefined,
+// or the <select> would flip between uncontrolled and controlled on first change.
+assert.equal(draft.nodes[1].effort, 'low')
+assert.equal(draft.nodes[0].effort, '')
+assert.equal(draft.nodes[2].effort, '')
+
+// And on the way back out '' becomes null, because the API takes null as "the CLI's
+// default" and REJECTS anything that is not a level. That asymmetry is the point: the
+// CLI itself ignores a bad --effort value with only a warning on stderr, so a level
+// that never reached the server would show on the page over a session that ran at the
+// default.
+const levels = payloadFrom(draft).nodes
+assert.deepEqual(levels.map((n) => n.effort), [null, 'low', null])
+
+// The list is the CLI's, lowest first, and 'default' is not a member of it.
+assert.deepEqual(EFFORT_LEVELS, ['low', 'medium', 'high', 'xhigh', 'max'])
+assert.ok(!EFFORT_LEVELS.includes('default'))
+assert.ok(!EFFORT_LEVELS.includes(''))
+
+// A brand new step starts on the default rather than on a level somebody has to
+// notice and undo.
+assert.equal(blankDraft().nodes[0].effort, '')
+
+// Changing a step's level is an unsaved edit — it changes what a run costs, so
+// duplicating without saving would silently take the old one.
+assert.ok(draftFingerprint(draft) !== draftFingerprint({
+  ...draft,
+  nodes: draft.nodes.map((n) => (n.id === 'a' ? { ...n, effort: 'max' } : n)),
+}))
+// But re-picking the level it already had is not.
+assert.equal(draftFingerprint(draft), draftFingerprint({
+  ...draft,
+  nodes: draft.nodes.map((n) => (n.id === 'b' ? { ...n, effort: 'low' } : n)),
+}))
 
 // And converts back to the same graph.
 const payload = payloadFrom(draft)

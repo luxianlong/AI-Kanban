@@ -114,12 +114,29 @@ public class WorkflowService {
         edges.flush();
         for (NodeSpec n : nodeSpecs) {
             nodes.save(new WorkflowNode(n.id(), workflow.getId(), n.name().trim(), n.prompt(),
-                    n.x(), n.y()));
+                    effortOf(n), n.x(), n.y()));
         }
         for (EdgeSpec e : edgeSpecs) {
             edges.save(new WorkflowEdge(workflow.getId(), e.from(), e.to()));
         }
         return view(workflow);
+    }
+
+    /**
+     * This node's effort level, rejecting anything that is not one of them.
+     *
+     * <p>A 400 here rather than a quiet fallback to the default, because the CLI's own
+     * handling of a bad {@code --effort} value is exactly that quiet fallback: one
+     * warning on stderr that nothing on this page ever reads, and a session that thinks
+     * at the default while the step still claims the level that was saved. The only
+     * moment the mistake is visible is this one.
+     */
+    private static EffortLevel effortOf(NodeSpec node) {
+        try {
+            return EffortLevel.parse(node.effort());
+        } catch (IllegalArgumentException e) {
+            throw badRequest("Step \"" + node.name().trim() + "\": " + e.getMessage());
+        }
     }
 
     /**
@@ -149,7 +166,7 @@ public class WorkflowService {
 
         for (WorkflowNode n : nodes.findByWorkflowIdOrderByIdAsc(id)) {
             nodes.save(new WorkflowNode(n.getNodeId(), copy.getId(), n.getName(), n.getPrompt(),
-                    n.getPosX(), n.getPosY()));
+                    n.getEffort(), n.getPosX(), n.getPosY()));
         }
         for (WorkflowEdge e : edges.findByWorkflowId(id)) {
             edges.save(new WorkflowEdge(copy.getId(), e.getFromNodeId(), e.getToNodeId()));

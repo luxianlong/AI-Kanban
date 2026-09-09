@@ -20,11 +20,18 @@ public final class WorkflowDtos {
      * same payload can carry the edges that reference it; the server keeps whatever
      * ids it is given rather than renumbering, which is what makes saving an edited
      * graph a plain replace.
+     *
+     * <p>{@code effort} is one of {@link EffortLevel#allowed()}, or null/blank to leave
+     * this step at the CLI's default. It is a plain string rather than the enum so that
+     * a bad value is rejected with a sentence naming the levels, instead of Jackson's
+     * deserialisation error — and so that the casing the picker sends ("xhigh") is the
+     * casing the API takes.
      */
     public record NodeSpec(
             @NotBlank @Size(max = 100) String id,
             @NotBlank @Size(max = 200) String name,
             @Size(max = 20_000) String prompt,
+            @Size(max = 20) String effort,
             Integer x,
             Integer y) {
     }
@@ -65,9 +72,12 @@ public final class WorkflowDtos {
             @Size(max = 20_000) String prompt) {
     }
 
-    public record NodeView(String id, String name, String prompt, Integer x, Integer y) {
+    /** {@code effort} is null when the step runs at the CLI's default. */
+    public record NodeView(String id, String name, String prompt, String effort, Integer x, Integer y) {
         static NodeView from(WorkflowNode n) {
-            return new NodeView(n.getNodeId(), n.getName(), n.getPrompt(), n.getPosX(), n.getPosY());
+            return new NodeView(n.getNodeId(), n.getName(), n.getPrompt(),
+                    n.getEffort() == null ? null : n.getEffort().cliValue(),
+                    n.getPosX(), n.getPosY());
         }
     }
 
@@ -108,6 +118,10 @@ public final class WorkflowDtos {
      * {@code durationMs} are then the totals across every attempt, since a failed
      * attempt was billed too.
      *
+     * <p>{@code effort} is the level this step's session was started with, snapshotted
+     * when the run was created — null means it ran at the CLI's default. It does not
+     * follow later edits to the workflow, so a finished run keeps saying what it did.
+     *
      * <p>{@code promptEditedAt} is null while {@code prompt} is still the workflow's
      * own text. Once set, and later than {@code finishedAt}, the output on this row was
      * produced by the previous prompt — which is what the page warns about, so an
@@ -118,6 +132,7 @@ public final class WorkflowDtos {
             String nodeId,
             String nodeName,
             String prompt,
+            String effort,
             Instant promptEditedAt,
             List<String> dependsOn,
             int orderIndex,
@@ -139,6 +154,7 @@ public final class WorkflowDtos {
                     n.getNodeId(),
                     n.getNodeName(),
                     n.getPrompt(),
+                    n.getEffort() == null ? null : n.getEffort().cliValue(),
                     n.getPromptEditedAt(),
                     n.dependencyIds(),
                     n.getOrderIndex(),
