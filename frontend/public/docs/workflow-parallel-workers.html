@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Workflow 能不能多开 worker · 文章存档</title>
+<meta name="description" content="先给结论： 能，而且改动很小 —— 但要先加的那个数字不是 workflow 的 worker 数。" />
+<link rel="canonical" href="https://youraikanban.com/docs/workflow-parallel-workers.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f7f5f0;             /* warm laid paper */
+  --sheet: #fffdf9;
+  --card: #fffdf9;           /* legacy alias — panels that still need a surface */
+  --ink: #211d1a;
+  --muted: #6f6860;
+  --line: #e4ddd0;
+  --accent: #2c4a7c;         /* fountain-pen ink blue: links and marks */
+  --accent-soft: #e8eaf1;
+  --stamp: #b3402f;          /* rubber-stamp red: NEW, destructive actions */
+  --link: #2c4a7c;
+  --source-bg: #f1eee6;
+  --source-line: #c2b193;
+  --shadow: 0 2px 10px rgba(33,29,26,0.06);
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body: "Newsreader", "Noto Serif SC", Georgia, "Songti SC", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --maxw: 940px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+::selection { background: #dde3ee; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Masthead — the quiet top of a personal site: a label, the name, one line of
+   voice, a way back. No banner, no gradient; a single hairline closes it. */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 56px 24px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.hero .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 14px;
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+.hero p.sub { margin: 0; max-width: 62ch; color: var(--muted); font-size: 16px; text-wrap: pretty; }
+.hero .back {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero .back:hover { color: var(--accent); }
+/* Visit tally (task #523). Filled in once /api/docs/views answers, and left
+   hidden until then — an article nobody has opened yet says nothing rather than
+   announcing a zero. Quiet mono figures, the same register as the dates. */
+.views {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; color: var(--muted);
+}
+.hero .views { display: inline-block; margin-top: 20px; margin-left: 14px; }
+@media (max-width: 700px) {
+  .hero { padding: 34px 20px 20px; }
+}
+
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 34px 24px 96px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
+}
+/* Marginalia, not a widget: the contents list sits unboxed in the left margin,
+   the way a printed book sets its running heads. */
+.toc {
+  position: sticky;
+  top: 28px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding-right: 6px;
+}
+/* The contents list folds away (task #224). The heading itself is the control —
+   a long catalog otherwise fills the whole margin and there is no way to put it
+   back — so no extra chrome is added; only the caret moves. */
+.toc-title {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; text-align: left; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--line);
+  padding: 0 0 9px; margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.toc-title:hover { color: var(--accent); }
+.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc.collapsed .toc-caret { transform: rotate(-90deg); }
+.toc.collapsed ul { display: none; }
+/* Folded, the heading is all that's left in the margin: nothing below it to
+   underline, so the rule goes too. */
+.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 0; }
+.toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
+.toc li a:hover { color: var(--accent); text-decoration: none; }
+.toc li.lv2 a { color: var(--ink); margin-top: 9px; }
+.toc li.lv3 a { padding-left: 14px; font-size: 12px; }
+.content { min-width: 0; max-width: 70ch; padding: 0; }
+.content h1 { font-family: var(--display); font-weight: 700; font-size: 32px; margin: 6px 0 14px; }
+.content h2, .content h3, .content h4, .content h5, .content h6 {
+  font-family: var(--display); font-weight: 600;
+  line-height: 1.3; scroll-margin-top: 20px; position: relative;
+}
+.content h2 { font-size: 27px; margin: 54px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+/* A section rule the author wrote (---) already separates the sections; don't
+   double it with the heading's own rule. */
+.content hr + h2 { border-top: none; padding-top: 0; margin-top: 18px; }
+.content h3 { font-size: 21px; margin: 34px 0 10px; }
+.content h4 {
+  font-family: var(--mono); font-weight: 500; font-size: 13px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin: 26px 0 8px;
+}
+.content p { margin: 16px 0; }
+.content ul, .content ol { margin: 16px 0; padding-left: 22px; }
+.content li { margin: 7px 0; }
+.content ul li::marker { color: var(--source-line); }
+.content li > ul, .content li > ol { margin: 6px 0; }
+.content strong { font-weight: 600; color: var(--ink); }
+.content a { text-decoration: underline; text-decoration-color: #b7c2d6; text-underline-offset: 3px; }
+.content a:hover { text-decoration-color: var(--accent); }
+.anchor { opacity: 0; margin-left: 8px; color: var(--muted); font-weight: 400; text-decoration: none; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 0.5; }
+code { background: #efece4; color: #4a423a; border-radius: 3px; padding: 1px 5px; font-family: var(--mono); font-size: 0.85em; }
+blockquote.quote { margin: 24px 0; padding: 2px 0 2px 22px; border-left: 2px solid var(--source-line); color: var(--muted); font-style: italic; }
+blockquote.source { font-style: normal; border-left-color: var(--accent); }
+blockquote.source::before {
+  content: "来源与时效"; display: block; font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 4px;
+}
+blockquote p { margin: 4px 0; font-size: 15.5px; }
+.figure { margin: 30px 0; }
+.figure img { max-width: 100%; height: auto; border: 1px solid var(--line); }
+.figure figcaption { margin-top: 9px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.content p img { max-width: 100%; height: auto; }
+.table-wrap { overflow-x: auto; margin: 26px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 420px; }
+th, td { border-bottom: 1px solid var(--line); padding: 9px 16px 9px 0; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--ink);
+}
+tbody tr:last-child td { border-bottom: none; }
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+pre.code { background: #241f1c; color: #ede5d7; border-radius: 4px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+pre.code code { background: none; padding: 0; color: inherit; font-size: inherit; }
+/* A diagram sits on its own sheet of paper. The selector is deliberately more
+   specific than the reset /vendor/mermaid-init.js appends to <head> at runtime
+   (that one strips the <pre> framing, which suits an uploaded page but not the
+   archive's paper look), so the card survives here. */
+.content pre.mermaid { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 18px; text-align: center; overflow-x: auto; white-space: normal; }
+.backtop {
+  position: fixed; right: 24px; bottom: 24px; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line); font-size: 16px; cursor: pointer;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.backtop.show { opacity: 1; pointer-events: auto; }
+.backtop:hover { color: var(--accent); border-color: var(--accent); }
+.mobile-toc-toggle { display: none; }
+/* Only wide layouts have a margin column to reclaim; narrow ones already stack
+   (and their own rule below would lose to this more specific selector). */
+@media (min-width: 901px) {
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
+  .toc { position: static; max-height: none; }
+  .mobile-toc-toggle {
+    display: block; width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--line); padding: 10px 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted); text-align: left;
+  }
+  .toc.collapsed { display: none; }
+  /* The ☰ bar above is the fold control here; a second one inside the panel
+     would be two buttons for one state. */
+  .toc-title { display: none; }
+  .content { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+<p class="eyebrow">文章</p>
+<h1>Workflow 能不能多开 worker</h1>
+<a class="back" href="/docs.html">← 回到文章列表</a>
+<span class="views" id="view-count" hidden></span>
+</header>
+<div class="layout">
+<button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
+<nav class="toc" aria-label="目录">
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<ul id="toc-list">
+<li class="lv2"><a href="#一串起来的不是-ticklock是那一根调度线程">一、串起来的不是 tickLock，是那一根调度线程</a></li>
+<li class="lv2"><a href="#二实测等待时间去哪了">二、实测：等待时间去哪了</a></li>
+<li class="lv2"><a href="#三dag-能并到几路148而且-n2-就到顶">三、DAG 能并到几路：1.48×，而且 N=2 就到顶</a></li>
+<li class="lv2"><a href="#四要改什么两处真改动五处已经是对的">四、要改什么：两处真改动，五处已经是对的</a></li>
+<li class="lv2"><a href="#五机器撑不撑得住这才是真正的上限">五、机器撑不撑得住：这才是真正的上限</a></li>
+<li class="lv2"><a href="#六单线程一直在替我们挡的那件事">六、单线程一直在替我们挡的那件事</a></li>
+<li class="lv2"><a href="#七建议的顺序">七、建议的顺序</a></li>
+</ul>
+</nav>
+<main class="content">
+<p>先给结论：<strong>能，而且改动很小 —— 但要先加的那个数字不是 workflow 的 worker 数。</strong></p>
+<p>本机实测（2026-09-09）三个数字，决定了整个答案：</p>
+<ul>
+<li>已完成的 3 次 workflow 运行，<strong>42% 的墙上时间没有任何会话在跑</strong>，全花在等看板任务队列上。最差的一次（run #2）是 <strong>62%</strong>。</li>
+<li>板上唯一一条真实 workflow（<code>公众号文章 2</code>，9 个节点）<strong>并行度天花板只有 1.48×</strong>，而且 <strong>N=2 就已经吃满，N≥3 一秒都不会再快</strong>。</li>
+<li>一个 <code>claude</code> 会话实测 <strong>270 MB</strong>（PSS），机器 <code>MemAvailable</code> 只剩 <strong>632 MB</strong>，没有 swap。</li>
+</ul>
+<p>所以顺序是：<strong>先把两个 poller 分到两个线程上（收益 2.6×，Todo 仍是单 worker），再考虑加 workflow 节点并发（收益 1.48×，且机器目前撑不住）。</strong></p>
+<p>本页是对任务 #236 的回答，代码位置标到行号，数字全部来自本机运行中的进程与 <code>/api/workflows/executions</code>。</p>
+<h2 id="一串起来的不是-ticklock是那一根调度线程">一、串起来的不是 tickLock，是那一根调度线程<a class="anchor" href="#一串起来的不是-ticklock是那一根调度线程" aria-label="链接到本节">#</a></h2>
+<p><code>ClaudeWorkerService</code> 和 <code>WorkflowRunnerService</code> 各有自己的 <code>ReentrantLock tickLock</code>（:47 / :57），它们<strong>互相不阻塞</strong>。真正把两者串成一条队的是别的东西：</p>
+<p>应用只写了 <code>@EnableScheduling</code>（<code>KanbanApplication.java:14</code>），没有配 <code>TaskScheduler</code>，于是吃 Spring Boot 的默认值 <code>spring.task.scheduling.pool.size = 1</code>。<strong>全应用两个 <code>@Scheduled</code> 方法共用一根线程。</strong></p>
+<p>实测印证 —— 3600 多行后端日志里，两个 service 的日志线程名只出现过一个值：</p>
+<pre class="code"><code>$ grep -o "scheduling-[0-9]*" /tmp/kanban-backend.log | sort -u
+scheduling-1</code></pre>
+<p>而 workflow 的 tick 是<strong>阻塞</strong>的：<code>poll()</code> (:96) → <code>advance()</code> (:124) → <code>runNode()</code> (:211) → <code>runner.run()</code> → <code>process.waitFor(props.getTimeoutSeconds(), …)</code>（<code>ClaudeSessionRunner.java:95</code>）。也就是说，一个节点跑多久，这根线程就被占多久，<strong>看板任务的 <code>poll()</code> 在这期间连一次都轮不到</strong>。反过来也一样。</p>
+<p><code>WorkflowRunnerService</code> 跑完一个节点就 <code>return</code>（:111，注释写着「hand the tick back so the task queue isn't starved」）——<strong>这个防饿死设计是对的，但它防不住反向的饿死</strong>：一个看板任务跑 9 分钟，workflow 就停 9 分钟。</p>
+<p>写这段代码时的注释（<code>application.yml:95</code>、<code>WorkflowRunnerService.java:35</code>）说这根单线程「guarantees only one Claude process is alive at a time」。<strong>这句话今天已经不成立了</strong>：<code>AiStoryClassifier</code> (:48) 自带一个 <code>newFixedThreadPool(2)</code>，在调度线程之外自己起 <code>claude</code> 进程。所以本机峰值并发会话现在是 <strong>1 + 2 = 3</strong>，不是 1。并发不是新东西，只是没人记账。</p>
+<h2 id="二实测等待时间去哪了">二、实测：等待时间去哪了<a class="anchor" href="#二实测等待时间去哪了" aria-label="链接到本节">#</a></h2>
+<p><code>/api/workflows/executions</code> 里每个节点都有 <code>startedAt</code> / <code>finishedAt</code>，逐个减出来：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>运行</th><th>节点数</th><th>墙上时间</th><th>会话时间之和</th><th>空等</th></tr></thead>
+<tbody>
+<tr><td>#1 Wexin Article</td><td>2</td><td>5.9 min</td><td>5.8 min</td><td>3%</td></tr>
+<tr><td>#2 Wexin Article</td><td>4</td><td>45.7 min</td><td>17.3 min</td><td><strong>62%</strong></td></tr>
+<tr><td>#3 公众号文章 2</td><td>8</td><td>46.3 min</td><td>34.0 min</td><td>27%</td></tr>
+<tr><td>#4 公众号文章 2</td><td>9</td><td>进行中</td><td>—</td><td>卡在 3/9</td></tr>
+<tr><td><strong>合计（已完成）</strong></td><td>14</td><td><strong>97.9 min</strong></td><td><strong>57.0 min</strong></td><td><strong>42%</strong></td></tr>
+</tbody>
+</table></div>
+<p>run #1 几乎没有空等 —— 那段时间板上没有别的任务在跑。run #2 的 62% 是这样来的：<code>草稿</code> 05:23:32 跑完之后，第二个节点 <code>信息密度评估</code> 直到 <strong>05:54:18</strong> 才开始，中间 <strong>28 分钟</strong>整整跑掉了三个看板任务（#231/#232/#233）。workflow 一直是 RUNNING，只是没有线程可用。</p>
+<p><strong>写这份文档的此刻，run #4 就正卡在 3/9</strong> —— 它的第 3 个节点 07:27:06 结束，紧接着这根线程被任务 #236（也就是本次会话）拿走了。这不是推理出来的，是现场。</p>
+<h2 id="三dag-能并到几路148而且-n2-就到顶">三、DAG 能并到几路：1.48×，而且 N=2 就到顶<a class="anchor" href="#三dag-能并到几路148而且-n2-就到顶" aria-label="链接到本节">#</a></h2>
+<p>把 <code>公众号文章 2</code> 的 13 条边和实测的单节点耗时（<code>草稿</code> 150s、<code>信息密度评估</code> 323s、<code>提高信息密度</code> 168s、<code>前后对比</code> 303s、<code>隐喻比喻评估</code> 192s、<code>去掉隐喻和比喻</code> 196s、<code>隐喻去除前后对比</code> 562s、<code>全链路对比</code> 222s）放进去算关键路径，再用 list scheduling 模拟 N 个 worker：</p>
+<pre class="code"><code>串行总和     = 2363s (39.4 min)
+关键路径     = 1591s (26.5 min)   最大加速比 1.48x
+
+N=1  -&gt;  39.4 min  (1.00x)
+N=2  -&gt;  26.5 min  (1.48x)
+N=3  -&gt;  26.5 min  (1.48x)   ← 一秒不省
+N=9  -&gt;  26.5 min  (1.48x)</code></pre>
+<p><strong>为什么这么低，值得说清楚，因为这是结构性的，不是这条 workflow 没画好。</strong></p>
+<p>这类「打磨型」workflow 的主干天然是一条链：<code>草稿 → 信息密度评估 → 提高信息密度 → …</code>，每一步都在改上一步的产物，后一步没有前一步的输出根本无从下手。能并行的只有那几个<strong>叶子节点</strong> —— 三个 <code>对比</code> 和 <code>精写</code> 分支：它们读上游的结果生成报告，没有任何节点依赖它们。</p>
+<p>省下来的 772 秒，全部来自 <code>前后对比</code>(303s) 和 <code>隐喻去除前后对比</code>(562s) 这两片叶子挪到旁边的车道上跑。</p>
+<p>推论很直接：<strong>run #2 那种 4 节点的纯链条，加多少 workflow worker都不会快一秒</strong>（它前四个节点在图上就是一条链）。它慢的 62% 全是第一节说的那件事。</p>
+<h2 id="四要改什么两处真改动五处已经是对的">四、要改什么：两处真改动，五处已经是对的<a class="anchor" href="#四要改什么两处真改动五处已经是对的" aria-label="链接到本节">#</a></h2>
+<p><code>WorkflowRunnerService</code> 其实已经写得很接近多 worker 的形状了。已经安全的部分：</p>
+<ol>
+<li><code>LiveLogRegistry</code> / <code>RunningSessionRegistry</code> 都是 <code>ConcurrentHashMap</code>，且<strong>按 <code>node:&lt;id&gt;</code> 一节点一个 key</strong> —— 多个节点同时跑，日志和「停止」按钮天然各归各。</li>
+<li><code>WorkflowService.cancel</code> (:292) 已经是<strong>遍历所有 RUNNING 节点</strong>逐个 <code>sessions.stop()</code>（:298），不是只停一个。</li>
+<li><code>recoverOrphans</code> (:79) 已经把<strong>所有</strong> RUNNING 行判失败。</li>
+<li><code>abortAll()</code> 关机时杀的是<strong>全部</strong>会话。</li>
+<li><code>advance()</code> 里那句「有节点 RUNNING 就别收尾」的分支，注释写着 "Only reachable if a session outlived its tick, which shouldn't happen" —— 在多 worker 下它从「不该发生」变成<strong>主路径</strong>，而逻辑本来就是对的。</li>
+</ol>
+<p>真正要动的只有两处：</p>
+<p><strong>(1) tick 不能再阻塞。</strong> <code>runNode()</code> 必须提交给一个固定大小的执行器，<code>poll()</code> 立刻返回。否则加多少线程，一根线程还是只跑一个节点。</p>
+<p><strong>(2) <code>PENDING → RUNNING</code> 的认领必须原子。</strong> 现在是先 <code>findFirst()</code> 选出候选（:143-146），再在 <code>runNode()</code> 里 <code>setStatus(RUNNING)</code> 保存。两个线程在任何一个写回之前都读到同一行，就会<strong>把同一个节点跑两遍</strong> —— 副作用做两次，账单付两次。两种改法：给 <code>NodeExecution</code> 加 <code>@Version</code>（两个实体现在都没有版本列），认领冲突时捕获 <code>OptimisticLockException</code> 跳过；或者用一条 <code>@Modifying</code> 的 <code>UPDATE … SET status='RUNNING' WHERE id=? AND status='PENDING'</code>，只有返回 1 行才继续。后者更直白。</p>
+<p>配套的小改动：<code>tickLock</code> 从「一把互斥锁」换成「N 张许可证」；<code>return true</code>（:111）那条「跑完一个就交还」的规则换成「许可证用完为止」。</p>
+<p>配置面：加 <code>workflow.max-concurrent-nodes</code>，<strong>默认 1</strong>（保持今天的行为），要并发才显式调大。看板任务侧 <code>worker.batch-size: 1</code>（<code>application.yml:88</code>）<strong>一个字都不用动</strong> —— 卡片要求的「Todo 保持单 worker」是免费成立的，因为两个 poller 本来就是两个独立的 bean。</p>
+<h2 id="五机器撑不撑得住这才是真正的上限">五、机器撑不撑得住：这才是真正的上限<a class="anchor" href="#五机器撑不撑得住这才是真正的上限" aria-label="链接到本节">#</a></h2>
+<pre class="code"><code>CPU              2 核
+内存             3866 MB，无 swap
+MemAvailable     632 MB          ← 现在
+一个 claude 会话  270 MB (PSS)    ← 实测本次会话
+后端 JVM         320 MB (PSS)</code></pre>
+<p>按这个数，<strong>今天连第 2 个并发会话都是贴着边的</strong>。而且内存打满的后果在这个项目里特别贵：<code>application.yml:47</code> 那段注释记着，2026-08-29 丢库就是因为 SIGKILL 落在 H2 压缩窗口里 —— OOM killer 干掉 JVM 就是同一件事。</p>
+<p>但先别急着说「机器不行」。查了一下现在内存被谁占着：</p>
+<pre class="code"><code>$ ps -eo pid,args | grep "chrome --headless"
+9 个泄漏的 headless Chrome 实例（81 个进程），合计 1685 MB (PSS)
+   /tmp/wf-focus-profile   /tmp/wf-probe   /tmp/wfbase-profile   /tmp/wfdbg-profile</code></pre>
+<p>这些是本 story 第 9、12、13 步的<strong>验证脚手架没关掉的浏览器</strong>（存活 42 分钟到 1 小时 51 分钟不等；<code>~/.chrome-debug-profile</code> 那个是 MCP 在用的，不在此列）。<strong>整机 44% 的内存是垃圾。</strong> 清掉它够放 6 个并发会话。</p>
+<p>所以容量这一栏的真实结论是：<strong>限制并发的不是设计，是没人关的浏览器。</strong> 任何调度参数的收益都比不上在验证脚本里补一句 kill。（本次没有动它们 —— 端口 9222 那个是 MCP 实例，误杀会打断别的东西；这属于另一张卡。）</p>
+<h2 id="六单线程一直在替我们挡的那件事">六、单线程一直在替我们挡的那件事<a class="anchor" href="#六单线程一直在替我们挡的那件事" aria-label="链接到本节">#</a></h2>
+<p>有个副作用得先说，否则第一步就会踩坑。</p>
+<p>所有会话的工作目录都是仓库本身：<code>--worker.working-directory=/home/xianllu/Dashboard</code>（<code>scripts/env.sh:94</code>）。<strong>同一棵 git 工作树。</strong></p>
+<p>今天那根单线程保证了一件事：一个看板任务跑 <code>scripts/deploy.sh</code>（<code>git checkout main</code> + merge + 重启后端）的时候，<strong>绝不可能</strong>有 workflow 节点在同一棵树里写文件。把两者分到两根线程上，这个保证当场消失 —— 而 deploy 的 <code>git checkout</code> 遇到脏工作树会中止（记忆里已经有一次：regenerated docs 弄脏工作树导致 merge 被静默跳过、却仍打印 ✔ DEPLOYED）。</p>
+<p>好消息是仓库里已经有现成的解法：<code>AiStoryClassifier</code> 早就把自己的会话挪到了 <code>/tmp/kanban-classify</code>（:198），正是为了不加载仓库上下文。workflow 节点写的是文章和研究产物，本来就不需要待在应用仓库里。</p>
+<p><strong>所以：在动任何并发参数之前，先给 workflow 节点一个独立的 <code>workflow.working-directory</code>。</strong> 这一步比调度器配置更重要，而且它自己就是个好改动。</p>
+<h2 id="七建议的顺序">七、建议的顺序<a class="anchor" href="#七建议的顺序" aria-label="链接到本节">#</a></h2>
+<p><strong>第 0 步（前置，必做）：workflow 节点换独立工作目录。</strong> 见第六节。不做这一步，后面两步都会把 deploy 和节点放进同一棵 git 树。</p>
+<p><strong>第 1 步（一行配置，收益最大）：<code>spring.task.scheduling.pool.size: 2</code>。</strong><br />两个 poller 各占一根线程。Todo 仍然是单 worker（<code>batch-size: 1</code> 不变），workflow 仍然一次一个节点 —— <strong>谁的并发数都没加</strong>，只是它们不再互相排队。run #2 那种运行 45.7 min → 约 17.6 min（<strong>2.6×</strong>），而且是那 42% 空等里收益最稳的部分。<br />代价：峰值并发会话 1 → 2（约 +270 MB）。今天的 632 MB 勉强够，清掉泄漏的 Chrome 之后很宽裕。</p>
+<p><strong>第 2 步（要写代码，收益有限）：<code>workflow.max-concurrent-nodes: 2</code>。</strong><br />需要第四节的两处改动。天花板 1.48×，<strong>N≥3 没有任何收益</strong>，别配大。峰值会话变成 1(todo) + 2(node) + 2(classify) = 5，约 1.35 GB —— <strong>在清掉那 1685 MB 之前不要开</strong>。</p>
+<p><strong>不建议做的：提高 <code>worker.batch-size</code>。</strong> 卡片本来就要求 Todo 保持单 worker，而且这里有独立理由：story 步骤链是显式串行的（<code>isBlockedByStory</code> 要求前序步骤全部 RESOLVED），并发只会让更多步骤在 <code>isEligible</code> 里被判不合格空转；再加上共享工作树，两个任务同时 <code>git checkout -b</code> 就是直接的相互破坏。</p>
+<p><strong>顺带该修的注释：</strong> <code>application.yml:95</code>、<code>WorkflowRunnerService.java:35</code>、以及 <code>docs/task-context-isolation.html</code> 里「同一时刻只有一个 Claude 会话」的说法，因为 <code>AiStoryClassifier</code> (:48) 的两线程池，今天已经是错的。真正的不变式是「<strong>看板任务和 workflow 节点各自最多一个</strong>」，不是「全机只有一个」。</p>
+<hr />
+<p><em>本页只做分析与实测，没有改动任何应用代码、没有部署、没有重启、没有开新任务。上面所有数字都可以用 <code>/api/workflows/executions</code>、<code>/tmp/kanban-backend.log</code> 和 <code>ps</code> 复现。</em></p>
+</main>
+</div>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+  var bt = document.querySelector('.backtop');
+  window.addEventListener('scroll', function () {
+    if (window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+  // Folding the contents list (task #224). Both controls — the heading in the
+  // margin and the ☰ bar on a narrow screen — drive one state, and the choice
+  // is remembered so it doesn't have to be made again on the next document.
+  // Narrow screens still open folded regardless: there the list would push the
+  // article off the first screen.
+  var toc = document.querySelector('.toc');
+  if (toc) {
+    var layout = document.querySelector('.layout');
+    var tocTitle = document.querySelector('.toc-title');
+    var tocBar = document.querySelector('.mobile-toc-toggle');
+    var TOC_KEY = 'docs:toc-collapsed';
+    var isNarrow = function () { return window.matchMedia('(max-width: 900px)').matches; };
+    var setToc = function (collapsed, remember) {
+      toc.classList.toggle('collapsed', collapsed);
+      if (layout) layout.classList.toggle('toc-collapsed', collapsed);
+      if (tocTitle) tocTitle.setAttribute('aria-expanded', String(!collapsed));
+      if (tocBar) tocBar.setAttribute('aria-expanded', String(!collapsed));
+      if (remember) { try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (e) {} }
+    };
+    var stored = null;
+    try { stored = localStorage.getItem(TOC_KEY); } catch (e) {}
+    setToc(isNarrow() || stored === '1', false);
+    var onToggle = function () { setToc(!toc.classList.contains('collapsed'), !isNarrow()); };
+    if (tocTitle) tocTitle.addEventListener('click', onToggle);
+    if (tocBar) tocBar.addEventListener('click', onToggle);
+  }
+</script>
+
+<script>
+  // Opening this document marks it "read" (task #357): the index's red "NEW" dot
+  // and the board's Docs badge mean "recently updated AND not yet opened by you",
+  // so once you've actually opened a doc it stops being flagged as new. Fire-and-
+  // forget against the board's /api proxy; failures are harmless (badge just stays).
+  try {
+    fetch('/api/docs/reads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ["workflow-parallel-workers"] }),
+      keepalive: true,
+    }).catch(function () {});
+  } catch (e) {}
+
+  // Show this article's visit tally (task #523). The visit itself was already
+  // counted server-side by the gate when it served this page, so there is
+  // nothing to POST here — we only read the number back.
+  fetch('/api/docs/views')
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (counts) {
+      var n = counts && counts["workflow-parallel-workers"];
+      var el = document.getElementById('view-count');
+      if (!el || !n) return;
+      el.textContent = n + ' 次阅读';
+      el.hidden = false;
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
