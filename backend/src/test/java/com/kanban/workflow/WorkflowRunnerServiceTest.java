@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * What one workflow node's session actually receives.
@@ -34,7 +35,11 @@ class WorkflowRunnerServiceTest {
             new WorkflowRunnerService(null, null, null, null, null, null, 1, true, true, true);
 
     private WorkflowNode node(String id, String name, String prompt) {
-        return new WorkflowNode(id, "wf", name, prompt, null, null);
+        return node(id, name, prompt, null);
+    }
+
+    private WorkflowNode node(String id, String name, String prompt, EffortLevel effort) {
+        return new WorkflowNode(id, "wf", name, prompt, effort, null, null);
     }
 
     private NodeExecution run(WorkflowNode node, List<String> dependsOn, int order) {
@@ -214,8 +219,8 @@ class WorkflowRunnerServiceTest {
 
     @Test
     void onlyTheEntryStepIsStartedInUltracodeMode() {
-        assertThat(settings(service.sessionArgsFor(true)).path("ultracode").asBoolean()).isTrue();
-        assertThat(settings(service.sessionArgsFor(false)).has("ultracode")).isFalse();
+        assertThat(settings(service.sessionArgsFor(true, null)).path("ultracode").asBoolean()).isTrue();
+        assertThat(settings(service.sessionArgsFor(false, null)).has("ultracode")).isFalse();
     }
 
     @Test
@@ -223,7 +228,7 @@ class WorkflowRunnerServiceTest {
         // In --print mode a settings value that fails to parse is ignored WITHOUT a word:
         // a malformed blob would not fail the build or log anything, it would silently
         // unfence every node and drop ultracode from the entry step.
-        List<String> args = service.sessionArgsFor(true);
+        List<String> args = service.sessionArgsFor(true, null);
 
         assertThat(args).hasSize(2);
         assertThat(args.get(0)).isEqualTo("--settings");
@@ -234,7 +239,7 @@ class WorkflowRunnerServiceTest {
     void bothEntryBoostsCanBeTurnedOffAndThenTheEntryStepIsJustAnotherStep() {
         NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
 
-        assertThat(settings(plain.sessionArgsFor(true)).has("ultracode")).isFalse();
+        assertThat(settings(plain.sessionArgsFor(true, null)).has("ultracode")).isFalse();
         assertThat(plain.buildPrompt(entry, "gold prices in 2026", true))
                 .isEqualTo("gold prices in 2026\n\nFind sources");
     }
@@ -247,7 +252,7 @@ class WorkflowRunnerServiceTest {
         // answer to improve has even less business reading the machine than the one that
         // has to go and find the material.
         for (boolean entry : new boolean[]{true, false}) {
-            assertThat(settings(service.sessionArgsFor(entry))
+            assertThat(settings(service.sessionArgsFor(entry, null))
                     .path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
                     .as("entry=" + entry)
                     .isTrue();
@@ -259,7 +264,7 @@ class WorkflowRunnerServiceTest {
         // --settings takes a single value, so two occurrences do not merge — the last
         // wins. Passing the fence as its own flag would quietly switch ultracode back
         // off on the one node that is supposed to have it.
-        List<String> args = service.sessionArgsFor(true);
+        List<String> args = service.sessionArgsFor(true, null);
 
         assertThat(args).filteredOn("--settings"::equals).hasSize(1);
         JsonNode blob = settings(args);
@@ -270,8 +275,8 @@ class WorkflowRunnerServiceTest {
 
     @Test
     void theFenceCanBeTurnedOffAndThenAPlainStepGetsNoSettingsAtAll() {
-        assertThat(unfenced.sessionArgsFor(false)).isEmpty();
-        assertThat(unfenced.sessionArgsFor(true)).isEmpty();
+        assertThat(unfenced.sessionArgsFor(false, null)).isEmpty();
+        assertThat(unfenced.sessionArgsFor(true, null)).isEmpty();
     }
 
     @Test
@@ -354,5 +359,96 @@ class WorkflowRunnerServiceTest {
         assertThat(old.getEntryNodeId()).isNull();
         assertThat(WorkflowRunnerService.isEntryNode(old, entry)).isTrue();
         assertThat(WorkflowRunnerService.isEntryNode(old, downstream)).isFalse();
+    }
+
+    // --- a step's own effort level ---------------------------------------
+
+    @Test
+    void aStepWithNoLevelSetGetsNoEffortFlagSoTheCliDecides() {
+        // Not "--effort medium" chosen as a stand-in for the default: the default is
+        // the CLI's to move, and naming it here would pin every unset step to whatever
+        // it happened to be on the day this was written.
+        assertThat(service.sessionArgsFor(false, null)).doesNotContain("--effort");
+        assertThat(service.sessionArgsFor(true, null)).doesNotContain("--effort");
+    }
+
+    @Test
+    void aStepWithALevelIsStartedWithThatExactLevel() {
+        for (EffortLevel level : EffortLevel.values()) {
+            List<String> args = service.sessionArgsFor(false, level);
+
+            assertThat(args).as("level=" + level).containsSequence("--effort", level.cliValue());
+        }
+    }
+
+    @Test
+    void theLevelIsSpeltTheWayTheCliSpellsItBecauseAWrongSpellingIsIgnoredSilently() {
+        // The CLI takes an unknown --effort value, warns on stderr and runs at its
+        // default. So a casing slip here would not fail anything — it would just
+        // quietly undo the setting while the page kept showing it.
+        assertThat(EffortLevel.XHIGH.cliValue()).isEqualTo("xhigh");
+        assertThat(EffortLevel.allowed()).isEqualTo("low, medium, high, xhigh, max");
+    }
+
+    @Test
+    void theEffortFlagIsItsOwnArgAndLeavesTheSettingsBlobAlone() {
+        // --settings takes a single value; folding effort into that blob would mean
+        // rebuilding it, and the fence and ultracode already ride in it.
+        List<String> args = service.sessionArgsFor(true, EffortLevel.LOW);
+
+        assertThat(args).filteredOn("--settings"::equals).hasSize(1);
+        JsonNode blob = settings(args);
+        assertThat(blob.path("ultracode").asBoolean()).isTrue();
+        assertThat(blob.path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean()).isTrue();
+        assertThat(blob.has("effort")).isFalse();
+        assertThat(args).containsSequence("--effort", "low");
+    }
+
+    @Test
+    void anEntryStepMayDisagreeWithUltracodeAboutHowHardToThink() {
+        // Measured against the real CLI on one prompt: ultracode alone produced 348
+        // output tokens, ultracode with --effort low produced 169, and --effort low
+        // alone produced 170. The flag wins over the xhigh ultracode implies, and the
+        // entry step keeps ultracode's other half.
+        List<String> args = service.sessionArgsFor(true, EffortLevel.LOW);
+
+        assertThat(settings(args).path("ultracode").asBoolean()).isTrue();
+        assertThat(args).containsSequence("--effort", "low");
+    }
+
+    @Test
+    void aStepsLevelIsSnapshottedIntoTheRunSoLaterEditsDoNotRewriteHistory() {
+        WorkflowNode authored = node("a", "Collect", "Find sources", EffortLevel.MAX);
+        NodeExecution recorded = run(authored, List.of(), 0);
+
+        // The workflow is re-authored at a lower level; the run already made its copy.
+        WorkflowNode reauthored = node("a", "Collect", "Find sources", EffortLevel.LOW);
+
+        assertThat(recorded.getEffort()).isEqualTo(EffortLevel.MAX);
+        assertThat(run(reauthored, List.of(), 0).getEffort()).isEqualTo(EffortLevel.LOW);
+    }
+
+    @Test
+    void aRetriedStepStillThinksAtTheLevelTheRunRecorded() {
+        NodeExecution recorded = run(node("a", "Collect", "Find sources", EffortLevel.XHIGH), List.of(), 0);
+
+        recorded.resetForRetry();
+
+        assertThat(recorded.getEffort()).isEqualTo(EffortLevel.XHIGH);
+    }
+
+    @Test
+    void anUnknownLevelIsRefusedRatherThanQuietlyTreatedAsTheDefault() {
+        assertThat(EffortLevel.parse(null)).isNull();
+        assertThat(EffortLevel.parse("  ")).isNull();
+        assertThat(EffortLevel.parse("XHigh")).isEqualTo(EffortLevel.XHIGH);
+        assertThat(EffortLevel.parse(" max ")).isEqualTo(EffortLevel.MAX);
+
+        assertThatThrownBy(() -> EffortLevel.parse("extreme"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("low, medium, high, xhigh, max");
+        // "default" is how the picker labels the empty choice, not a level to send.
+        assertThatThrownBy(() -> EffortLevel.parse("default"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

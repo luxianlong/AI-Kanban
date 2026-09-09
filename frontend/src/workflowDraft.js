@@ -9,6 +9,12 @@
 
 import { inRunOrder } from './workflowGraph.js'
 
+// The effort levels a step can be set to, lowest first — the CLI's own list, and the
+// same one EffortLevel.java accepts. '' is not a sixth level: it is "leave this step
+// at whatever the CLI's default is", which is deliberately not named here, because a
+// release that moved the default would leave every step claiming the old one.
+export const EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max']
+
 export const newId = () =>
   (crypto.randomUUID ? crypto.randomUUID() : `n${Date.now()}${Math.random()}`).slice(0, 36)
 
@@ -19,7 +25,7 @@ export function blankDraft() {
     name: '',
     description: '',
     entryNodeId: entry,
-    nodes: [{ id: entry, name: 'Step 1', prompt: '', inputs: [] }],
+    nodes: [{ id: entry, name: 'Step 1', prompt: '', effort: '', inputs: [] }],
   }
 }
 
@@ -28,6 +34,9 @@ export function draftFrom(workflow) {
     id: n.id,
     name: n.name,
     prompt: n.prompt || '',
+    // '' rather than null, so the <select> is a controlled component on the same
+    // value the "Default" option carries.
+    effort: n.effort || '',
     inputs: workflow.edges.filter((e) => e.to === n.id).map((e) => e.from),
   }))
   return {
@@ -48,7 +57,14 @@ export function payloadFrom(draft) {
     name: draft.name.trim(),
     description: draft.description.trim() || null,
     entryNodeId: draft.entryNodeId,
-    nodes: draft.nodes.map((n) => ({ id: n.id, name: n.name.trim() || 'Untitled step', prompt: n.prompt })),
+    nodes: draft.nodes.map((n) => ({
+      id: n.id,
+      name: n.name.trim() || 'Untitled step',
+      prompt: n.prompt,
+      // Back to null on the way out: the API reads blank as "the default", and it
+      // rejects anything that isn't a level rather than quietly ignoring it.
+      effort: n.effort || null,
+    })),
     edges: draft.nodes.flatMap((n) => n.inputs.map((from) => ({ from, to: n.id }))),
   }
 }

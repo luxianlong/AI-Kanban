@@ -69,6 +69,18 @@ public class NodeExecution {
     private Instant promptEditedAt;
 
     /**
+     * Snapshot of the node's effort level — the thinking budget this step's session
+     * was started with, or null for the CLI's default.
+     *
+     * <p>Snapshotted for the same reason the prompt is: raising a node's effort in the
+     * editor should not silently rewrite what a finished run says it did. It is also
+     * what a re-run of one step uses, so re-running a step redoes the work the run
+     * recorded rather than the work the workflow would do today.
+     */
+    @Enumerated(EnumType.STRING)
+    private EffortLevel effort;
+
+    /**
      * Comma-separated ids of the nodes whose output feeds this one, snapshotted from
      * the graph's edges. Empty for the entry node. Stored flat rather than as a join
      * table because it is only ever read whole, for this one row.
@@ -123,6 +135,7 @@ public class NodeExecution {
         this.nodeId = node.getNodeId();
         this.nodeName = node.getName();
         this.prompt = node.getPrompt();
+        this.effort = node.getEffort();
         this.dependsOn = String.join(",", dependsOn);
         this.orderIndex = orderIndex;
     }
@@ -153,6 +166,10 @@ public class NodeExecution {
 
     public String getPrompt() {
         return prompt;
+    }
+
+    public EffortLevel getEffort() {
+        return effort;
     }
 
     public String getDependsOn() {

@@ -83,7 +83,7 @@ class WorkflowParallelExecutionTest {
         execution.setEntryNodeId("a");
         executions.save(execution);
         nodeRuns.save(new NodeExecution(execution.getId(),
-                new WorkflowNode("a", workflowId, nodeName, "do the thing", null, null),
+                new WorkflowNode("a", workflowId, nodeName, "do the thing", null, null, null),
                 List.of(), 0));
         return execution.getId();
     }
