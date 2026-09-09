@@ -56,6 +56,15 @@ public final class WorkflowDtos {
             @Size(max = 20_000) String input) {
     }
 
+    /**
+     * Rewrite one step's prompt inside one finished run — the run's own copy, not the
+     * workflow's. Same 20,000-character cap as {@link NodeSpec#prompt()}, so text that
+     * saves in the editor also saves here.
+     */
+    public record EditNodePromptRequest(
+            @Size(max = 20_000) String prompt) {
+    }
+
     public record NodeView(String id, String name, String prompt, Integer x, Integer y) {
         static NodeView from(WorkflowNode n) {
             return new NodeView(n.getNodeId(), n.getName(), n.getPrompt(), n.getPosX(), n.getPosY());
@@ -98,12 +107,18 @@ public final class WorkflowDtos {
      * <p>{@code attempt} is 1 unless the run was retried; {@code costUsd} and
      * {@code durationMs} are then the totals across every attempt, since a failed
      * attempt was billed too.
+     *
+     * <p>{@code promptEditedAt} is null while {@code prompt} is still the workflow's
+     * own text. Once set, and later than {@code finishedAt}, the output on this row was
+     * produced by the previous prompt — which is what the page warns about, so an
+     * edited-but-not-yet-re-run step doesn't read as the new prompt's work.
      */
     public record NodeRunView(
             Long id,
             String nodeId,
             String nodeName,
             String prompt,
+            Instant promptEditedAt,
             List<String> dependsOn,
             int orderIndex,
             RunState status,
@@ -123,6 +138,7 @@ public final class WorkflowDtos {
                     n.getNodeId(),
                     n.getNodeName(),
                     n.getPrompt(),
+                    n.getPromptEditedAt(),
                     n.dependencyIds(),
                     n.getOrderIndex(),
                     n.getStatus(),

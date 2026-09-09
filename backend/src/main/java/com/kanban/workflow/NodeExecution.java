@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * One node's run inside a {@link WorkflowExecution}.
@@ -21,6 +22,11 @@ import java.util.List;
  * finished execution an accurate record of what actually ran even after the
  * workflow it came from is edited or deleted, and it means an in-flight execution
  * can't have its shape changed underneath it.
+ *
+ * <p>The one snapshotted field a user may change afterwards is {@link #prompt}, and
+ * only on a finished run — see {@link #editPrompt}. That is how a prompt gets tried:
+ * edit this run's copy, re-run the one step, read what came out. The workflow itself
+ * is left alone, so an experiment costs one session rather than a graph.
  *
  * <p>{@link #input} is the text handed to this node from upstream: the concatenated
  * {@link #output}s of its dependencies (or the execution's own input, for the entry
@@ -45,10 +51,22 @@ public class NodeExecution {
     @Column(nullable = false)
     private String nodeName;
 
-    /** Snapshot of the node's user-written prompt. */
+    /**
+     * Snapshot of the node's user-written prompt — as the workflow had it when the run
+     * was created, unless {@link #editPrompt} has since changed it for this run alone.
+     */
     @Lob
     @Column(columnDefinition = "TEXT")
     private String prompt;
+
+    /**
+     * When {@link #prompt} was last edited on this run, or null if it is still the
+     * workflow's own text. Kept because a finished step's output was produced by the
+     * prompt as it read <em>then</em>: once this stamp is later than
+     * {@link #finishedAt}, what is on screen no longer answers what is in the box, and
+     * the page says so rather than letting the two quietly disagree.
+     */
+    private Instant promptEditedAt;
 
     /**
      * Comma-separated ids of the nodes whose output feeds this one, snapshotted from
@@ -207,6 +225,31 @@ public class NodeExecution {
 
     public void setDurationMs(Long durationMs) {
         this.durationMs = durationMs;
+    }
+
+    public Instant getPromptEditedAt() {
+        return promptEditedAt;
+    }
+
+    /**
+     * Change the prompt this run will use for its next attempt of this node, without
+     * touching the workflow the run came from.
+     *
+     * <p>An execution is a record of what happened, so rewriting part of it is not
+     * free: the output already on the row was produced by the previous text. The stamp
+     * is what keeps the record honest — it dates the edit against
+     * {@link #getFinishedAt()}, so a step showing an answer from the old prompt can be
+     * labelled as one instead of reading as the new prompt's work.
+     *
+     * <p>An unchanged text is not an edit and leaves the stamp alone; otherwise
+     * opening the box and closing it again would mark a step as stale.
+     */
+    void editPrompt(String newPrompt) {
+        if (Objects.equals(prompt, newPrompt)) {
+            return;
+        }
+        this.prompt = newPrompt;
+        this.promptEditedAt = Instant.now();
     }
 
     public int getAttempt() {

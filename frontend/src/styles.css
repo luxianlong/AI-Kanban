@@ -1653,6 +1653,12 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 }
 .wf-details[open] summary { margin-bottom: var(--s-2); }
 
+/* The run's own copy of a step's prompt, editable so a wording can be tried against
+   one step rather than a whole graph. Sits inside a <details> in the step's panel. */
+.wf-prompt-edit .composer-desc { margin-top: 0; font-family: var(--font-mono); font-size: var(--f-xs); }
+.wf-prompt-edit .wf-noderun-actions { margin: var(--s-2) 0 0; flex-wrap: wrap; }
+.wf-prompt-edit .wf-run-hint { align-self: center; }
+
 .wf-noderuns { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .wf-noderun { border: 1px solid var(--hair); border-radius: var(--r-sm); background: var(--col); }
 .wf-noderun.running { border-color: var(--warn-border); background: var(--warn-bg); }
