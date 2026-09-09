@@ -7,7 +7,9 @@ import { relTime, runMeta } from './time.js'
 import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
-import { followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt } from './workflowLive.js'
+import {
+  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt,
+} from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
 // nodes carry their own `inputs` rather than a separate edge list, because that is
@@ -23,6 +25,16 @@ import { blankDraft, draftFingerprint, draftFrom, newId, payloadFrom } from './w
 // upstream node's output text, pasted into the next node's input. So the editor
 // talks about "input from", and an execution shows each node's input next to its
 // output rather than one merged transcript.
+
+// What the server does differently for the first step, said once and shown in both
+// places the entry step appears — the editor and a run's step list. It is the only
+// step with no upstream text, so it is the one that goes and finds the material the
+// rest of the graph works on; the backend gives it a stronger session for that (see
+// WorkflowRunnerService and the workflow.entry-node-* settings).
+export const ENTRY_MODE_HINT =
+  'Every run starts here. This step runs in ultracode mode — more effort, and it may '
+  + 'fan out over sub-agents — and it is asked to read the web through the Chrome '
+  + 'browser rather than plain web search. Later steps run normally.'
 
 // ---------------------------------------------------------------------------
 // Page
@@ -605,7 +617,12 @@ function NodeEditor({
           maxLength={200}
         />
         {isEntry ? (
-          <span className="wf-badge entry-badge" title="Every run starts here">Entry</span>
+          <span
+            className="wf-badge entry-badge"
+            title={ENTRY_MODE_HINT}
+          >
+            Entry
+          </span>
         ) : (
           <button type="button" className="wf-make-entry" onClick={onMakeEntry}>
             Make entry
@@ -655,6 +672,8 @@ function NodeEditor({
           ))
         )}
       </div>
+
+      {isEntry && <p className="wf-node-hint">{ENTRY_MODE_HINT}</p>}
 
       {unreached && (
         <p className="wf-node-warn">
@@ -885,6 +904,9 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // still says "Done", but the input it was written from has moved since. Derived for
   // the whole run at once because it is a question about the graph, not about a row.
   const staleInput = useMemo(() => nodesWithStaleInput(execution.nodes), [execution.nodes])
+  // The step this run started from, as the run itself recorded it — it is drawn
+  // differently and run differently.
+  const entryNodeId = entryNodeIdOf(execution)
 
   // On a run you just started, whatever is running is what you want open — it is
   // the only step with anything to show yet. But once you have picked a step
@@ -1055,7 +1077,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
 
           <WorkflowGraph
             nodes={graphNodes}
-            entryNodeId={execution.nodes[0]?.nodeId}
+            entryNodeId={entryNodeId}
             statuses={statuses}
             selectedId={openNodeId}
             onSelect={pickNode}
@@ -1068,6 +1090,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
                 key={run.id}
                 run={run}
                 where={`${execution.workflowName} · Run #${execution.id}`}
+                isEntry={run.nodeId === entryNodeId}
                 open={openNodeId === run.nodeId}
                 staleInput={staleInput.has(run.nodeId)}
                 onToggle={() => pickNode(run.nodeId)}
@@ -1082,7 +1105,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   )
 })
 
-function NodeRun({ run, where, open, staleInput, onToggle, onRerun, onEditPrompt }) {
+function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onEditPrompt }) {
   const [log, setLog] = useState('')
   const [rerunning, setRerunning] = useState(false)
   const running = run.status === 'RUNNING'
@@ -1139,6 +1162,9 @@ function NodeRun({ run, where, open, staleInput, onToggle, onRerun, onEditPrompt
       <button type="button" className="wf-noderun-head" onClick={onToggle}>
         <span className={`wf-dot ${run.status.toLowerCase()}`} aria-hidden />
         <span className="wf-noderun-name">{run.nodeName}</span>
+        {isEntry && (
+          <span className="wf-badge entry-badge" title={ENTRY_MODE_HINT}>Entry</span>
+        )}
         <span className="wf-noderun-state">{stateLabel(run.status)}</span>
         {meta && <span className="wf-noderun-meta">{meta}</span>}
       </button>

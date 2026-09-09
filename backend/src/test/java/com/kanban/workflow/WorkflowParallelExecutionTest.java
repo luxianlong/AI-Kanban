@@ -19,6 +19,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -132,7 +133,7 @@ class WorkflowParallelExecutionTest {
      */
     private CountDownLatch arriveAndBlock(Set<File> workDirs) throws Exception {
         CountDownLatch bothArrived = new CountDownLatch(2);
-        when(runner.run(anyString(), anyString(), any(File.class))).thenAnswer(call -> {
+        when(runner.run(anyString(), anyString(), any(File.class), anyList())).thenAnswer(call -> {
             workDirs.add(call.getArgument(2));
             bothArrived.countDown();
             bothArrived.await(10, TimeUnit.SECONDS);

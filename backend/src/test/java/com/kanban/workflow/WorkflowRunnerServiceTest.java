@@ -1,5 +1,6 @@
 package com.kanban.workflow;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,7 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>The prompt is the user's node instructions and the upstream text, and nothing
  * else — see {@link WorkflowRunnerService#buildPrompt} for why the runner adds no
- * preamble of its own.
+ * preamble of its own. The one exception is the entry step, which is also the one step
+ * started in ultracode mode; that whole difference is pinned at the bottom of this
+ * file.
  *
  * <p>{@code buildPrompt}/{@code assembleInput} touch none of the service's
  * collaborators, so the service is constructed with nulls.
@@ -25,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WorkflowRunnerServiceTest {
 
     private final WorkflowRunnerService service =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1);
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, true, true);
 
     private WorkflowNode node(String id, String name, String prompt) {
         return new WorkflowNode(id, "wf", name, prompt, null, null);
@@ -109,7 +112,7 @@ class WorkflowRunnerServiceTest {
         NodeExecution run = run(node("b", "Summarise", "Summarise the input in five bullets"),
                 List.of("a"), 1);
 
-        String prompt = service.buildPrompt(run, "some upstream text");
+        String prompt = service.buildPrompt(run, "some upstream text", false);
 
         assertThat(prompt).isEqualTo("some upstream text\n\nSummarise the input in five bullets");
     }
@@ -118,7 +121,7 @@ class WorkflowRunnerServiceTest {
     void thePromptCarriesNoScaffoldingOfItsOwn() {
         NodeExecution run = run(node("b", "Summarise", "Summarise the input"), List.of("a"), 1);
 
-        String prompt = service.buildPrompt(run, "some upstream text");
+        String prompt = service.buildPrompt(run, "some upstream text", false);
 
         // Naming a directory made it the one filesystem landmark a fresh node had, so
         // nodes wrote their material there and later nodes read files instead of input.
@@ -137,13 +140,117 @@ class WorkflowRunnerServiceTest {
     void anEntryNodeStartedWithoutInputGetsJustItsInstructions() {
         NodeExecution run = run(node("a", "Collect", "Find sources"), List.of(), 0);
 
-        assertThat(service.buildPrompt(run, "")).isEqualTo("Find sources");
+        assertThat(service.buildPrompt(run, "", false)).isEqualTo("Find sources");
     }
 
     @Test
     void aNodeWithNoInstructionsOfItsOwnGetsJustTheInput() {
         NodeExecution run = run(node("b", "Passthrough", ""), List.of("a"), 1);
 
-        assertThat(service.buildPrompt(run, "upstream text")).isEqualTo("upstream text");
+        assertThat(service.buildPrompt(run, "upstream text", false)).isEqualTo("upstream text");
+    }
+
+    // --- the entry step is run differently -------------------------------
+
+    /** Both entry boosts off — what a workflow gets when the switches are flipped. */
+    private final WorkflowRunnerService plain =
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, false, false);
+
+    private WorkflowExecution executionFrom(String entryNodeId) {
+        WorkflowExecution execution = execution("gold prices in 2026");
+        execution.setEntryNodeId(entryNodeId);
+        return execution;
+    }
+
+    @Test
+    void theEntryStepIsAskedToReadTheWebThroughTheBrowserRatherThanFetchPages() {
+        NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
+
+        String prompt = service.buildPrompt(entry, "gold prices in 2026", true);
+
+        assertThat(prompt).contains("chrome-devtools");
+        // Naming what it is preferred over is the half that changes the habit.
+        assertThat(prompt).contains("WebSearch").contains("WebFetch");
+    }
+
+    @Test
+    void theEntryStepsOwnInstructionStillHasTheLastWord() {
+        NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
+
+        String prompt = service.buildPrompt(entry, "gold prices in 2026", true);
+
+        assertThat(prompt.indexOf("chrome-devtools"))
+                .isLessThan(prompt.indexOf("gold prices in 2026"));
+        assertThat(prompt.indexOf("gold prices in 2026")).isLessThan(prompt.indexOf("Find sources"));
+    }
+
+    @Test
+    void theBrowserLineNamesNoPlaceToPutAnything() {
+        NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
+
+        // The reason the old preamble had to go: a filesystem landmark made nodes write
+        // their material out instead of answering with it. A tool preference must not
+        // smuggle one back in.
+        assertThat(service.buildPrompt(entry, "", true))
+                .doesNotContain("research")
+                .doesNotContain("docs/")
+                .doesNotContain("[[TASK_FAILED]]");
+    }
+
+    @Test
+    void noStepBelowTheEntryIsToldAnythingAboutBrowsers() {
+        NodeExecution downstream = run(node("b", "Summarise", "Summarise the input"), List.of("a"), 1);
+
+        assertThat(service.buildPrompt(downstream, "some upstream text", false))
+                .isEqualTo("some upstream text\n\nSummarise the input");
+    }
+
+    @Test
+    void onlyTheEntryStepIsStartedInUltracodeMode() {
+        assertThat(service.sessionArgsFor(true)).isEqualTo(WorkflowRunnerService.ULTRACODE_ARGS);
+        assertThat(service.sessionArgsFor(false)).isEmpty();
+    }
+
+    @Test
+    void theUltracodeArgIsTheSettingsFlagCarryingValidJson() throws Exception {
+        // Hand-written JSON inside a Java string literal: a stray escape would not fail
+        // the build, it would fail every entry step at runtime with a CLI parse error.
+        List<String> args = WorkflowRunnerService.ULTRACODE_ARGS;
+
+        assertThat(args).hasSize(2);
+        assertThat(args.get(0)).isEqualTo("--settings");
+        assertThat(new ObjectMapper().readTree(args.get(1)).path("ultracode").asBoolean()).isTrue();
+    }
+
+    @Test
+    void bothEntryBoostsCanBeTurnedOffAndThenTheEntryStepIsJustAnotherStep() {
+        NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
+
+        assertThat(plain.sessionArgsFor(true)).isEmpty();
+        assertThat(plain.buildPrompt(entry, "gold prices in 2026", true))
+                .isEqualTo("gold prices in 2026\n\nFind sources");
+    }
+
+    @Test
+    void theEntryStepIsTheOneTheRunSnapshottedNotWhicheverCameFirst() {
+        WorkflowExecution execution = executionFrom("b");
+        NodeExecution first = run(node("a", "Collect", ""), List.of(), 0);
+        NodeExecution second = run(node("b", "Also collect", ""), List.of(), 1);
+
+        // Both have no dependencies, so position is not the question — which one the
+        // run recorded as its entry is.
+        assertThat(WorkflowRunnerService.isEntryNode(execution, first)).isFalse();
+        assertThat(WorkflowRunnerService.isEntryNode(execution, second)).isTrue();
+    }
+
+    @Test
+    void aRunRecordedBeforeTheEntryWasSnapshottedFallsBackToHavingNoUpstream() {
+        WorkflowExecution old = execution("gold prices in 2026");
+        NodeExecution entry = run(node("a", "Collect", ""), List.of(), 0);
+        NodeExecution downstream = run(node("b", "Summarise", ""), List.of("a"), 1);
+
+        assertThat(old.getEntryNodeId()).isNull();
+        assertThat(WorkflowRunnerService.isEntryNode(old, entry)).isTrue();
+        assertThat(WorkflowRunnerService.isEntryNode(old, downstream)).isFalse();
     }
 }

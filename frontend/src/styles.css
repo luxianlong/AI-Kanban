@@ -1561,6 +1561,13 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .wf-chip:hover { color: var(--ink); border-color: var(--faint); }
 .wf-chip.on { color: var(--brand-ink); border-color: var(--brand-200); background: var(--brand-100); }
 
+/* The entry step's standing note. Quieter than .wf-node-warn on purpose: nothing is
+   wrong, this is just what the first step does differently. */
+.wf-node-hint {
+  margin: var(--s-2) 0 0;
+  font-size: var(--f-xs); color: var(--muted); line-height: 1.5;
+}
+
 .wf-node-warn {
   margin: var(--s-2) 0 0;
   font-size: var(--f-xs); color: var(--warn-ink);
