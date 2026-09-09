@@ -1,8 +1,25 @@
 // Unit tests for the workflows DAG maths. Run with: node src/workflowGraph.test.mjs
 import assert from 'node:assert/strict'
 import {
-  NODE_H, NODE_W, depths, descendantsOf, inRunOrder, layoutGraph, reachableFrom,
+  NODE_H, NODE_W, depths, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
+
+// An edge is drawn along its points with curve handles at each segment's midpoint,
+// so a segment never leaves the box its two ends span. Overlapping that box with a
+// node's box is therefore enough to catch a line drawn across a step.
+const crossesABox = ({ positions }, edge) => {
+  for (const [id, at] of positions) {
+    if (id === edge.from || id === edge.to) continue
+    for (let i = 1; i < edge.points.length; i += 1) {
+      const a = edge.points[i - 1]
+      const b = edge.points[i]
+      const overX = Math.min(Math.max(a.x, b.x), at.x + NODE_W) - Math.max(Math.min(a.x, b.x), at.x)
+      const overY = Math.min(Math.max(a.y, b.y), at.y + NODE_H) - Math.max(Math.min(a.y, b.y), at.y)
+      if (overX > 0.5 && overY > 0.5) return id
+    }
+  }
+  return null
+}
 
 const n = (id, ...inputs) => ({ id, name: id.toUpperCase(), inputs })
 
@@ -51,6 +68,56 @@ const diamond = [n('a'), n('b', 'a'), n('c', 'a'), n('d', 'b', 'c')]
 }
 
 {
+  // Several sources into one step: each edge gets its own landing point on the left
+  // edge of the box, in the order the sources are stacked, so three arrowheads read
+  // as three and not as one thick one.
+  const layout = layoutGraph([n('a'), n('b'), n('c'), n('d', 'a', 'b', 'c')])
+  const into = layout.edges.filter((e) => e.to === 'd')
+  const at = layout.positions.get('d')
+  assert.equal(into.length, 3)
+  const ends = into.map((e) => e.points[e.points.length - 1])
+  assert.equal(new Set(ends.map((p) => p.y)).size, 3)
+  for (const p of ends) {
+    assert.equal(p.x, at.x) // they all meet the left edge
+    assert.ok(p.y > at.y && p.y < at.y + NODE_H)
+  }
+  // No crossing at the port: sources higher up land higher up.
+  const sourceY = (e) => layout.positions.get(e.from).y
+  const byArrival = [...into].sort((x, y) => x.points.at(-1).y - y.points.at(-1).y)
+  assert.deepEqual(byArrival.map(sourceY), [...into.map(sourceY)].sort((x, y) => x - y))
+  // Edges leaving one step fan out the same way.
+  const outOf = layoutGraph([n('a'), n('b', 'a'), n('c', 'a')]).edges
+  assert.notEqual(outOf[0].points[0].y, outOf[1].points[0].y)
+}
+
+{
+  // An edge that skips a column is routed between that column's boxes, not over
+  // them: a → d jumps two columns past b and c.
+  const skipping = [n('a'), n('b', 'a'), n('c', 'b'), n('d', 'a', 'c')]
+  const layout = layoutGraph(skipping)
+  const long = layout.edges.find((e) => e.from === 'a' && e.to === 'd')
+  assert.ok(long.points.length > 2, 'the long edge should bend around the columns')
+  for (const edge of layout.edges) {
+    assert.equal(crossesABox(layout, edge), null, `${edge.from}→${edge.to} runs over a box`)
+  }
+  // Everything drawn still fits in the reported box.
+  for (const edge of layout.edges) {
+    for (const p of edge.points) {
+      assert.ok(p.x >= 0 && p.x <= layout.width)
+      assert.ok(p.y >= 0 && p.y <= layout.height)
+    }
+  }
+}
+
+{
+  // The path: straight where the row doesn't change, curved where it does.
+  assert.equal(edgePath([{ x: 0, y: 5 }, { x: 10, y: 5 }]), 'M0 5 L10 5')
+  assert.equal(edgePath([{ x: 0, y: 0 }, { x: 10, y: 4 }]), 'M0 0 C5 0, 5 4, 10 4')
+  assert.equal(edgePath([{ x: 0, y: 0 }]), '')
+  assert.equal(edgePath(undefined), '')
+}
+
+{
   // Rows follow the average row of the parents, so branches don't weave: two
   // chains written interleaved still come out as two straight lines.
   const twoChains = [n('a'), n('x1', 'a'), n('y1', 'a'), n('y2', 'y1'), n('x2', 'x1')]
@@ -64,6 +131,8 @@ const diamond = [n('a'), n('b', 'a'), n('c', 'a'), n('d', 'b', 'c')]
   const cyclic = [n('a', 'b'), n('b', 'a')]
   assert.equal(layoutGraph(cyclic).positions.size, 2)
   assert.equal(layoutGraph([]).positions.size, 0)
+  // An input naming a step that has since been deleted is not an edge.
+  assert.equal(layoutGraph([n('a', 'gone')]).edges.length, 0)
 }
 
 console.log('workflowGraph.test.mjs: ok')
