@@ -113,8 +113,9 @@ worker:
 # runner's own pool and the scheduler thread returns immediately, so a nine-minute node
 # no longer blocks anything. This and the worker above also get a scheduler thread each
 # (spring.task.scheduling.pool.size above), so neither waits on the other. A node
-# inherits worker.timeout-seconds; it runs in a per-run scratch directory under
-# java.io.tmpdir, not worker.working-directory.
+# inherits worker.timeout-seconds; it runs in a scratch directory of its OWN under
+# java.io.tmpdir (<tmp>/kanban-workflow/run-<run>/node-<step>), not
+# worker.working-directory, and node-fence-reads below keeps it there.
 workflow:
   poll-interval-ms: 5000
   initial-delay-ms: 12000
@@ -147,6 +148,24 @@ workflow:
   # than a stripped copy of one. Needs the chrome-devtools MCP server to be configured
   # for the CLI; without it the node simply falls back to the tools it does have.
   entry-node-prefer-browser: true
+  # --- What a step can SEE (every node, entry included) ---
+  # Each step already runs in a scratch directory of its own. This is what keeps it
+  # there: it passes permissions.blockReadsOutsideWorkingDirectories to the CLI, which
+  # refuses file-tool reads (Read, Grep, Glob, LSP) outside the session's working
+  # directory — and, unlike a permissions.deny list, it holds in EVERY permission mode,
+  # including the bypassPermissions that worker.extra-args switches on with
+  # --dangerously-skip-permissions. Bash reads outside the directory are refused too.
+  #
+  # So a step cannot read this repo, the live database, another step's scratch files, or
+  # another session's transcript under ~/.claude. The only thing that reaches a step is
+  # the text handed to it across an edge. Writing inside its own directory is unaffected,
+  # and the web is not the filesystem — the entry step's browser and search tools still
+  # work.
+  #
+  # Set to false only for a workflow whose steps genuinely have to read the machine.
+  # Note the consequence if you do the reverse elsewhere: a step that wants a file
+  # outside its directory needs that directory opened deliberately, not this turned off.
+  node-fence-reads: true
 
 logging:
   level:

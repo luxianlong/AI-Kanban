@@ -1,8 +1,11 @@
 package com.kanban.workflow;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WorkflowRunnerServiceTest {
 
     private final WorkflowRunnerService service =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1, true, true);
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, true, true, true);
 
     private WorkflowNode node(String id, String name, String prompt) {
         return new WorkflowNode(id, "wf", name, prompt, null, null);
@@ -154,7 +157,11 @@ class WorkflowRunnerServiceTest {
 
     /** Both entry boosts off — what a workflow gets when the switches are flipped. */
     private final WorkflowRunnerService plain =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1, false, false);
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, false, false, true);
+
+    /** Everything off, including the fence — the only shape with no --settings at all. */
+    private final WorkflowRunnerService unfenced =
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, false, false, false);
 
     private WorkflowExecution executionFrom(String entryNodeId) {
         WorkflowExecution execution = execution("gold prices in 2026");
@@ -207,28 +214,123 @@ class WorkflowRunnerServiceTest {
 
     @Test
     void onlyTheEntryStepIsStartedInUltracodeMode() {
-        assertThat(service.sessionArgsFor(true)).isEqualTo(WorkflowRunnerService.ULTRACODE_ARGS);
-        assertThat(service.sessionArgsFor(false)).isEmpty();
+        assertThat(settings(service.sessionArgsFor(true)).path("ultracode").asBoolean()).isTrue();
+        assertThat(settings(service.sessionArgsFor(false)).has("ultracode")).isFalse();
     }
 
     @Test
-    void theUltracodeArgIsTheSettingsFlagCarryingValidJson() throws Exception {
-        // Hand-written JSON inside a Java string literal: a stray escape would not fail
-        // the build, it would fail every entry step at runtime with a CLI parse error.
-        List<String> args = WorkflowRunnerService.ULTRACODE_ARGS;
+    void theSettingsArgIsTheFlagCarryingValidJson() {
+        // In --print mode a settings value that fails to parse is ignored WITHOUT a word:
+        // a malformed blob would not fail the build or log anything, it would silently
+        // unfence every node and drop ultracode from the entry step.
+        List<String> args = service.sessionArgsFor(true);
 
         assertThat(args).hasSize(2);
         assertThat(args.get(0)).isEqualTo("--settings");
-        assertThat(new ObjectMapper().readTree(args.get(1)).path("ultracode").asBoolean()).isTrue();
+        assertThat(settings(args).isObject()).isTrue();
     }
 
     @Test
     void bothEntryBoostsCanBeTurnedOffAndThenTheEntryStepIsJustAnotherStep() {
         NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
 
-        assertThat(plain.sessionArgsFor(true)).isEmpty();
+        assertThat(settings(plain.sessionArgsFor(true)).has("ultracode")).isFalse();
         assertThat(plain.buildPrompt(entry, "gold prices in 2026", true))
                 .isEqualTo("gold prices in 2026\n\nFind sources");
+    }
+
+    // --- a node cannot see outside its own directory ----------------------
+
+    @Test
+    void everyStepIsFencedIntoItsWorkingDirectoryNotJustTheEntryStep() {
+        // The fence is the one setting that is NOT an entry-step boost: a step handed an
+        // answer to improve has even less business reading the machine than the one that
+        // has to go and find the material.
+        for (boolean entry : new boolean[]{true, false}) {
+            assertThat(settings(service.sessionArgsFor(entry))
+                    .path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
+                    .as("entry=" + entry)
+                    .isTrue();
+        }
+    }
+
+    @Test
+    void theFenceAndUltracodeTravelInOneSettingsBlobBecauseASecondOneWouldReplaceIt() {
+        // --settings takes a single value, so two occurrences do not merge — the last
+        // wins. Passing the fence as its own flag would quietly switch ultracode back
+        // off on the one node that is supposed to have it.
+        List<String> args = service.sessionArgsFor(true);
+
+        assertThat(args).filteredOn("--settings"::equals).hasSize(1);
+        JsonNode blob = settings(args);
+        assertThat(blob.path("ultracode").asBoolean()).isTrue();
+        assertThat(blob.path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
+                .isTrue();
+    }
+
+    @Test
+    void theFenceCanBeTurnedOffAndThenAPlainStepGetsNoSettingsAtAll() {
+        assertThat(unfenced.sessionArgsFor(false)).isEmpty();
+        assertThat(unfenced.sessionArgsFor(true)).isEmpty();
+    }
+
+    @Test
+    void eachStepOfARunGetsItsOwnDirectorySoItCannotReadASiblingsScratchFiles() {
+        WorkflowExecution execution = executionFrom("a");
+        NodeExecution first = withId(run(node("a", "Collect", ""), List.of(), 0), 11L);
+        NodeExecution second = withId(run(node("b", "Summarise", ""), List.of("a"), 1), 12L);
+
+        File a = WorkflowRunnerService.workDirFor(execution, first);
+        File b = WorkflowRunnerService.workDirFor(execution, second);
+
+        assertThat(a).isNotEqualTo(b);
+        // Neither is inside the other, so the fence around one excludes the other.
+        assertThat(b.toPath().startsWith(a.toPath())).isFalse();
+        assertThat(a.toPath().startsWith(b.toPath())).isFalse();
+        // Still grouped under the run, and still out of the repo.
+        assertThat(a.getParentFile()).isEqualTo(b.getParentFile());
+        assertThat(a.getPath()).startsWith(System.getProperty("java.io.tmpdir"));
+    }
+
+    @Test
+    void aReRunOfOneStepLandsBackInItsOwnDirectory() {
+        // Keyed on the node run's id, which a re-run reuses (it bumps attempt instead),
+        // so a retried step sees its own leftovers and never a sibling's.
+        WorkflowExecution execution = executionFrom("a");
+        NodeExecution first = withId(run(node("a", "Collect", ""), List.of(), 0), 11L);
+        File before = WorkflowRunnerService.workDirFor(execution, first);
+
+        first.resetForRetry();
+
+        assertThat(WorkflowRunnerService.workDirFor(execution, first)).isEqualTo(before);
+    }
+
+    /**
+     * A node run with the id the database would have given it. {@code workDirFor} keys on
+     * that id, and it is the one field a detached entity cannot be handed through a
+     * constructor or a setter.
+     */
+    private NodeExecution withId(NodeExecution run, long id) {
+        try {
+            java.lang.reflect.Field field = NodeExecution.class.getDeclaredField("id");
+            field.setAccessible(true);
+            field.set(run, id);
+            return run;
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("NodeExecution no longer has an 'id' field", e);
+        }
+    }
+
+    /** The blob the CLI would parse out of {@code --settings}. */
+    private JsonNode settings(List<String> args) {
+        if (args.isEmpty()) {
+            return JsonNodeFactory.instance.objectNode();
+        }
+        try {
+            return new ObjectMapper().readTree(args.get(args.indexOf("--settings") + 1));
+        } catch (Exception e) {
+            throw new AssertionError("--settings did not carry parseable JSON: " + args, e);
+        }
     }
 
     @Test
