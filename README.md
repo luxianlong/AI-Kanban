@@ -231,6 +231,14 @@ Each node holds a prompt you write. Every **workflow execution** starts at the
 single entry node, which receives whatever text you type when starting the run;
 each later node runs once every node feeding it has succeeded.
 
+The editor *is* that picture: the DAG is drawn left→right in run order, and picking
+a box opens that step's prompt underneath it — one step at a time, so the shape of
+the graph stays visible while you edit. Connections are made with the **Input from**
+chips on the open step rather than by dragging lines; a step that is downstream is
+never offered, because that would close a loop. Each run redraws the same graph with
+every box coloured by how that step went, and picking a box there opens its input,
+output and live log.
+
 **Nodes do not share context.** Every node is a brand-new headless session —
 nothing is resumed, and no conversation history crosses an edge. The only thing a
 node inherits is the *output text* of the node(s) feeding it, pasted into its

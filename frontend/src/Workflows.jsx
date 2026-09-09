@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { api } from './api.js'
 import Icon from './Icon.jsx'
 import Markdown from './Markdown.jsx'
 import { relTime, runMeta } from './time.js'
+import {
+  NODE_H, NODE_W, descendantsOf, inRunOrder, layoutGraph, reachableFrom,
+} from './workflowGraph.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
 // produced on the right. Both halves live on one page because they are two views of
@@ -55,16 +58,6 @@ function draftFrom(workflow) {
   }
 }
 
-/** Nodes sorted so each comes after everything feeding it; ties keep their order. */
-function inRunOrder(nodes) {
-  const depth = depths(nodes)
-  return nodes
-    .map((node, index) => ({ node, index }))
-    .sort((a, b) =>
-      (depth.get(a.node.id) ?? 0) - (depth.get(b.node.id) ?? 0) || a.index - b.index)
-    .map(({ node }) => node)
-}
-
 function payloadFrom(draft) {
   return {
     name: draft.name.trim(),
@@ -73,68 +66,6 @@ function payloadFrom(draft) {
     nodes: draft.nodes.map((n) => ({ id: n.id, name: n.name.trim() || 'Untitled step', prompt: n.prompt })),
     edges: draft.nodes.flatMap((n) => n.inputs.map((from) => ({ from, to: n.id }))),
   }
-}
-
-/**
- * Everything downstream of `startId`, following the inputs the other way. Used to
- * hide the connections that would make a cycle: a node can never be fed by one of
- * its own descendants, and offering the choice only to reject it server-side would
- * be a worse way to learn that.
- */
-function descendantsOf(nodes, startId) {
-  const out = new Set()
-  const queue = [startId]
-  while (queue.length) {
-    const current = queue.pop()
-    for (const node of nodes) {
-      if (node.inputs.includes(current) && !out.has(node.id)) {
-        out.add(node.id)
-        queue.push(node.id)
-      }
-    }
-  }
-  return out
-}
-
-/**
- * Column (depth) of every node: one past the deepest thing feeding it. Drives the
- * graph preview's left-to-right layout, so the picture matches the order the runner
- * will actually work through the graph.
- */
-function depths(nodes) {
-  const byId = new Map(nodes.map((n) => [n.id, n]))
-  const memo = new Map()
-  const visit = (id, seen) => {
-    if (memo.has(id)) return memo.get(id)
-    if (seen.has(id)) return 0 // a cycle can only exist mid-edit; don't hang on it
-    seen.add(id)
-    const node = byId.get(id)
-    const depth = !node || node.inputs.length === 0
-      ? 0
-      : 1 + Math.max(...node.inputs.map((from) => visit(from, seen)))
-    seen.delete(id)
-    memo.set(id, depth)
-    return depth
-  }
-  const result = new Map()
-  for (const node of nodes) result.set(node.id, visit(node.id, new Set()))
-  return result
-}
-
-/** Node ids a run can actually get to by following edges out of the entry node. */
-function reachableFrom(nodes, entryNodeId) {
-  const seen = new Set(entryNodeId ? [entryNodeId] : [])
-  let grew = true
-  while (grew) {
-    grew = false
-    for (const node of nodes) {
-      if (!seen.has(node.id) && node.inputs.some((from) => seen.has(from))) {
-        seen.add(node.id)
-        grew = true
-      }
-    }
-  }
-  return seen
 }
 
 // ---------------------------------------------------------------------------
@@ -395,6 +326,11 @@ export default function WorkflowsPage({ onBack }) {
 
 function WorkflowEditor({ draft, onChange, onSave, onRun, onDelete, busy }) {
   const [runInput, setRunInput] = useState('')
+  // The graph is the editing surface: click a step in the picture and its card
+  // opens underneath. Every prompt shown at once turned the page into a column of
+  // textareas in which the shape of the graph — the thing being authored — was the
+  // one thing you couldn't see.
+  const [selectedId, setSelectedId] = useState(draft.entryNodeId)
   const update = (patch) => onChange({ ...draft, ...patch })
 
   const setNode = (id, patch) =>
@@ -402,6 +338,7 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDelete, busy }) {
 
   const addNode = () => {
     const id = newId()
+    setSelectedId(id)
     // A new step is wired to the last one by default: a chain is what people mean
     // most of the time, and unhooking is easier than hunting for the connection.
     const previous = draft.nodes[draft.nodes.length - 1]
@@ -418,12 +355,13 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDelete, busy }) {
     const nodes = draft.nodes
       .filter((n) => n.id !== id)
       .map((n) => ({ ...n, inputs: n.inputs.filter((from) => from !== id) }))
-    update({
-      nodes,
+    const entryNodeId = draft.entryNodeId === id
       // Deleting the entry has to hand the role to something, or the workflow
       // becomes unsaveable without the user working out why.
-      entryNodeId: draft.entryNodeId === id ? nodes.find((n) => !n.inputs.length)?.id ?? nodes[0]?.id : draft.entryNodeId,
-    })
+      ? nodes.find((n) => !n.inputs.length)?.id ?? nodes[0]?.id
+      : draft.entryNodeId
+    if (selectedId === id) setSelectedId(entryNodeId)
+    update({ nodes, entryNodeId })
   }
 
   const toggleInput = (nodeId, fromId) => {
@@ -438,6 +376,11 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDelete, busy }) {
     () => reachableFrom(draft.nodes, draft.entryNodeId),
     [draft.nodes, draft.entryNodeId],
   )
+  // Falls back rather than blanking: a draft can be replaced under us by a save
+  // (ids survive) or by starting a second new workflow (they don't).
+  const selected = draft.nodes.find((n) => n.id === selectedId)
+    ?? draft.nodes.find((n) => n.id === draft.entryNodeId)
+    ?? draft.nodes[0]
   const canSave = draft.name.trim().length > 0 && draft.nodes.length > 0 && !busy
 
   return (
@@ -457,28 +400,36 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDelete, busy }) {
         maxLength={2000}
       />
 
-      <GraphPreview nodes={draft.nodes} entryNodeId={draft.entryNodeId} reachable={reachable} />
+      <WorkflowGraph
+        nodes={draft.nodes}
+        entryNodeId={draft.entryNodeId}
+        reachable={reachable}
+        selectedId={selected?.id}
+        onSelect={setSelectedId}
+        label="Workflow graph — pick a step to edit it"
+      />
 
-      <div className="wf-nodes">
-        {draft.nodes.map((node, index) => (
-          <NodeEditor
-            key={node.id}
-            node={node}
-            index={index}
-            all={draft.nodes}
-            isEntry={node.id === draft.entryNodeId}
-            unreached={!reachable.has(node.id)}
-            onChange={(patch) => setNode(node.id, patch)}
-            onMakeEntry={() => update({ entryNodeId: node.id })}
-            onToggleInput={(fromId) => toggleInput(node.id, fromId)}
-            onRemove={draft.nodes.length > 1 ? () => removeNode(node.id) : null}
-          />
-        ))}
+      <div className="wf-graph-bar">
+        <button type="button" className="btn ghost wf-add-node" onClick={addNode}>
+          <Icon name="plus" size={14} /> Add step
+        </button>
+        <span className="wf-run-hint">Pick a step in the graph to edit it.</span>
       </div>
 
-      <button type="button" className="btn ghost wf-add-node" onClick={addNode}>
-        <Icon name="plus" size={14} /> Add step
-      </button>
+      {selected && (
+        <NodeEditor
+          key={selected.id}
+          node={selected}
+          index={draft.nodes.indexOf(selected)}
+          all={draft.nodes}
+          isEntry={selected.id === draft.entryNodeId}
+          unreached={!reachable.has(selected.id)}
+          onChange={(patch) => setNode(selected.id, patch)}
+          onMakeEntry={() => update({ entryNodeId: selected.id })}
+          onToggleInput={(fromId) => toggleInput(selected.id, fromId)}
+          onRemove={draft.nodes.length > 1 ? () => removeNode(selected.id) : null}
+        />
+      )}
 
       <div className="wf-editor-actions">
         <button type="button" className="btn primary" onClick={onSave} disabled={!canSave}>
@@ -601,76 +552,146 @@ function NodeEditor({
 }
 
 /**
- * A left-to-right picture of the graph: one column per depth, curves for the edges.
- * Small on purpose — it exists to answer "did I wire this the way I think?", which
- * a list of "input from" chips alone can't.
+ * The DAG itself: one column per depth, curved edges with arrowheads, drawn from
+ * the layout in workflowGraph.js. This is the page's main view of a workflow, in
+ * the editor and in a run alike — a run passes `statuses` and gets the same boxes
+ * coloured by how each step went.
+ *
+ * Nodes are selectable (click, or Enter/Space when focused); edges are not drawn
+ * or dragged here — connections stay on the "Input from" chips, where a wrong one
+ * is a mis-click rather than a mis-aimed line.
  */
-function GraphPreview({ nodes, entryNodeId, reachable }) {
-  const layout = useMemo(() => {
-    const depth = depths(nodes)
-    const columns = new Map()
-    for (const node of nodes) {
-      const d = depth.get(node.id) ?? 0
-      if (!columns.has(d)) columns.set(d, [])
-      columns.get(d).push(node)
-    }
-    const COL = 150
-    const ROW = 46
-    const positions = new Map()
-    for (const [d, column] of columns) {
-      column.forEach((node, row) => {
-        positions.set(node.id, { x: 20 + d * COL, y: 16 + row * ROW })
-      })
-    }
-    const tallest = Math.max(...[...columns.values()].map((c) => c.length), 1)
-    return {
-      positions,
-      width: 20 + (Math.max(...columns.keys(), 0) + 1) * COL,
-      height: 16 + tallest * ROW + 12,
-    }
-  }, [nodes])
+function WorkflowGraph({
+  nodes, entryNodeId, reachable, selectedId, onSelect, statuses, label,
+}) {
+  const layout = useMemo(() => layoutGraph(nodes), [nodes])
+  // The number on a box is the step's place in run order, which is what the
+  // picture is arranged by — not the order the steps happen to be stored in.
+  const order = useMemo(
+    () => new Map(inRunOrder(nodes).map((n, index) => [n.id, index + 1])),
+    [nodes],
+  )
+  // One marker per instance: several graphs can be on screen at once (each open
+  // run has one) and duplicate SVG ids resolve to whichever came first.
+  const arrow = `wf-arrow-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
-  const W = 116
-  const H = 30
+  // A long chain scrolls sideways, and "Add step" selects the step it just made —
+  // which would otherwise appear off the right edge and look like nothing happened.
+  const boxRef = useRef(null)
+  useEffect(() => {
+    const box = boxRef.current
+    const at = selectedId && layout.positions.get(selectedId)
+    if (!box || !at) return
+    const left = at.x - 16
+    const right = at.x + NODE_W + 16
+    if (left < box.scrollLeft) box.scrollTo({ left, behavior: 'smooth' })
+    else if (right > box.scrollLeft + box.clientWidth) {
+      box.scrollTo({ left: right - box.clientWidth, behavior: 'smooth' })
+    }
+  }, [selectedId, layout])
+
+  if (!nodes.length) return null
 
   return (
-    <div className="wf-graph">
+    <div className="wf-graph" ref={boxRef}>
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
-        width="100%"
+        width={layout.width}
         height={layout.height}
         role="img"
-        aria-label="Workflow graph"
+        aria-label={label || 'Workflow graph'}
       >
+        <defs>
+          <marker
+            id={arrow}
+            viewBox="0 0 8 8"
+            refX="7"
+            refY="4"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path className="wf-arrowhead" d="M0 0 L8 4 L0 8 z" />
+          </marker>
+        </defs>
+
         {nodes.flatMap((node) =>
           node.inputs.map((fromId) => {
             const from = layout.positions.get(fromId)
             const to = layout.positions.get(node.id)
             if (!from || !to) return null
-            const x1 = from.x + W
-            const y1 = from.y + H / 2
+            const x1 = from.x + NODE_W
+            const y1 = from.y + NODE_H / 2
             const x2 = to.x
-            const y2 = to.y + H / 2
+            const y2 = to.y + NODE_H / 2
             const mid = (x1 + x2) / 2
             return (
               <path
                 key={`${fromId}-${node.id}`}
-                className="wf-edge"
+                className={`wf-edge ${selectedId === node.id || selectedId === fromId ? 'on' : ''}`}
+                markerEnd={`url(#${arrow})`}
                 d={`M${x1} ${y1} C${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`}
               />
             )
           }),
         )}
+
         {nodes.map((node) => {
           const at = layout.positions.get(node.id)
           if (!at) return null
           const isEntry = node.id === entryNodeId
+          const status = statuses?.get(node.id)
+          const subtitle = status
+            ? stateLabel(status)
+            : (isEntry ? 'Entry' : (reachable && !reachable.has(node.id) ? 'Unreached' : null))
+          const classes = [
+            'wf-gnode',
+            isEntry ? 'entry' : '',
+            reachable && !reachable.has(node.id) ? 'unreached' : '',
+            selectedId === node.id ? 'on' : '',
+            status ? status.toLowerCase() : '',
+            onSelect ? 'pickable' : '',
+          ].filter(Boolean).join(' ')
           return (
-            <g key={node.id} className={`wf-gnode ${isEntry ? 'entry' : ''} ${reachable.has(node.id) ? '' : 'unreached'}`}>
-              <rect x={at.x} y={at.y} width={W} height={H} rx="8" />
-              <text x={at.x + W / 2} y={at.y + H / 2 + 4} textAnchor="middle">
+            <g
+              key={node.id}
+              className={classes}
+              role={onSelect ? 'button' : undefined}
+              tabIndex={onSelect ? 0 : undefined}
+              aria-pressed={onSelect ? selectedId === node.id : undefined}
+              aria-label={onSelect ? `Step ${order.get(node.id)}: ${node.name || 'Untitled'}` : undefined}
+              onClick={onSelect ? () => onSelect(node.id) : undefined}
+              onKeyDown={onSelect ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onSelect(node.id)
+                }
+              } : undefined}
+            >
+              {/* A halo rather than a heavier border: the border already carries
+                  "entry", and a status fill already carries how the step went. */}
+              {selectedId === node.id && (
+                <rect
+                  className="wf-gnode-ring"
+                  x={at.x - 4}
+                  y={at.y - 4}
+                  width={NODE_W + 8}
+                  height={NODE_H + 8}
+                  rx="13"
+                />
+              )}
+              <rect x={at.x} y={at.y} width={NODE_W} height={NODE_H} rx="9" />
+              <text className="wf-gnode-num" x={at.x + 12} y={at.y + (subtitle ? 20 : 28)}>
+                {order.get(node.id)}
+              </text>
+              <text className="wf-gnode-name" x={at.x + 28} y={at.y + (subtitle ? 20 : 28)}>
                 {truncate(node.name || 'Untitled', 16)}
               </text>
+              {subtitle && (
+                <text className="wf-gnode-sub" x={at.x + 28} y={at.y + 34}>
+                  {subtitle}
+                </text>
+              )}
             </g>
           )
         })}
@@ -685,7 +706,27 @@ function GraphPreview({ nodes, entryNodeId, reachable }) {
 
 function ExecutionCard({ execution, showWorkflowName, onChanged }) {
   const [open, setOpen] = useState(false)
+  // Which step's detail is expanded. A run's picture is the same graph the editor
+  // draws, so picking a box here means the same thing it does there: show me this
+  // step. The list underneath stays — it is where the input, output and log live.
+  const [openNodeId, setOpenNodeId] = useState(null)
   const live = execution.status === 'PENDING' || execution.status === 'RUNNING'
+
+  const graphNodes = useMemo(
+    () => execution.nodes.map((n) => ({ id: n.nodeId, name: n.nodeName, inputs: n.dependsOn || [] })),
+    [execution.nodes],
+  )
+  const statuses = useMemo(
+    () => new Map(execution.nodes.map((n) => [n.nodeId, n.status])),
+    [execution.nodes],
+  )
+
+  // Whatever is running is what you want open; it is also the only thing with a
+  // live log to follow.
+  const runningNodeId = execution.nodes.find((n) => n.status === 'RUNNING')?.nodeId
+  useEffect(() => {
+    if (runningNodeId) setOpenNodeId(runningNodeId)
+  }, [runningNodeId])
 
   async function cancel(e) {
     e.stopPropagation()
@@ -752,9 +793,23 @@ function ExecutionCard({ execution, showWorkflowName, onChanged }) {
           )}
           {execution.error && <p className="wf-node-warn">{execution.error}</p>}
 
+          <WorkflowGraph
+            nodes={graphNodes}
+            entryNodeId={execution.nodes[0]?.nodeId}
+            statuses={statuses}
+            selectedId={openNodeId}
+            onSelect={(id) => setOpenNodeId((current) => (current === id ? null : id))}
+            label={`Run #${execution.id} graph — pick a step to see what it did`}
+          />
+
           <ol className="wf-noderuns">
             {execution.nodes.map((run) => (
-              <NodeRun key={run.id} run={run} />
+              <NodeRun
+                key={run.id}
+                run={run}
+                open={openNodeId === run.nodeId}
+                onToggle={() => setOpenNodeId((current) => (current === run.nodeId ? null : run.nodeId))}
+              />
             ))}
           </ol>
         </div>
@@ -763,8 +818,7 @@ function ExecutionCard({ execution, showWorkflowName, onChanged }) {
   )
 }
 
-function NodeRun({ run }) {
-  const [open, setOpen] = useState(false)
+function NodeRun({ run, open, onToggle }) {
   const [log, setLog] = useState('')
   const running = run.status === 'RUNNING'
 
@@ -788,14 +842,11 @@ function NodeRun({ run }) {
     return () => { cancelled = true; clearInterval(t) }
   }, [running])
 
-  // A running node opens itself, so the live log is what you see without hunting.
-  useEffect(() => { if (running) setOpen(true) }, [running])
-
   const meta = runMeta(run)
 
   return (
-    <li className={`wf-noderun ${run.status.toLowerCase()}`}>
-      <button type="button" className="wf-noderun-head" onClick={() => setOpen((v) => !v)}>
+    <li className={`wf-noderun ${run.status.toLowerCase()} ${open ? 'open' : ''}`}>
+      <button type="button" className="wf-noderun-head" onClick={onToggle}>
         <span className={`wf-dot ${run.status.toLowerCase()}`} aria-hidden />
         <span className="wf-noderun-name">{run.nodeName}</span>
         <span className="wf-noderun-state">{stateLabel(run.status)}</span>
