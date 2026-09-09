@@ -13,6 +13,7 @@ import {
   isPublicApiPath,
   isUploadedPagePath,
   isCrawlerFilePath,
+  isSiteVerificationPath,
   buildRobotsTxt,
   buildSitemap,
   requestOrigin,
@@ -61,6 +62,7 @@ const CREDS_FILE = path.resolve(import.meta.dirname, '.public-auth.json')
 // The generated docs site — used by the public-docs gate (task #268) to learn
 // which docs are private and to serve a filtered listing to anonymous visitors.
 const API_ORIGIN = 'http://localhost:8080'
+const PUBLIC_DIR = path.resolve(import.meta.dirname, 'public')
 const MANIFEST_FILE = path.resolve(import.meta.dirname, 'public', 'docs-manifest.json')
 const INDEX_FILE = path.resolve(import.meta.dirname, 'public', 'docs.html')
 
@@ -315,6 +317,35 @@ function serveViewCounts(res, manifest) {
     .catch(() => send({}))
 }
 
+// --- Canonical host -----------------------------------------------------
+// The certificate covers youraikanban.com AND www.youraikanban.com, and both
+// resolve to this box, so before this every public doc was reachable at two
+// URLs. Google treats those as separate pages competing with each other, which
+// splits ranking signals and doubles what Search Console reports. Fold www onto
+// the apex with a 301 so there is exactly one address per document.
+function canonicalHost() {
+  return {
+    name: 'canonical-host-redirect',
+    configureServer(server) {
+      // Read TLS_HOSTS here, not at module top level: it is declared further
+      // down beside the certificate, so touching it during module evaluation
+      // would be a temporal-dead-zone ReferenceError.
+      const [canonical] = TLS_HOSTS
+      server.middlewares.use((req, res, next) => {
+        const host = String(req.headers.host || '').split(':')[0]
+        // Only fold hosts the cert covers; a bare-IP or localhost request is
+        // left alone so local dev and health checks keep working.
+        if (host === canonical || !TLS_HOSTS.includes(host)) return next()
+        res.writeHead(301, {
+          Location: `https://${canonical}${req.url || '/'}`,
+          'Cache-Control': 'no-store',
+        })
+        res.end()
+      })
+    },
+  }
+}
+
 function basicAuthGate() {
   const cache = { mtimeMs: -1, creds: null }
   const manifestCache = { mtimeMs: -1, data: null }
@@ -359,6 +390,20 @@ function basicAuthGate() {
           // show up in minutes rather than being pinned by an edge cache.
           res.setHeader('Cache-Control', 'public, max-age=600')
           return res.end(req.method === 'HEAD' ? undefined : body)
+        }
+
+        // Google Search Console's verification file must answer 200 without the
+        // password (see isSiteVerificationPath). Placed before the "gate off"
+        // short-circuit so it behaves identically in local dev, and before the
+        // gate itself so an anonymous fetch is never challenged. Vite serves the
+        // file itself out of public/ — this only decides it may pass.
+        if (isSiteVerificationPath(urlPath) && (req.method === 'GET' || req.method === 'HEAD')) {
+          // Only when the file is really there. Waving the path through
+          // unconditionally hands unknown paths to Vite's SPA fallback, which
+          // answers 200 with the BOARD'S app shell — so anyone who guessed the
+          // name shape got the private app's HTML. basename() keeps a crafted
+          // path from escaping public/ even though the pattern already can't.
+          if (fs.existsSync(path.join(PUBLIC_DIR, path.basename(urlPath)))) return next()
         }
 
         // Public static-page upload API (task #470): POST /api/pages must work
@@ -610,7 +655,7 @@ function httpToHttpsRedirect() {
 }
 
 export default defineConfig({
-  plugins: [basicAuthGate(), httpToHttpsRedirect(), react()],
+  plugins: [canonicalHost(), basicAuthGate(), httpToHttpsRedirect(), react()],
   server: {
     // 443 (like 80 before it) needs cap_net_bind_service on the node binary
     // (`getcap $(which node)`), which is already granted.

@@ -309,6 +309,16 @@ export function buildSitemap(manifest, origin) {
 // Google/Bing, so each `Allow` below overrides the blanket `Disallow: /`.
 // Bespoke docs live at the web root (/singapore.html), which no prefix rule
 // covers, so they get an explicit Allow line each, straight from the manifest.
+// Google Search Console's HTML-file verification drops a `google<token>.html`
+// at the site root and fetches it anonymously. Every path this server does not
+// recognise answers 401, so without an exemption verification always fails —
+// and the meta-tag method is impossible here because the homepage IS the
+// password-gated board. The name shape is fixed by Google, so matching it
+// exposes nothing else: drop the file Google gives you into frontend/public/.
+export function isSiteVerificationPath(urlPath) {
+  return /^\/google[0-9a-f]{6,}\.html$/.test(String(urlPath || ''))
+}
+
 export function buildRobotsTxt(manifest, origin) {
   const rootDocs = publicDocPaths(manifest)
     .map((d) => d.loc)
@@ -324,6 +334,11 @@ export function buildRobotsTxt(manifest, origin) {
     // Mermaid & friends: a crawler that cannot fetch them renders a doc's
     // diagrams as raw text (task #81).
     'Allow: /vendor/',
+    // Search Console fetches the sitemap as a normal crawl, so `Disallow: /`
+    // below would otherwise make it unreadable and the submission would fail.
+    // Same for the google*.html verification file (see isSiteVerificationPath).
+    'Allow: /sitemap.xml',
+    'Allow: /google',
     ...rootDocs.map((loc) => `Allow: ${loc}`),
     'Disallow: /api/',
     'Disallow: /__auth/',

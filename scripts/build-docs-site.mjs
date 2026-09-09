@@ -380,6 +380,47 @@ const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />`
 
+// --- Indexing metadata (Search Console) ---------------------------------
+// The public origin these pages are served from. Every canonical URL must be
+// absolute, and it must name ONE host: www and the apex both resolve here, so
+// without this Google sees two competing copies of every document.
+const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://youraikanban.com'
+
+// esc() is a TEXT escaper (& < > only). Interpolating its output into a quoted
+// attribute leaves any ASCII double quote in the source intact, which ends the
+// attribute early and corrupts the rest of the tag — two of these documents
+// really do quote a phrase that way. Attributes need the quotes escaped too.
+function escAttr(s) {
+  return esc(String(s ?? '')).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+// These pages are mostly Chinese but the template hardcoded lang="en", which
+// tells Google to consider them for English queries and mis-selects the fonts
+// and hyphenation a browser applies. Decide per document from the text itself
+// rather than assuming, since a few (public-api, staff) really are English.
+function detectLang(text) {
+  const stripped = String(text || '').replace(/<[^>]*>/g, '')
+  const cjk = (stripped.match(/[\u4e00-\u9fff]/g) || []).length
+  const letters = (stripped.match(/[A-Za-z]/g) || []).length
+  // CJK is information-dense: a page reads as Chinese well before it has as
+  // many han characters as it has latin letters.
+  return cjk > 0 && cjk * 4 > letters ? 'zh-CN' : 'en'
+}
+
+// A search result shows ~155 chars of description. Without one Google invents a
+// snippet from whatever text it finds first, which on these pages is the table
+// of contents. Take the first real paragraph instead.
+function metaDescription(bodyHtml) {
+  const firstPara = String(bodyHtml || '').match(/<p[^>]*>([\s\S]*?)<\/p>/i)
+  const text = (firstPara ? firstPara[1] : String(bodyHtml || ''))
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-z]+;|&#\d+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!text) return ''
+  return text.length > 155 ? `${text.slice(0, 154).trimEnd()}…` : text
+}
+
 function renderDocPage({ id, title, body, toc, hasMermaid }) {
   const sidebar = toc.length
     ? `<nav class="toc" aria-label="目录">
@@ -389,12 +430,15 @@ ${toc.map((h) => `<li class="lv${h.level}"><a href="#${h.id}">${esc(h.text)}</a>
 </ul>
 </nav>`
     : '<div></div>'
+  const desc = metaDescription(body)
   return `<!doctype html>
-<html lang="en">
+<html lang="${detectLang(`${title} ${body}`)}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>${esc(title)} · 文章存档</title>
+<title>${esc(title)} · 文章存档</title>${
+    desc ? `\n<meta name="description" content="${escAttr(desc)}" />` : ''
+  }${id ? `\n<link rel="canonical" href="${SITE_ORIGIN}/docs/${escAttr(id)}.html" />` : ''}
 ${FONTS}
 <style>${THEME}${CONTENT_CSS}</style>
 </head>
@@ -707,12 +751,13 @@ function renderIndex(cards) {
     })
     .join('\n')
   return `<!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>文章存档</title>
 <meta name="description" content="随手写下的报告、攻略和笔记，按更新时间排列。" />
+<link rel="canonical" href="${SITE_ORIGIN}/docs.html" />
 ${FONTS}
 <style>${THEME}
 ${INDEX_CSS}</style>

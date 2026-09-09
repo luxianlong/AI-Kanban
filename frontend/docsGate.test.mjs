@@ -19,6 +19,7 @@ import {
   shouldCountView,
   isCrawlerFilePath,
   isSecureRequest,
+  isSiteVerificationPath,
   requestOrigin,
   publicDocPaths,
   buildSitemap,
@@ -247,6 +248,17 @@ check('request origin honours the forwarded scheme and host', () => {
   // A junk/spoofed Host can't inject a foreign origin or markup.
   assert.equal(requestOrigin({ headers: { host: 'evil.com/"><b>' } }), 'http://localhost')
   assert.equal(requestOrigin({ headers: {} }), 'http://localhost')
+})
+
+check('only Google\'s real verification filename shape is recognised', () => {
+  assert.equal(isSiteVerificationPath('/google1234567890abcdef.html'), true)
+  // Anything else must NOT be exempted from the password gate.
+  assert.equal(isSiteVerificationPath('/googleEVIL.html'), false)
+  assert.equal(isSiteVerificationPath('/google.html'), false)
+  assert.equal(isSiteVerificationPath('/docs/google123456.html'), false)
+  assert.equal(isSiteVerificationPath('/google123456.html/../index.html'), false)
+  assert.equal(isSiteVerificationPath('/'), false)
+  assert.equal(isSiteVerificationPath(''), false)
 })
 
 check('a directly-terminated TLS socket counts as secure', () => {
