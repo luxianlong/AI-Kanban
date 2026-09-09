@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,6 +48,27 @@ class WorkflowRetryTest {
     private List<String> retriedIds(List<NodeExecution> runs, WorkflowExecution execution) {
         return WorkflowService.nodesToRetry(runs, execution).stream()
                 .map(NodeExecution::getNodeId).toList();
+    }
+
+    private List<String> rerunIdsFrom(List<NodeExecution> runs, WorkflowExecution execution, String nodeId) {
+        return WorkflowService.nodesToRerunFrom(runs, execution, nodeId).stream()
+                .map(NodeExecution::getNodeId).toList();
+    }
+
+    /** A run of the chain where every wired step worked — the case single-step re-run is for. */
+    private List<NodeExecution> successfulChain() {
+        List<NodeExecution> runs = chainWithAnOrphan();
+        find(runs, "a").setStatus(RunState.SUCCEEDED);
+        find(runs, "b").setStatus(RunState.SUCCEEDED);
+        find(runs, "c").setStatus(RunState.SUCCEEDED);
+        find(runs, "orphan").setStatus(RunState.SKIPPED);
+        return runs;
+    }
+
+    private WorkflowExecution succeededRun(String entryNodeId) {
+        WorkflowExecution execution = failedRun(entryNodeId);
+        execution.setStatus(RunState.SUCCEEDED);
+        return execution;
     }
 
     // --- what a retry picks up -------------------------------------------
@@ -195,5 +217,124 @@ class WorkflowRetryTest {
     @Test
     void aRowWrittenBeforeRetriesExistedCountsAsTheFirstAttempt() {
         assertThat(nodeRun("a", "Collect", List.of(), 0).getAttempt()).isEqualTo(1);
+    }
+
+    // --- re-running one step the user picked ------------------------------
+
+    @Test
+    void reRunningAStepTakesEverythingDownstreamOfIt() {
+        // The point of the feature: "Summarise" succeeded, but on the wrong angle. The
+        // fix is to redo it — and "Publish" read its output, so that has to go too.
+        List<NodeExecution> runs = successfulChain();
+
+        assertThat(rerunIdsFrom(runs, succeededRun("a"), "b")).containsExactly("b", "c");
+    }
+
+    @Test
+    void reRunningAStepLeavesWhatFedItAlone() {
+        // Upstream output is exactly the input the redone step needs, and it is what
+        // makes this cheaper than starting the workflow over.
+        List<NodeExecution> runs = successfulChain();
+        find(runs, "a").setOutput("three sources");
+
+        assertThat(rerunIdsFrom(runs, succeededRun("a"), "b")).doesNotContain("a");
+        assertThat(find(runs, "a").getOutput()).isEqualTo("three sources");
+    }
+
+    @Test
+    void reRunningTheLastStepIsJustThatStep() {
+        assertThat(rerunIdsFrom(successfulChain(), succeededRun("a"), "c")).containsExactly("c");
+    }
+
+    @Test
+    void reRunningTheEntryTakesTheWholeWiredGraphButNotTheUnwiredBranch() {
+        assertThat(rerunIdsFrom(successfulChain(), succeededRun("a"), "a"))
+                .containsExactly("a", "b", "c");
+    }
+
+    @Test
+    void reRunningAForkTakesBothBranchesUnderIt() {
+        // a → b → d and a → c → d. Redoing b invalidates d, which joins them; c is on
+        // the other side of the fork and never read b's output, so it stays.
+        List<NodeExecution> runs = new ArrayList<>();
+        runs.add(nodeRun("a", "Collect", List.of(), 0));
+        runs.add(nodeRun("b", "Angle one", List.of("a"), 1));
+        runs.add(nodeRun("c", "Angle two", List.of("a"), 2));
+        runs.add(nodeRun("d", "Merge", List.of("b", "c"), 3));
+        runs.forEach(r -> r.setStatus(RunState.SUCCEEDED));
+
+        assertThat(rerunIdsFrom(runs, succeededRun("a"), "b")).containsExactly("b", "d");
+        assertThat(rerunIdsFrom(runs, succeededRun("a"), "a")).containsExactly("a", "b", "c", "d");
+    }
+
+    @Test
+    void aStepTheEntryCouldNeverReachCannotBeStartedByHandEither() {
+        // Same rule as a whole-run retry, for the same reason: the orphan has no
+        // dependencies, so nothing but this check stops the runner starting a branch
+        // the user built and deliberately left unwired.
+        assertThat(WorkflowService.nodesToRerunFrom(successfulChain(), succeededRun("a"), "orphan"))
+                .isEmpty();
+    }
+
+    @Test
+    void noStepOfALiveRunCanBeReRun() {
+        // It would reset the row the runner is about to write to.
+        List<NodeExecution> runs = chainWithAnOrphan();
+        find(runs, "a").setStatus(RunState.SUCCEEDED);
+        find(runs, "b").setStatus(RunState.RUNNING);
+        WorkflowExecution execution = failedRun("a");
+        execution.setStatus(RunState.RUNNING);
+
+        assertThat(WorkflowService.nodesToRerunFrom(runs, execution, "a")).isEmpty();
+        assertThat(WorkflowService.rerunFromCounts(runs, execution)).isEmpty();
+    }
+
+    @Test
+    void theCountOnEachStepIsWhatReRunningItWouldRedo() {
+        // What the page puts on the button — same function that does the resetting, so
+        // the number shown and the set acted on cannot drift apart.
+        assertThat(WorkflowService.rerunFromCounts(successfulChain(), succeededRun("a")))
+                .isEqualTo(Map.of("a", 3, "b", 2, "c", 1, "orphan", 0));
+    }
+
+    @Test
+    void aFailedStepCanBeReRunOnItsOwnWithoutRetryingTheRest() {
+        // Two independent branches broke; the user wants to push one of them along.
+        List<NodeExecution> runs = new ArrayList<>();
+        runs.add(nodeRun("a", "Collect", List.of(), 0));
+        runs.add(nodeRun("b", "Angle one", List.of("a"), 1));
+        runs.add(nodeRun("c", "Angle two", List.of("a"), 2));
+        find(runs, "a").setStatus(RunState.SUCCEEDED);
+        find(runs, "b").setStatus(RunState.FAILED);
+        find(runs, "c").setStatus(RunState.FAILED);
+        WorkflowExecution execution = failedRun("a");
+
+        assertThat(rerunIdsFrom(runs, execution, "b")).containsExactly("b");
+        // Whereas retrying the run takes both.
+        assertThat(retriedIds(runs, execution)).containsExactly("b", "c");
+    }
+
+    @Test
+    void withoutASnapshottedEntryAStepThatRanCanStillBeReRun() {
+        List<NodeExecution> runs = successfulChain();
+
+        assertThat(rerunIdsFrom(runs, succeededRun(null), "b")).containsExactly("b", "c");
+    }
+
+    @Test
+    void withoutASnapshottedEntryASkippedStepIsRefused() {
+        // SKIPPED means either "unwired" or "upstream didn't succeed", and an older run
+        // can't tell them apart. Refusing is the safe half of the ambiguity — the whole
+        // run is still retryable.
+        List<NodeExecution> runs = chainWithAnOrphan();
+        find(runs, "a").setStatus(RunState.SUCCEEDED);
+        find(runs, "b").setStatus(RunState.FAILED);
+        find(runs, "c").setStatus(RunState.SKIPPED);
+        find(runs, "orphan").setStatus(RunState.SKIPPED);
+        WorkflowExecution execution = failedRun(null);
+
+        assertThat(WorkflowService.nodesToRerunFrom(runs, execution, "c")).isEmpty();
+        assertThat(WorkflowService.nodesToRerunFrom(runs, execution, "orphan")).isEmpty();
+        assertThat(rerunIdsFrom(runs, execution, "b")).containsExactly("b", "c");
     }
 }

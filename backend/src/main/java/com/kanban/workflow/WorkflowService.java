@@ -407,6 +407,126 @@ public class WorkflowService {
      * retry less than it might, never something unwired.
      */
     static Set<String> retryableNodeIds(List<NodeExecution> runs, String entryNodeId) {
+        if (knowsItsEntry(runs, entryNodeId)) {
+            return snapshotGraph(runs, entryNodeId).reachable();
+        }
+        Set<String> cone = new LinkedHashSet<>();
+        for (NodeExecution run : runs) {
+            if (run.getStatus() == RunState.FAILED || run.getStatus() == RunState.CANCELLED) {
+                cone.addAll(snapshotGraph(runs, run.getNodeId()).reachable());
+            }
+        }
+        return cone;
+    }
+
+    /**
+     * Queue a finished run again from one particular step — <em>including</em> one that
+     * succeeded. That step and everything downstream of it go back to PENDING; the run
+     * itself is re-queued and the runner picks it up on the next tick.
+     *
+     * <p>This is the other half of {@link #retry(Long)}, and the difference is who
+     * decides a step needs doing over. Retry asks the run: it takes the steps that
+     * didn't succeed. This asks the user: a step can produce a perfectly successful
+     * answer that is simply the wrong answer — a summary that missed the point, a draft
+     * written before the source it should have used existed — and the only way to fix
+     * it used to be running the whole graph from the top.
+     *
+     * <p>Everything downstream goes with it, necessarily. A node's input is its
+     * upstream's stored output, so redoing a step invalidates every answer computed
+     * from the old one; leaving those in place would show a run whose later steps
+     * describe material that is no longer there. Everything <em>upstream</em> is
+     * untouched and keeps its output — that is what makes this cheaper than a re-run.
+     *
+     * <p>The rule about what may be started is the same one {@link #retryableNodeIds}
+     * enforces: a step the entry could never reach stays out, because starting it would
+     * run a branch the user built but never wired in.
+     */
+    @Transactional
+    public ExecutionView retryNode(Long nodeRunId) {
+        NodeExecution target = nodeRuns.findById(nodeRunId).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Node run not found: " + nodeRunId));
+        WorkflowExecution execution = findExecution(target.getExecutionId());
+        if (!execution.getStatus().isTerminal()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Run #" + execution.getId() + " is still going (" + execution.getStatus()
+                            + ") — wait for it, or cancel it, before re-running one of its steps.");
+        }
+        List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId());
+        List<NodeExecution> rerunning = nodesToRerunFrom(runs, execution, target.getNodeId());
+        if (rerunning.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Step \"" + target.getNodeName() + "\" can't be started on its own — this run "
+                            + "never reached it, so it isn't wired in below the entry node.");
+        }
+        for (NodeExecution run : rerunning) {
+            // Same reason as in retry(): the transcript on this key belongs to the
+            // attempt being replaced, and appending a second one to it would read as a
+            // single session that contradicts itself.
+            liveLog.clear(LiveLogRegistry.nodeKey(run.getId()));
+            run.resetForRetry();
+            nodeRuns.save(run);
+        }
+        execution.setStatus(RunState.PENDING);
+        execution.setError(null);
+        execution.setFinishedAt(null);
+        executions.save(execution);
+        return executionView(execution);
+    }
+
+    /**
+     * The node runs that re-running {@code nodeId} would redo: that node and every node
+     * downstream of it in the graph the run snapshotted.
+     *
+     * <p>Empty — meaning "this step cannot be started by hand" — for a run still in
+     * flight, and for a step the entry could never reach. Its size is what the page
+     * puts on the button, so the count the user is shown and the set the service acts
+     * on come out of the same function.
+     */
+    static List<NodeExecution> nodesToRerunFrom(List<NodeExecution> runs, WorkflowExecution execution,
+                                                String nodeId) {
+        if (!execution.getStatus().isTerminal() || !wasReached(runs, execution.getEntryNodeId(), nodeId)) {
+            return List.of();
+        }
+        Set<String> cone = snapshotGraph(runs, nodeId).reachable();
+        return runs.stream().filter(r -> cone.contains(r.getNodeId())).toList();
+    }
+
+    /** How many steps re-running each of a run's steps would redo, by node id. */
+    static Map<String, Integer> rerunFromCounts(List<NodeExecution> runs, WorkflowExecution execution) {
+        if (!execution.getStatus().isTerminal()) {
+            return Map.of();
+        }
+        Map<String, Integer> counts = new HashMap<>();
+        for (NodeExecution run : runs) {
+            counts.put(run.getNodeId(), nodesToRerunFrom(runs, execution, run.getNodeId()).size());
+        }
+        return counts;
+    }
+
+    /**
+     * Whether the run could ever have got to this node — i.e. it is wired in below the
+     * entry, rather than a branch left dangling in the editor.
+     *
+     * <p>Runs recorded before the entry was snapshotted don't know theirs. For those,
+     * a node that reached any state other than SKIPPED is proof enough that the run
+     * walked to it. SKIPPED is the ambiguous one — it means either "unwired" or
+     * "upstream didn't succeed" — so on those older runs it is refused, and the whole
+     * failure is still retryable through {@link #retry(Long)}.
+     */
+    private static boolean wasReached(List<NodeExecution> runs, String entryNodeId, String nodeId) {
+        if (knowsItsEntry(runs, entryNodeId)) {
+            return snapshotGraph(runs, entryNodeId).reachable().contains(nodeId);
+        }
+        return runs.stream()
+                .anyMatch(r -> r.getNodeId().equals(nodeId) && r.getStatus() != RunState.SKIPPED);
+    }
+
+    private static boolean knowsItsEntry(List<NodeExecution> runs, String entryNodeId) {
+        return entryNodeId != null && runs.stream().anyMatch(r -> r.getNodeId().equals(entryNodeId));
+    }
+
+    /** The run's own snapshotted graph, rooted wherever the caller wants to walk from. */
+    private static WorkflowGraph snapshotGraph(List<NodeExecution> runs, String entryNodeId) {
         List<String> nodeIds = runs.stream().map(NodeExecution::getNodeId).toList();
         List<WorkflowGraph.Edge> graphEdges = new ArrayList<>();
         for (NodeExecution run : runs) {
@@ -414,16 +534,7 @@ public class WorkflowService {
                 graphEdges.add(new WorkflowGraph.Edge(dependency, run.getNodeId()));
             }
         }
-        if (entryNodeId != null && nodeIds.contains(entryNodeId)) {
-            return new WorkflowGraph(nodeIds, graphEdges, entryNodeId).reachable();
-        }
-        Set<String> cone = new LinkedHashSet<>();
-        for (NodeExecution run : runs) {
-            if (run.getStatus() == RunState.FAILED || run.getStatus() == RunState.CANCELLED) {
-                cone.addAll(new WorkflowGraph(nodeIds, graphEdges, run.getNodeId()).reachable());
-            }
-        }
-        return cone;
+        return new WorkflowGraph(nodeIds, graphEdges, entryNodeId);
     }
 
     @Transactional
@@ -456,7 +567,8 @@ public class WorkflowService {
     }
 
     private static ExecutionView view(WorkflowExecution execution, List<NodeExecution> runs) {
-        return ExecutionView.from(execution, runs, nodesToRetry(runs, execution).size());
+        return ExecutionView.from(execution, runs, nodesToRetry(runs, execution).size(),
+                rerunFromCounts(runs, execution));
     }
 
     private WorkflowExecution findExecution(Long id) {

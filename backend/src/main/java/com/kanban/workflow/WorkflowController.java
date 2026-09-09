@@ -85,6 +85,16 @@ public class WorkflowController {
         service.deleteExecution(executionId);
     }
 
+    /**
+     * Run one step of a finished run again — even one that succeeded — along with every
+     * step downstream of it, whose inputs it invalidates. The steps above it keep their
+     * output. 409 if the run is still going, or if the entry never reached that step.
+     */
+    @PostMapping("/node-runs/{nodeRunId}/retry")
+    public ExecutionView retryNode(@PathVariable Long nodeRunId) {
+        return service.retryNode(nodeRunId);
+    }
+
     /** Live transcript of one node's Claude session — poll it while the node runs. */
     @GetMapping("/node-runs/{nodeRunId}/log")
     public Map<String, Object> nodeLog(@PathVariable Long nodeRunId) {

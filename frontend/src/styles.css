@@ -1667,6 +1667,8 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .wf-noderun-state { font-size: var(--f-2xs); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .wf-noderun-meta { font-size: var(--f-2xs); color: var(--faint); font-variant-numeric: tabular-nums; }
 .wf-noderun-body { padding: 0 var(--s-2) var(--s-2); }
+.wf-noderun-actions { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-2); }
+.wf-noderun-actions .btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px var(--s-3); }
 
 .wf-dot { flex: none; width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--todo); }
 .wf-dot.running { background: var(--progress); animation: wf-pulse 1.4s ease-in-out infinite; }
