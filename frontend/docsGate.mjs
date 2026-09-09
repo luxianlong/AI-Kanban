@@ -224,10 +224,23 @@ export function isCrawlerFilePath(urlPath) {
 // sitemap's URLs always match the host Google actually crawled — apex or www,
 // tunnel hostname or bare IP. Behind cloudflared the real scheme only survives
 // in X-Forwarded-Proto, so prefer it over the (always plain-HTTP) hop we see.
+// True when the visitor's connection is encrypted. Two ways it can be: the
+// request arrived over a TLS socket this server terminated itself (req.socket
+// .encrypted — the case now that Vite serves HTTPS directly), or a proxy in
+// front terminated it and said so. Checking only the header, as this used to,
+// silently reported "http" for every direct-TLS request — which would have left
+// the session cookies without their Secure flag.
+export function isSecureRequest(req) {
+  const headers = (req && req.headers) || {}
+  const forwarded = String(headers['x-forwarded-proto'] || '').split(',')[0].trim()
+  if (forwarded === 'https') return true
+  return Boolean(req && req.socket && req.socket.encrypted)
+}
+
 export function requestOrigin(req) {
   const headers = (req && req.headers) || {}
   const first = (v) => String(v || '').split(',')[0].trim()
-  const proto = first(headers['x-forwarded-proto']) === 'https' ? 'https' : 'http'
+  const proto = isSecureRequest(req) ? 'https' : 'http'
   const host = first(headers['x-forwarded-host']) || first(headers['host'])
   // Reject anything that isn't a plain host[:port] so a spoofed Host header
   // can't inject markup or a foreign origin into the generated files.

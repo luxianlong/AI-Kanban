@@ -38,7 +38,18 @@ export CLAUDE_CMD="${CLAUDE_CMD:-$(command -v claude || echo "$HOME/.npm-global/
 
 # Ports.
 export BACKEND_PORT="${BACKEND_PORT:-8080}"
-export FRONTEND_PORT="${FRONTEND_PORT:-5173}"
+# The frontend serves HTTPS on :443 when the certificate is present, and falls
+# back to plain http on :5173 when it is not (a laptop checkout) — see the TLS
+# block in frontend/vite.config.js. Derive both from the same file the dev
+# server reads, so a health check can never probe a port nothing is bound to.
+export TLS_CERT_FILE="${TLS_CERT_FILE:-$HOME/certs/youraikanban.com.crt}"
+if [ -f "$TLS_CERT_FILE" ]; then
+  export FRONTEND_PORT="${FRONTEND_PORT:-443}"
+  export FRONTEND_URL="${FRONTEND_URL:-https://127.0.0.1:$FRONTEND_PORT}"
+else
+  export FRONTEND_PORT="${FRONTEND_PORT:-5173}"
+  export FRONTEND_URL="${FRONTEND_URL:-http://127.0.0.1:$FRONTEND_PORT}"
+fi
 
 # Live H2 database directory. MUST be absolute: the JDBC url in application.yml
 # reads this, and a relative path would resolve against each launcher's cwd

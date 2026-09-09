@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
+import os from 'node:os'
+import http from 'node:http'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import {
@@ -14,6 +16,7 @@ import {
   buildRobotsTxt,
   buildSitemap,
   requestOrigin,
+  isSecureRequest,
   shouldCountView,
   stripPrivateCards,
   stripPrivateManifest,
@@ -106,7 +109,9 @@ function safeNext(next) {
 
 // Build a single Set-Cookie header value. maxAge null -> session cookie.
 function cookieStr(req, name, value, maxAge) {
-  const https = (req.headers['x-forwarded-proto'] || '').includes('https')
+  // Secure when the connection is really encrypted — a TLS socket we terminated
+  // ourselves, or a proxy that set x-forwarded-proto. See isSecureRequest.
+  const https = isSecureRequest(req)
   const attrs = [`${name}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax']
   if (maxAge != null) attrs.push(`Max-Age=${maxAge}`)
   if (https) attrs.push('Secure')
@@ -513,17 +518,119 @@ function basicAuthGate() {
   }
 }
 
+// --- TLS ---------------------------------------------------------------
+// The certificate is a GoDaddy DV cert for youraikanban.com (+ www), kept in
+// Azure Key Vault `sunlightdragon` and pulled onto the box by
+// scripts/fetch-kv-cert.sh, which writes the PEM pair below. Re-run that script
+// to renew, then restart this server — the files are read once, at startup.
+const CERT_DIR = process.env.TLS_DIR || path.join(os.homedir(), 'certs')
+const KEY_FILE = process.env.TLS_KEY_FILE || path.join(CERT_DIR, 'youraikanban.com.key')
+const CRT_FILE = process.env.TLS_CERT_FILE || path.join(CERT_DIR, 'youraikanban.com.crt')
+
+// Hosts the certificate actually covers. Anything else (notably the bare public
+// IP) is redirected to the first one, so a plain-http visitor never lands on an
+// https URL that trips a name-mismatch warning.
+const TLS_HOSTS = ['youraikanban.com', 'www.youraikanban.com']
+
+const HTTPS_PORT = Number(process.env.HTTPS_PORT || 443)
+const HTTP_PORT = Number(process.env.HTTP_PORT || 80)
+// Fallback when there is no certificate (a laptop checkout). Deliberately NOT
+// port 80: if the cert ever goes missing on the server, we want the public port
+// to stop answering rather than quietly serve the private board in plaintext.
+const DEV_PORT = Number(process.env.FRONTEND_PORT || 5173)
+
+function readTlsPair() {
+  try {
+    return { key: fs.readFileSync(KEY_FILE), cert: fs.readFileSync(CRT_FILE) }
+  } catch {
+    return null
+  }
+}
+
+const tls = readTlsPair()
+if (!tls) {
+  console.warn(
+    `[tls] no certificate at ${CRT_FILE} — serving plain HTTP on :${DEV_PORT}.\n` +
+    `      Run scripts/fetch-kv-cert.sh to fetch it if this is the public server.`
+  )
+}
+
+// Vite binds exactly one port, so the http -> https redirect needs its own tiny
+// listener. Kept in-process (rather than adding nginx) to match how this app is
+// deployed: one dev server, restarted by scripts/deploy.sh.
+//
+// It is bound on 'listening' and closed on 'close' so a Vite config hot-restart
+// hands :80 over cleanly. A bind failure is logged and swallowed rather than
+// fatal: losing the redirect degrades http visitors to a connection error,
+// whereas exiting would take HTTPS down too.
+function httpToHttpsRedirect() {
+  let redirector = null
+  return {
+    name: 'http-to-https-redirect',
+    configureServer(server) {
+      if (!tls || !server.httpServer) return
+
+      const start = () => {
+        if (redirector) return
+        const srv = http.createServer((req, res) => {
+          const host = String(req.headers.host || '').split(':')[0]
+          const target = TLS_HOSTS.includes(host) ? host : TLS_HOSTS[0]
+          const port = HTTPS_PORT === 443 ? '' : `:${HTTPS_PORT}`
+          res.writeHead(301, {
+            Location: `https://${target}${port}${req.url || '/'}`,
+            'Cache-Control': 'no-store',
+          })
+          res.end()
+        })
+        srv.on('error', (err) => {
+          redirector = null
+          console.error(
+            `[tls] could not bind :${HTTP_PORT} for the HTTP->HTTPS redirect (${err.code}). ` +
+            `HTTPS on :${HTTPS_PORT} is unaffected.`
+          )
+        })
+        srv.listen(HTTP_PORT, '0.0.0.0', () => {
+          redirector = srv
+          console.log(`  ➜  Redirect:  http://:${HTTP_PORT} -> https://:${HTTPS_PORT} (301)`)
+        })
+      }
+
+      const stop = () => {
+        const srv = redirector
+        redirector = null
+        srv?.close()
+      }
+
+      server.httpServer.once('listening', start)
+      server.httpServer.once('close', stop)
+      process.once('SIGINT', stop)
+      process.once('SIGTERM', stop)
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [basicAuthGate(), react()],
+  plugins: [basicAuthGate(), httpToHttpsRedirect(), react()],
   server: {
-    // Port 80 needs cap_net_bind_service on the node binary — see docs/public-tunnel.md.
-    port: 80,
+    // 443 (like 80 before it) needs cap_net_bind_service on the node binary
+    // (`getcap $(which node)`), which is already granted.
+    ...(tls ? { https: tls } : {}),
+    port: tls ? HTTPS_PORT : DEV_PORT,
+    // Never let Vite fall back to a different port. On 2026-08-29 an auto-deploy
+    // touched this file and docsGate.mjs, Vite hot-restarted five times in a row,
+    // and the outgoing instance had not released :80 — so the new server took :81
+    // and left a half-dead orphan holding the public port. The orphan still served
+    // index.html but 504'd every module request, i.e. a blank page that every
+    // "is the port listening?" check reported as healthy. Failing loudly beats a
+    // silent white-screen outage.
+    strictPort: true,
     // Bind all interfaces so the Azure public IP can reach the dev server;
     // the Basic-Auth gate above is the only thing in front of it.
     host: '0.0.0.0',
-    // Allow the tunnel's random *.trycloudflare.com Host header (Vite 5.4+
-    // blocks unknown hosts). localhost/127.0.0.1 stay allowed automatically.
-    allowedHosts: ['.trycloudflare.com', '4.194.19.91', 'youraikanban.com', 'www.youraikanban.com'],
+    // Vite 5.4+ rejects unknown Host headers, so every hostname the site is
+    // actually reached on must be listed. localhost/127.0.0.1 stay allowed
+    // automatically.
+    allowedHosts: ['4.194.19.91', 'youraikanban.com', 'www.youraikanban.com'],
     proxy: {
       '/api': 'http://localhost:8080',
     },

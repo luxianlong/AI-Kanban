@@ -14,12 +14,22 @@ setsid java $(backend_launch_args) < /dev/null > "$BACKEND_LOG" 2>&1 &
 disown || true
 wait_for_backend && echo "✔ backend up" || { echo "✗ backend failed — see $BACKEND_LOG"; exit 1; }
 
-if ! curl -sf "http://localhost:$FRONTEND_PORT" >/dev/null 2>&1; then
+# "Up" means it answered at all. -f treats the Basic-Auth gate's 401 as a
+# failure, which is exactly what a locked-down public server returns, so this
+# checks for any HTTP status instead. -k because the certificate is issued to
+# youraikanban.com and we are dialling 127.0.0.1.
+frontend_up() {
+  [ "$(curl -sk -o /dev/null -m 3 -w '%{http_code}' "$FRONTEND_URL" 2>/dev/null)" != "000" ]
+}
+
+if ! frontend_up; then
   echo "▶ Starting frontend dev server on :$FRONTEND_PORT…"
   ( cd "$REPO/frontend" && setsid npm run dev < /dev/null > "$FRONTEND_LOG" 2>&1 & disown ) || true
-  for _ in $(seq 1 30); do curl -sf "http://localhost:$FRONTEND_PORT" >/dev/null 2>&1 && break; sleep 1; done
+  for _ in $(seq 1 30); do frontend_up && break; sleep 1; done
 fi
-echo "✔ frontend up"
+if frontend_up; then echo "✔ frontend up"; else
+  echo "✗ frontend did NOT come up — see $FRONTEND_LOG"; exit 1
+fi
 
 echo ""
-echo "Open  http://localhost:$FRONTEND_PORT"
+echo "Open  $FRONTEND_URL"

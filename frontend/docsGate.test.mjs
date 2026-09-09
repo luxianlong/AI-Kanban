@@ -18,6 +18,7 @@ import {
   stripPrivateViewCounts,
   shouldCountView,
   isCrawlerFilePath,
+  isSecureRequest,
   requestOrigin,
   publicDocPaths,
   buildSitemap,
@@ -246,6 +247,22 @@ check('request origin honours the forwarded scheme and host', () => {
   // A junk/spoofed Host can't inject a foreign origin or markup.
   assert.equal(requestOrigin({ headers: { host: 'evil.com/"><b>' } }), 'http://localhost')
   assert.equal(requestOrigin({ headers: {} }), 'http://localhost')
+})
+
+check('a directly-terminated TLS socket counts as secure', () => {
+  // Direct HTTPS: no proxy sets x-forwarded-proto, so the socket is the signal.
+  assert.equal(isSecureRequest({ headers: {}, socket: { encrypted: true } }), true)
+  assert.equal(isSecureRequest({ headers: {}, socket: {} }), false)
+  // Behind a terminating proxy the header still counts, first hop only.
+  assert.equal(isSecureRequest({ headers: { 'x-forwarded-proto': 'https' } }), true)
+  assert.equal(isSecureRequest({ headers: { 'x-forwarded-proto': 'https, http' } }), true)
+  assert.equal(isSecureRequest({ headers: { 'x-forwarded-proto': 'http' } }), false)
+  assert.equal(isSecureRequest({}), false)
+  // The sitemap/robots origin follows the same rule.
+  assert.equal(
+    requestOrigin({ headers: { host: 'a.com' }, socket: { encrypted: true } }),
+    'https://a.com'
+  )
 })
 
 check('public doc paths drop private docs and normalise hrefs', () => {
