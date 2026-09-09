@@ -50,15 +50,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * transcript. Switchable with {@code workflow.node-fence-reads} for a node that
  * genuinely needs to read the machine.
  *
- * <p><strong>The entry node is run differently.</strong> It is the one step with no
- * upstream text, so it is the step that has to go and find the material the rest of the
- * graph then works on — and everything below it inherits whatever it got wrong. It
- * therefore starts in ultracode mode ({@link #ULTRACODE_KEY}) and is told to read the
- * web through the chrome-devtools MCP browser rather than WebSearch/WebFetch
- * ({@link #BROWSER_PREAMBLE}). Both are switchable —
- * {@code workflow.entry-node-ultracode} and {@code workflow.entry-node-prefer-browser} —
- * because both buy quality with tokens and wall-clock. The fence applies to it too: the
- * web is not the filesystem, and the MCP browser is not a file tool.
+ * <p><strong>Every node is run the same way.</strong> The entry step is where a run
+ * starts and is drawn as such, but it is not given a stronger session than the rest: it
+ * gets the same fence, the same prompt treatment and the same CLI flags. What a step
+ * may differ in is what the workflow's author asked for — its own prompt and its own
+ * effort level.
  *
  * <p><strong>Runs go in parallel; a single run stays sequential.</strong> The tick does
  * not run anything itself — it hands each eligible execution to a lane of a small pool
@@ -98,27 +94,8 @@ public class WorkflowRunnerService {
     /** How many executions may have a node in flight at once. */
     private final int lanes;
 
-    /** Whether the entry node's session is started in ultracode mode. */
-    private final boolean entryUltracode;
-
-    /** Whether the entry node is told to browse with Chrome rather than fetch pages. */
-    private final boolean entryPrefersBrowser;
-
     /** Whether a node's session is fenced into its own directory. */
     private final boolean fenceReads;
-
-    /**
-     * Settings key that turns ultracode on for one session: xhigh effort plus standing
-     * dynamic-workflow orchestration, so the node may fan work out over sub-agents
-     * instead of answering in one pass.
-     *
-     * <p>Only the entry node gets it, and that is the point: it is the step with no
-     * upstream text to work from, so it is the one that has to go and find the
-     * material. Every node below it is handed an answer to improve, where a wider
-     * search buys less than it costs. Sub-agents are in-process, so this multiplies
-     * tokens rather than the ~270 MB of a second CLI process.
-     */
-    static final String ULTRACODE_KEY = "ultracode";
 
     /**
      * Settings key that refuses file-tool reads (Read, Grep, Glob, LSP) outside the
@@ -134,23 +111,6 @@ public class WorkflowRunnerService {
      * thought of is out by default.
      */
     static final String FENCE_KEY = "blockReadsOutsideWorkingDirectories";
-
-    /**
-     * Prepended to the entry node's prompt when {@code workflow.entry-node-prefer-browser}
-     * is on. Deliberately about <em>which tool to read the web with</em> and nothing
-     * else: {@link #buildPrompt} explains why anything resembling a filesystem hint
-     * cost us more than it bought.
-     *
-     * <p>Named tools rather than "use a browser", because the preference is only
-     * actionable if the node knows what to call. WebSearch and WebFetch are named too:
-     * the default habit is to reach for them, and a preference that doesn't say what it
-     * is preferred <em>over</em> doesn't change that habit.
-     */
-    static final String BROWSER_PREAMBLE =
-            "When you need to read something on the web, drive the real browser through the "
-            + "chrome-devtools MCP tools (mcp__chrome-devtools__navigate_page, take_snapshot, "
-            + "evaluate_script, list_network_requests). Prefer them over WebSearch and WebFetch, "
-            + "which see a stripped copy of a page and nothing that renders after load.";
 
     /**
      * One thread per lane. Sized to {@link #lanes} and only ever handed as many tasks
@@ -180,8 +140,6 @@ public class WorkflowRunnerService {
                                  ClaudeSessionRunner runner, LiveLogRegistry liveLog,
                                  RunningSessionRegistry sessions, WorkerProperties props,
                                  @Value("${workflow.max-concurrent-executions:2}") int maxConcurrentExecutions,
-                                 @Value("${workflow.entry-node-ultracode:true}") boolean entryUltracode,
-                                 @Value("${workflow.entry-node-prefer-browser:true}") boolean entryPrefersBrowser,
                                  @Value("${workflow.node-fence-reads:true}") boolean fenceReads) {
         this.executions = executions;
         this.nodeRuns = nodeRuns;
@@ -190,8 +148,6 @@ public class WorkflowRunnerService {
         this.sessions = sessions;
         this.props = props;
         this.lanes = Math.max(1, maxConcurrentExecutions);
-        this.entryUltracode = entryUltracode;
-        this.entryPrefersBrowser = entryPrefersBrowser;
         this.fenceReads = fenceReads;
         this.pool = Executors.newFixedThreadPool(this.lanes, new LaneThreads());
     }
@@ -442,9 +398,8 @@ public class WorkflowRunnerService {
         run.setInput(input);
         nodeRuns.save(run);
 
-        boolean entry = isEntryNode(execution, run);
         EffortLevel effort = run.getEffort();
-        List<String> sessionArgs = sessionArgsFor(entry, effort);
+        List<String> sessionArgs = sessionArgsFor(effort);
 
         String key = LiveLogRegistry.nodeKey(run.getId());
         liveLog.start(key);
@@ -452,26 +407,16 @@ public class WorkflowRunnerService {
                 + (run.getOrderIndex() + 1) + "/" + totalNodes + ")"
                 + (run.getAttempt() > 1 ? ", attempt " + run.getAttempt() + "," : "")
                 + " started.");
-        // Say both, because they are the places two runs of the same prompt differ in
-        // what they cost and how long they take. The ultracode line is keyed on the
-        // setting rather than on "some args were passed": the fence adds args to every
-        // node, so the old check announced ultracode mode even with it switched off.
-        if (entry && entryUltracode) {
-            liveLog.append(key, "● Entry step — ultracode mode (xhigh effort, may fan out "
-                    + "over sub-agents).");
-        }
+        // Worth saying, because it is the one place two runs of the same prompt differ
+        // in what they cost and how long they take.
         if (effort != null) {
-            liveLog.append(key, "● Effort: " + effort.cliValue()
-                    + (entry && entryUltracode
-                            ? " — this step's own setting, which wins over ultracode's xhigh."
-                            : "."));
+            liveLog.append(key, "● Effort: " + effort.cliValue() + ".");
         }
-        log.info("Workflow execution #{}: running node \"{}\"{}.", execution.getId(), run.getNodeName(),
-                entry ? " (entry)" : "");
+        log.info("Workflow execution #{}: running node \"{}\".", execution.getId(), run.getNodeName());
 
         try {
             ProcessResult result =
-                    runner.run(key, buildPrompt(run, input, entry), workDirFor(execution, run), sessionArgs);
+                    runner.run(key, buildPrompt(run, input), workDirFor(execution, run), sessionArgs);
             // Added to, not replaced: on a retried node these are what the node has
             // cost across every attempt. An attempt that failed was billed all the
             // same, and a total that quietly forgot it would understate the run.
@@ -605,24 +550,18 @@ public class WorkflowRunnerService {
 
     /**
      * The whole prompt for one node: the text it was handed, then the node's own
-     * instructions — and, on the entry node only, one line about which tool to read
-     * the web with.
+     * instructions. Nothing else, on any node — the entry step included.
      *
-     * <p>Otherwise deliberately free of scaffolding. Everything the runner used to
-     * prepend (the node's name and place in the graph, "you are a fresh session", the
-     * failure sentinel, the guardrail that named {@code docs/} and {@code research/})
-     * was the only concrete filesystem hint a node ever saw, and nodes acted on it:
-     * they wrote their material into {@code research/} instead of replying with it, and
-     * the nodes downstream went hunting through that directory rather than reading the
-     * input they had been given. A node still sees what the user wrote for it, plus what
-     * came across its edges.
-     *
-     * <p>{@link #BROWSER_PREAMBLE} is allowed back in on one node because it names no
-     * place to put anything — it changes only which tool answers "read this page", and
-     * only for the step whose job is to go and find the material. It leads rather than
-     * trails so the node's own instruction keeps the last word.
+     * <p>Deliberately free of scaffolding. Everything the runner used to prepend (the
+     * node's name and place in the graph, "you are a fresh session", the failure
+     * sentinel, the guardrail that named {@code docs/} and {@code research/}) was the
+     * only concrete filesystem hint a node ever saw, and nodes acted on it: they wrote
+     * their material into {@code research/} instead of replying with it, and the nodes
+     * downstream went hunting through that directory rather than reading the input they
+     * had been given. A node sees what the user wrote for it, plus what came across its
+     * edges, and that is all.
      */
-    String buildPrompt(NodeExecution run, String input, boolean entryNode) {
+    String buildPrompt(NodeExecution run, String input) {
         String instructions = run.getPrompt() == null ? "" : run.getPrompt().strip();
         String handed = input == null ? "" : input.strip();
         String body;
@@ -633,38 +572,25 @@ public class WorkflowRunnerService {
         } else {
             body = handed + "\n\n" + instructions;
         }
-        if (!entryNode || !entryPrefersBrowser) {
-            return body;
-        }
-        return body.isEmpty() ? BROWSER_PREAMBLE : BROWSER_PREAMBLE + "\n\n" + body;
+        return body;
     }
 
     /**
-     * Extra CLI args for this node's session: the read fence on every node, ultracode on
-     * the entry node only, and this node's own effort level when it has one.
+     * Extra CLI args for this node's session: the read fence, and this node's own effort
+     * level when it has one. The same for every node — which step a run starts from
+     * makes no difference here.
      *
-     * <p>The fence and ultracode travel in <em>one</em> {@code --settings} blob, and they
-     * have to. {@code --settings} takes a single value, so a second occurrence replaces
-     * the first rather than adding to it — passing the fence separately would silently
-     * switch ultracode back off on the one node that is supposed to have it. The blob is
-     * built with Jackson rather than concatenated, because in {@code --print} mode a
-     * settings value that fails to parse is <em>ignored without a word</em>: a stray
-     * escape would not fail the build or log anything, it would just quietly unfence
-     * every node.
+     * <p>The fence travels in a {@code --settings} blob, built with Jackson rather than
+     * concatenated: in {@code --print} mode a settings value that fails to parse is
+     * <em>ignored without a word</em>, so a stray escape would not fail the build or log
+     * anything, it would just quietly unfence every node. Anything else that ever needs
+     * to be a setting has to go in this same blob — {@code --settings} takes a single
+     * value, so a second occurrence replaces the first rather than adding to it.
      *
-     * <p>Effort is its own {@code --effort} flag instead, because the CLI has one and it
-     * is the half of ultracode a node may want to disagree with. Measured, on the same
-     * prompt: ultracode alone produced 348 output tokens, ultracode with
-     * {@code --effort low} produced 169, and {@code --effort low} by itself produced 170.
-     * So the flag wins over the xhigh that ultracode implies, while the entry node keeps
-     * ultracode's other half — its standing orchestration — which is the behaviour this
-     * relies on: a level set on a step is the level that step thinks at, entry or not.
+     * <p>Effort is its own {@code --effort} flag instead, because the CLI has one.
      */
-    List<String> sessionArgsFor(boolean entryNode, EffortLevel effort) {
+    List<String> sessionArgsFor(EffortLevel effort) {
         ObjectNode settings = JsonNodeFactory.instance.objectNode();
-        if (entryNode && entryUltracode) {
-            settings.put(ULTRACODE_KEY, true);
-        }
         if (fenceReads) {
             settings.putObject("permissions").put(FENCE_KEY, true);
         }
@@ -678,22 +604,6 @@ public class WorkflowRunnerService {
             args.add(effort.cliValue());
         }
         return List.copyOf(args);
-    }
-
-    /**
-     * Whether this run is the execution's entry step — the one with no upstream text,
-     * which is what the ultracode and browser settings key off.
-     *
-     * <p>Runs recorded before the entry was snapshotted don't know theirs. For those,
-     * "has no dependencies" is the same question for anything that actually gets here:
-     * a node the entry never reached is recorded {@link RunState#SKIPPED} when the run
-     * is created and is never handed to a session.
-     */
-    static boolean isEntryNode(WorkflowExecution execution, NodeExecution run) {
-        String entryNodeId = execution.getEntryNodeId();
-        return entryNodeId == null
-                ? run.dependencyIds().isEmpty()
-                : entryNodeId.equals(run.getNodeId());
     }
 
     /**

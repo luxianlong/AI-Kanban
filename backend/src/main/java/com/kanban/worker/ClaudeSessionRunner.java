@@ -82,8 +82,9 @@ public class ClaudeSessionRunner {
      * session, appended after {@code worker.extra-args}.
      *
      * <p>This is for a difference that belongs to a single run rather than to the
-     * worker — the workflow runner uses it to start an entry node in ultracode mode
-     * (see {@code WorkflowRunnerService#sessionArgsFor}). Configuration that applies to
+     * worker — the workflow runner uses it to fence a node into its own directory and
+     * to pass the effort level that node was given (see
+     * {@code WorkflowRunnerService#sessionArgsFor}). Configuration that applies to
      * <em>every</em> session belongs in {@code worker.extra-args} instead.
      */
     public ProcessResult run(String sessionKey, String prompt, File workDir, List<String> sessionArgs)

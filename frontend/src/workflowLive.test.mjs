@@ -180,8 +180,7 @@ assert.deepEqual([...nodesWithStaleInput([])], [])
 
 // The run's own record wins over position. This is the case the old "first row"
 // guess got wrong: a topological order can put a node the entry feeds ahead of the
-// entry itself, and the wrong step would then be drawn — and described — as the one
-// that runs in ultracode mode.
+// entry itself, and the wrong step would then be drawn and labelled as the entry.
 assert.equal(entryNodeIdOf({ entryNodeId: 'b', nodes: [node({ nodeId: 'a' }), node({ nodeId: 'b' })] }), 'b')
 
 // Runs recorded before the entry was snapshotted have no answer to give, so the

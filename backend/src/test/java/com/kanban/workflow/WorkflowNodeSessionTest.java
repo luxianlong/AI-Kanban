@@ -31,31 +31,22 @@ import static org.mockito.Mockito.when;
  * and the working directory and then handed the CLI something else.
  *
  * <p>So this drives a real two-step run through the real service with only the session
- * runner stubbed, and reads back the arguments and directory each session was launched
- * with. Two separate claims live here:
- *
- * <ul>
- *   <li><strong>What only the entry step gets</strong> — ultracode and the browser line.
- *       The downstream step is half the assertion, not padding: "the entry step gets
- *       ultracode" is only a feature if the other eight steps of a nine-step graph
- *       don't.</li>
- *   <li><strong>What every step gets</strong> — its own directory, and a session fenced
- *       into it. Here the downstream step is the other half for the opposite reason: a
- *       fence that stopped at the entry step would leave the fence unenforced on the
- *       steps most likely to go looking for a file.</li>
- * </ul>
+ * runner stubbed, and reads back the arguments, prompt and directory each session was
+ * launched with. What it pins is that <em>every</em> step is launched the same way: its
+ * own directory, a session fenced into it, and nothing prepended to the prompt its
+ * author wrote. Both steps are asserted on, because the entry step is the one that used
+ * to be launched differently and the downstream step is the one a fence stopping at the
+ * entry would leave unenforced.
  */
 @SpringBootTest
 @TestPropertySource(properties = {
         "worker.enabled=true",
-        "workflow.entry-node-ultracode=true",
-        "workflow.entry-node-prefer-browser=true",
         // Poll only when this test says so: the schedulers must not fire underneath it.
         "workflow.initial-delay-ms=3600000",
         "worker.initial-delay-ms=3600000",
         "spring.datasource.url=jdbc:h2:mem:workflowentrydb;DB_CLOSE_DELAY=-1"
 })
-class WorkflowEntryNodeTest {
+class WorkflowNodeSessionTest {
 
     @Autowired
     WorkflowRunnerService service;
@@ -118,18 +109,18 @@ class WorkflowEntryNodeTest {
     }
 
     @Test
-    void theEntryStepIsLaunchedInUltracodeModeAndNoOtherStepIs() throws Exception {
+    void noStepIsLaunchedWithASettingOtherStepsDoNotGet() throws Exception {
+        // The entry step used to be started in ultracode mode. It no longer is, and the
+        // assertion is on the args the CLI would actually have been handed rather than
+        // on the absence of the code that built them.
         recordSessions();
         Long run = queueChain();
 
         runToCompletion(run);
 
-        assertThat(settings("Collect").path(WorkflowRunnerService.ULTRACODE_KEY).asBoolean())
-                .as("the entry step's session should carry the ultracode setting")
-                .isTrue();
-        assertThat(settings("Summarise").has(WorkflowRunnerService.ULTRACODE_KEY))
-                .as("a step that is handed an answer has nothing to search for")
-                .isFalse();
+        assertThat(settings("Collect").has("ultracode")).isFalse();
+        assertThat(settings("Collect")).isEqualTo(settings("Summarise"));
+        assertThat(argsByNode.get("Collect")).isEqualTo(argsByNode.get("Summarise"));
     }
 
     @Test
@@ -170,18 +161,21 @@ class WorkflowEntryNodeTest {
     }
 
     @Test
-    void theEntryStepIsToldToBrowseAndNoOtherStepIs() throws Exception {
+    void noStepIsToldAnythingItsAuthorDidNotWrite() throws Exception {
+        // The entry step used to have a line about reading the web through the
+        // chrome-devtools browser prepended to its prompt.
         recordSessions();
         Long run = queueChain();
 
         runToCompletion(run);
 
-        assertThat(promptByNode.get("Collect")).contains("chrome-devtools");
-        assertThat(promptByNode.get("Summarise")).doesNotContain("chrome-devtools");
-        // Still the user's own text, with the run's input in front of it.
+        // The entry step gets the run's input and then its own instruction, and that is
+        // the whole prompt.
         assertThat(promptByNode.get("Collect"))
-                .contains("gold prices in 2026")
-                .endsWith("Find the sources");
+                .isEqualTo("gold prices in 2026\n\nFind the sources");
+        assertThat(promptByNode.get("Summarise"))
+                .doesNotContain("chrome-devtools")
+                .endsWith("Summarise the input");
     }
 
     /** The settings blob the CLI would parse out of the args a node was launched with. */

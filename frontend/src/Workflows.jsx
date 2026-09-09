@@ -28,16 +28,6 @@ import {
 // talks about "input from", and an execution shows each node's input next to its
 // output rather than one merged transcript.
 
-// What the server does differently for the first step, said once and shown in both
-// places the entry step appears — the editor and a run's step list. It is the only
-// step with no upstream text, so it is the one that goes and finds the material the
-// rest of the graph works on; the backend gives it a stronger session for that (see
-// WorkflowRunnerService and the workflow.entry-node-* settings).
-export const ENTRY_MODE_HINT =
-  'Every run starts here. This step runs in ultracode mode — more effort, and it may '
-  + 'fan out over sub-agents — and it is asked to read the web through the Chrome '
-  + 'browser rather than plain web search. Later steps run normally.'
-
 // How hard a step thinks. Said once, and shown wherever the level is: it is the one
 // setting on a step that changes what the step costs without changing what it says it
 // does, so the picker has to make "more" and "less" legible rather than just listing
@@ -632,12 +622,7 @@ function NodeEditor({
           <span className="wf-badge effort-badge" title={EFFORT_HINT}>{node.effort}</span>
         )}
         {isEntry ? (
-          <span
-            className="wf-badge entry-badge"
-            title={ENTRY_MODE_HINT}
-          >
-            Entry
-          </span>
+          <span className="wf-badge entry-badge" title="Every run starts here">Entry</span>
         ) : (
           <button type="button" className="wf-make-entry" onClick={onMakeEntry}>
             Make entry
@@ -686,12 +671,7 @@ function NodeEditor({
             noise, and the point of the label is that this step is not. */}
         {node.effort && (
           <span className="wf-effort-note">
-            {isEntry
-              // The entry step is already boosted, so its picker is the one that can
-              // read as redundant or as a contradiction. Measured: the level set here
-              // is the one that applies, and ultracode keeps its other half.
-              ? `This overrides the entry step's ultracode effort — it still fans out over sub-agents, but thinks at ${node.effort}.`
-              : `Runs at ${node.effort} instead of the default.`}
+            {`Runs at ${node.effort} instead of the default.`}
           </span>
         )}
       </div>
@@ -715,8 +695,6 @@ function NodeEditor({
           ))
         )}
       </div>
-
-      {isEntry && <p className="wf-node-hint">{ENTRY_MODE_HINT}</p>}
 
       {unreached && (
         <p className="wf-node-warn">
@@ -948,7 +926,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // the whole run at once because it is a question about the graph, not about a row.
   const staleInput = useMemo(() => nodesWithStaleInput(execution.nodes), [execution.nodes])
   // The step this run started from, as the run itself recorded it — it is drawn
-  // differently and run differently.
+  // differently, and marked as the entry in the step list.
   const entryNodeId = entryNodeIdOf(execution)
 
   // On a run you just started, whatever is running is what you want open — it is
@@ -1210,7 +1188,7 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
         <span className={`wf-dot ${run.status.toLowerCase()}`} aria-hidden />
         <span className="wf-noderun-name">{run.nodeName}</span>
         {isEntry && (
-          <span className="wf-badge entry-badge" title={ENTRY_MODE_HINT}>Entry</span>
+          <span className="wf-badge entry-badge" title="This run started here">Entry</span>
         )}
         <span className="wf-noderun-state">{stateLabel(run.status)}</span>
         {meta && <span className="wf-noderun-meta">{meta}</span>}

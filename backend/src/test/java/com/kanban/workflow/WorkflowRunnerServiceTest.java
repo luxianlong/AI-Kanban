@@ -22,9 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  *
  * <p>The prompt is the user's node instructions and the upstream text, and nothing
  * else — see {@link WorkflowRunnerService#buildPrompt} for why the runner adds no
- * preamble of its own. The one exception is the entry step, which is also the one step
- * started in ultracode mode; that whole difference is pinned at the bottom of this
- * file.
+ * preamble of its own. That holds for every node, the entry step included: which step
+ * a run starts from changes nothing about how its session is launched.
  *
  * <p>{@code buildPrompt}/{@code assembleInput} touch none of the service's
  * collaborators, so the service is constructed with nulls.
@@ -32,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class WorkflowRunnerServiceTest {
 
     private final WorkflowRunnerService service =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1, true, true, true);
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, true);
 
     private WorkflowNode node(String id, String name, String prompt) {
         return node(id, name, prompt, null);
@@ -120,7 +119,7 @@ class WorkflowRunnerServiceTest {
         NodeExecution run = run(node("b", "Summarise", "Summarise the input in five bullets"),
                 List.of("a"), 1);
 
-        String prompt = service.buildPrompt(run, "some upstream text", false);
+        String prompt = service.buildPrompt(run, "some upstream text");
 
         assertThat(prompt).isEqualTo("some upstream text\n\nSummarise the input in five bullets");
     }
@@ -129,7 +128,7 @@ class WorkflowRunnerServiceTest {
     void thePromptCarriesNoScaffoldingOfItsOwn() {
         NodeExecution run = run(node("b", "Summarise", "Summarise the input"), List.of("a"), 1);
 
-        String prompt = service.buildPrompt(run, "some upstream text", false);
+        String prompt = service.buildPrompt(run, "some upstream text");
 
         // Naming a directory made it the one filesystem landmark a fresh node had, so
         // nodes wrote their material there and later nodes read files instead of input.
@@ -148,25 +147,21 @@ class WorkflowRunnerServiceTest {
     void anEntryNodeStartedWithoutInputGetsJustItsInstructions() {
         NodeExecution run = run(node("a", "Collect", "Find sources"), List.of(), 0);
 
-        assertThat(service.buildPrompt(run, "", false)).isEqualTo("Find sources");
+        assertThat(service.buildPrompt(run, "")).isEqualTo("Find sources");
     }
 
     @Test
     void aNodeWithNoInstructionsOfItsOwnGetsJustTheInput() {
         NodeExecution run = run(node("b", "Passthrough", ""), List.of("a"), 1);
 
-        assertThat(service.buildPrompt(run, "upstream text", false)).isEqualTo("upstream text");
+        assertThat(service.buildPrompt(run, "upstream text")).isEqualTo("upstream text");
     }
 
-    // --- the entry step is run differently -------------------------------
+    // --- every step is launched the same way ------------------------------
 
-    /** Both entry boosts off — what a workflow gets when the switches are flipped. */
-    private final WorkflowRunnerService plain =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1, false, false, true);
-
-    /** Everything off, including the fence — the only shape with no --settings at all. */
+    /** The fence off too — the only shape with no --settings at all. */
     private final WorkflowRunnerService unfenced =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1, false, false, false);
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, false);
 
     private WorkflowExecution executionFrom(String entryNodeId) {
         WorkflowExecution execution = execution("gold prices in 2026");
@@ -175,108 +170,69 @@ class WorkflowRunnerServiceTest {
     }
 
     @Test
-    void theEntryStepIsAskedToReadTheWebThroughTheBrowserRatherThanFetchPages() {
+    void theEntryStepIsHandedItsPromptLikeAnyOtherStep() {
+        // The entry step used to be launched differently — ultracode, plus a line asking
+        // it to read the web through the chrome-devtools browser. That is gone: a step's
+        // session is decided by what its author wrote for it, not by where it sits in
+        // the graph.
         NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
 
-        String prompt = service.buildPrompt(entry, "gold prices in 2026", true);
-
-        assertThat(prompt).contains("chrome-devtools");
-        // Naming what it is preferred over is the half that changes the habit.
-        assertThat(prompt).contains("WebSearch").contains("WebFetch");
+        assertThat(service.buildPrompt(entry, "gold prices in 2026"))
+                .isEqualTo("gold prices in 2026\n\nFind sources");
+        assertThat(service.buildPrompt(entry, ""))
+                .doesNotContain("chrome-devtools")
+                .doesNotContain("WebSearch")
+                .doesNotContain("WebFetch");
     }
 
     @Test
-    void theEntryStepsOwnInstructionStillHasTheLastWord() {
-        NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
-
-        String prompt = service.buildPrompt(entry, "gold prices in 2026", true);
-
-        assertThat(prompt.indexOf("chrome-devtools"))
-                .isLessThan(prompt.indexOf("gold prices in 2026"));
-        assertThat(prompt.indexOf("gold prices in 2026")).isLessThan(prompt.indexOf("Find sources"));
-    }
-
-    @Test
-    void theBrowserLineNamesNoPlaceToPutAnything() {
-        NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
-
-        // The reason the old preamble had to go: a filesystem landmark made nodes write
-        // their material out instead of answering with it. A tool preference must not
-        // smuggle one back in.
-        assertThat(service.buildPrompt(entry, "", true))
-                .doesNotContain("research")
-                .doesNotContain("docs/")
-                .doesNotContain("[[TASK_FAILED]]");
-    }
-
-    @Test
-    void noStepBelowTheEntryIsToldAnythingAboutBrowsers() {
-        NodeExecution downstream = run(node("b", "Summarise", "Summarise the input"), List.of("a"), 1);
-
-        assertThat(service.buildPrompt(downstream, "some upstream text", false))
-                .isEqualTo("some upstream text\n\nSummarise the input");
-    }
-
-    @Test
-    void onlyTheEntryStepIsStartedInUltracodeMode() {
-        assertThat(settings(service.sessionArgsFor(true, null)).path("ultracode").asBoolean()).isTrue();
-        assertThat(settings(service.sessionArgsFor(false, null)).has("ultracode")).isFalse();
+    void noStepIsStartedInUltracodeMode() {
+        assertThat(settings(service.sessionArgsFor(null)).has("ultracode")).isFalse();
+        assertThat(settings(service.sessionArgsFor(EffortLevel.LOW)).has("ultracode")).isFalse();
     }
 
     @Test
     void theSettingsArgIsTheFlagCarryingValidJson() {
         // In --print mode a settings value that fails to parse is ignored WITHOUT a word:
         // a malformed blob would not fail the build or log anything, it would silently
-        // unfence every node and drop ultracode from the entry step.
-        List<String> args = service.sessionArgsFor(true, null);
+        // unfence every node.
+        List<String> args = service.sessionArgsFor(null);
 
         assertThat(args).hasSize(2);
         assertThat(args.get(0)).isEqualTo("--settings");
         assertThat(settings(args).isObject()).isTrue();
     }
 
-    @Test
-    void bothEntryBoostsCanBeTurnedOffAndThenTheEntryStepIsJustAnotherStep() {
-        NodeExecution entry = run(node("a", "Collect", "Find sources"), List.of(), 0);
-
-        assertThat(settings(plain.sessionArgsFor(true, null)).has("ultracode")).isFalse();
-        assertThat(plain.buildPrompt(entry, "gold prices in 2026", true))
-                .isEqualTo("gold prices in 2026\n\nFind sources");
-    }
-
     // --- a node cannot see outside its own directory ----------------------
 
     @Test
-    void everyStepIsFencedIntoItsWorkingDirectoryNotJustTheEntryStep() {
-        // The fence is the one setting that is NOT an entry-step boost: a step handed an
-        // answer to improve has even less business reading the machine than the one that
-        // has to go and find the material.
-        for (boolean entry : new boolean[]{true, false}) {
-            assertThat(settings(service.sessionArgsFor(entry, null))
-                    .path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
-                    .as("entry=" + entry)
-                    .isTrue();
-        }
-    }
-
-    @Test
-    void theFenceAndUltracodeTravelInOneSettingsBlobBecauseASecondOneWouldReplaceIt() {
-        // --settings takes a single value, so two occurrences do not merge — the last
-        // wins. Passing the fence as its own flag would quietly switch ultracode back
-        // off on the one node that is supposed to have it.
-        List<String> args = service.sessionArgsFor(true, null);
-
-        assertThat(args).filteredOn("--settings"::equals).hasSize(1);
-        JsonNode blob = settings(args);
-        assertThat(blob.path("ultracode").asBoolean()).isTrue();
-        assertThat(blob.path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
+    void everyStepIsFencedIntoItsWorkingDirectory() {
+        // A step handed an answer to improve has even less business reading the machine
+        // than the one that has to go and find the material, so the fence is on all of
+        // them and takes no view of which step is the entry.
+        assertThat(settings(service.sessionArgsFor(null))
+                .path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
+                .isTrue();
+        assertThat(settings(service.sessionArgsFor(EffortLevel.MAX))
+                .path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
                 .isTrue();
     }
 
     @Test
-    void theFenceCanBeTurnedOffAndThenAPlainStepGetsNoSettingsAtAll() {
-        assertThat(unfenced.sessionArgsFor(false, null)).isEmpty();
-        assertThat(unfenced.sessionArgsFor(true, null)).isEmpty();
+    void theFenceTravelsInOneSettingsBlobBecauseASecondOneWouldReplaceIt() {
+        // --settings takes a single value, so two occurrences do not merge — the last
+        // wins. Anything else that ever becomes a setting has to join this blob rather
+        // than arrive as a flag of its own.
+        List<String> args = service.sessionArgsFor(null);
+
+        assertThat(args).filteredOn("--settings"::equals).hasSize(1);
+        assertThat(settings(args).path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean())
+                .isTrue();
+    }
+
+    @Test
+    void theFenceCanBeTurnedOffAndThenAStepGetsNoSettingsAtAll() {
+        assertThat(unfenced.sessionArgsFor(null)).isEmpty();
     }
 
     @Test
@@ -338,29 +294,6 @@ class WorkflowRunnerServiceTest {
         }
     }
 
-    @Test
-    void theEntryStepIsTheOneTheRunSnapshottedNotWhicheverCameFirst() {
-        WorkflowExecution execution = executionFrom("b");
-        NodeExecution first = run(node("a", "Collect", ""), List.of(), 0);
-        NodeExecution second = run(node("b", "Also collect", ""), List.of(), 1);
-
-        // Both have no dependencies, so position is not the question — which one the
-        // run recorded as its entry is.
-        assertThat(WorkflowRunnerService.isEntryNode(execution, first)).isFalse();
-        assertThat(WorkflowRunnerService.isEntryNode(execution, second)).isTrue();
-    }
-
-    @Test
-    void aRunRecordedBeforeTheEntryWasSnapshottedFallsBackToHavingNoUpstream() {
-        WorkflowExecution old = execution("gold prices in 2026");
-        NodeExecution entry = run(node("a", "Collect", ""), List.of(), 0);
-        NodeExecution downstream = run(node("b", "Summarise", ""), List.of("a"), 1);
-
-        assertThat(old.getEntryNodeId()).isNull();
-        assertThat(WorkflowRunnerService.isEntryNode(old, entry)).isTrue();
-        assertThat(WorkflowRunnerService.isEntryNode(old, downstream)).isFalse();
-    }
-
     // --- a step's own effort level ---------------------------------------
 
     @Test
@@ -368,14 +301,13 @@ class WorkflowRunnerServiceTest {
         // Not "--effort medium" chosen as a stand-in for the default: the default is
         // the CLI's to move, and naming it here would pin every unset step to whatever
         // it happened to be on the day this was written.
-        assertThat(service.sessionArgsFor(false, null)).doesNotContain("--effort");
-        assertThat(service.sessionArgsFor(true, null)).doesNotContain("--effort");
+        assertThat(service.sessionArgsFor(null)).doesNotContain("--effort");
     }
 
     @Test
     void aStepWithALevelIsStartedWithThatExactLevel() {
         for (EffortLevel level : EffortLevel.values()) {
-            List<String> args = service.sessionArgsFor(false, level);
+            List<String> args = service.sessionArgsFor(level);
 
             assertThat(args).as("level=" + level).containsSequence("--effort", level.cliValue());
         }
@@ -393,26 +325,13 @@ class WorkflowRunnerServiceTest {
     @Test
     void theEffortFlagIsItsOwnArgAndLeavesTheSettingsBlobAlone() {
         // --settings takes a single value; folding effort into that blob would mean
-        // rebuilding it, and the fence and ultracode already ride in it.
-        List<String> args = service.sessionArgsFor(true, EffortLevel.LOW);
+        // rebuilding it, and the fence already rides in it.
+        List<String> args = service.sessionArgsFor(EffortLevel.LOW);
 
         assertThat(args).filteredOn("--settings"::equals).hasSize(1);
         JsonNode blob = settings(args);
-        assertThat(blob.path("ultracode").asBoolean()).isTrue();
         assertThat(blob.path("permissions").path(WorkflowRunnerService.FENCE_KEY).asBoolean()).isTrue();
         assertThat(blob.has("effort")).isFalse();
-        assertThat(args).containsSequence("--effort", "low");
-    }
-
-    @Test
-    void anEntryStepMayDisagreeWithUltracodeAboutHowHardToThink() {
-        // Measured against the real CLI on one prompt: ultracode alone produced 348
-        // output tokens, ultracode with --effort low produced 169, and --effort low
-        // alone produced 170. The flag wins over the xhigh ultracode implies, and the
-        // entry step keeps ultracode's other half.
-        List<String> args = service.sessionArgsFor(true, EffortLevel.LOW);
-
-        assertThat(settings(args).path("ultracode").asBoolean()).isTrue();
         assertThat(args).containsSequence("--effort", "low");
     }
 
