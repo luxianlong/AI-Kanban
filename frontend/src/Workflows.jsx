@@ -15,7 +15,7 @@ import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // nodes carry their own `inputs` rather than a separate edge list, because that is
 // how they are edited. See workflowDraft.js.
 import {
-  EFFORT_LEVELS, blankDraft, draftFingerprint, draftFrom, newId, payloadFrom,
+  EFFORT_LEVELS, ULTRACODE, blankDraft, draftFingerprint, draftFrom, newId, payloadFrom,
 } from './workflowDraft.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
@@ -37,6 +37,14 @@ export const EFFORT_HINT =
   'How hard this step thinks. Higher levels reason for longer and cost more; leave it '
   + 'on Default unless a step is either the one doing the hard thinking or the one just '
   + 'tidying up what it was handed.'
+
+// Said separately because ultracode is a separate thing, and a picker that lists it
+// under the same heading as the five would be claiming it is the notch above max.
+export const ULTRACODE_HINT =
+  'Ultracode is not one step above max. It is xhigh thinking plus sub-sessions this '
+  + 'step can hand work out to, so it changes how many sessions the step is — the '
+  + 'most expensive option here by some way. Where ultracode is unavailable the step '
+  + 'fails rather than quietly running at the default.'
 
 // ---------------------------------------------------------------------------
 // Page
@@ -663,15 +671,27 @@ function NodeEditor({
           onChange={(e) => onChange({ effort: e.target.value })}
         >
           <option value="">Default</option>
-          {EFFORT_LEVELS.map((level) => (
-            <option key={level} value={level}>{level}</option>
-          ))}
+          {/* Two groups rather than one list of six. Dropping ultracode in after 'max'
+              would read as the next notch up the same scale, which is the one thing
+              about it that is wrong. */}
+          <optgroup label="Think harder">
+            {EFFORT_LEVELS.map((level) => (
+              <option key={level} value={level}>{level}</option>
+            ))}
+          </optgroup>
+          <optgroup label="Think harder and fan out">
+            <option value={ULTRACODE} title={ULTRACODE_HINT}>{ULTRACODE}</option>
+          </optgroup>
         </select>
         {/* Only when it is set: a line under every step saying "this is normal" is
             noise, and the point of the label is that this step is not. */}
         {node.effort && (
           <span className="wf-effort-note">
-            {`Runs at ${node.effort} instead of the default.`}
+            {node.effort === ULTRACODE
+              ? 'Runs at ultracode: xhigh thinking plus sub-sessions it can hand work '
+                + 'out to. The most expensive level, and it fails outright where '
+                + 'ultracode is unavailable rather than falling back to the default.'
+              : `Runs at ${node.effort} instead of the default.`}
           </span>
         )}
       </div>

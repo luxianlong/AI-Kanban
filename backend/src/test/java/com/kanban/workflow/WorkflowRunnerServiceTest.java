@@ -319,7 +319,32 @@ class WorkflowRunnerServiceTest {
         // default. So a casing slip here would not fail anything — it would just
         // quietly undo the setting while the page kept showing it.
         assertThat(EffortLevel.XHIGH.cliValue()).isEqualTo("xhigh");
-        assertThat(EffortLevel.allowed()).isEqualTo("low, medium, high, xhigh, max");
+        assertThat(EffortLevel.allowed()).isEqualTo("low, medium, high, xhigh, max, ultracode");
+    }
+
+    @Test
+    void ultracodeIsOfferedEvenThoughTheCliHelpTextLeavesItOut() {
+        // `claude --help` prints "(low, medium, high, xhigh, max)" and so does the CLI's
+        // own warning for an unknown value — both lists are incomplete, and building the
+        // picker from them is exactly why this level was missing. Measured against the
+        // real CLI: `--effort ultracode` emits no "Unknown --effort value" warning (an
+        // unknown one does) and injects ~6,300 more cache-creation tokens than
+        // `--effort max`, which is the orchestration schema being loaded.
+        assertThat(EffortLevel.parse("ultracode")).isEqualTo(EffortLevel.ULTRACODE);
+        assertThat(EffortLevel.parse("UltraCode")).isEqualTo(EffortLevel.ULTRACODE);
+        assertThat(service.sessionArgsFor(EffortLevel.ULTRACODE))
+                .containsSequence("--effort", "ultracode");
+    }
+
+    @Test
+    void ultracodeIsListedLastSoItIsNeverConfusedForARungBelowMax() {
+        // Not decoration: it rides the same enum as the five, and the only thing keeping
+        // "max is the top of the thinking scale" true on the page is that ultracode sits
+        // outside that run of levels rather than after it.
+        EffortLevel[] levels = EffortLevel.values();
+
+        assertThat(levels[levels.length - 1]).isEqualTo(EffortLevel.ULTRACODE);
+        assertThat(levels[levels.length - 2]).isEqualTo(EffortLevel.MAX);
     }
 
     @Test
