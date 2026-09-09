@@ -30,10 +30,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * the input it is handed, not on what some earlier node happened to talk about.
  *
  * <p><strong>One node per tick.</strong> The tick returns as soon as a node finishes
- * rather than draining the whole graph, so the board's task queue
- * ({@code ClaudeWorkerService}) gets its turn between nodes. Both run on Spring's
- * single scheduler thread, which is deliberate: it means only one Claude process is
- * ever alive, whatever mix of tasks and workflows is queued.
+ * rather than draining the whole graph, so no single graph hogs the runner. This poller
+ * and {@code ClaudeWorkerService} get a scheduler thread each
+ * ({@code spring.task.scheduling.pool.size}), so a long board task no longer freezes a
+ * workflow or the other way round. Each side still runs one session at a time, so the
+ * invariant is "at most one board task and one workflow node", not "one Claude process
+ * on the machine" — {@code AiStoryClassifier} runs its own sessions off a separate pool.
  */
 @Service
 public class WorkflowRunnerService {
