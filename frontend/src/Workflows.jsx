@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from '
 import { api } from './api.js'
 import Icon from './Icon.jsx'
 import Markdown from './Markdown.jsx'
+import { MaximizeButton } from './resultWindow.jsx'
 import { relTime, runMeta } from './time.js'
 import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
@@ -974,6 +975,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
               <NodeRun
                 key={run.id}
                 run={run}
+                where={`${execution.workflowName} · Run #${execution.id}`}
                 open={openNodeId === run.nodeId}
                 onToggle={() => pickNode(run.nodeId)}
               />
@@ -985,7 +987,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   )
 })
 
-function NodeRun({ run, open, onToggle }) {
+function NodeRun({ run, where, open, onToggle }) {
   const [log, setLog] = useState('')
   const running = run.status === 'RUNNING'
 
@@ -1038,13 +1040,34 @@ function NodeRun({ run, open, onToggle }) {
           )}
           {run.output && (
             <div className="wf-block">
-              <span className="section-label">Output</span>
+              <span className="section-label">
+                Output
+                {/* The output box is 340px tall between a graph and the next step —
+                    enough to see that there is an answer, not to read one. */}
+                <MaximizeButton
+                  title={run.nodeName}
+                  subtitle={where}
+                  meta={[stateLabel(run.status), meta]}
+                  text={run.output}
+                  what="step output"
+                />
+              </span>
               <div className="wf-output"><Markdown text={run.output} /></div>
             </div>
           )}
           {run.error && (
             <div className="wf-block">
-              <span className="section-label">Why it stopped</span>
+              <span className="section-label">
+                Why it stopped
+                <MaximizeButton
+                  title={`${run.nodeName} — failed`}
+                  subtitle={where}
+                  meta={[stateLabel(run.status), meta]}
+                  text={run.error}
+                  mono
+                  what="failure"
+                />
+              </span>
               <pre className="wf-pre error-pre">{run.error}</pre>
             </div>
           )}

@@ -116,6 +116,14 @@ const GLYPHS = {
     </>
   ),
   chevron: <polyline points="9 18 15 12 9 6" />,
+  maximize: (
+    <>
+      <polyline points="15 3 21 3 21 9" />
+      <polyline points="9 21 3 21 3 15" />
+      <line x1="21" y1="3" x2="14" y2="10" />
+      <line x1="3" y1="21" x2="10" y2="14" />
+    </>
+  ),
   alert: (
     <>
       <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
