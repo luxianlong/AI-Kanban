@@ -6,6 +6,24 @@ spring:
     # scripts/env.sh (BACKEND_KILL_GRACE, 60s) so the JVM always wins the race and the
     # script never has to resort to SIGKILL.
     timeout-per-shutdown-phase: 45s
+  task:
+    scheduling:
+      pool:
+        # One thread per @Scheduled poller. There are exactly two — the board's task
+        # worker (ClaudeWorkerService.poll) and the workflow runner
+        # (WorkflowRunnerService.poll) — and Boot's default pool size of 1 put both on
+        # the same thread. Because a tick blocks inside Process.waitFor for the whole
+        # Claude session (up to worker.timeout-seconds), whichever poller went first
+        # locked the other out for the entire run: a 9-minute board task froze every
+        # workflow for 9 minutes, and vice versa. Measured on this box, 42% of workflow
+        # wall-clock was spent waiting for the thread (62% on the worst run) — see
+        # docs/workflow-parallel-workers.md for the numbers.
+        #
+        # This raises nobody's concurrency: the board still takes worker.batch-size (1)
+        # task per tick and the runner still runs one node per tick. It only stops the
+        # two from queueing behind each other. The cost is that peak concurrent Claude
+        # sessions goes from 1 to 2 (~270 MB each), so keep an eye on free memory.
+        size: 2
   datasource:
     # File-based H2 so todos survive restarts.
     #
@@ -91,9 +109,12 @@ worker:
 
 # --- Workflow runner (a DAG of prompt tasks) ---
 # Runs one node per tick and then hands the tick back, so the board's task queue is
-# never starved by a long graph. Both this and the worker above sit on Spring's single
-# scheduler thread, which is what guarantees only one Claude process is alive at a time;
-# a node inherits worker.timeout-seconds and worker.working-directory.
+# never starved by a long graph. This and the worker above now get a scheduler thread
+# each (spring.task.scheduling.pool.size above), so neither waits on the other; each
+# still runs at most one session at a time, so the invariant is "one board task and one
+# workflow node", not "one Claude process on the machine" — AiStoryClassifier runs its
+# own sessions off a separate pool. A node inherits worker.timeout-seconds and
+# worker.working-directory.
 workflow:
   poll-interval-ms: 5000
   initial-delay-ms: 12000
