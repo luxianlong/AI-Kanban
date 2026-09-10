@@ -1,6 +1,7 @@
 package com.kanban.work;
 
 import com.kanban.attachment.Attachment;
+import com.kanban.protocol.AttachmentsPlaceholder;
 import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.Todo;
 import com.kanban.todo.TodoRepository;
@@ -81,10 +82,16 @@ public class TaskPromptBuilder {
     }
 
     /**
-     * If the user attached images to the task, point the agent at the real files.
-     * They are stored on this machine by the backend, so the session can open them
-     * directly with its Read tool — the picture is part of the task's input, not
-     * just decoration on the card.
+     * If the user attached images to the task, tell the agent to open them — but leave WHERE
+     * to the worker.
+     *
+     * <p>These files live beside this server's database, and the absolute paths it knows them
+     * by mean nothing on another machine; a session told to open one would simply not find it.
+     * So the prompt carries {@link AttachmentsPlaceholder#TOKEN} and the work unit carries
+     * download URLs, and the worker substitutes the paths the files actually landed at after
+     * fetching them. The wording around the placeholder is unchanged — from the agent's side
+     * this still reads as a list of files on the machine it is running on, which is exactly
+     * what it now is.
      */
     private void appendAttachments(StringBuilder sb, Todo todo) {
         if (attachments == null || todo.getId() == null) {
@@ -98,11 +105,8 @@ public class TaskPromptBuilder {
                 .append("): the user attached the following image file(s) to this task. ")
                 .append("They are saved on this machine — open each one with the Read tool ")
                 .append("(it renders images) before you start, and treat what they show as part ")
-                .append("of the task's instructions:\n");
-        for (Attachment a : files) {
-            sb.append("  - ").append(attachments.pathOf(a).toString())
-                    .append("  (original name: ").append(a.getFileName()).append(")\n");
-        }
+                .append("of the task's instructions:\n")
+                .append(AttachmentsPlaceholder.TOKEN).append('\n');
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.kanban.worker;
 
+import com.kanban.protocol.SessionLimitsDto;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
@@ -187,17 +188,17 @@ public class WorkerProperties {
     }
 
     /** The pair of clocks a session runs against on this configuration. */
-    public SessionLimits sessionLimits() {
+    public SessionLimitsDto sessionLimits() {
         return sessionLimitsWithTimeout(timeoutSeconds);
     }
 
     /**
      * The same pair for a session allowed to live longer (or shorter) than the
-     * configured timeout — the only way to build a {@link SessionLimits}, so a caller
+     * configured timeout — the only way to build a {@link SessionLimitsDto}, so a caller
      * that changes the ceiling gets a wait that matches it rather than one left behind.
      */
-    public SessionLimits sessionLimitsWithTimeout(long sessionTimeoutSeconds) {
-        return new SessionLimits(sessionTimeoutSeconds,
+    public SessionLimitsDto sessionLimitsWithTimeout(long sessionTimeoutSeconds) {
+        return new SessionLimitsDto(sessionTimeoutSeconds,
                 backgroundWaitSecondsFor(sessionTimeoutSeconds));
     }
 

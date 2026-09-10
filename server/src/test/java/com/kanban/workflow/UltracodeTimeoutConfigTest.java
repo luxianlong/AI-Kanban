@@ -1,6 +1,7 @@
 package com.kanban.workflow;
 
-import com.kanban.worker.SessionLimits;
+import com.kanban.protocol.SessionLimitsDto;
+import com.kanban.work.NodeSessionPlanner;
 import com.kanban.worker.WorkerProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * What an ultracode step is actually given by the <em>shipped configuration</em>, rather
- * than by a hand-built {@link WorkflowRunnerService}.
+ * than by a hand-built {@link NodeSessionPlanner}.
  *
- * <p>This asks a different question from {@link WorkflowRunnerServiceTest}, and the
+ * <p>This asks a different question from a unit test of the arithmetic, and the
  * difference is the one that has bitten this setting's neighbour twice. The arithmetic
  * can be right in code and right on the defaults while being wrong in production,
  * because {@code application.yml} holds one number and {@code scripts/env.sh} launches
@@ -33,15 +34,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UltracodeTimeoutConfigTest {
 
     @Autowired
-    private WorkflowRunnerService service;
+    private NodeSessionPlanner planner;
 
     @Autowired
     private WorkerProperties props;
 
     @Test
     void theShippedConfigGivesAnUltracodeStepAMultipleOfTheTimeoutThatIsActuallyInForce() {
-        SessionLimits ordinary = service.limitsFor(EffortLevel.MAX);
-        SessionLimits ultracode = service.limitsFor(EffortLevel.ULTRACODE);
+        SessionLimitsDto ordinary = planner.limitsFor(EffortLevel.MAX);
+        SessionLimitsDto ultracode = planner.limitsFor(EffortLevel.ULTRACODE);
 
         assertThat(props.getTimeoutSeconds()).isEqualTo(3600);
         assertThat(ordinary.timeoutSeconds())
@@ -58,7 +59,7 @@ class UltracodeTimeoutConfigTest {
         // The failure this half prevents is silent: the step stays alive, its background
         // work is killed under it, and what gets stored and passed downstream is the
         // sentence it wrote before the kill.
-        SessionLimits ultracode = service.limitsFor(EffortLevel.ULTRACODE);
+        SessionLimitsDto ultracode = planner.limitsFor(EffortLevel.ULTRACODE);
 
         assertThat(props.getConfiguredBackgroundWaitSeconds())
                 .as("application.yml must not pin the wait — a pinned number stops"

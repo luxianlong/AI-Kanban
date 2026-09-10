@@ -103,6 +103,22 @@ export WORKER_ENABLED="${WORKER_ENABLED:-1}"
 #   KANBAN_WORKER_TOKEN=$(openssl rand -base64 32)
 export KANBAN_WORKER_TOKEN="${KANBAN_WORKER_TOKEN:-}"
 
+# --- The worker process ------------------------------------------------------------------
+#
+# The board no longer runs sessions itself: the server hands work out over /api/agent and a
+# WORKER process claims it, runs `claude`, and reports back. So one worker has to be running
+# for anything on the board to happen, and start.sh launches one here alongside the server.
+#
+# This local worker declares the repo, which is what makes it eligible for project-improvement
+# tasks — those edit this working tree and run the guarded deploy, so they can only run on a
+# box that has it. Workers on other machines declare only general/workflow and pick up
+# everything else. Start as many as you like, anywhere; they need no coordination, because the
+# server hands each unit out exactly once.
+export WORKER_JAR="$REPO/worker/target/kanban-worker-0.1.0.jar"
+export WORKER_NAME="${WORKER_NAME:-$(hostname -s 2>/dev/null || echo local)}"
+export WORKER_CAPABILITIES="${WORKER_CAPABILITIES:-general,workflow,repo:${KANBAN_REPO_NAME:-Dashboard}}"
+export WORKER_LOG="${WORKER_LOG:-/tmp/kanban-worker.log}"
+
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"
 export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/kanban-frontend.log}"
 export JAR="$REPO/server/target/kanban-server-0.1.0.jar"
@@ -124,6 +140,67 @@ backend_launch_args() {
     args+=(--worker.extra-args=--output-format,stream-json,--verbose,--dangerously-skip-permissions)
   fi
   printf '%s\n' "${args[@]}"
+}
+
+# Build the java launch args array for the worker.
+worker_launch_args() {
+  local args=(
+    -jar "$WORKER_JAR"
+    --worker.server-url="http://localhost:$BACKEND_PORT"
+    --worker.token="$KANBAN_WORKER_TOKEN"
+    --worker.name="$WORKER_NAME"
+    --worker.capabilities="$WORKER_CAPABILITIES"
+    --worker.repo-directory="$WORKER_WORK_DIR"
+    --worker.claude-command="$CLAUDE_CMD"
+  )
+  if [ "$WORKER_SKIP_PERMS" = "1" ]; then
+    args+=(--worker.extra-args=--output-format,stream-json,--verbose,--dangerously-skip-permissions)
+  fi
+  printf '%s\n' "${args[@]}"
+}
+
+# Ends in a printf, deliberately. Under `set -euo pipefail` a bare `pgrep | head` pipeline
+# returns pgrep's exit status when nothing matches, and `pid="$(worker_pid)"` would then abort
+# the whole script — which is exactly what silently stopped start.sh before the worker launched.
+worker_pid() {
+  local pid
+  pid="$(pgrep -f "java .*kanban-worker-.*\.jar" 2>/dev/null | head -1)" || true
+  printf '%s' "$pid"
+}
+
+# Stop the worker. It kills its own session and hands the lease back on the way down, so give
+# it a moment: vanishing instead leaves the card looking busy until the lease expires.
+kill_worker() {
+  local pid waited=0
+  pid="$(worker_pid)"
+  [ -n "$pid" ] || return 0
+  echo "▶ Stopping worker (pid $pid)…"
+  kill "$pid" 2>/dev/null || return 0
+  while kill -0 "$pid" 2>/dev/null; do
+    if [ "$waited" -ge 30 ]; then
+      kill -9 "$pid" 2>/dev/null || true
+      break
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+}
+
+# Start the worker, unless work is switched off entirely.
+start_worker() {
+  if [ "$WORKER_ENABLED" != "1" ]; then
+    echo "▶ Worker disabled (WORKER_ENABLED=0) — the board will not run anything."
+    return 0
+  fi
+  if [ -z "$KANBAN_WORKER_TOKEN" ]; then
+    echo "✖ No KANBAN_WORKER_TOKEN set — the agent API is off and the worker cannot claim."
+    echo "  Put one in scripts/local.env:  KANBAN_WORKER_TOKEN=\$(openssl rand -base64 32)"
+    return 0
+  fi
+  kill_worker
+  echo "▶ Starting worker '$WORKER_NAME' ($WORKER_CAPABILITIES)…"
+  setsid java $(worker_launch_args) < /dev/null > "$WORKER_LOG" 2>&1 &
+  disown || true
 }
 
 # PID of the running backend. Prefer matching the jar: during a graceful shutdown

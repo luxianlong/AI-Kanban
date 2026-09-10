@@ -16,10 +16,20 @@ import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.Todo;
 import com.kanban.todo.TodoRepository;
 import com.kanban.todo.TodoStatus;
+import com.kanban.work.NodeOutcomeService;
+import com.kanban.work.NodeSessionSpec;
+import com.kanban.work.NodeSessionPlanner;
 import com.kanban.work.SessionOutcome;
 import com.kanban.work.TaskEligibility;
 import com.kanban.work.TaskOutcomeService;
 import com.kanban.work.TaskPromptBuilder;
+import com.kanban.work.WorkflowGraphProgress;
+import com.kanban.work.WorkflowWorkSource;
+import com.kanban.workflow.NodeExecution;
+import com.kanban.workflow.RunState;
+import com.kanban.workflow.NodeExecutionRepository;
+import com.kanban.workflow.WorkflowExecution;
+import com.kanban.workflow.WorkflowExecutionRepository;
 import com.kanban.worker.LiveLogRegistry;
 import com.kanban.worker.WorkerProperties;
 import org.slf4j.Logger;
@@ -71,12 +81,21 @@ public class AgentService {
     private final LiveLogRegistry liveLog;
     private final WorkerProperties workerProps;
     private final AgentProperties props;
+    private final WorkflowWorkSource workflowWork;
+    private final WorkflowGraphProgress graph;
+    private final NodeSessionPlanner nodePlanner;
+    private final NodeOutcomeService nodeOutcomes;
+    private final NodeExecutionRepository nodeRuns;
+    private final WorkflowExecutionRepository executions;
     private final SecureRandom random = new SecureRandom();
 
     public AgentService(TodoRepository todos, LeaseRepository leases, TaskEligibility eligibility,
                         TaskPromptBuilder prompts, TaskOutcomeService outcomes,
                         AttachmentService attachments, LiveLogRegistry liveLog,
-                        WorkerProperties workerProps, AgentProperties props) {
+                        WorkerProperties workerProps, AgentProperties props,
+                        WorkflowWorkSource workflowWork, WorkflowGraphProgress graph,
+                        NodeSessionPlanner nodePlanner, NodeOutcomeService nodeOutcomes,
+                        NodeExecutionRepository nodeRuns, WorkflowExecutionRepository executions) {
         this.todos = todos;
         this.leases = leases;
         this.eligibility = eligibility;
@@ -86,6 +105,12 @@ public class AgentService {
         this.liveLog = liveLog;
         this.workerProps = workerProps;
         this.props = props;
+        this.workflowWork = workflowWork;
+        this.graph = graph;
+        this.nodePlanner = nodePlanner;
+        this.nodeOutcomes = nodeOutcomes;
+        this.nodeRuns = nodeRuns;
+        this.executions = executions;
     }
 
     // --- claim -----------------------------------------------------------------
@@ -124,7 +149,62 @@ public class AgentService {
             }
             return Optional.of(handOut(todo, worker));
         }
+        // Board tasks first, then workflow nodes. Tasks are what a person is waiting on; a
+        // workflow run is already machinery, and a node that waits one poll costs nobody's
+        // attention.
+        if (capabilities.contains(Capabilities.WORKFLOW)) {
+            return workflowWork.claimNext().map(claimed -> handOutNode(claimed, worker));
+        }
         return Optional.empty();
+    }
+
+    /** Record who has this node, open its transcript, and build the unit to send. */
+    private WorkUnit handOutNode(WorkflowWorkSource.ClaimedNode claimed, String worker) {
+        NodeExecution run = claimed.run();
+        NodeSessionSpec spec = nodePlanner.planFor(run.getEffort());
+        Instant now = Instant.now();
+        Lease lease = new Lease(newLeaseId(), worker, WorkKind.WORKFLOW_NODE, run.getId(), now,
+                now.plusSeconds(props.getLeaseSeconds()),
+                spec.limits().timeoutSeconds(), spec.limits().backgroundWaitSeconds());
+        leases.save(lease);
+
+        String key = LiveLogRegistry.nodeKey(run.getId());
+        liveLog.start(key);
+        liveLog.append(key, "● Node \"" + run.getNodeName() + "\" ("
+                + (run.getOrderIndex() + 1) + "/" + workflowWork.totalNodes(run.getExecutionId()) + ")"
+                + (run.getAttempt() > 1 ? ", attempt " + run.getAttempt() + "," : "")
+                + " started on worker '" + worker + "'.");
+        if (run.getEffort() != null) {
+            // Worth saying, because it is the one place two runs of the same prompt differ in
+            // what they cost and how long they take.
+            liveLog.append(key, "● Effort: " + run.getEffort().cliValue() + ".");
+        }
+        if (spec.limits().timeoutSeconds() != workerProps.getTimeoutSeconds()) {
+            // Only when it differs from every other step's. Saying "this one has longer" is
+            // worth a line precisely because a step that sits there for an hour looks stuck.
+            liveLog.append(key, "● This step has " + spec.limits().timeoutSeconds()
+                    + "s rather than the usual " + workerProps.getTimeoutSeconds()
+                    + "s, and may wait " + spec.limits().backgroundWaitSeconds()
+                    + "s for work it starts in the background.");
+        }
+        log.info("Worker '{}' claimed workflow node \"{}\" of execution #{} (lease {}).",
+                worker, run.getNodeName(), run.getExecutionId(), lease.getId());
+
+        return new WorkUnit(
+                lease.getId(),
+                WorkKind.WORKFLOW_NODE,
+                run.getId(),
+                run.getNodeName(),
+                graph.buildPrompt(run, claimed.input()),
+                spec.sessionArgs(),
+                new SessionLimitsDto(lease.getTimeoutSeconds(), lease.getBackgroundWaitSeconds()),
+                // Never the repo. A node transforms text and has no business writing into
+                // anyone's working tree — and its own directory is what makes the read fence in
+                // sessionArgs mean anything per step, rather than around the whole graph.
+                WorkDirMode.SCRATCH,
+                NodeSessionPlanner.workDirKeyFor(run.getExecutionId(), run.getId()),
+                List.of(),
+                props.getLeaseSeconds());
     }
 
     /** Record who has the work, open its transcript, and build the unit to send. */
@@ -219,38 +299,77 @@ public class AgentService {
 
     // --- result ----------------------------------------------------------------
 
-    /** Record what a session produced. The verdict is {@link TaskOutcomeService}'s, not the worker's. */
+    /**
+     * Record what a session produced. The verdict is the server's, not the worker's — see
+     * {@link TaskOutcomeService} and {@link NodeOutcomeService}.
+     */
     @Transactional
     public void report(String leaseId, ResultRequest request) {
         Lease lease = activeLease(leaseId);
-        Todo todo = todos.findById(lease.getRefId()).orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.GONE, "Task #" + lease.getRefId() + " no longer exists."));
-
         SessionOutcome outcome = new SessionOutcome(request.exitCode(), request.timedOut(),
                 request.abandonedBackgroundWork(), request.stopped(), request.finalOutput(),
                 request.costUsd(), request.durationMs());
+
+        if (lease.getKind() == WorkKind.WORKFLOW_NODE) {
+            reportNode(lease, outcome);
+        } else {
+            reportTask(lease, outcome);
+        }
+        lease.setState(LeaseState.DONE);
+        leases.save(lease);
+    }
+
+    private void reportTask(Lease lease, SessionOutcome outcome) {
+        Todo todo = todos.findById(lease.getRefId()).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.GONE, "Task #" + lease.getRefId() + " no longer exists."));
         TaskOutcomeService.Applied applied = outcomes.apply(todo, outcome,
                 lease.getTimeoutSeconds(), lease.getBackgroundWaitSeconds());
         liveLog.append(todo.getId(), applied.logLine());
-
-        lease.setState(LeaseState.DONE);
-        leases.save(lease);
         log.info("Worker '{}' reported todo #{} as {}.", lease.getWorkerName(), todo.getId(),
                 applied.status());
+    }
+
+    private void reportNode(Lease lease, SessionOutcome outcome) {
+        NodeExecution run = nodeRuns.findById(lease.getRefId()).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.GONE,
+                        "Node run #" + lease.getRefId() + " no longer exists."));
+        NodeOutcomeService.Applied applied = nodeOutcomes.apply(run, outcome,
+                lease.getTimeoutSeconds(), lease.getBackgroundWaitSeconds());
+        liveLog.append(LiveLogRegistry.nodeKey(run.getId()), applied.logLine());
+        log.info("Worker '{}' reported node \"{}\" of execution #{} as {}.",
+                lease.getWorkerName(), run.getNodeName(), run.getExecutionId(), applied.status());
+
+        // Advance the graph here, because nothing else will: with the session on another
+        // machine there is no lane sitting inside the run to notice it has finished, or that a
+        // failure has just poisoned every branch below it.
+        executions.findById(run.getExecutionId()).ifPresent(graph::finishIfSettled);
     }
 
     /**
      * A worker handing work back on its way down — the polite version of vanishing.
      *
-     * <p>The task returns to the queue immediately rather than waiting out the lease, and the
-     * attempt it already spent still counts, so work that keeps being handed back is capped
-     * by the same max-attempts rule as work that keeps being orphaned.
+     * <p>What "back" means differs by kind, and follows the policy each already had for work a
+     * restart interrupted. A task returns to the queue immediately; the attempt it spent still
+     * counts, so work that keeps being handed back is capped by the same max-attempts rule as
+     * work that keeps being orphaned. A node is failed instead of re-queued, because it may
+     * already have done part of its work and re-running it would silently duplicate that
+     * halfway through a graph — the run is then in exactly the state Retry is for.
      */
     @Transactional
     public void release(String leaseId) {
         Lease lease = activeLease(leaseId);
         lease.setState(LeaseState.RELEASED);
         leases.save(lease);
+        if (lease.getKind() == WorkKind.WORKFLOW_NODE) {
+            releaseNode(lease);
+        } else {
+            releaseTask(lease);
+        }
+        log.info("Worker '{}' released {} #{}.", lease.getWorkerName(), lease.getKind(),
+                lease.getRefId());
+    }
+
+    private void releaseTask(Lease lease) {
         todos.findById(lease.getRefId()).ifPresent(todo -> {
             if (todo.getStatus() == TodoStatus.IN_PROGRESS) {
                 todo.setStatus(TodoStatus.PENDING);
@@ -259,7 +378,23 @@ public class AgentService {
                         "■ Worker '" + lease.getWorkerName() + "' handed this back; requeued.");
             }
         });
-        log.info("Worker '{}' released todo #{}.", lease.getWorkerName(), lease.getRefId());
+    }
+
+    private void releaseNode(Lease lease) {
+        nodeRuns.findById(lease.getRefId()).ifPresent(run -> {
+            if (run.getStatus() != RunState.RUNNING) {
+                return;
+            }
+            run.setStatus(RunState.FAILED);
+            run.setError("Worker '" + lease.getWorkerName() + "' shut down while running this "
+                    + "step. Not re-run automatically, because the step may already have done "
+                    + "part of its work — retry the run if you decide another attempt is safe.");
+            run.setFinishedAt(Instant.now());
+            nodeRuns.save(run);
+            liveLog.append(LiveLogRegistry.nodeKey(run.getId()),
+                    "■ Worker '" + lease.getWorkerName() + "' handed this step back.");
+            executions.findById(run.getExecutionId()).ifPresent(graph::finishIfSettled);
+        });
     }
 
     /**

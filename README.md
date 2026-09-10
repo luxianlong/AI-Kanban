@@ -7,18 +7,27 @@ regularly picks them up and tries to resolve them — writing the result back fo
   left→right across **To Do → In Progress → Done → Needs Attention** as the agent works.
   In-Progress cards show a live "thinking" ticker; click any card for a detail drawer with
   the full live session log or final result.
-- **Backend** — Java 21 + Spring Boot (REST API, H2 database, scheduled worker)
-- **Worker** — a `@Scheduled` service that shells out to the `claude` CLI in headless
-  (`-p` / print) mode, one todo at a time, and records what the session produced.
+- **Server** (`server/`) — Java 21 + Spring Boot. Owns the board: tasks, stories, workflows,
+  executions, the H2 database and the frontend. It decides *what* should run and what a
+  result *means*, but never runs anything itself.
+- **Worker** (`worker/`) — a separate process that claims work from the server over REST,
+  shells out to the `claude` CLI in headless (`-p` / print) mode, streams the session back,
+  and reports what it produced. Runs on any machine with a JDK and the CLI.
+- **Protocol** (`protocol/`) — the wire types the two share.
 
 ```
- ┌──────────┐   POST /api/todos    ┌──────────────┐   poll PENDING    ┌────────────────────┐
- │  React   │ ───────────────────▶ │ Spring Boot  │ ────────────────▶ │ ClaudeWorkerService│
- │  (Vite)  │ ◀─── GET /api/todos  │  + H2 store  │ ◀── write result  │  claude -p "..."   │
- └──────────┘   (polls every 4s)   └──────────────┘   RESOLVED/FAILED └────────────────────┘
+ ┌──────────┐  POST /api/todos   ┌──────────────┐  POST /api/agent/claim   ┌──────────────┐
+ │  React   │ ─────────────────▶ │    Server    │ ◀────────────────────── │    Worker    │
+ │  (Vite)  │ ◀── GET /api/todos │  + H2 store  │ ──── WorkUnit ────────▶ │ claude -p ".."│
+ └──────────┘  (polls every 4s)  └──────────────┘ ◀─ heartbeat / result ─ └──────────────┘
+                                                   (worker dials out only)
 ```
 
 A todo flows: `PENDING → IN_PROGRESS → RESOLVED` (or `FAILED`).
+
+> **You need a worker running for anything to happen.** `scripts/start.sh` launches one on
+> this machine alongside the server. Start more anywhere you like — see
+> [Running a worker](#running-a-worker).
 
 See **[docs/architecture.md](docs/architecture.md)** for a full topology of the
 design — system, components, the todo lifecycle, the worker poll cycle, stories,
@@ -58,7 +67,10 @@ Maven is **not** required — the backend ships a Maven wrapper (`./mvnw`).
 
 ## Run it
 
-### 1. Backend (port 8080)
+The quickest path is `scripts/start.sh`, which builds everything, starts the server, and
+starts a worker on this machine. The pieces individually:
+
+### 1. Server (port 8080)
 
 ```bash
 cd server
@@ -68,7 +80,21 @@ cd server
 On first run this creates a file-based H2 database under `data/` (todos
 survive restarts). The worker starts polling ~10s after boot.
 
-### 2. Frontend (port 5173)
+### 2. Worker
+
+```bash
+java -jar worker/target/kanban-worker-0.1.0.jar \
+  --worker.server-url=http://localhost:8080 \
+  --worker.token=$KANBAN_WORKER_TOKEN \
+  --worker.capabilities=general,workflow,repo:Dashboard \
+  --worker.repo-directory=$PWD
+```
+
+The token must match the server's `agent.token`. Without one the server's agent API is
+switched off entirely and answers 503 — an unauthenticated worker API on a public domain
+would let anyone claim your tasks and write any result they liked onto the board.
+
+### 3. Frontend (port 5173)
 
 ```bash
 cd frontend
@@ -91,49 +117,112 @@ final **Result**, with the full session transcript available under "Full session
 
 ## How the worker works
 
-`ClaudeWorkerService` runs on a fixed schedule (`worker.poll-interval-ms`, default 15s):
+The server never launches a session. It decides what should run next, hands that out as a
+self-contained **work unit**, and reads back what happened:
 
-1. Load `PENDING` todos oldest-first (FIFO).
-2. Move up to `worker.batch-size` of them to `IN_PROGRESS`.
-3. For each, run `claude <extra-args> -p "<prompt built from the todo>"` inside
-   `worker.working-directory`, with a `worker.timeout-seconds` hard timeout.
-4. Store stdout as the result and set `RESOLVED`, or `FAILED` on non-zero exit / timeout.
+1. A worker POSTs `/api/agent/claim` saying who it is and what it can run.
+2. The server takes the next eligible unit — a board task, or a workflow node whose upstream
+   has succeeded — with a conditional `UPDATE`, so two workers claiming at the same instant
+   cannot both get it. It replies with the finished prompt, the CLI flags, both clocks, and a
+   **lease**.
+3. The worker runs `claude` and POSTs `/api/agent/leases/{id}/heartbeat` every few seconds.
+   The heartbeat carries the session's output up and the **Stop** button down — the server
+   cannot dial a worker behind NAT, so that is the only channel it has.
+4. When the session ends the worker POSTs the raw facts: exit code, whether it timed out,
+   what it finally said. **It reports no verdict.** The server decides whether those facts
+   mean Done or Needs Attention.
+5. If the worker stops heartbeating, the lease expires and `LeaseReaper` takes the work back.
 
-A `ReentrantLock` guarantees ticks never overlap, so a long-running session simply
-delays the next poll rather than spawning parallel Claude processes.
+### Why the worker never decides what a result means
 
-Output is consumed with `--output-format stream-json`, so each event (assistant text,
-tool call, tool result, final result) is rendered to a readable line and appended to
-an in-memory transcript (`LiveLogRegistry`) as it arrives — that's what the live log
-shows. On restart, any todo still marked `IN_PROGRESS` (its process died with the old
-JVM) is automatically requeued to `PENDING`.
+The rules are not obvious. A clean exit code means nothing if the CLI killed the session's
+background work — what the session said before that is a promise to report back, not an
+answer, and filing it as the result poisons every workflow step downstream. A sentinel line
+in the output means failure even though every other signal looks fine.
 
-### Configuration (`server/src/main/resources/application.yml`)
+A worker jar on someone else's laptop is the one part of this system a deploy cannot update.
+If it held opinions about results, an old worker would quietly disagree with the board about
+what happened — and the board would be the one that was wrong. So the judgement lives in
+`TaskOutcomeService` / `NodeOutcomeService`, next to the database it is written into.
+
+### Capabilities: which work goes where
+
+A worker announces what it can do; the server only offers a unit whose required capability
+the worker declared.
+
+| Capability | Means |
+| --- | --- |
+| `general` | Ordinary board tasks. Portable — any machine. |
+| `workflow` | Workflow nodes. Portable. |
+| `repo:<name>` | *This machine has that repository checked out and may build and deploy it.* |
+
+The last one exists because one kind of work genuinely is not portable: a task about
+improving this project edits the working tree and runs `scripts/deploy.sh`. Those only go to
+a worker declaring `repo:Dashboard`; everything else runs anywhere. Declaring a `repo:`
+capability you cannot honour is how a task ends up trying to deploy from an empty directory.
+
+### Running a worker
+
+On another machine, with the CLI installed and authenticated:
+
+```bash
+java -jar kanban-worker-0.1.0.jar \
+  --worker.server-url=https://youraikanban.com \
+  --worker.token=<the server's agent.token> \
+  --worker.name=laptop-01 \
+  --worker.capabilities=general,workflow
+```
+
+Run as many as you like, on as many machines as you like — they need no coordination,
+because the server hands each unit out exactly once. Every setting is in
+`worker/src/main/resources/application.yml`.
+
+To let sessions edit files and run commands unattended, add
+`--dangerously-skip-permissions` to `worker.extra-args`. Understand the risk first: it is
+that machine you are handing over, not the server's.
+
+### Server-side worker configuration (`server/src/main/resources/application.yml`)
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `worker.enabled` | `true` | Master switch. `false` = never launch Claude. |
-| `worker.claude-command` | `claude` | Path to the CLI (use an absolute path if not on the service `PATH`). |
-| `worker.extra-args` | `--output-format text` | Args inserted before the prompt. |
-| `worker.working-directory` | `~/kanban-work` | The directory each session runs in (its sandbox/repo). |
-| `worker.timeout-seconds` | `300` | Per-item hard timeout. |
-| `worker.batch-size` | `1` | Max items handled per tick. |
-| `worker.poll-interval-ms` | `15000` | Poll cadence. |
+| `agent.token` | *(empty)* | Shared secret workers authenticate with. **Empty disables the agent API entirely.** |
+| `agent.lease-seconds` | `120` | How long a claim survives without a heartbeat. |
+| `agent.repo-name` | `Dashboard` | Which `repo:` capability repo-bound tasks require. |
+| `worker.timeout-seconds` | `1800` | Per-session ceiling handed to the worker. |
+| `worker.max-attempts` | `2` | How many times a task may be picked up before it is routed to Needs Attention instead of retried. |
 
-Any key can be overridden at launch, e.g.:
+### Worker-side configuration (`worker/src/main/resources/application.yml`)
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `worker.server-url` | `http://localhost:8080` | Which board to serve. |
+| `worker.token` | *(empty)* | Must match the server's `agent.token`. |
+| `worker.name` | `$HOSTNAME` | Shown on the card, so you can see where it ran. |
+| `worker.capabilities` | `general,workflow` | What this worker will accept — see above. |
+| `worker.repo-directory` | *(cwd)* | Working tree for `repo:` units. |
+| `worker.scratch-root` | `$TMPDIR/kanban-worker` | Parent of the per-unit throwaway directories. |
+| `worker.poll-interval-ms` | `5000` | How often to ask for work when idle. |
+| `worker.heartbeat-interval-ms` | `3000` | How often to check in while running — also how promptly Stop lands and how far behind the live log runs. |
+| `worker.claude-command` | `claude` | Path to the CLI. |
+| `worker.extra-args` | stream-json + verbose | Args before the prompt on every session. |
+
+Any key can be overridden at launch:
 
 ```bash
-./mvnw spring-boot:run \
-  -Dspring-boot.run.arguments="--worker.claude-command=/abs/path/to/claude --worker.poll-interval-ms=5000"
+java -jar kanban-worker-0.1.0.jar --worker.name=laptop-01 --worker.poll-interval-ms=2000
 ```
 
 ### Letting Claude actually *do* things
 
-By default the session runs with normal permissions, so it will answer/plan but
-won't edit files or run commands unattended. To let it act autonomously, point
-`worker.working-directory` at a **trusted, sandboxed** repo and add
-`--dangerously-skip-permissions` to `worker.extra-args`. Understand the risk before
-enabling this — the session will run tools without prompting.
+By default the session runs with normal permissions, so it will answer/plan but won't edit
+files or run commands unattended. To let it act autonomously, add
+`--dangerously-skip-permissions` to the **worker's** `worker.extra-args` and point
+`worker.repo-directory` at a **trusted, sandboxed** repo.
+
+Note where the risk now lives: it is the worker's machine that gets handed over, not the
+server's. That is a real improvement — you can put the box that runs unattended sessions
+somewhere disposable and keep the board on a machine you care about — but it means each
+worker is a separate decision.
 
 ---
 
@@ -151,6 +240,11 @@ enabling this — the session will run tools without prompting.
 | `GET` | `/api/stories` | List stories with their ordered steps. |
 | `POST` | `/api/stories` | Create a story `{ "name": "...", "steps": [{ "title": "...", "description": "..." }] }`. |
 | `GET` | `/api/worker/status` | Worker config (enabled, interval, ...). |
+| `POST` | `/api/agent/claim` | **Workers only.** Claim one unit of work, or 204 if there is none this worker can run. |
+| `POST` | `/api/agent/leases/{id}/heartbeat` | Renew a claim, push live-log lines, learn whether Stop was pressed. |
+| `POST` | `/api/agent/leases/{id}/result` | Report the raw facts of a finished session. |
+| `POST` | `/api/agent/leases/{id}/release` | Hand work back deliberately (a worker shutting down). |
+| `GET` | `/api/agent/attachments/{id}` | Download a task's attached file. |
 | `GET` | `/api/workflows` | List workflows with their full graph. |
 | `POST` | `/api/workflows` | Create one from a whole graph: `{ "name": "...", "nodes": [{ "id": "...", "name": "...", "prompt": "..." }], "edges": [{ "from": "...", "to": "..." }], "entryNodeId": "..." }`. `entryNodeId` may be omitted when exactly one node has no incoming edge. |
 | `PUT` | `/api/workflows/{id}` | Replace name, description and whole graph. |

@@ -1,6 +1,10 @@
 package com.kanban.worker;
 
-import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
+import com.kanban.protocol.SessionLimitsDto;
+import com.kanban.worker.session.ClaudeSessionRunner;
+import com.kanban.worker.session.ClaudeSessionRunner.ProcessResult;
+import com.kanban.worker.session.RunningSessions;
+import com.kanban.worker.session.SessionSettings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -79,46 +83,36 @@ class BackgroundWorkWaitTest {
     }
 
     /** A runner pointed at the stub, with the CLI's own args left off. */
-    private ClaudeSessionRunner runnerFor(Path dir, Long waitSeconds) {
-        WorkerProperties props = new WorkerProperties();
-        props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
-        props.setExtraArgs(List.of());
-        props.setWorkingDirectory(dir.toString());
-        props.setBackgroundWaitSeconds(waitSeconds);
-        return new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry());
-    }
-
-    /** A runner on the project's own default wait. */
     private ClaudeSessionRunner runnerFor(Path dir) {
-        return runnerFor(dir, new WorkerProperties().getBackgroundWaitSeconds());
+        return new ClaudeSessionRunner(
+                new StubSettings(dir.resolve("claude-stub.sh").toString()),
+                (key, line) -> { },
+                new RunningSessions());
     }
 
     /**
-     * A runner whose wait is left unconfigured, on a given hard timeout — the shape the
-     * live backend runs in, where {@code scripts/env.sh} passes
-     * {@code --worker.timeout-seconds} on the command line and nothing passes a wait.
+     * The clocks a unit arrives with.
+     *
+     * <p>On the server these two are derived together from whatever timeout is in force; here
+     * they are simply what the work unit said. That is the whole reason both travel together —
+     * a worker handed only one of them would be back in the failure this class guards, running
+     * a session for an hour while killing its background work after twenty-five minutes.
      */
-    private ClaudeSessionRunner runnerOnTimeout(Path dir, long timeoutSeconds) {
-        WorkerProperties props = new WorkerProperties();
-        props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
-        props.setExtraArgs(List.of());
-        props.setWorkingDirectory(dir.toString());
-        props.setTimeoutSeconds(timeoutSeconds);
-        return new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry());
+    private SessionLimitsDto limits(long waitSeconds) {
+        return new SessionLimitsDto(600, waitSeconds);
     }
 
-    /** Worker properties pointed at the stub, so a test can build limits from them. */
-    private WorkerProperties stubProps(Path dir, long timeoutSeconds) {
-        WorkerProperties props = new WorkerProperties();
-        props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
-        props.setExtraArgs(List.of());
-        props.setWorkingDirectory(dir.toString());
-        props.setTimeoutSeconds(timeoutSeconds);
-        return props;
-    }
+    /** The settings a worker is configured with, pointed at the stub. */
+    private record StubSettings(String command) implements SessionSettings {
+        @Override
+        public String claudeCommand() {
+            return command;
+        }
 
-    private ClaudeSessionRunner runnerOn(WorkerProperties props) {
-        return new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry());
+        @Override
+        public List<String> extraArgs() {
+            return List.of();
+        }
     }
 
     /**
@@ -142,7 +136,7 @@ class BackgroundWorkWaitTest {
         // so the ceiling has to be passed in rather than inherited.
         writeStub(dir, RESULT_EVENT);
 
-        runnerFor(dir, UNUSUAL_WAIT_SECONDS).run("todo:1", "go", dir.toFile(), List.of());
+        runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(UNUSUAL_WAIT_SECONDS));
 
         assertThat(Files.readString(dir.resolve("ceiling.txt")))
                 .as("the session should be given the configured wait, in milliseconds")
@@ -158,7 +152,7 @@ class BackgroundWorkWaitTest {
         writeStub(dir, RESULT_EVENT);
         String inherited = System.getenv("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS");
 
-        runnerFor(dir, UNUSUAL_WAIT_SECONDS).run("todo:1", "go", dir.toFile(), List.of());
+        runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(UNUSUAL_WAIT_SECONDS));
 
         assertThat(Files.readString(dir.resolve("ceiling.txt")))
                 .as("the configured wait must win over anything the parent exported (%s)", inherited)
@@ -172,7 +166,7 @@ class BackgroundWorkWaitTest {
         // seconds-to-milliseconds conversion rather than becoming a zero-length wait.
         writeStub(dir, RESULT_EVENT);
 
-        runnerFor(dir, 0L).run("todo:1", "go", dir.toFile(), List.of());
+        runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(0L));
 
         assertThat(Files.readString(dir.resolve("ceiling.txt"))).isEqualTo("0");
     }
@@ -186,7 +180,7 @@ class BackgroundWorkWaitTest {
         // result event to stdout. The runner only sees both because it merges the two.
         writeStub(dir, List.of(CEILING_HIT), List.of(RESULT_EVENT));
 
-        ProcessResult result = runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of());
+        ProcessResult result = runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(1500));
 
         assertThat(result.exitCode()).isZero();
         assertThat(result.abandonedBackgroundWork()).isTrue();
@@ -201,91 +195,11 @@ class BackgroundWorkWaitTest {
         // guard that fired on every session would send healthy work to Needs Attention.
         writeStub(dir, RESULT_EVENT);
 
-        ProcessResult result = runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of());
+        ProcessResult result = runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(1500));
 
         assertThat(result.abandonedBackgroundWork()).isFalse();
         assertThat(result.finalOutput()).isEqualTo(STAND_IN);
         assertThat(result.costUsd()).isEqualTo(2.47);
-    }
-
-    @Test
-    void theWaitIsShorterThanTheHardTimeoutSoTheCliCanStillReportWhyItStopped() {
-        // The two clocks start at different moments — the wait when the last turn ends,
-        // the timeout when the process starts — so equal values would leave the CLI
-        // being force-killed instead of winding up with a cost, a duration and a reason.
-        //
-        // Asserted over a range of timeouts rather than on the defaults alone: a version
-        // of this that only read the defaults passed while the live backend, launched
-        // with --worker.timeout-seconds=3600, killed background work at 1500s.
-        for (long timeout : new long[]{600, 1800, 3600, 7200, 86_400}) {
-            WorkerProperties props = new WorkerProperties();
-            props.setTimeoutSeconds(timeout);
-
-            assertThat(props.getBackgroundWaitSeconds())
-                    .as("wait for a session allowed %ss", timeout)
-                    .isPositive()
-                    .isLessThan(timeout);
-        }
-    }
-
-    @Test
-    void raisingTheTimeoutRaisesHowLongBackgroundWorkIsWaitedFor(@TempDir Path dir)
-            throws Exception {
-        // The card's bug, at the number the live backend actually runs on. Before this,
-        // a session launched with --worker.timeout-seconds=3600 was still handed the
-        // 1500s written in application.yml — an hour to live, and the dynamic workflow
-        // it started killed after 25 minutes with 35 minutes of its allowance unspent.
-        writeStub(dir, RESULT_EVENT);
-
-        runnerOnTimeout(dir, 3600).run("todo:1", "go", dir.toFile(), List.of());
-
-        assertThat(Files.readString(dir.resolve("ceiling.txt")))
-                .as("a session allowed 3600s should wait 3600s minus the wind-up headroom")
-                .isEqualTo("3300000");
-    }
-
-    @Test
-    void aWaitThatWasConfiguredOutrightStillWinsOverTheDerivedOne(@TempDir Path dir)
-            throws Exception {
-        // Deriving is the default, not the only option: an operator who writes a number
-        // down means that number, whatever the timeout says.
-        writeStub(dir, RESULT_EVENT);
-        WorkerProperties props = new WorkerProperties();
-        props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
-        props.setExtraArgs(List.of());
-        props.setWorkingDirectory(dir.toString());
-        // A timeout that would derive 3300s, and a wait that says otherwise.
-        props.setTimeoutSeconds(3600);
-        props.setBackgroundWaitSeconds(UNUSUAL_WAIT_SECONDS);
-
-        new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry())
-                .run("todo:1", "go", dir.toFile(), List.of());
-
-        assertThat(Files.readString(dir.resolve("ceiling.txt"))).isEqualTo("1234000");
-    }
-
-    @Test
-    void aTimeoutTooShortToSubtractHeadroomFromStillLeavesAWaitRatherThanNone() {
-        // Guarding the arithmetic, not a configuration anyone runs: 0 is the CLI's
-        // spelling of "wait indefinitely", so a derivation that reached it by
-        // subtraction would turn the shortest timeout into the longest wait, and a
-        // negative one would be nonsense passed to a child process.
-        WorkerProperties props = new WorkerProperties();
-        props.setTimeoutSeconds(30);
-
-        assertThat(props.getBackgroundWaitSeconds()).isEqualTo(60);
-    }
-
-    @Test
-    void nothingIsConfiguredByDefaultSoTheWaitIsTheOneDerivedFromTheTimeout() {
-        // The distinction the fix rests on. If the shipped default were a number again,
-        // it would be a number that stops following the timeout the moment one is passed
-        // on the command line — which is exactly how the bug got in.
-        WorkerProperties props = new WorkerProperties();
-
-        assertThat(props.getConfiguredBackgroundWaitSeconds()).isNull();
-        assertThat(props.getBackgroundWaitSeconds())
-                .isEqualTo(props.getTimeoutSeconds() - WorkerProperties.BACKGROUND_WAIT_HEADROOM_SECONDS);
     }
 
     @Test
@@ -297,15 +211,13 @@ class BackgroundWorkWaitTest {
         // nothing: it would sit for three hours with its sub-sessions killed at
         // fifty-five minutes, and report the promise it wrote before the kill.
         writeStub(dir, RESULT_EVENT);
-        WorkerProperties props = stubProps(dir, 3600);
 
-        runnerOn(props).run("node:1", "go", dir.toFile(), List.of(),
-                props.sessionLimitsWithTimeout(10_800));
+        runnerFor(dir).run("node:1", "go", dir.toFile(), List.of(),
+                new SessionLimitsDto(10_800, 10_500));
 
         assertThat(Files.readString(dir.resolve("ceiling.txt")))
-                .as("the ceiling should follow the ceiling this session was given, not the worker's")
-                .isEqualTo("10500000")
-                .isNotEqualTo(Long.toString(props.getBackgroundWaitSeconds() * 1000L));
+                .as("the ceiling should follow the ceiling this session was given")
+                .isEqualTo("10500000");
     }
 
     @Test
@@ -318,15 +230,14 @@ class BackgroundWorkWaitTest {
         Path stub = dir.resolve("claude-stub.sh");
         Files.writeString(stub, "#!/bin/sh\nsleep 30\n");
         assertThat(stub.toFile().setExecutable(true)).isTrue();
-        WorkerProperties props = stubProps(dir, 1800);
 
         long startedAt = System.currentTimeMillis();
-        ProcessResult result = runnerOn(props).run("node:1", "go", dir.toFile(), List.of(),
-                props.sessionLimitsWithTimeout(1));
+        ProcessResult result = runnerFor(dir).run("node:1", "go", dir.toFile(), List.of(),
+                new SessionLimitsDto(1, 1));
 
         assertThat(result.timedOut()).isTrue();
         assertThat(System.currentTimeMillis() - startedAt)
-                .as("killed on the second it was given, not on the worker's 1800")
+                .as("killed on the second it was given")
                 .isLessThan(20_000);
     }
 }

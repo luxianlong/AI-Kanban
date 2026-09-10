@@ -1,7 +1,8 @@
 package com.kanban.workflow;
 
+import com.kanban.agent.AgentService;
+import com.kanban.protocol.WorkKind;
 import com.kanban.worker.LiveLogRegistry;
-import com.kanban.worker.RunningSessionRegistry;
 import com.kanban.workflow.WorkflowDtos.EdgeSpec;
 import com.kanban.workflow.WorkflowDtos.EditNodeRunRequest;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
@@ -39,22 +40,23 @@ public class WorkflowService {
     private final WorkflowEdgeRepository edges;
     private final WorkflowExecutionRepository executions;
     private final NodeExecutionRepository nodeRuns;
-    private final RunningSessionRegistry sessions;
     private final LiveLogRegistry liveLog;
+    /** How Cancel reaches a step running on another machine — see {@link #cancel}. */
+    private final AgentService agent;
 
     /** How many runs the executions panel lists at once. */
     private static final int EXECUTION_PAGE = 50;
 
     public WorkflowService(WorkflowRepository workflows, WorkflowNodeRepository nodes, WorkflowEdgeRepository edges,
                            WorkflowExecutionRepository executions, NodeExecutionRepository nodeRuns,
-                           RunningSessionRegistry sessions, LiveLogRegistry liveLog) {
+                           LiveLogRegistry liveLog, AgentService agent) {
         this.workflows = workflows;
         this.nodes = nodes;
         this.edges = edges;
         this.executions = executions;
         this.nodeRuns = nodeRuns;
-        this.sessions = sessions;
         this.liveLog = liveLog;
+        this.agent = agent;
     }
 
     // --- workflows -------------------------------------------------------
@@ -319,9 +321,12 @@ public class WorkflowService {
         }
         for (NodeExecution run : nodeRuns.findByExecutionIdOrderByOrderIndexAsc(executionId)) {
             if (run.getStatus() == RunState.RUNNING) {
-                // Killing the process makes the runner's own wait return; it reads the
-                // stop flag back and leaves the row exactly as we set it here.
-                sessions.stop(LiveLogRegistry.nodeKey(run.getId()));
+                // The session belongs to a worker this server cannot address, so the request
+                // goes onto its lease and the worker acts on it at its next heartbeat. The row
+                // below is written terminal right now regardless: the run is cancelled whether
+                // or not the worker ever checks in again, and its eventual report will not
+                // overwrite a state the user already chose.
+                agent.requestStop(WorkKind.WORKFLOW_NODE, run.getId());
                 liveLog.append(LiveLogRegistry.nodeKey(run.getId()),
                         "● Cancelled by user — terminating the session…");
                 run.setStatus(RunState.CANCELLED);

@@ -13,6 +13,17 @@ host), `worker/` (claims work over the server's agent API and runs the Claude se
 and `protocol/` (the wire types they share). Build from the repo root — `scripts/build.sh`
 runs the whole aggregator, so a change that breaks the worker fails the deploy gate.
 
+**You are running inside a worker.** The server does not launch sessions; it hands work out
+over `/api/agent` and a worker process claims it. Two consequences for you:
+
+- The session you are in was given a working directory by the server. A task about improving
+  this project runs in the repo (that is what the worker's `repo:Dashboard` capability
+  means); anything else runs in a throwaway directory and cannot see the repo at all.
+- Anything you change about how a result is *judged* belongs on the SERVER, in
+  `TaskOutcomeService` / `NodeOutcomeService` — never in the worker. A worker jar on another
+  machine is the one thing `deploy.sh` cannot update, so it is never allowed to hold an
+  opinion about what a result means.
+
 **Exposing the UI publicly** (tunnel + password gate): see
 [docs/public-tunnel.md](docs/public-tunnel.md) — how to put this app on a public URL
 via `cloudflared` (quick tunnel or stable named tunnel), gated by the Basic-Auth

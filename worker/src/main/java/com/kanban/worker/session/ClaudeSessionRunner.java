@@ -1,9 +1,9 @@
-package com.kanban.worker;
+package com.kanban.worker.session;
 
+import com.kanban.protocol.SessionLimitsDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.stereotype.Service;
+import com.kanban.protocol.SessionLimitsDto;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,8 +27,6 @@ import java.util.concurrent.TimeUnit;
  * state is shared between runs. Whatever context a run needs must be written into
  * its prompt by the caller.
  */
-@Service
-@EnableConfigurationProperties(WorkerProperties.class)
 public class ClaudeSessionRunner {
 
     /**
@@ -58,14 +56,14 @@ public class ClaudeSessionRunner {
      */
     static final String BACKGROUND_WORK_ABANDONED = "Background tasks still running after";
 
-    private final WorkerProperties props;
-    private final LiveLogRegistry liveLog;
-    private final RunningSessionRegistry sessions;
+    private final SessionSettings settings;
+    private final SessionLog liveLog;
+    private final RunningSessions sessions;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public ClaudeSessionRunner(WorkerProperties props, LiveLogRegistry liveLog,
-                               RunningSessionRegistry sessions) {
-        this.props = props;
+    public ClaudeSessionRunner(SessionSettings settings, SessionLog liveLog,
+                               RunningSessions sessions) {
+        this.settings = settings;
         this.liveLog = liveLog;
         this.sessions = sessions;
     }
@@ -84,65 +82,25 @@ public class ClaudeSessionRunner {
     }
 
     /**
-     * Launch {@code claude -p <prompt>} in {@code worker.working-directory} and block
-     * until it finishes or hits {@code worker.timeout-seconds}.
+     * Launch {@code claude -p <prompt>} and block until it finishes or hits the timeout.
      *
-     * @param sessionKey the key this run logs under and can be stopped by — see
-     *                   {@link LiveLogRegistry#todoKey}/{@link LiveLogRegistry#nodeKey}
-     */
-    public ProcessResult run(String sessionKey, String prompt) throws IOException, InterruptedException {
-        return run(sessionKey, prompt, new File(props.getWorkingDirectory()));
-    }
-
-    /**
-     * As {@link #run(String, String)}, but in a caller-chosen directory. The workflow
-     * runner uses this to keep its nodes out of the repo: a node transforms text and has
-     * no business writing into the working tree, so it gets a scratch directory instead
-     * of the shared {@code worker.working-directory}.
-     */
-    public ProcessResult run(String sessionKey, String prompt, File workDir)
-            throws IOException, InterruptedException {
-        return run(sessionKey, prompt, workDir, List.of());
-    }
-
-    /**
-     * As {@link #run(String, String, File)}, but with extra CLI args for this one
-     * session, appended after {@code worker.extra-args}.
+     * <p>One entry point, because everything that used to vary between callers now arrives
+     * from the server in the work unit: the directory to run in, the per-unit CLI args (the
+     * read fence, the effort level) and both clocks. The worker applies them without needing
+     * to know why they differ.
      *
-     * <p>This is for a difference that belongs to a single run rather than to the
-     * worker — the workflow runner uses it to fence a node into its own directory and
-     * to pass the effort level that node was given (see
-     * {@code WorkflowRunnerService#sessionArgsFor}). Configuration that applies to
-     * <em>every</em> session belongs in {@code worker.extra-args} instead.
-     */
-    public ProcessResult run(String sessionKey, String prompt, File workDir, List<String> sessionArgs)
-            throws IOException, InterruptedException {
-        return run(sessionKey, prompt, workDir, sessionArgs, props.sessionLimits());
-    }
-
-    /**
-     * As {@link #run(String, String, File, List)}, but on clocks of the caller's
-     * choosing rather than the worker's configured ones.
-     *
-     * <p>This exists for the one session that is not the same size of job as the rest: a
-     * workflow step at the {@code ultracode} effort level, whose real work happens in
-     * sub-sessions it starts and which therefore has to outlive its own last turn by a
-     * long way (see {@code WorkflowRunnerService#limitsFor}). Both clocks travel
-     * together in {@link SessionLimits} because raising one without the other is the
-     * mismatch that has already cost two rounds of debugging — a step allowed to live
-     * for hours whose background work is killed after twenty-five minutes reports a
-     * promise as its answer.
+     * @param sessionKey the key this run logs under and can be stopped by
      */
     public ProcessResult run(String sessionKey, String prompt, File workDir,
-                             List<String> sessionArgs, SessionLimits limits)
+                             List<String> sessionArgs, SessionLimitsDto limits)
             throws IOException, InterruptedException {
         if (!workDir.exists() && !workDir.mkdirs()) {
             liveLog.append(sessionKey, "! Could not create working directory " + workDir);
         }
 
         List<String> cmd = new ArrayList<>();
-        cmd.add(props.getClaudeCommand());
-        cmd.addAll(props.getExtraArgs());
+        cmd.add(settings.claudeCommand());
+        cmd.addAll(settings.extraArgs());
         cmd.addAll(sessionArgs);
         cmd.add("-p");
         cmd.add(prompt);
@@ -159,7 +117,7 @@ public class ClaudeSessionRunner {
         // much shorter than the timeout enforced below and silent when it fires — see
         // WorkerProperties#getBackgroundWaitSeconds. Waiting is the whole point: work
         // that lands inside the ceiling gets the session another turn, and that turn is
-        // what the caller reads back. It comes from the same SessionLimits as the
+        // what the caller reads back. It comes from the same SessionLimitsDto as the
         // timeout below, which is what stops the two drifting apart.
         pb.environment().put("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS",
                 Long.toString(limits.backgroundWaitSeconds() * 1000L));

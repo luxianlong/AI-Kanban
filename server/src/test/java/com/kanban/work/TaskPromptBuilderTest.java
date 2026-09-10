@@ -2,6 +2,7 @@ package com.kanban.work;
 
 import com.kanban.attachment.Attachment;
 import com.kanban.attachment.AttachmentService;
+import com.kanban.protocol.AttachmentsPlaceholder;
 import com.kanban.todo.Todo;
 import com.kanban.todo.TodoRepository;
 import org.junit.jupiter.api.Test;
@@ -81,7 +82,7 @@ class TaskPromptBuilderTest {
     }
 
     @Test
-    void attachedImagesArePassedToTheAgentAsReadablePaths() {
+    void attachedImagesAreAnnouncedButTheirPathsAreLeftToTheWorker() {
         Todo t = task("Rebuild this screen", false);
         ReflectionTestUtils.setField(t, "id", 42L);
         Attachment a = image("abc", "screenshot.png");
@@ -91,10 +92,14 @@ class TaskPromptBuilderTest {
         String prompt = prompts.buildPrompt(t);
 
         assertThat(prompt).contains("ATTACHED IMAGES (1)");
-        // The absolute server-side path is the whole point: the session opens it.
-        assertThat(prompt).contains("/srv/data/attachments/abc.png");
-        assertThat(prompt).contains("screenshot.png");
         assertThat(prompt).contains("Read tool");
+        // The paths are the worker's to fill in. These files live beside THIS server's
+        // database, so an absolute path from here would name nothing on the machine the
+        // session actually runs on — and a session told to open it would simply fail.
+        assertThat(prompt).contains(AttachmentsPlaceholder.TOKEN);
+        assertThat(prompt)
+                .as("a server-side path must never reach the prompt")
+                .doesNotContain("/srv/data/attachments/abc.png");
     }
 
     @Test
