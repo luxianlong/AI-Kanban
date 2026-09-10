@@ -161,6 +161,9 @@ enabling this — the session will run tools without prompting.
 | `POST` | `/api/workflows/executions/{id}/cancel` | Stop a run: kill the live node session and close the run out. |
 | `DELETE` | `/api/workflows/executions/{id}` | Delete a run. |
 | `GET` | `/api/workflows/node-runs/{id}/log` | Live transcript of one node's session (poll while it runs). |
+| `GET` | `/api/workflows/favorites` | Favourite steps, by name — each `{ id, name, prompt, effort, updatedAt }`. |
+| `POST` | `/api/workflows/favorites` | Keep a step: `{ "name": "...", "prompt": "...", "effort": "low" }`. A name already on the shelf is **replaced**, not duplicated. |
+| `DELETE` | `/api/workflows/favorites/{id}` | Take a step off the shelf. Workflows built from it keep their own copy. |
 
 **Public (no password) — delegated tasks:**
 
@@ -255,6 +258,16 @@ run is recorded as failed with every node's output still readable.
 
 An execution snapshots each node's name, prompt and dependencies when it starts, so
 editing or deleting the workflow afterwards never rewrites what a past run did.
+
+**Favourite steps.** A step worth using again can be kept: the ★ on its card saves
+its name, prompt and effort level to a shelf shared by every workflow, and the row
+of chips under **Add step** inserts any of them into the open graph as a new step,
+wired to the last one like any other. It is a *copy* — editing the inserted step
+never rewrites the favourite, and re-saving the favourite never reaches into graphs
+already built from it. Position and connections are not part of one: those belong to
+the graph you are putting it into. Saving under a name already on the shelf replaces
+that favourite (the editor asks first), and the ★ shows filled while a favourite by
+that step's name exists.
 
 ---
 

@@ -75,6 +75,76 @@ export function payloadFrom(draft) {
 }
 
 /**
+ * Add a step to the end of a draft, wired to the step before it.
+ *
+ * A chain is what people mean most of the time, and unhooking a connection is easier
+ * than hunting for one that was never made. `step` carries whatever the new step is —
+ * a blank one from "Add step", or a favourite's own text — and may set its own
+ * `inputs` to override the default wiring.
+ */
+export function appendStep(draft, step) {
+  const previous = draft.nodes[draft.nodes.length - 1]
+  return {
+    ...draft,
+    nodes: [...draft.nodes, { inputs: previous ? [previous.id] : [], ...step }],
+    // A draft with no entry yet (it had no steps) gets one, and it is this step.
+    entryNodeId: draft.entryNodeId || step.id,
+  }
+}
+
+/**
+ * A blank step, named for the place it takes in the list. No `inputs`: how it is
+ * wired is appendStep's to decide.
+ *
+ * The number is only a starting name — steps are listed in run order, so inserting
+ * one above this later leaves "Step 3" running fourth. That is the same trade the
+ * name has always made: a name you can edit beats a number that renumbers under you.
+ */
+export function blankStep(id, count) {
+  return { id, name: `Step ${count + 1}`, prompt: '', effort: '' }
+}
+
+/**
+ * A step written from a favourite. A COPY, deliberately: from here on the step and
+ * the favourite are unrelated, so editing the step doesn't rewrite the shelf and
+ * re-saving the favourite doesn't reach into graphs already built from it.
+ *
+ * Only name, prompt and effort come across. Where a step sits and what feeds it belong
+ * to the graph it is being inserted INTO, not to the work the step does.
+ */
+export function stepFromFavorite(favorite, id) {
+  return {
+    id,
+    name: favorite.name,
+    prompt: favorite.prompt || '',
+    // Same '' as draftFrom uses: null is what the API stores, '' is what the picker
+    // edits, and the two must not be mixed or the <select> stops being controlled.
+    effort: favorite.effort || '',
+  }
+}
+
+/** What POSTing a step to the shelf sends — the three fields a favourite is. */
+export function favoriteFromStep(node) {
+  return {
+    name: node.name.trim() || 'Untitled step',
+    prompt: node.prompt,
+    effort: node.effort || null,
+  }
+}
+
+/**
+ * The favourite this step was saved as, if it is still on the shelf under this name —
+ * how the star knows whether it is filled. Matched on the name (case-insensitively)
+ * because that is what the shelf is keyed by; a favourite whose prompt has since been
+ * edited is still this step's favourite, and re-saving is what updates it.
+ */
+export function favoriteNamed(favorites, name) {
+  const wanted = (name || '').trim().toLowerCase()
+  if (!wanted) return null
+  return favorites.find((f) => f.name.trim().toLowerCase() === wanted) ?? null
+}
+
+/**
  * A string that changes exactly when the draft would save differently — used to ask
  * "are there unsaved edits?" before an action that reads the *stored* workflow
  * rather than the one on screen (duplicating).

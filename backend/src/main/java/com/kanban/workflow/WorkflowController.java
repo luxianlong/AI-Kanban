@@ -2,7 +2,9 @@ package com.kanban.workflow;
 
 import com.kanban.workflow.WorkflowDtos.EditNodePromptRequest;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
+import com.kanban.workflow.WorkflowDtos.FavoriteStepView;
 import com.kanban.workflow.WorkflowDtos.RunWorkflowRequest;
+import com.kanban.workflow.WorkflowDtos.SaveFavoriteStepRequest;
 import com.kanban.workflow.WorkflowDtos.SaveWorkflowRequest;
 import com.kanban.workflow.WorkflowDtos.WorkflowView;
 import jakarta.validation.Valid;
@@ -34,9 +36,11 @@ import java.util.Map;
 public class WorkflowController {
 
     private final WorkflowService service;
+    private final FavoriteStepService favorites;
 
-    public WorkflowController(WorkflowService service) {
+    public WorkflowController(WorkflowService service, FavoriteStepService favorites) {
         this.service = service;
+        this.favorites = favorites;
     }
 
     @GetMapping
@@ -116,6 +120,35 @@ public class WorkflowController {
     @GetMapping("/node-runs/{nodeRunId}/log")
     public Map<String, Object> nodeLog(@PathVariable Long nodeRunId) {
         return service.nodeLog(nodeRunId);
+    }
+
+    // --- favourite steps -------------------------------------------------
+    // Steps kept aside to be used again, saved from one workflow's editor and
+    // inserted into another's. They belong to no workflow, which is why they hang
+    // off this path rather than under /{id}: a favourite outlives the graph it was
+    // written in. Mapped before /{id} for the same reason /executions is.
+
+    @GetMapping("/favorites")
+    public List<FavoriteStepView> favorites() {
+        return favorites.list();
+    }
+
+    /**
+     * Keep a step for later. Saving under a name that is already on the shelf
+     * <em>replaces</em> that favourite (case-insensitively) rather than adding a
+     * second one beside it — so the answer is 200 with the favourite as it now
+     * stands, not 201, since either outcome is possible.
+     */
+    @PostMapping("/favorites")
+    public FavoriteStepView saveFavorite(@Valid @RequestBody SaveFavoriteStepRequest req) {
+        return favorites.save(req);
+    }
+
+    /** Take a step off the shelf. Workflows built from it are untouched — it was a copy. */
+    @DeleteMapping("/favorites/{favoriteId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFavorite(@PathVariable String favoriteId) {
+        favorites.delete(favoriteId);
     }
 
     @GetMapping("/{id}")

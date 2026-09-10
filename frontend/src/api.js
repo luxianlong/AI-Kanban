@@ -207,6 +207,27 @@ export const api = {
   deleteExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}`, { method: 'DELETE' }).then(json),
 
+  // --- Favourite steps: a shelf of steps to reuse -------------------------
+  // A step kept aside (name + prompt + effort), inserted into any workflow as a new
+  // node. Insertion is a COPY made in the editor, so there is no "insert" call here:
+  // the graph is saved the way it always is, and the two go their separate ways.
+
+  listFavoriteSteps: () => fetch(`${BASE}/workflows/favorites`).then(json),
+
+  // Keep a step for later. Saving under a name already on the shelf REPLACES that
+  // favourite (case-insensitively) rather than adding a second one the picker can't
+  // tell apart — so ask the user first; the server just does as it's told.
+  saveFavoriteStep: (step) =>
+    fetch(`${BASE}/workflows/favorites`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(step),
+    }).then(json),
+
+  // Take a step off the shelf. Workflows built from it keep their own copy.
+  deleteFavoriteStep: (id) =>
+    fetch(`${BASE}/workflows/favorites/${id}`, { method: 'DELETE' }).then(json),
+
   // Live transcript of one node's session — poll it while that node runs.
   nodeRunLog: (nodeRunId) => fetch(`${BASE}/workflows/node-runs/${nodeRunId}/log`).then(json),
 

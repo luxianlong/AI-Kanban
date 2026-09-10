@@ -1,7 +1,8 @@
 // node src/workflowDraft.test.mjs
 import assert from 'node:assert/strict'
 import {
-  EFFORT_LEVELS, ULTRACODE, blankDraft, draftFingerprint, draftFrom, payloadFrom,
+  EFFORT_LEVELS, ULTRACODE, appendStep, blankDraft, blankStep, draftFingerprint, draftFrom,
+  favoriteFromStep, favoriteNamed, payloadFrom, stepFromFavorite,
 } from './workflowDraft.js'
 
 const workflow = {
@@ -136,5 +137,76 @@ assert.equal(fresh.nodes.length, 1)
 assert.equal(fresh.nodes[0].id, fresh.entryNodeId)
 assert.deepEqual(fresh.nodes[0].inputs, [])
 assert.notEqual(blankDraft().entryNodeId, fresh.entryNodeId) // ids are per-draft
+
+// --- adding a step, blank or from the shelf ---------------------------------
+
+// A new step goes on the end, wired to the step that was last: a chain is what
+// people mean, and the numbering in the editor then reads straight down.
+const grown = appendStep(draft, blankStep('d', draft.nodes.length))
+assert.deepEqual(grown.nodes.map((n) => n.id), ['a', 'b', 'c', 'd'])
+assert.deepEqual(grown.nodes[3].inputs, ['c'])
+assert.equal(grown.nodes[3].name, 'Step 4')
+assert.equal(grown.nodes[3].prompt, '')
+assert.equal(grown.nodes[3].effort, '')
+// It leaves the draft it was given alone — the editor holds the working copy in
+// state, and a helper that mutated it would edit the version React is diffing against.
+assert.equal(draft.nodes.length, 3)
+assert.deepEqual(draft.nodes[2].inputs, ['b'])
+
+// The entry is untouched when there already is one, and taken by the first step when
+// there isn't — a draft with no steps has nothing else that could be the entry.
+assert.equal(grown.entryNodeId, 'a')
+const fromNothing = appendStep({ nodes: [], entryNodeId: null }, blankStep('x', 0))
+assert.equal(fromNothing.entryNodeId, 'x')
+assert.deepEqual(fromNothing.nodes[0].inputs, [])
+
+// A favourite becomes an ordinary step carrying its name, prompt and level.
+const favorite = { id: 'f1', name: 'Summarise', prompt: 'Five bullets', effort: 'low' }
+const inserted = appendStep(draft, stepFromFavorite(favorite, 'd'))
+assert.equal(inserted.nodes[3].name, 'Summarise')
+assert.equal(inserted.nodes[3].prompt, 'Five bullets')
+assert.equal(inserted.nodes[3].effort, 'low')
+// Wired like any other new step, and carrying nothing of where it sat before: what
+// feeds a step belongs to the graph it is being put into, not to the favourite.
+assert.deepEqual(inserted.nodes[3].inputs, ['c'])
+assert.ok(!('inputs' in favorite))
+
+// A favourite saved with no level inserts at '' — the value the picker's "Default"
+// option carries — not at null, or the <select> would go uncontrolled on first change.
+assert.equal(stepFromFavorite({ name: 'Tidy', prompt: 'x', effort: null }, 'e').effort, '')
+assert.equal(stepFromFavorite({ name: 'Tidy', prompt: null, effort: null }, 'e').prompt, '')
+
+// Inserting is a COPY: editing the step afterwards leaves the favourite as it was.
+inserted.nodes[3] = { ...inserted.nodes[3], prompt: 'Ten bullets' }
+assert.equal(favorite.prompt, 'Five bullets')
+
+// --- saving a step to the shelf ---------------------------------------------
+
+// The three fields a favourite is, and no more. '' goes back out as null, the same
+// asymmetry payloadFrom has: the API stores null for "the CLI's default" and rejects
+// anything that is not a level.
+assert.deepEqual(
+  favoriteFromStep({ id: 'a', name: ' Collect ', prompt: 'Find sources', effort: '', inputs: ['b'] }),
+  { name: 'Collect', prompt: 'Find sources', effort: null },
+)
+assert.equal(favoriteFromStep({ name: 'x', prompt: 'p', effort: 'ultracode' }).effort, 'ultracode')
+// An unnamed step still saves under something findable rather than under ''.
+assert.equal(favoriteFromStep({ name: '   ', prompt: 'p', effort: '' }).name, 'Untitled step')
+
+// --- which favourite a step's star is showing --------------------------------
+
+const shelf = [{ id: 'f1', name: 'Summarise', prompt: 'Five bullets', effort: 'low' }]
+assert.equal(favoriteNamed(shelf, 'Summarise').id, 'f1')
+// Case and surrounding space don't make it a different shelf label — the server
+// matches the same way, so a star that ignored them would offer to save a second
+// favourite and then silently overwrite the first.
+assert.equal(favoriteNamed(shelf, ' summarise ').id, 'f1')
+assert.equal(favoriteNamed(shelf, 'Publish'), null)
+// A step still called nothing matches nothing, rather than every unnamed favourite.
+assert.equal(favoriteNamed(shelf, ''), null)
+assert.equal(favoriteNamed(shelf, undefined), null)
+// It is matched on the NAME, not the text: a step whose prompt has since been edited
+// is still this favourite's step, and pressing the star again is what updates it.
+assert.equal(favoriteNamed(shelf, 'Summarise').prompt, 'Five bullets')
 
 console.log('ok')

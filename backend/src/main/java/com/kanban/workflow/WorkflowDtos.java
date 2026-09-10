@@ -58,6 +58,30 @@ public final class WorkflowDtos {
             @Size(max = 100) String entryNodeId) {
     }
 
+    /**
+     * Keep a step aside to use again, or overwrite the one already under this name.
+     *
+     * <p>Same caps as {@link NodeSpec}'s corresponding fields, so a step that saves in
+     * the editor also saves as a favourite — and a favourite always inserts back into
+     * the editor without being truncated on the way.
+     */
+    public record SaveFavoriteStepRequest(
+            @NotBlank @Size(max = 200) String name,
+            @Size(max = 20_000) String prompt,
+            @Size(max = 20) String effort) {
+    }
+
+    /** A favourited step, ready to be written into a graph as a new node. */
+    public record FavoriteStepView(
+            String id, String name, String prompt, String effort, Instant updatedAt) {
+
+        static FavoriteStepView from(FavoriteStep f) {
+            return new FavoriteStepView(f.getId(), f.getName(), f.getPrompt(),
+                    f.getEffort() == null ? null : f.getEffort().cliValue(),
+                    f.getUpdatedAt());
+        }
+    }
+
     /** Start a run, optionally handing the entry node some starting text. */
     public record RunWorkflowRequest(
             @Size(max = 20_000) String input) {
