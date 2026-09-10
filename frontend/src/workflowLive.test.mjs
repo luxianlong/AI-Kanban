@@ -1,8 +1,8 @@
 // node src/workflowLive.test.mjs
 import assert from 'node:assert/strict'
 import {
-  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesSettings,
-  sameValue,
+  IDLE_POLL_MS, LIVE_POLL_MS, entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput,
+  outputPredatesSettings, pollInterval, sameValue,
 } from './workflowLive.js'
 
 const node = (over = {}) => ({
@@ -190,5 +190,26 @@ assert.equal(entryNodeIdOf({ nodes: [node({ nodeId: 'a' }), node({ nodeId: 'b' }
 // Junk in, null out — the panel calls this on whatever the poll last returned.
 assert.equal(entryNodeIdOf(undefined), null)
 assert.equal(entryNodeIdOf({ nodes: [] }), null)
+
+// --- pollInterval ----------------------------------------------------------
+
+// The two rates the visible page runs at: fast while a run is moving, slow once
+// there is nothing left to watch and the only news would come from another tab.
+assert.equal(pollInterval(true, false), LIVE_POLL_MS)
+assert.equal(pollInterval(false, false), IDLE_POLL_MS)
+assert.ok(LIVE_POLL_MS < IDLE_POLL_MS)
+
+// Hidden is 0 — "don't" — and it outranks having something live, which is the whole
+// point: the run that is worth polling for is exactly the one whose tab gets left
+// open in the background for half an hour. A background timer is throttled to once a
+// minute and may be frozen outright, so the page comes back stale either way; the
+// honest version stops polling and refetches when it is looked at again.
+assert.equal(pollInterval(true, true), 0)
+assert.equal(pollInterval(false, true), 0)
+
+// Falsy but not 0 for every case the page should actually be polling in — the caller
+// tests this value, so a rate that read as "don't" would silently stop the page.
+assert.ok(pollInterval(true, false) > 0)
+assert.ok(pollInterval(false, false) > 0)
 
 console.log('ok')

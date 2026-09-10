@@ -9,6 +9,7 @@ import {
 } from './workflowGraph.js'
 import {
   entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesSettings,
+  pollInterval,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
@@ -48,6 +49,26 @@ export const ULTRACODE_HINT =
   + 'that work. It is given several times the usual time limit for exactly that reason. '
   + 'Where ultracode is unavailable the step fails rather than quietly running at the '
   + 'default.'
+
+/**
+ * Whether this tab is on screen right now.
+ *
+ * `document.hidden` is the state; the hook is here to make it a state React
+ * re-renders on, so a poll can be a piece of the render rather than a timer that
+ * has to be told. Starts from the real value rather than assuming true — a page
+ * opened in a background tab is hidden from its first render.
+ */
+function usePageVisible() {
+  const [visible, setVisible] = useState(() => typeof document === 'undefined' || !document.hidden)
+  useEffect(() => {
+    const sync = () => setVisible(!document.hidden)
+    document.addEventListener('visibilitychange', sync)
+    // The browser can have hidden the page between the first render and this line.
+    sync()
+    return () => document.removeEventListener('visibilitychange', sync)
+  }, [])
+  return visible
+}
 
 // ---------------------------------------------------------------------------
 // Page
@@ -117,14 +138,57 @@ export default function WorkflowsPage({ onBack }) {
     })()
   }, [loadWorkflows, loadExecutions, loadFavorites])
 
+  // Everything on this page the server owns, re-read at once. The runs poll on
+  // their own; the workflow list and the favourites shelf never did, so until now a
+  // workflow created, renamed or deleted anywhere else — the other tab, the phone,
+  // a step that edited its own run — stayed invisible here until a manual reload.
+  //
+  // `draft` is deliberately left alone: it is what the user typed, and loadWorkflows
+  // only replaces the list beside it. Same rule the settings form follows — half-typed
+  // keystrokes outrank a refresh.
+  const refreshAll = useCallback(() => {
+    loadExecutions()
+    // Quietly: a background refresh that fails should leave what is on screen alone
+    // rather than paint an error over a page that is working.
+    loadWorkflows().catch(() => {})
+    loadFavorites().catch(() => {})
+  }, [loadExecutions, loadWorkflows, loadFavorites])
+
   // Runs advance on the server, so poll while any of them is still going. Once
   // everything is finished the page is static and the poll costs a request every
-  // 8s just to notice a run someone started elsewhere.
+  // 8s just to notice a run someone started elsewhere — and while the tab is out of
+  // sight it costs nothing, because it isn't running. See pollInterval.
+  const visible = usePageVisible()
   const anyLive = executions.some((e) => e.status === 'PENDING' || e.status === 'RUNNING')
+  const every = pollInterval(anyLive, !visible)
   useEffect(() => {
-    const t = setInterval(loadExecutions, anyLive ? 2500 : 8000)
+    if (!every) return undefined
+    const t = setInterval(loadExecutions, every)
     return () => clearInterval(t)
-  }, [loadExecutions, anyLive])
+  }, [loadExecutions, every])
+
+  // Catching up the moment the page is looked at again, which is the other half of
+  // not polling while it isn't. Two events, because they are two different ways of
+  // coming back and neither implies the other: `visibilitychange` is switching tabs
+  // or returning to the browser on a phone, `focus` is this window being brought to
+  // the front from behind another one — where the page was never hidden at all, so
+  // its poll kept running, but a window that has sat in the background for an hour
+  // has been running it at whatever rate the browser allowed.
+  //
+  // Two tabs of this page need no messaging of their own, unlike the board's
+  // BroadcastChannel: you can only read one of them at a time, and reading it is
+  // what fires this.
+  const wasVisible = useRef(visible)
+  useEffect(() => {
+    const back = visible && !wasVisible.current
+    wasVisible.current = visible
+    if (back) refreshAll()
+  }, [visible, refreshAll])
+  useEffect(() => {
+    const onFocus = () => refreshAll()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [refreshAll])
 
   const selectWorkflow = (workflow) => {
     setSelectedId(workflow.id)
@@ -1378,6 +1442,12 @@ function NodeRun({
     setKept(null)
     let cancelled = false
     const tick = async () => {
+      // Nobody is reading a tab that is out of sight, and this fetches a transcript
+      // that can run to 200 KB every 1.5 seconds. So it doesn't, and the listener
+      // below makes the box current the instant the page is looked at again rather
+      // than up to one tick later — the same bargain the runs poll strikes in
+      // pollInterval, for the same reason: a background timer is not a poll.
+      if (document.hidden) return
       try {
         const { log: text } = await api.nodeRunLog(runIdRef.current)
         // Same transcript as last tick: leave the <pre> alone. Re-setting it would
@@ -1389,7 +1459,14 @@ function NodeRun({
     }
     tick()
     const t = setInterval(tick, 1500)
-    return () => { cancelled = true; clearInterval(t) }
+    // Deliberately the same `tick`, not a fresh fetch: it already knows to do
+    // nothing when the event was the page being hidden.
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      cancelled = true
+      clearInterval(t)
+      document.removeEventListener('visibilitychange', tick)
+    }
   }, [running])
 
   // The transcript of a step that has already finished. While it ran it streamed into

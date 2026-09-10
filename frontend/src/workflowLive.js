@@ -155,3 +155,31 @@ export function entryNodeIdOf(execution) {
   if (!execution) return null
   return execution.entryNodeId ?? execution.nodes?.[0]?.nodeId ?? null
 }
+
+/** How often the runs pane re-reads the executions while something is still going. */
+export const LIVE_POLL_MS = 2500
+/** And once everything has settled, when the only news would come from elsewhere. */
+export const IDLE_POLL_MS = 8000
+
+/**
+ * How often to poll the runs — or 0 for "don't", which is what a tab nobody is
+ * looking at gets.
+ *
+ * A hidden tab's interval is not a poll. Chrome clamps a background timer to once a
+ * second, drops it to once a *minute* after five minutes out of sight, and may
+ * freeze the page altogether; a phone suspends the tab outright when you switch
+ * apps. So the page you come back to is showing whatever it had when you looked
+ * away, and it stays that way for as long as the browser feels like — which is the
+ * whole of "the workflow page doesn't refresh itself". Nothing here can make a
+ * background timer reliable, so this stops pretending: while the page is hidden it
+ * does not poll at all, and the moment it is looked at again it refetches
+ * everything (see the effect in Workflows.jsx). The board has always done that
+ * — see App.jsx's focus/visibilitychange block — and this page never had it.
+ *
+ * That also means the poll is only ever timing the gap between two things the user
+ * is watching happen, which is why it can stay as short as it is.
+ */
+export function pollInterval(anyLive, hidden) {
+  if (hidden) return 0
+  return anyLive ? LIVE_POLL_MS : IDLE_POLL_MS
+}
