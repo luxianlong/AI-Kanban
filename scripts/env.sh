@@ -78,6 +78,10 @@ export BACKEND_KILL_GRACE="${BACKEND_KILL_GRACE:-60}"
 # can edit this project. skip-permissions lets the agent act unattended — only
 # safe because it runs against this repo behind the guarded-deploy test gate.
 export WORKER_WORK_DIR="${WORKER_WORK_DIR:-$REPO}"
+# Per-session hard timeout. This overrides worker.timeout-seconds in application.yml,
+# which is why worker.background-wait-seconds is left unset there and derived from
+# whatever timeout is in force: pinning it in the yml made a session live for an hour
+# while the dynamic workflow it started was killed at 25 minutes.
 export WORKER_TIMEOUT="${WORKER_TIMEOUT:-3600}"
 export WORKER_POLL_MS="${WORKER_POLL_MS:-5000}"
 export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"

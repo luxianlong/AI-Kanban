@@ -123,8 +123,19 @@ worker:
   # Kept a little UNDER timeout-seconds rather than equal to it: the two clocks start at
   # different moments (this one at the end of the last turn, the timeout at process
   # start), and the slack is what lets the CLI wind up and report cost, duration and a
-  # reason instead of being force-killed with none of them. Raise both together.
-  background-wait-seconds: 1500
+  # reason instead of being force-killed with none of them.
+  #
+  # LEFT UNSET ON PURPOSE — that "a little under timeout-seconds" is a relationship, and
+  # this file is not where it can be kept. It was written here as 1500 against the 1800
+  # above, and then scripts/env.sh launched the backend with
+  # --worker.timeout-seconds=3600: the live system gave a session an hour to live and
+  # killed the dynamic workflow it started after 25 minutes, leaving 35 minutes of its
+  # own allowance unspent. Unset, the wait is derived as timeout-seconds minus 300s
+  # headroom, from whatever timeout is actually in force — command line included.
+  #
+  # Set it only to depart from that: a number pins the wait regardless of the timeout,
+  # 0 means wait indefinitely, and a negative value means "derive", same as unset.
+  # background-wait-seconds:
   batch-size: 1
   poll-interval-ms: 15000
   initial-delay-ms: 10000

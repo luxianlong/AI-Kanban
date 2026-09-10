@@ -56,8 +56,33 @@ public class WorkerProperties {
      * up and report cost, duration and a reason, instead of being force-killed with
      * none of them. If the turns themselves eat the slack the hard timeout still fires
      * first, which is a worse report but not a wrong one.
+     *
+     * <p>Left unset by default, because "a little under {@link #timeoutSeconds}" is a
+     * relationship and writing it down as a number does not keep it. It was written down
+     * as 1500 against a timeout of 1800, and then {@code scripts/env.sh} launched the
+     * backend with {@code --worker.timeout-seconds=3600} — so the live system gave a
+     * session an hour to live and killed the dynamic workflow it started after 25
+     * minutes, which is the same silent mismatch this setting exists to remove, just
+     * with different numbers. Unset means {@link #getBackgroundWaitSeconds()} derives it,
+     * so raising the timeout raises the wait with it. A value set here (or a negative
+     * one, meaning "derive") still wins; {@code 0} still means wait indefinitely.
      */
-    private long backgroundWaitSeconds = 1500;
+    private Long backgroundWaitSeconds;
+
+    /**
+     * How much shorter than {@link #timeoutSeconds} a derived wait is — the slack the
+     * CLI needs to wind up and report a cost, a duration and a reason once the wait runs
+     * out, instead of being force-killed with none of them. 300s is the gap the numbers
+     * this replaces were chosen with (1500 against 1800).
+     */
+    static final long BACKGROUND_WAIT_HEADROOM_SECONDS = 300;
+
+    /**
+     * The shortest derived wait, for a timeout small enough that subtracting the headroom
+     * would leave nothing. A minute of waiting is not much, but it is a wait; zero would
+     * silently mean "wait indefinitely" and outlive the timeout it was derived from.
+     */
+    static final long MIN_DERIVED_BACKGROUND_WAIT_SECONDS = 60;
 
     /** Max pending items handled per poll tick. */
     private int batchSize = 1;
@@ -129,11 +154,29 @@ public class WorkerProperties {
         this.timeoutSeconds = timeoutSeconds;
     }
 
+    /**
+     * The wait actually handed to a session, in seconds — never negative, and derived
+     * from {@link #getTimeoutSeconds()} when nothing was configured.
+     *
+     * <p>This is what every caller wants, which is why the derivation lives behind the
+     * plain getter rather than beside it: a second method would be one a caller could
+     * reach for the raw field by mistake, and the mistake would be invisible until a
+     * step's dynamic workflow was killed with half its allowance unspent.
+     */
     public long getBackgroundWaitSeconds() {
+        if (backgroundWaitSeconds != null && backgroundWaitSeconds >= 0) {
+            return backgroundWaitSeconds;
+        }
+        return Math.max(MIN_DERIVED_BACKGROUND_WAIT_SECONDS,
+                timeoutSeconds - BACKGROUND_WAIT_HEADROOM_SECONDS);
+    }
+
+    /** What was configured, or {@code null} when the wait is derived from the timeout. */
+    public Long getConfiguredBackgroundWaitSeconds() {
         return backgroundWaitSeconds;
     }
 
-    public void setBackgroundWaitSeconds(long backgroundWaitSeconds) {
+    public void setBackgroundWaitSeconds(Long backgroundWaitSeconds) {
         this.backgroundWaitSeconds = backgroundWaitSeconds;
     }
 

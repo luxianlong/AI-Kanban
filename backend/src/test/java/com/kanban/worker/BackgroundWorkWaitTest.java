@@ -79,7 +79,7 @@ class BackgroundWorkWaitTest {
     }
 
     /** A runner pointed at the stub, with the CLI's own args left off. */
-    private ClaudeSessionRunner runnerFor(Path dir, long waitSeconds) {
+    private ClaudeSessionRunner runnerFor(Path dir, Long waitSeconds) {
         WorkerProperties props = new WorkerProperties();
         props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
         props.setExtraArgs(List.of());
@@ -91,6 +91,20 @@ class BackgroundWorkWaitTest {
     /** A runner on the project's own default wait. */
     private ClaudeSessionRunner runnerFor(Path dir) {
         return runnerFor(dir, new WorkerProperties().getBackgroundWaitSeconds());
+    }
+
+    /**
+     * A runner whose wait is left unconfigured, on a given hard timeout — the shape the
+     * live backend runs in, where {@code scripts/env.sh} passes
+     * {@code --worker.timeout-seconds} on the command line and nothing passes a wait.
+     */
+    private ClaudeSessionRunner runnerOnTimeout(Path dir, long timeoutSeconds) {
+        WorkerProperties props = new WorkerProperties();
+        props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
+        props.setExtraArgs(List.of());
+        props.setWorkingDirectory(dir.toString());
+        props.setTimeoutSeconds(timeoutSeconds);
+        return new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry());
     }
 
     /**
@@ -144,7 +158,7 @@ class BackgroundWorkWaitTest {
         // seconds-to-milliseconds conversion rather than becoming a zero-length wait.
         writeStub(dir, RESULT_EVENT);
 
-        runnerFor(dir, 0).run("todo:1", "go", dir.toFile(), List.of());
+        runnerFor(dir, 0L).run("todo:1", "go", dir.toFile(), List.of());
 
         assertThat(Files.readString(dir.resolve("ceiling.txt"))).isEqualTo("0");
     }
@@ -185,8 +199,78 @@ class BackgroundWorkWaitTest {
         // The two clocks start at different moments — the wait when the last turn ends,
         // the timeout when the process starts — so equal values would leave the CLI
         // being force-killed instead of winding up with a cost, a duration and a reason.
+        //
+        // Asserted over a range of timeouts rather than on the defaults alone: a version
+        // of this that only read the defaults passed while the live backend, launched
+        // with --worker.timeout-seconds=3600, killed background work at 1500s.
+        for (long timeout : new long[]{600, 1800, 3600, 7200, 86_400}) {
+            WorkerProperties props = new WorkerProperties();
+            props.setTimeoutSeconds(timeout);
+
+            assertThat(props.getBackgroundWaitSeconds())
+                    .as("wait for a session allowed %ss", timeout)
+                    .isPositive()
+                    .isLessThan(timeout);
+        }
+    }
+
+    @Test
+    void raisingTheTimeoutRaisesHowLongBackgroundWorkIsWaitedFor(@TempDir Path dir)
+            throws Exception {
+        // The card's bug, at the number the live backend actually runs on. Before this,
+        // a session launched with --worker.timeout-seconds=3600 was still handed the
+        // 1500s written in application.yml — an hour to live, and the dynamic workflow
+        // it started killed after 25 minutes with 35 minutes of its allowance unspent.
+        writeStub(dir, RESULT_EVENT);
+
+        runnerOnTimeout(dir, 3600).run("todo:1", "go", dir.toFile(), List.of());
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt")))
+                .as("a session allowed 3600s should wait 3600s minus the wind-up headroom")
+                .isEqualTo("3300000");
+    }
+
+    @Test
+    void aWaitThatWasConfiguredOutrightStillWinsOverTheDerivedOne(@TempDir Path dir)
+            throws Exception {
+        // Deriving is the default, not the only option: an operator who writes a number
+        // down means that number, whatever the timeout says.
+        writeStub(dir, RESULT_EVENT);
+        WorkerProperties props = new WorkerProperties();
+        props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
+        props.setExtraArgs(List.of());
+        props.setWorkingDirectory(dir.toString());
+        // A timeout that would derive 3300s, and a wait that says otherwise.
+        props.setTimeoutSeconds(3600);
+        props.setBackgroundWaitSeconds(UNUSUAL_WAIT_SECONDS);
+
+        new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry())
+                .run("todo:1", "go", dir.toFile(), List.of());
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt"))).isEqualTo("1234000");
+    }
+
+    @Test
+    void aTimeoutTooShortToSubtractHeadroomFromStillLeavesAWaitRatherThanNone() {
+        // Guarding the arithmetic, not a configuration anyone runs: 0 is the CLI's
+        // spelling of "wait indefinitely", so a derivation that reached it by
+        // subtraction would turn the shortest timeout into the longest wait, and a
+        // negative one would be nonsense passed to a child process.
+        WorkerProperties props = new WorkerProperties();
+        props.setTimeoutSeconds(30);
+
+        assertThat(props.getBackgroundWaitSeconds()).isEqualTo(60);
+    }
+
+    @Test
+    void nothingIsConfiguredByDefaultSoTheWaitIsTheOneDerivedFromTheTimeout() {
+        // The distinction the fix rests on. If the shipped default were a number again,
+        // it would be a number that stops following the timeout the moment one is passed
+        // on the command line — which is exactly how the bug got in.
         WorkerProperties props = new WorkerProperties();
 
-        assertThat(props.getBackgroundWaitSeconds()).isLessThan(props.getTimeoutSeconds());
+        assertThat(props.getConfiguredBackgroundWaitSeconds()).isNull();
+        assertThat(props.getBackgroundWaitSeconds())
+                .isEqualTo(props.getTimeoutSeconds() - WorkerProperties.BACKGROUND_WAIT_HEADROOM_SECONDS);
     }
 }
