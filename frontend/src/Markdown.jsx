@@ -31,8 +31,10 @@ function renderInline(text, keyPrefix) {
       re: COLOR_SPAN_RE,
       node: (m, k) => {
         const { color, inner } = colorSpanParts(m)
+        // A colour we don't have a class for still loses its tags — the text it
+        // wrapped reads better unstyled than fenced in visible HTML.
         return (
-          <span key={k} className={`md-mark md-mark-${color}`}>
+          <span key={k} className={color ? `md-mark md-mark-${color}` : undefined}>
             {renderInline(inner, k)}
           </span>
         )

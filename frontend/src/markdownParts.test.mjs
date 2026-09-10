@@ -3,6 +3,7 @@ import {
   COLOR_SPAN_RE,
   INLINE_HTML_RE,
   classifyDiffLine,
+  colorBucket,
   colorSpanParts,
   inlineHtmlParts,
   parseTableBlock,
@@ -34,11 +35,74 @@ assert.deepEqual(colorSpanParts(green), { color: 'green', inner: '加了' })
 const font = COLOR_SPAN_RE.exec('<font color="red">删了</font>')
 assert.deepEqual(colorSpanParts(font), { color: 'red', inner: '删了' })
 
-// Anything outside the two-colour whitelist is left as literal text rather than
-// smuggled into a style attribute.
-assert.equal(COLOR_SPAN_RE.exec('<span style="color:#c00">x</span>'), null)
+// The case from the board (workflow run 116, step 添加网络梗): a step told to
+// highlight the jokes it added picked its own shade, and every one of the 15 it
+// marked arrived with the tags showing.
+const hex = COLOR_SPAN_RE.exec('相遇了。<span style="color:#d95f02">**这叫"双币流动性池"**</span>所以')
+assert.ok(hex)
+assert.deepEqual(colorSpanParts(hex), { color: 'orange', inner: '**这叫"双币流动性池"**' })
+assert.equal(hex.index, 4, 'match starts at the tag, so text before it survives')
+// ...and the sibling run, which reached for a red of its own.
+assert.deepEqual(
+  colorSpanParts(COLOR_SPAN_RE.exec('<span style="color:#e03131">这瓜不该用嘴吃</span>')),
+  { color: 'red', inner: '这瓜不该用嘴吃' },
+)
+
+// Whatever the colour is written as, it lands in one of our buckets — the
+// class is ours, so no value the model chose reaches a style attribute.
+assert.equal(colorBucket('red'), 'red')
+assert.equal(colorBucket('  GREEN '), 'green', 'case and spacing are the model\'s to get wrong')
+assert.equal(colorBucket('#c00'), 'red', 'three-digit hex')
+assert.equal(colorBucket('#e0313180'), 'red', 'an alpha channel is ignored, not fatal')
+assert.equal(colorBucket('rgb(217, 95, 2)'), 'orange')
+assert.equal(colorBucket('rgba(217 95 2 / 0.8)'), 'orange')
+assert.equal(colorBucket('#d95f02'), 'orange')
+assert.equal(colorBucket('gold'), 'yellow')
+assert.equal(colorBucket('#2f9e44'), 'green')
+assert.equal(colorBucket('#1971c2'), 'blue')
+assert.equal(colorBucket('#7c3aed'), 'purple')
+assert.equal(colorBucket('#e64980'), 'red', 'pink is the red end of the wheel, not purple')
+// Colour we can read but have no use for: the text keeps its tags off but is
+// left the colour of the page.
+assert.equal(colorBucket('#888888'), 'grey', 'no hue left to bucket')
+assert.equal(colorBucket('#ffffff'), 'grey', 'white would be invisible; grey at least reads')
+assert.equal(colorBucket('black'), null, 'already the body colour')
+assert.equal(colorBucket('#050505'), null)
+assert.equal(colorBucket('chartreuse'), null, 'a name we do not know')
+assert.equal(colorBucket('var(--brand)'), null)
+assert.equal(colorBucket(''), null)
+assert.equal(colorBucket(undefined), null)
+// An unknown colour still gets its tags stripped: plain prose beats visible HTML.
+assert.deepEqual(
+  colorSpanParts(COLOR_SPAN_RE.exec('<span style="color:chartreuse">x</span>')),
+  { color: null, inner: 'x' },
+)
+
+// The declaration may sit after others, and may be followed by others.
+assert.deepEqual(
+  colorSpanParts(COLOR_SPAN_RE.exec('<span style="font-weight:bold;color:#d95f02">x</span>')),
+  { color: 'orange', inner: 'x' },
+)
+assert.deepEqual(
+  colorSpanParts(COLOR_SPAN_RE.exec("<span style='color:red;background:#fff'>x</span>")),
+  { color: 'red', inner: 'x' },
+)
+assert.deepEqual(colorSpanParts(COLOR_SPAN_RE.exec('<font color=#e03131>x</font>')), {
+  color: 'red',
+  inner: 'x',
+})
+
+// Only a `color` declaration is honoured, and only on `style` — every other
+// attribute is still left alone rather than half-understood.
 assert.equal(COLOR_SPAN_RE.exec('<span onclick="alert(1)">x</span>'), null)
 assert.equal(COLOR_SPAN_RE.exec('<span style="background:red">x</span>'), null)
+assert.equal(
+  COLOR_SPAN_RE.exec('<span style="background-color:red">x</span>'),
+  null,
+  'the property is background-color, not color',
+)
+assert.equal(COLOR_SPAN_RE.exec('<span style="margin:0;background-color:red">x</span>'), null)
+assert.equal(COLOR_SPAN_RE.exec('<span class="color:red">x</span>'), null)
 
 // --- inline HTML -------------------------------------------------------------
 // The case from the board: a step told to underline every joke it added answers
