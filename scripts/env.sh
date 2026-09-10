@@ -116,14 +116,18 @@ export KANBAN_WORKER_TOKEN="${KANBAN_WORKER_TOKEN:-}"
 # server hands each unit out exactly once.
 export WORKER_JAR="$REPO/worker/target/kanban-worker-0.1.0.jar"
 export WORKER_NAME="${WORKER_NAME:-$(hostname -s 2>/dev/null || echo local)}"
-# What this box's worker will accept. Board tasks only, by deliberate choice — `workflow` is
-# NOT declared, so workflow nodes are never handed to it.
+# What this box's worker will accept. The DEFAULT is everything, because a checkout with one
+# machine behind it should just work.
 #
-# Know the consequence before changing it back or leaving it: a workflow run only advances when
-# some worker declares `workflow`. With none, its nodes sit PENDING indefinitely and the run
-# stays open — it does not fail, and nothing says why. Add `workflow` back here (or start a
-# second worker that declares it) when you want runs to move again.
-export WORKER_CAPABILITIES="${WORKER_CAPABILITIES:-general,repo:${KANBAN_REPO_NAME:-Dashboard}}"
+# Narrow it per machine in scripts/local.env, which is gitignored — never here. This file is
+# tracked, so a capability dropped in it is dropped on every machine that clones the repo,
+# which is the opposite of what splitting work across machines is for.
+#
+# Whatever the split, some worker somewhere has to declare `workflow`: a workflow run only
+# advances while one does. With none, its nodes sit PENDING and the run stays open
+# indefinitely — it does not fail, and nothing says why, because from the server's side that is
+# indistinguishable from a queue waiting on a busy worker.
+export WORKER_CAPABILITIES="${WORKER_CAPABILITIES:-general,workflow,repo:${KANBAN_REPO_NAME:-Dashboard}}"
 export WORKER_LOG="${WORKER_LOG:-/tmp/kanban-worker.log}"
 
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"

@@ -234,6 +234,7 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 <li class="lv3"><a href="#3-a-lease-replaces-the-process-holding-the-row">3. A lease replaces "the process holding the row"</a></li>
 <li class="lv3"><a href="#4-capabilities-decide-where-work-can-go">4. Capabilities decide where work can go</a></li>
 <li class="lv2"><a href="#what-did-not-move">What did not move</a></li>
+<li class="lv2"><a href="#splitting-work-across-machines">Splitting work across machines</a></li>
 <li class="lv2"><a href="#operating-it">Operating it</a></li>
 </ul>
 </nav>
@@ -280,6 +281,23 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 <p>Most work is portable. One kind is not: a task about improving this project edits the working<br />tree and runs <code>scripts/deploy.sh</code>, so it can only run on a machine that has the repo. A worker<br />declares <code>repo:Dashboard</code> to say it does; the server only offers such tasks to a worker that<br />did.</p>
 <h2 id="what-did-not-move">What did not move<a class="anchor" href="#what-did-not-move" aria-label="链接到本节">#</a></h2>
 <p>The server still shells out for three things, because they are properties of the box that owns<br />the repo and the database rather than units of board work: the story classifier, the docs git<br />committer, and the docs site generator.</p>
+<h2 id="splitting-work-across-machines">Splitting work across machines<a class="anchor" href="#splitting-work-across-machines" aria-label="链接到本节">#</a></h2>
+<p>Capabilities are what let one machine take a slice of the work rather than all of it. A<br />sensible split once you have two boxes:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Machine</th><th>Capabilities</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>The one with the repo</td><td><code>general</code>, <code>repo:Dashboard</code></td><td>Board tasks, including the ones that edit this project and run the guarded deploy.</td></tr>
+<tr><td>Anything else</td><td><code>workflow</code></td><td>Workflow nodes, which are portable and often long. Keeping them off the first box means a nine-minute step never sits in front of a task someone is waiting on.</td></tr>
+</tbody>
+</table></div>
+<p>Narrow a machine in <code>scripts/local.env</code>, which is gitignored — <strong>not</strong> in <code>scripts/env.sh</code>,<br />which is tracked and would carry the narrowing to every machine that clones the repo. That is<br />precisely backwards for a split: the box meant to be doing the workflows would arrive<br />refusing them.</p>
+<p>A machine that only runs workflow nodes does not need the repo, the database or the frontend.<br />It needs the jar, the token, and the server's URL:</p>
+<pre class="code"><code class="language-bash">java -jar kanban-worker-0.1.0.jar \
+  --worker.server-url=https://youraikanban.com \
+  --worker.token=&lt;the server's agent.token&gt; \
+  --worker.name=workflow-box \
+  --worker.capabilities=workflow</code></pre>
+<p>Some worker somewhere has to declare <code>workflow</code>, or runs stall — see below.</p>
 <h2 id="operating-it">Operating it<a class="anchor" href="#operating-it" aria-label="链接到本节">#</a></h2>
 <p>You need at least one worker running or nothing happens. <code>scripts/start.sh</code> launches one<br />alongside the server. <code>GET /api/worker/status</code> answers the question directly — it reports<br />whether the switch is on, whether the agent API has a token at all, and which workers are<br />currently holding work.</p>
 <p>Set <code>worker.enabled=false</code> on the server to pause the whole board: it is read where work is<br />handed out, so it stops every worker, not just the local one.</p>

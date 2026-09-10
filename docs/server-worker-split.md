@@ -88,6 +88,34 @@ The server still shells out for three things, because they are properties of the
 the repo and the database rather than units of board work: the story classifier, the docs git
 committer, and the docs site generator.
 
+## Splitting work across machines
+
+Capabilities are what let one machine take a slice of the work rather than all of it. A
+sensible split once you have two boxes:
+
+| Machine | Capabilities | Why |
+| --- | --- | --- |
+| The one with the repo | `general`, `repo:Dashboard` | Board tasks, including the ones that edit this project and run the guarded deploy. |
+| Anything else | `workflow` | Workflow nodes, which are portable and often long. Keeping them off the first box means a nine-minute step never sits in front of a task someone is waiting on. |
+
+Narrow a machine in `scripts/local.env`, which is gitignored — **not** in `scripts/env.sh`,
+which is tracked and would carry the narrowing to every machine that clones the repo. That is
+precisely backwards for a split: the box meant to be doing the workflows would arrive
+refusing them.
+
+A machine that only runs workflow nodes does not need the repo, the database or the frontend.
+It needs the jar, the token, and the server's URL:
+
+```bash
+java -jar kanban-worker-0.1.0.jar \
+  --worker.server-url=https://youraikanban.com \
+  --worker.token=<the server's agent.token> \
+  --worker.name=workflow-box \
+  --worker.capabilities=workflow
+```
+
+Some worker somewhere has to declare `workflow`, or runs stall — see below.
+
 ## Operating it
 
 You need at least one worker running or nothing happens. `scripts/start.sh` launches one
