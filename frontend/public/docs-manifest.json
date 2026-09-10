@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-page-95ac9840",
-    "title": "折叠屏不是重点，豆包才是",
-    "href": "/p/page-95ac9840.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-10T15:09:04.100Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/page-95ac9840.html",
-      "frontend/public/p/page-95ac9840.meta.json"
-    ]
-  },
-  {
     "id": "workflow-execution-missing",
     "title": "Where the missing workflow executions went",
     "href": "/docs/workflow-execution-missing.html",
