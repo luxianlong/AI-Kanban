@@ -1563,6 +1563,9 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 /* Neutral rather than brand-coloured: a level is a setting, not a status, and it sits
    next to the entry badge where two brand pills would read as one thing. */
 .effort-badge { background: var(--todo-bg); color: var(--todo-ink); }
+/* A step added to a run while debugging it. Outlined rather than filled: it marks
+   where the record departs from the workflow, which is a caveat and not a state. */
+.added-badge { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--hair); }
 .wf-make-entry {
   border: 1px solid var(--hair); background: transparent; color: var(--muted);
   font: inherit; font-size: var(--f-2xs); font-weight: 600;
@@ -1724,11 +1727,25 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 }
 .wf-details[open] summary { margin-bottom: var(--s-2); }
 
-/* The run's own copy of a step's prompt, editable so a wording can be tried against
-   one step rather than a whole graph. Sits inside a <details> in the step's panel. */
+/* The run's own copy of a step — name, prompt, effort and wiring — all editable, so a
+   version of a step can be tried against one step rather than a whole graph. Sits
+   inside a <details> in the step's panel. */
 .wf-prompt-edit .composer-desc { margin-top: 0; font-family: var(--font-mono); font-size: var(--f-xs); }
 .wf-prompt-edit .wf-noderun-actions { margin: var(--s-2) 0 0; flex-wrap: wrap; }
 .wf-prompt-edit .wf-run-hint { align-self: center; }
+.wf-prompt-edit .wf-node-effort,
+.wf-prompt-edit .wf-inputs { margin-top: var(--s-2); }
+
+/* The form for a step being added to a finished run. Inset and hairlined so it reads
+   as something being composed inside the run rather than as part of the record. */
+.wf-add-step {
+  margin-bottom: var(--s-2); padding: var(--s-2);
+  border: 1px dashed var(--hair); border-radius: var(--r-sm); background: var(--col);
+}
+.wf-add-step .composer-desc { font-family: var(--font-mono); font-size: var(--f-xs); }
+.wf-add-step .wf-node-name { margin-top: var(--s-2); }
+.wf-add-step .wf-noderun-actions { margin: var(--s-2) 0 0; }
+.wf-add-step .wf-run-hint { align-self: center; }
 
 .wf-noderuns { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .wf-noderun { border: 1px solid var(--hair); border-radius: var(--r-sm); background: var(--col); }

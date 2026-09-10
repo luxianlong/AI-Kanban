@@ -91,9 +91,53 @@ public final class WorkflowDtos {
      * Rewrite one step's prompt inside one finished run — the run's own copy, not the
      * workflow's. Same 20,000-character cap as {@link NodeSpec#prompt()}, so text that
      * saves in the editor also saves here.
+     *
+     * <p>The narrow form of {@link EditNodeRunRequest}, kept because changing the
+     * wording alone is what this is used for nine times in ten and it needs no answer
+     * to "what should the other three settings be".
      */
     public record EditNodePromptRequest(
             @Size(max = 20_000) String prompt) {
+    }
+
+    /**
+     * Everything one step in a finished run <em>is</em>: its name, its prompt, how hard
+     * it thinks, and which of the run's other steps feed it. The whole set is sent every
+     * time — the same wholesale-replace rule {@link SaveWorkflowRequest} follows, and for
+     * the same reason: there is then no partial-update path where a step's wiring and its
+     * prompt can be left disagreeing about which edit won.
+     *
+     * <p>Caps match {@link NodeSpec}'s, so a step that saves in the editor also saves
+     * here, and a wording tried in a run copies back into the workflow untruncated.
+     *
+     * <p>{@code inputs} are node ids <em>within this run</em>. Empty is right for the
+     * entry step and refused for every other one — a step nothing feeds is not wired in
+     * below the entry, so the run would never reach it.
+     */
+    public record EditNodeRunRequest(
+            @NotBlank @Size(max = 200) String name,
+            @Size(max = 20_000) String prompt,
+            @Size(max = 20) String effort,
+            @Size(max = 50) List<@NotBlank @Size(max = 100) String> inputs) {
+    }
+
+    /**
+     * A step to add to a finished run — one the workflow it came from never had.
+     *
+     * <p>Same fields as {@link EditNodeRunRequest} minus the id, which the server mints:
+     * a node id is unique only within its run, so a caller choosing one could land on a
+     * step already there and silently become a second row for it.
+     *
+     * <p>{@code inputs} may not be empty here, entry step or not. The run already has an
+     * entry and it is the step it started from; a second root added afterwards would be
+     * a branch nothing leads to, recorded as part of a run that could never have reached
+     * it.
+     */
+    public record InsertNodeRunRequest(
+            @NotBlank @Size(max = 200) String name,
+            @Size(max = 20_000) String prompt,
+            @Size(max = 20) String effort,
+            @NotEmpty @Size(max = 50) List<@NotBlank @Size(max = 100) String> inputs) {
     }
 
     /** {@code effort} is null when the step runs at the CLI's default. */
@@ -146,10 +190,15 @@ public final class WorkflowDtos {
      * when the run was created — null means it ran at the CLI's default. It does not
      * follow later edits to the workflow, so a finished run keeps saying what it did.
      *
-     * <p>{@code promptEditedAt} is null while {@code prompt} is still the workflow's
-     * own text. Once set, and later than {@code finishedAt}, the output on this row was
-     * produced by the previous prompt — which is what the page warns about, so an
-     * edited-but-not-yet-re-run step doesn't read as the new prompt's work.
+     * <p>{@code settingsEditedAt} is null while this step is still exactly what the
+     * workflow said. Once set, and later than {@code finishedAt}, the output on this row
+     * was produced by the previous settings — which is what the page warns about, so an
+     * edited-but-not-yet-re-run step doesn't read as the new ones' work. A rename does
+     * not set it; see {@link NodeExecution}.
+     *
+     * <p>{@code addedAt} is null on a step the run snapshotted from the workflow, and
+     * set on one inserted into the run afterwards — the one thing in the record that
+     * reading the workflow would never explain.
      */
     public record NodeRunView(
             Long id,
@@ -157,7 +206,8 @@ public final class WorkflowDtos {
             String nodeName,
             String prompt,
             String effort,
-            Instant promptEditedAt,
+            Instant settingsEditedAt,
+            Instant addedAt,
             List<String> dependsOn,
             int orderIndex,
             RunState status,
@@ -179,7 +229,8 @@ public final class WorkflowDtos {
                     n.getNodeName(),
                     n.getPrompt(),
                     n.getEffort() == null ? null : n.getEffort().cliValue(),
-                    n.getPromptEditedAt(),
+                    n.getSettingsEditedAt(),
+                    n.getAddedAt(),
                     n.dependencyIds(),
                     n.getOrderIndex(),
                     n.getStatus(),

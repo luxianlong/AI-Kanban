@@ -1,7 +1,7 @@
 // node src/workflowLive.test.mjs
 import assert from 'node:assert/strict'
 import {
-  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt,
+  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesSettings,
   sameValue,
 } from './workflowLive.js'
 
@@ -85,33 +85,33 @@ assert.equal(followedNode('a', undefined, true), 'a')
 assert.equal(followedNode('a', null, false), 'a')
 assert.equal(followedNode(null, undefined, true), null)
 
-// --- outputPredatesPrompt -------------------------------------------------
+// --- outputPredatesSettings -------------------------------------------------
 
 // An untouched prompt: whatever is on the row is what this prompt produced.
-assert.equal(outputPredatesPrompt(node({ finishedAt: '2026-09-09T10:00:00Z' })), false)
+assert.equal(outputPredatesSettings(node({ finishedAt: '2026-09-09T10:00:00Z' })), false)
 
 // Edited after the step finished — the answer on screen is the old prompt's.
-assert.equal(outputPredatesPrompt(node({
+assert.equal(outputPredatesSettings(node({
   finishedAt: '2026-09-09T10:00:00Z',
-  promptEditedAt: '2026-09-09T10:05:00Z',
+  settingsEditedAt: '2026-09-09T10:05:00Z',
 })), true)
 
 // Edited, then re-run: the new answer is the new prompt's, so the label goes away.
-assert.equal(outputPredatesPrompt(node({
+assert.equal(outputPredatesSettings(node({
   finishedAt: '2026-09-09T10:10:00Z',
-  promptEditedAt: '2026-09-09T10:05:00Z',
+  settingsEditedAt: '2026-09-09T10:05:00Z',
 })), false)
 
 // Queued again and not finished yet: nothing on the row to be stale about.
-assert.equal(outputPredatesPrompt(node({
-  status: 'PENDING', finishedAt: null, promptEditedAt: '2026-09-09T10:05:00Z',
+assert.equal(outputPredatesSettings(node({
+  status: 'PENDING', finishedAt: null, settingsEditedAt: '2026-09-09T10:05:00Z',
 })), false)
 
 // Fractional seconds — the reason these are parsed and not string-compared. An edit
 // half a second later sorts BEFORE the finish as text ('.' < 'Z') and after it in fact.
-assert.equal(outputPredatesPrompt(node({
+assert.equal(outputPredatesSettings(node({
   finishedAt: '2026-09-09T10:00:00Z',
-  promptEditedAt: '2026-09-09T10:00:00.5Z',
+  settingsEditedAt: '2026-09-09T10:00:00.5Z',
 })), true)
 
 // --- nodesWithStaleInput --------------------------------------------------
@@ -165,7 +165,7 @@ assert.deepEqual([...nodesWithStaleInput([
   node({ nodeId: 'd', dependsOn: ['b', 'c'], finishedAt: '2026-09-09T10:04:00Z' }),
 ])], ['d'])
 
-// Same fractional-second trap as outputPredatesPrompt: '.5Z' sorts before 'Z' as text
+// Same fractional-second trap as outputPredatesSettings: '.5Z' sorts before 'Z' as text
 // and after it in fact, so these are parsed rather than compared as strings.
 assert.deepEqual([...nodesWithStaleInput([
   node({ nodeId: 'a', dependsOn: [], finishedAt: '2026-09-09T10:00:00.5Z' }),

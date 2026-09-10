@@ -3,7 +3,9 @@ package com.kanban.workflow;
 import com.kanban.worker.LiveLogRegistry;
 import com.kanban.worker.RunningSessionRegistry;
 import com.kanban.workflow.WorkflowDtos.EdgeSpec;
+import com.kanban.workflow.WorkflowDtos.EditNodeRunRequest;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
+import com.kanban.workflow.WorkflowDtos.InsertNodeRunRequest;
 import com.kanban.workflow.WorkflowDtos.NodeSpec;
 import com.kanban.workflow.WorkflowDtos.SaveWorkflowRequest;
 import com.kanban.workflow.WorkflowDtos.WorkflowView;
@@ -14,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -548,24 +551,310 @@ public class WorkflowService {
      */
     @Transactional
     public ExecutionView editNodePrompt(Long nodeRunId, String prompt) {
-        NodeExecution target = nodeRuns.findById(nodeRunId).orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Node run not found: " + nodeRunId));
+        NodeExecution target = findNodeRun(nodeRunId);
+        return editNodeRun(nodeRunId, new EditNodeRunRequest(
+                target.getNodeName(),
+                prompt,
+                target.getEffort() == null ? null : target.getEffort().cliValue(),
+                target.dependencyIds()));
+    }
+
+    /**
+     * Rewrite one step of a finished run completely — its name, its prompt, how hard it
+     * thinks and which of the run's steps feed it — leaving the workflow alone.
+     *
+     * <p>{@link #editNodePrompt} above is this with three of the four settings held
+     * still, and the reasoning there is the reasoning here: a run holds its own copy of
+     * the graph, so a change made in the run costs the sessions you choose to re-run
+     * rather than the whole graph from the top.
+     *
+     * <p>Widening it past the prompt is what makes a run <em>debuggable</em> rather than
+     * only re-wordable. "Was this step worth ultracode?" and "would it have answered
+     * better if it could see step two as well?" are the two questions a disappointing
+     * run actually raises, and until now both could only be asked by editing the
+     * workflow and paying for every step above the one in question.
+     *
+     * <p>The whole settings object is replaced, never patched — same rule as
+     * {@link #replace}. Rewiring is checked against the graph the run snapshotted, so an
+     * edit cannot leave the run holding a shape it could never have executed: no cycles,
+     * no reading from a step that isn't in this run, and nothing cut off from the entry.
+     */
+    @Transactional
+    public ExecutionView editNodeRun(Long nodeRunId, EditNodeRunRequest req) {
+        NodeExecution target = findNodeRun(nodeRunId);
         WorkflowExecution execution = findExecution(target.getExecutionId());
-        if (!execution.getStatus().isTerminal()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Run #" + execution.getId() + " is still going (" + execution.getStatus()
-                            + ") — wait for it, or cancel it, before editing one of its prompts.");
-        }
+        requireSettled(execution, "editing one of its steps");
         List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId());
         if (nodesToRerunFrom(runs, execution, target.getNodeId()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Step \"" + target.getNodeName() + "\" can't be re-run in this run — it isn't "
-                            + "wired in below the entry node — so editing its prompt would change "
-                            + "the record without ever testing the change.");
+            throw conflict("Step \"" + target.getNodeName() + "\" can't be re-run in this run — it isn't "
+                    + "wired in below the entry node — so editing it would change "
+                    + "the record without ever testing the change.");
         }
-        target.editPrompt(blankToNull(prompt));
+        String name = req.name().strip();
+        List<String> inputs = wiringFor(runs, execution, target.getNodeId(), name, req.inputs(), false);
+        target.editSettings(name, blankToNull(req.prompt()), effortOf(name, req.effort()), inputs);
         nodeRuns.save(target);
+        reindex(runs, execution);
         return executionView(execution);
+    }
+
+    /** Nodes one run may hold, matching the cap {@code SaveWorkflowRequest} puts on a graph. */
+    private static final int MAX_RUN_NODES = 50;
+
+    /**
+     * Add a step to a finished run — one the workflow it came from never had.
+     *
+     * <p>This is the half of debugging that editing cannot reach. The answer to "why did
+     * the last step come out like that" is often a step that is <em>missing</em>: a
+     * checking pass between two others, a reformat before the write-up. Adding it to the
+     * workflow and running the graph again pays for every step that already came out
+     * fine, and then compares the new step against a freshly-generated everything-else
+     * rather than against the run that raised the question.
+     *
+     * <p>It lands {@link RunState#PENDING} and <em>nothing starts</em>. A step is a
+     * Claude session with a real bill, so adding one and running one are deliberately
+     * two decisions: the row appears as queued, and the re-run button already on it (see
+     * {@link #retryNode}) is what spends the money.
+     *
+     * <p>It must read from at least one step that is already in the run, and through it
+     * be reachable from the entry. A step wired to nothing is a second root, and a run
+     * has exactly one — the step it started from.
+     */
+    @Transactional
+    public ExecutionView insertNodeRun(Long executionId, InsertNodeRunRequest req) {
+        WorkflowExecution execution = findExecution(executionId);
+        requireSettled(execution, "adding a step to it");
+        List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(executionId);
+        if (runs.size() >= MAX_RUN_NODES) {
+            throw conflict("Run #" + executionId + " already has " + MAX_RUN_NODES
+                    + " steps, which is as many as a workflow may have.");
+        }
+        String name = req.name().strip();
+        // Minted here rather than taken from the client: node ids are unique only
+        // within a run, so a supplied one could collide with a step already present and
+        // silently become a second row for it.
+        String nodeId = UUID.randomUUID().toString();
+        List<String> inputs = wiringFor(runs, execution, nodeId, name, req.inputs(), true);
+        NodeExecution added = new NodeExecution(executionId, nodeId, name, blankToNull(req.prompt()),
+                effortOf(name, req.effort()), inputs, justAfter(runs, inputs));
+        added = nodeRuns.save(added);
+        // Sorted so the new step is *declared* where it sits, not appended: a
+        // topological order breaks its ties by declaration position, so a step added
+        // after the first of five would otherwise be numbered — and so listed — last,
+        // which is a legal order and a misleading picture.
+        List<NodeExecution> all = new ArrayList<>(runs);
+        all.add(added);
+        all = all.stream().sorted(Comparator.comparingInt(NodeExecution::getOrderIndex)).toList();
+        reindex(all, execution);
+        return executionView(execution);
+    }
+
+    /**
+     * Take a step out of a finished run, splicing the chain shut behind it: whatever
+     * read the removed step now reads what the removed step read.
+     *
+     * <p>Splicing rather than leaving a dangling edge, because "drop this step" is a
+     * statement about the chain and not about the one row — a middle step deleted out of
+     * A → B → C is meant to leave A → C, and the alternative is a C whose recorded
+     * dependency names a step that no longer exists, which the runner can only mark
+     * SKIPPED. The steps that inherit the new wiring are stamped as edited: what is
+     * stored on them was written from an input that has changed.
+     *
+     * <p>The entry step is refused. It is where this run began — the ExecutionView, the
+     * retry rules and the reachability of every other step are all defined against it —
+     * so removing it does not shorten the run, it makes the record unreadable.
+     *
+     * <p>Unlike the two above, this <em>destroys</em> what the step produced. That is why
+     * it is a delete and not a hide, and why the page asks first.
+     */
+    @Transactional
+    public ExecutionView deleteNodeRun(Long nodeRunId) {
+        NodeExecution target = findNodeRun(nodeRunId);
+        WorkflowExecution execution = findExecution(target.getExecutionId());
+        requireSettled(execution, "removing one of its steps");
+        List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId());
+        if (target.getNodeId().equals(execution.getEntryNodeId())) {
+            throw conflict("\"" + target.getNodeName() + "\" is the step run #" + execution.getId()
+                    + " started from, so it can't be removed — every other step is recorded "
+                    + "as reachable from it. Delete the run instead.");
+        }
+        if (runs.size() <= 1) {
+            throw conflict("Run #" + execution.getId() + " has only this step left. "
+                    + "Delete the run instead.");
+        }
+        List<String> inherited = target.dependencyIds();
+        for (NodeExecution run : runs) {
+            if (run.getNodeId().equals(target.getNodeId()) || !run.dependencyIds().contains(target.getNodeId())) {
+                continue;
+            }
+            Set<String> rewired = new LinkedHashSet<>();
+            for (String dependency : run.dependencyIds()) {
+                if (dependency.equals(target.getNodeId())) {
+                    rewired.addAll(inherited);
+                } else {
+                    rewired.add(dependency);
+                }
+            }
+            // Splicing cannot introduce a self-edge in an acyclic graph — a step would
+            // have to be its own ancestor — but the run is user-editable data, so don't
+            // stake the runner's termination on that.
+            rewired.remove(run.getNodeId());
+            run.rewire(List.copyOf(rewired));
+            nodeRuns.save(run);
+        }
+        // The transcript is keyed on the row that is going; nothing will ever show it.
+        liveLog.clear(LiveLogRegistry.nodeKey(target.getId()));
+        nodeRuns.delete(target);
+        List<NodeExecution> left = runs.stream()
+                .filter(r -> !r.getNodeId().equals(target.getNodeId()))
+                .toList();
+        reindex(left, execution);
+        return executionView(execution);
+    }
+
+    /** One past the last of the steps feeding this one — where an inserted step belongs. */
+    private static int justAfter(List<NodeExecution> runs, List<String> inputs) {
+        int deepest = 0;
+        for (NodeExecution run : runs) {
+            if (inputs.contains(run.getNodeId())) {
+                deepest = Math.max(deepest, run.getOrderIndex());
+            }
+        }
+        return deepest + 1;
+    }
+
+    /**
+     * The wiring a step may be given, or a 400 saying why it may not.
+     *
+     * <p>Checked against the graph the run would have <em>after</em> the change, not
+     * before it, because every rule here is about the shape that results: the entry is
+     * fed by the run's own input and nothing else, a step must be reachable from the
+     * entry to be worth recording, and the whole thing must stay acyclic or the runner
+     * never terminates. Duplicates are folded rather than refused — asking for the same
+     * input twice is not an error, it is one input.
+     *
+     * <p>{@code inserting} says whether {@code nodeId} is a step being added (so it is
+     * not in {@code runs} yet) or one already there being rewired.
+     *
+     * <p>Runs recorded before the entry was snapshotted skip the two entry rules. Their
+     * entry is not known, so neither rule can be evaluated, and refusing every edit on
+     * those runs would be a worse answer than allowing a rewire the cycle check still
+     * covers.
+     */
+    private static List<String> wiringFor(List<NodeExecution> runs, WorkflowExecution execution,
+                                          String nodeId, String nodeName, List<String> requested,
+                                          boolean inserting) {
+        List<String> inputs = List.copyOf(new LinkedHashSet<>(requested == null ? List.of() : requested));
+        Set<String> known = new HashSet<>(runs.stream().map(NodeExecution::getNodeId).toList());
+        for (String from : inputs) {
+            if (from.equals(nodeId)) {
+                throw badRequest("Step \"" + nodeName + "\" can't read from itself.");
+            }
+            if (!known.contains(from)) {
+                throw badRequest("Step \"" + nodeName + "\" can't read from \"" + from
+                        + "\" — there is no such step in this run.");
+            }
+        }
+        if (knowsItsEntry(runs, execution.getEntryNodeId())) {
+            if (nodeId.equals(execution.getEntryNodeId()) && !inputs.isEmpty()) {
+                throw badRequest("\"" + nodeName + "\" is the step this run started from. It is handed "
+                        + "the run's own input, so it can't read from another step.");
+            }
+            if (!nodeId.equals(execution.getEntryNodeId())) {
+                if (inputs.isEmpty()) {
+                    throw badRequest("Step \"" + nodeName + "\" needs at least one step to read from — "
+                            + "with none, nothing leads to it from the step this run started at.");
+                }
+                WorkflowGraph after = prospectiveGraph(runs, execution.getEntryNodeId(), nodeId, inputs, inserting);
+                if (after.topologicalOrder() == null) {
+                    throw badRequest("That would make a loop: \"" + nodeName + "\" would end up reading, "
+                            + "directly or not, from a step that reads from it.");
+                }
+                if (!after.reachable().contains(nodeId)) {
+                    throw badRequest("Step \"" + nodeName + "\" would be cut off — nothing would lead to "
+                            + "it from the step this run started at, so the run could never get to it.");
+                }
+            }
+        }
+        return inputs;
+    }
+
+    /** The run's snapshotted graph with one node's dependencies swapped for {@code inputs}. */
+    private static WorkflowGraph prospectiveGraph(List<NodeExecution> runs, String entryNodeId,
+                                                  String nodeId, List<String> inputs, boolean inserting) {
+        List<String> nodeIds = new ArrayList<>(runs.stream().map(NodeExecution::getNodeId).toList());
+        if (inserting) {
+            nodeIds.add(nodeId);
+        }
+        List<WorkflowGraph.Edge> graphEdges = new ArrayList<>();
+        for (NodeExecution run : runs) {
+            if (run.getNodeId().equals(nodeId)) {
+                continue;
+            }
+            for (String dependency : run.dependencyIds()) {
+                graphEdges.add(new WorkflowGraph.Edge(dependency, run.getNodeId()));
+            }
+        }
+        for (String from : inputs) {
+            graphEdges.add(new WorkflowGraph.Edge(from, nodeId));
+        }
+        return new WorkflowGraph(nodeIds, graphEdges, entryNodeId);
+    }
+
+    /**
+     * Renumber a run's steps from a fresh topological order of what it now holds.
+     *
+     * <p>{@code orderIndex} is the run's display order and it is also the order the
+     * runner walks the rows in, so an inserted step has to land between the steps it
+     * sits between rather than at the end of the list — otherwise the panel shows a
+     * step above the one that feeds it, which is the picture saying the opposite of
+     * what the graph does.
+     */
+    private void reindex(List<NodeExecution> runs, WorkflowExecution execution) {
+        List<String> order = snapshotGraph(runs, execution.getEntryNodeId()).topologicalOrder();
+        if (order == null) {
+            // A cycle, which every path into here has already refused. Leave the
+            // numbering alone rather than invent one from a graph that can't be walked.
+            return;
+        }
+        Map<String, Integer> position = new HashMap<>();
+        for (int i = 0; i < order.size(); i++) {
+            position.put(order.get(i), i);
+        }
+        for (NodeExecution run : runs) {
+            Integer index = position.get(run.getNodeId());
+            if (index != null && index != run.getOrderIndex()) {
+                run.setOrderIndex(index);
+                nodeRuns.save(run);
+            }
+        }
+    }
+
+    /** A step's run row, or 404. */
+    private NodeExecution findNodeRun(Long nodeRunId) {
+        return nodeRuns.findById(nodeRunId).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Node run not found: " + nodeRunId));
+    }
+
+    /**
+     * Refuse to change a run that is still going. Every edit here rewrites rows the
+     * runner's lane is walking, and the lane's whole claim to needing no locking is that
+     * it is the only thing touching them.
+     */
+    private static void requireSettled(WorkflowExecution execution, String what) {
+        if (!execution.getStatus().isTerminal()) {
+            throw conflict("Run #" + execution.getId() + " is still going (" + execution.getStatus()
+                    + ") — wait for it, or cancel it, before " + what + ".");
+        }
+    }
+
+    /** The effort level a step is being given, or a 400 naming the levels. */
+    private static EffortLevel effortOf(String stepName, String raw) {
+        try {
+            return EffortLevel.parse(raw);
+        } catch (IllegalArgumentException e) {
+            throw badRequest("Step \"" + stepName + "\": " + e.getMessage());
+        }
     }
 
     /**
@@ -724,5 +1013,9 @@ public class WorkflowService {
 
     private static ResponseStatusException badRequest(String message) {
         return new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+    }
+
+    private static ResponseStatusException conflict(String message) {
+        return new ResponseStatusException(HttpStatus.CONFLICT, message);
     }
 }

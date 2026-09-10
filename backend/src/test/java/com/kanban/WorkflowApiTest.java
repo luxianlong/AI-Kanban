@@ -754,10 +754,10 @@ class WorkflowApiTest {
                         .content(promptBody("Summarise the input in one paragraph")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nodes[1].prompt", is("Summarise the input in one paragraph")))
-                .andExpect(jsonPath("$.nodes[1].promptEditedAt").exists())
+                .andExpect(jsonPath("$.nodes[1].settingsEditedAt").exists())
                 // Only that step. The others are still the workflow's text.
                 .andExpect(jsonPath("$.nodes[0].prompt", is("Find sources")))
-                .andExpect(jsonPath("$.nodes[0].promptEditedAt").doesNotExist())
+                .andExpect(jsonPath("$.nodes[0].settingsEditedAt").doesNotExist())
                 // Nothing has been re-run, so the answer on the row is still the old
                 // prompt's — the edit alone must not disturb the record.
                 .andExpect(jsonPath("$.nodes[1].status", is("SUCCEEDED")))
@@ -774,7 +774,7 @@ class WorkflowApiTest {
                 .andExpect(jsonPath("$.nodes[1].status", is("PENDING")))
                 .andExpect(jsonPath("$.nodes[1].attempt", is(2)))
                 .andExpect(jsonPath("$.nodes[1].prompt", is("Summarise the input in one paragraph")))
-                .andExpect(jsonPath("$.nodes[1].promptEditedAt").exists());
+                .andExpect(jsonPath("$.nodes[1].settingsEditedAt").exists());
     }
 
     @Test
@@ -790,7 +790,7 @@ class WorkflowApiTest {
                         .contentType(MediaType.APPLICATION_JSON).content(promptBody("Find sources")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nodes[0].prompt", is("Find sources")))
-                .andExpect(jsonPath("$.nodes[0].promptEditedAt").doesNotExist());
+                .andExpect(jsonPath("$.nodes[0].settingsEditedAt").doesNotExist());
     }
 
     @Test

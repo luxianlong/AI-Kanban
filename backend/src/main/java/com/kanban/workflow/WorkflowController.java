@@ -1,8 +1,10 @@
 package com.kanban.workflow;
 
 import com.kanban.workflow.WorkflowDtos.EditNodePromptRequest;
+import com.kanban.workflow.WorkflowDtos.EditNodeRunRequest;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
 import com.kanban.workflow.WorkflowDtos.FavoriteStepView;
+import com.kanban.workflow.WorkflowDtos.InsertNodeRunRequest;
 import com.kanban.workflow.WorkflowDtos.RunWorkflowRequest;
 import com.kanban.workflow.WorkflowDtos.SaveFavoriteStepRequest;
 import com.kanban.workflow.WorkflowDtos.SaveWorkflowRequest;
@@ -114,6 +116,53 @@ public class WorkflowController {
     public ExecutionView editNodePrompt(@PathVariable Long nodeRunId,
                                         @Valid @RequestBody EditNodePromptRequest req) {
         return service.editNodePrompt(nodeRunId, req.prompt());
+    }
+
+    /**
+     * Rewrite one step of this run completely — name, prompt, effort and what feeds it.
+     * The workflow keeps its own copy of all four, so this changes what <em>this</em> run
+     * would do on a re-run and nothing else.
+     *
+     * <p>The wider form of the prompt endpoint above, and the reason a run can be
+     * debugged rather than only re-worded: the two questions a disappointing step raises
+     * are usually "was this worth the effort level it got" and "should it have been
+     * reading the step above as well", and neither is a change of wording.
+     *
+     * <p>409 in the same two cases as the prompt endpoint (run live, step never
+     * reached); 400 for a level that isn't one, or wiring that would loop, dangle, or cut
+     * the step off from the step the run started at.
+     */
+    @PutMapping("/node-runs/{nodeRunId}")
+    public ExecutionView editNodeRun(@PathVariable Long nodeRunId,
+                                     @Valid @RequestBody EditNodeRunRequest req) {
+        return service.editNodeRun(nodeRunId, req);
+    }
+
+    /**
+     * Add a step to a finished run — one the workflow never had. It lands queued and
+     * nothing starts; the step's own re-run button is what spends a session on it.
+     *
+     * <p>{@code inputs} must name at least one step already in the run. 409 while the run
+     * is live or once it holds as many steps as a workflow may.
+     */
+    @PostMapping("/executions/{executionId}/node-runs")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ExecutionView insertNodeRun(@PathVariable Long executionId,
+                                       @Valid @RequestBody InsertNodeRunRequest req) {
+        return service.insertNodeRun(executionId, req);
+    }
+
+    /**
+     * Take a step out of this run, splicing the chain shut behind it — whatever read the
+     * removed step now reads what it read. Its output is destroyed with it.
+     *
+     * <p>Returns the run rather than 204: removing a step rewires and renumbers the ones
+     * around it, so the answer is the whole run as it now stands. 409 while the run is
+     * live, on the step the run started at, and on the last step left.
+     */
+    @DeleteMapping("/node-runs/{nodeRunId}")
+    public ExecutionView deleteNodeRun(@PathVariable Long nodeRunId) {
+        return service.deleteNodeRun(nodeRunId);
     }
 
     /** Live transcript of one node's Claude session — poll it while the node runs. */

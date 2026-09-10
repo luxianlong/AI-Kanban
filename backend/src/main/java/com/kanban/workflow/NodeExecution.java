@@ -23,10 +23,16 @@ import java.util.Objects;
  * workflow it came from is edited or deleted, and it means an in-flight execution
  * can't have its shape changed underneath it.
  *
- * <p>The one snapshotted field a user may change afterwards is {@link #prompt}, and
- * only on a finished run — see {@link #editPrompt}. That is how a prompt gets tried:
- * edit this run's copy, re-run the one step, read what came out. The workflow itself
- * is left alone, so an experiment costs one session rather than a graph.
+ * <p>On a <em>finished</em> run those snapshots may then be rewritten — name, prompt,
+ * effort and wiring alike (see {@link #editSettings}) — and steps may be added to the
+ * run ({@link #NodeExecution(Long, String, String, String, EffortLevel, List, int)}) or
+ * dropped from it. That is how a graph gets debugged: change one thing in this run's
+ * copy, re-run the one step, read what came out. The workflow itself is left alone, so
+ * an experiment costs one session rather than a graph.
+ *
+ * <p>None of that is allowed while the run is live — see
+ * {@code WorkflowService#requireSettled} — which is what keeps "exactly one thread
+ * touches a run's rows" true.
  *
  * <p>{@link #input} is the text handed to this node from upstream: the concatenated
  * {@link #output}s of its dependencies (or the execution's own input, for the entry
@@ -53,20 +59,43 @@ public class NodeExecution {
 
     /**
      * Snapshot of the node's user-written prompt — as the workflow had it when the run
-     * was created, unless {@link #editPrompt} has since changed it for this run alone.
+     * was created, unless {@link #editSettings} has since changed it for this run alone.
      */
     @Lob
     @Column(columnDefinition = "TEXT")
     private String prompt;
 
     /**
-     * When {@link #prompt} was last edited on this run, or null if it is still the
-     * workflow's own text. Kept because a finished step's output was produced by the
-     * prompt as it read <em>then</em>: once this stamp is later than
-     * {@link #finishedAt}, what is on screen no longer answers what is in the box, and
-     * the page says so rather than letting the two quietly disagree.
+     * When this run's copy of the step was last changed — its prompt, its effort or
+     * what feeds it — or null while it is still exactly what the workflow said.
+     *
+     * <p>Kept because a finished step's output was produced by the settings as they
+     * read <em>then</em>: once this stamp is later than {@link #finishedAt}, what is on
+     * screen no longer answers what is in the boxes, and the page says so rather than
+     * letting the two quietly disagree.
+     *
+     * <p>A rename does <em>not</em> touch it. The name is a label on the row; it is the
+     * only one of the four settings that cannot change a single character of what the
+     * session is asked to do, so stamping it would put a "this answer is out of date"
+     * warning over an answer that is perfectly current.
+     *
+     * <p>The column is still {@code prompt_edited_at}: it was named when the prompt was
+     * the only thing editable, and pinning it keeps the stamps already recorded rather
+     * than starting a second column beside them.
      */
-    private Instant promptEditedAt;
+    @Column(name = "prompt_edited_at")
+    private Instant settingsEditedAt;
+
+    /**
+     * When this step was inserted into the run, or null on the ordinary case — a step
+     * the run snapshotted from the workflow when it was created.
+     *
+     * <p>An execution is a record of what happened, and a step the workflow never had
+     * is the one thing in it that no amount of reading the workflow would explain. The
+     * stamp is what lets the page mark it as added rather than let it pass as part of
+     * the original graph.
+     */
+    private Instant addedAt;
 
     /**
      * Snapshot of the node's effort level — the thinking budget this step's session
@@ -140,6 +169,27 @@ public class NodeExecution {
         this.orderIndex = orderIndex;
     }
 
+    /**
+     * A step added to a run that has already finished — one the workflow it came from
+     * never had. It starts {@link RunState#PENDING} with nothing behind it, so the run
+     * shows it as queued until the user starts it.
+     *
+     * <p>Its {@code nodeId} is minted by the service rather than taken from a client:
+     * ids are only unique within a run, and a caller picking one could land on a node
+     * that is already there and quietly become a second row for it.
+     */
+    NodeExecution(Long executionId, String nodeId, String nodeName, String prompt,
+                  EffortLevel effort, List<String> dependsOn, int orderIndex) {
+        this.executionId = executionId;
+        this.nodeId = nodeId;
+        this.nodeName = nodeName;
+        this.prompt = prompt;
+        this.effort = effort;
+        this.dependsOn = String.join(",", dependsOn);
+        this.orderIndex = orderIndex;
+        this.addedAt = Instant.now();
+    }
+
     /** The snapshotted dependency ids, as a list (empty for the entry node). */
     public List<String> dependencyIds() {
         if (dependsOn == null || dependsOn.isBlank()) {
@@ -178,6 +228,16 @@ public class NodeExecution {
 
     public int getOrderIndex() {
         return orderIndex;
+    }
+
+    /**
+     * Renumber this row's place in the run's display order. Called after a step is
+     * inserted or removed, when the whole run is re-numbered from a fresh topological
+     * order of what it now contains — an inserted step has to land between the steps it
+     * sits between, not at the end of the list.
+     */
+    void setOrderIndex(int orderIndex) {
+        this.orderIndex = orderIndex;
     }
 
     public RunState getStatus() {
@@ -244,29 +304,58 @@ public class NodeExecution {
         this.durationMs = durationMs;
     }
 
-    public Instant getPromptEditedAt() {
-        return promptEditedAt;
+    public Instant getSettingsEditedAt() {
+        return settingsEditedAt;
+    }
+
+    public Instant getAddedAt() {
+        return addedAt;
     }
 
     /**
-     * Change the prompt this run will use for its next attempt of this node, without
+     * Rewrite this run's copy of the step — everything a step <em>is</em> — without
      * touching the workflow the run came from.
      *
-     * <p>An execution is a record of what happened, so rewriting part of it is not
-     * free: the output already on the row was produced by the previous text. The stamp
-     * is what keeps the record honest — it dates the edit against
-     * {@link #getFinishedAt()}, so a step showing an answer from the old prompt can be
-     * labelled as one instead of reading as the new prompt's work.
+     * <p>All four settings and not just the prompt, because the question a debugging
+     * session asks is rarely only about wording: was this step worth the effort level
+     * it was given, and would it have answered better reading the step two above it as
+     * well? Both used to mean editing the workflow and paying for the whole graph to
+     * find out.
      *
-     * <p>An unchanged text is not an edit and leaves the stamp alone; otherwise
-     * opening the box and closing it again would mark a step as stale.
+     * <p>An execution is a record of what happened, so rewriting part of it is not
+     * free: the output already on the row was produced by the previous settings. The
+     * stamp is what keeps the record honest — it dates the edit against
+     * {@link #getFinishedAt()}, so a step showing the old settings' answer can be
+     * labelled as one instead of reading as the new ones' work.
+     *
+     * <p>An unchanged value is not an edit and leaves the stamp alone; otherwise
+     * opening a box and closing it again would mark a step as stale. A rename never
+     * stamps at all — see {@link #settingsEditedAt}.
      */
-    void editPrompt(String newPrompt) {
-        if (Objects.equals(prompt, newPrompt)) {
+    void editSettings(String newName, String newPrompt, EffortLevel newEffort, List<String> newDependsOn) {
+        this.nodeName = newName;
+        if (!Objects.equals(prompt, newPrompt) || effort != newEffort) {
+            this.prompt = newPrompt;
+            this.effort = newEffort;
+            this.settingsEditedAt = Instant.now();
+        }
+        rewire(newDependsOn);
+    }
+
+    /**
+     * Change which of the run's steps feed this one. Its own method as well as part of
+     * {@link #editSettings} because removing a step from a run rewires the steps that
+     * read it — they inherit what the removed step read — without anyone editing them.
+     *
+     * <p>Stamped like any other change of settings: what is on the row was written from
+     * the old input, and after a rewire the step is answering a different question.
+     */
+    void rewire(List<String> newDependsOn) {
+        if (dependencyIds().equals(List.copyOf(newDependsOn))) {
             return;
         }
-        this.prompt = newPrompt;
-        this.promptEditedAt = Instant.now();
+        this.dependsOn = String.join(",", newDependsOn);
+        this.settingsEditedAt = Instant.now();
     }
 
     public int getAttempt() {
@@ -282,9 +371,16 @@ public class NodeExecution {
      * <p>{@link #costUsd} and {@link #durationMs} are deliberately <em>not</em> cleared.
      * They are what this node has cost so far, and a failed attempt was still billed —
      * the runner adds the next attempt's figures to them.
+     *
+     * <p>The counter moves only for a row that had left the queue. A row still
+     * {@link RunState#PENDING} has nothing behind it to count — a step just inserted
+     * into the run is exactly that — and calling its first run "attempt 2" would put a
+     * history on the page that never happened.
      */
     void resetForRetry() {
-        this.attempt = getAttempt() + 1;
+        if (status != RunState.PENDING) {
+            this.attempt = getAttempt() + 1;
+        }
         this.status = RunState.PENDING;
         this.input = null;
         this.output = null;

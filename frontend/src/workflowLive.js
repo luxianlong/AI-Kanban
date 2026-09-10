@@ -55,21 +55,26 @@ export function mergeExecutions(prev, next) {
 }
 
 /**
- * Whether the output on a step was produced by a prompt that has since been edited.
+ * Whether the output on a step was produced by settings that have since been edited.
  *
- * A run holds its own copy of every prompt and lets a finished step's copy be
- * rewritten, so that one step can be re-run against a new wording without paying for
- * the graph above it. Between the edit and the re-run the panel shows a step reading
- * "Done", an answer, and a prompt box that asks something else — three things that
- * look like one story and are two. This is what the page labels instead.
+ * A run holds its own copy of every step — prompt, effort and wiring — and lets a
+ * finished step's copy be rewritten, so that one step can be re-run against a new
+ * version of itself without paying for the graph above it. Between the edit and the
+ * re-run the panel shows a step reading "Done", an answer, and boxes that ask
+ * something else — three things that look like one story and are two. This is what
+ * the page labels instead.
+ *
+ * A rename is deliberately not one of them, and the server is where that is decided:
+ * it leaves the stamp alone, because the name is the one setting that cannot change a
+ * character of what the session was asked to do.
  *
  * The stamps are parsed rather than compared as strings: both are ISO instants, but
  * their fractional seconds are only as long as they need to be, so "…:30Z" sorts
  * after "…:30.5Z" lexically and before it in fact.
  */
-export function outputPredatesPrompt(run) {
-  if (!run?.promptEditedAt || !run.finishedAt) return false
-  return Date.parse(run.promptEditedAt) > Date.parse(run.finishedAt)
+export function outputPredatesSettings(run) {
+  if (!run?.settingsEditedAt || !run.finishedAt) return false
+  return Date.parse(run.settingsEditedAt) > Date.parse(run.finishedAt)
 }
 
 /**
@@ -80,7 +85,7 @@ export function outputPredatesPrompt(run) {
  * the rest of the run standing. The cost is that the rest of the run is now an
  * answer to an earlier version of the question. Nothing about a row says so — it
  * still reads "Done", with an output that was right when it was written — so this
- * is what the page labels, the same way `outputPredatesPrompt` labels a step whose
+ * is what the page labels, the same way `outputPredatesSettings` labels a step whose
  * prompt moved out from under its answer.
  *
  * A step is stale when anything it transitively depends on finished after it did.

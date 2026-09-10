@@ -8,7 +8,7 @@ import {
   NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 import {
-  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesPrompt,
+  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesSettings,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
@@ -703,6 +703,53 @@ function WorkflowEditor({
   )
 }
 
+/**
+ * The "how hard does this step think" picker, with the sentence that explains a level
+ * once it is set. One component because a step's effort is now chosen in two places —
+ * in the editor, where it is what every future run does, and inside a finished run,
+ * where it is an experiment costing one session — and two pickers offering different
+ * levels, or explaining ultracode differently, would be a bug waiting to happen.
+ */
+function EffortPicker({ id, value, onChange, label = 'Effort' }) {
+  return (
+    <div className="wf-node-effort">
+      <label className="wf-inputs-label" htmlFor={id}>{label}</label>
+      <select
+        id={id}
+        className="wf-effort-select"
+        value={value || ''}
+        title={EFFORT_HINT}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">Default</option>
+        {/* Two groups rather than one list of six. Dropping ultracode in after 'max'
+            would read as the next notch up the same scale, which is the one thing
+            about it that is wrong. */}
+        <optgroup label="Think harder">
+          {EFFORT_LEVELS.map((level) => (
+            <option key={level} value={level}>{level}</option>
+          ))}
+        </optgroup>
+        <optgroup label="Think harder and fan out">
+          <option value={ULTRACODE} title={ULTRACODE_HINT}>{ULTRACODE}</option>
+        </optgroup>
+      </select>
+      {/* Only when it is set: a line under every step saying "this is normal" is
+          noise, and the point of the label is that this step is not. */}
+      {value && (
+        <span className="wf-effort-note">
+          {value === ULTRACODE
+            ? 'Runs at ultracode: xhigh thinking plus sub-sessions it can hand work '
+              + 'out to, with several times the usual time limit because it waits for '
+              + 'them. The most expensive level, and it fails outright where '
+              + 'ultracode is unavailable rather than falling back to the default.'
+            : `Runs at ${value} instead of the default.`}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function NodeEditor({
   node, index, all, isEntry, unreached, onChange, onMakeEntry, onToggleInput, onRemove,
   favorite, onFavorite,
@@ -780,41 +827,11 @@ function NodeEditor({
         maxLength={20000}
       />
 
-      <div className="wf-node-effort">
-        <label className="wf-inputs-label" htmlFor={`effort-${node.id}`}>Effort</label>
-        <select
-          id={`effort-${node.id}`}
-          className="wf-effort-select"
-          value={node.effort || ''}
-          title={EFFORT_HINT}
-          onChange={(e) => onChange({ effort: e.target.value })}
-        >
-          <option value="">Default</option>
-          {/* Two groups rather than one list of six. Dropping ultracode in after 'max'
-              would read as the next notch up the same scale, which is the one thing
-              about it that is wrong. */}
-          <optgroup label="Think harder">
-            {EFFORT_LEVELS.map((level) => (
-              <option key={level} value={level}>{level}</option>
-            ))}
-          </optgroup>
-          <optgroup label="Think harder and fan out">
-            <option value={ULTRACODE} title={ULTRACODE_HINT}>{ULTRACODE}</option>
-          </optgroup>
-        </select>
-        {/* Only when it is set: a line under every step saying "this is normal" is
-            noise, and the point of the label is that this step is not. */}
-        {node.effort && (
-          <span className="wf-effort-note">
-            {node.effort === ULTRACODE
-              ? 'Runs at ultracode: xhigh thinking plus sub-sessions it can hand work '
-                + 'out to, with several times the usual time limit because it waits for '
-                + 'them. The most expensive level, and it fails outright where '
-                + 'ultracode is unavailable rather than falling back to the default.'
-              : `Runs at ${node.effort} instead of the default.`}
-          </span>
-        )}
-      </div>
+      <EffortPicker
+        id={`effort-${node.id}`}
+        value={node.effort}
+        onChange={(effort) => onChange({ effort })}
+      />
 
       <div className="wf-inputs">
         <span className="wf-inputs-label">Input from</span>
@@ -1154,14 +1171,50 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
     }
   }
 
-  // Editing a step's prompt in the run rather than in the workflow. The run holds its
-  // own copy of every prompt — that is what makes this a cheap experiment: change the
-  // wording, re-run that one step, and the step is handed exactly the input it had
-  // before, so the prompt is the only thing that moved. The error is handed back to
-  // the box rather than swallowed, because the text the user typed is still in it.
-  async function editPrompt(run, prompt) {
-    await api.editNodeRunPrompt(run.id, prompt)
+  // Editing a step inside the run rather than in the workflow. The run holds its own
+  // copy of every step — prompt, effort and wiring — and that is what makes this a
+  // cheap experiment: change one thing, re-run that one step, and the step is handed
+  // the input it had before, so what moved is what you moved. The error is handed back
+  // to the form rather than swallowed, because what the user typed is still in it.
+  async function editStep(run, settings) {
+    await api.editNodeRun(run.id, settings)
     onChanged()
+  }
+
+  // Adding a step the workflow never had. The other half of debugging: sometimes the
+  // answer to "why did the last step come out like that" is a step that is missing —
+  // a checking pass, a reformat — and until now finding out meant editing the graph
+  // and paying for every step that already came out fine. It lands queued and starts
+  // nothing; the re-run button on the new row is what spends a session.
+  async function addStepAfter(run, step) {
+    await api.insertNodeRun(execution.id, { ...step, inputs: [run.nodeId] })
+    onChanged()
+  }
+
+  // Removing a step from the run. Unlike the two above this destroys what the step
+  // produced, and it rewires the steps that read it onto whatever it read — so the
+  // confirm spells out both, since neither is in the button.
+  async function removeStep(run) {
+    const reads = execution.nodes.filter((n) => (n.dependsOn || []).includes(run.nodeId))
+    const ok = window.confirm(
+      `Remove "${run.nodeName}" from this run?\n\n`
+      + `Whatever it produced is deleted with it${run.costUsd != null
+        ? ` (it cost $${run.costUsd.toFixed(4)})` : ''}. `
+      + `${reads.length
+        ? `${plural(reads.length, 'step')} that read it will read what it read instead, `
+          + 'so their answers will be marked as written from an input that has changed. '
+        : ''}`
+      + 'The workflow itself keeps the step.',
+    )
+    if (!ok) return
+    try {
+      await api.deleteNodeRun(run.id)
+      onChanged()
+    } catch {
+      window.alert('This run has changed since the page last read it, so that step was '
+        + 'not removed. The runs list has been refreshed.')
+      onChanged()
+    }
   }
 
   async function remove(e) {
@@ -1256,7 +1309,10 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
                 staleInput={staleInput.has(run.nodeId)}
                 onToggle={() => pickNode(run.nodeId)}
                 onRerun={(downstream) => rerunFrom(run, downstream)}
-                onEditPrompt={(prompt) => editPrompt(run, prompt)}
+                onEdit={(settings) => editStep(run, settings)}
+                onAddAfter={(step) => addStepAfter(run, step)}
+                onRemove={() => removeStep(run)}
+                siblings={graphNodes}
               />
             ))}
           </ol>
@@ -1266,9 +1322,14 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   )
 })
 
-function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onEditPrompt }) {
+function NodeRun({
+  run, where, isEntry, open, staleInput, siblings, onToggle, onRerun, onEdit, onAddAfter, onRemove,
+}) {
   const [log, setLog] = useState('')
   const [rerunning, setRerunning] = useState(false)
+  // Whether the "add a step after this one" form is showing. Closed by default and
+  // per-step, because where a step goes is the decision the form is for.
+  const [adding, setAdding] = useState(false)
   const running = run.status === 'RUNNING'
 
   async function rerun(downstream) {
@@ -1308,14 +1369,14 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
   // "prompt edited" rides along on the collapsed row for the same reason: the row says
   // "Done" over an answer the prompt in the box no longer asked for, and that is worth
   // knowing without opening the step.
-  const stale = outputPredatesPrompt(run)
+  const stale = outputPredatesSettings(run)
   const meta = [
     run.attempt > 1 ? `attempt ${run.attempt}` : '',
     // The level this step's session was actually started with, which the run
     // snapshotted — so a run keeps saying what it did after the workflow moves on.
     // Absent on a step left at the default, where there is nothing to explain.
     run.effort ? `effort ${run.effort}` : '',
-    stale ? 'prompt edited' : '',
+    stale ? 'settings edited' : '',
     staleInput ? 'input changed' : '',
     runMeta(run),
   ]
@@ -1330,6 +1391,15 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
         {isEntry && (
           <span className="wf-badge entry-badge" title="This run started here">Entry</span>
         )}
+        {/* The one thing in the record that reading the workflow would never explain. */}
+        {run.addedAt && (
+          <span
+            className="wf-badge added-badge"
+            title="Added to this run while debugging it — the workflow doesn't have this step"
+          >
+            Added
+          </span>
+        )}
         <span className="wf-noderun-state">{stateLabel(run.status)}</span>
         {meta && <span className="wf-noderun-meta">{meta}</span>}
       </button>
@@ -1337,7 +1407,7 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
       {open && (
         <div className="wf-noderun-body">
           {/* Zero on a live run and on a step the entry never reached — the server
-              decides both, so the button is offered exactly when it would work. */}
+              decides both, so the buttons are offered exactly when they would work. */}
           {run.rerunFromCount > 0 && (
             <div className="wf-noderun-actions">
               <button
@@ -1365,16 +1435,47 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
                   <Icon name="run" size={13} /> {rerunning ? 'Queueing…' : 'Just this step'}
                 </button>
               )}
+              {/* Adding a step is free — it lands queued and starts nothing — so this
+                  one has no confirm on it; the bill is the re-run button on the new
+                  row. Removing one destroys an answer, so that one does. */}
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setAdding((v) => !v)}
+                aria-expanded={adding}
+                title="Add a step to this run that reads this one's output. It arrives queued — nothing runs until you start it."
+              >
+                <Icon name="plus" size={13} /> {adding ? 'Cancel' : 'Add step after'}
+              </button>
+              {!isEntry && (
+                <button
+                  type="button"
+                  className="btn danger-ghost"
+                  onClick={onRemove}
+                  title="Take this step out of the run. What it produced is deleted; the steps that read it will read what it read."
+                >
+                  <Icon name="delete" size={13} /> Remove step
+                </button>
+              )}
             </div>
           )}
-          <NodeRunPrompt
+          {adding && (
+            <AddStepAfter
+              after={run.nodeName}
+              onCancel={() => setAdding(false)}
+              onAdd={async (step) => { await onAddAfter(step); setAdding(false) }}
+            />
+          )}
+          <NodeRunSettings
             run={run}
+            siblings={siblings}
+            isEntry={isEntry}
             /* Editable exactly where the re-run button is offered — the server enforces
-               the same rule, since changing a prompt that can never be run would only
+               the same rule, since changing a step that can never be run would only
                falsify the record of what this run did. */
             editable={run.rerunFromCount > 0}
             stale={stale}
-            onSave={onEditPrompt}
+            onSave={onEdit}
           />
           {run.input && (
             <details className="wf-details">
@@ -1390,8 +1491,8 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
           )}
           {stale && (run.output || run.error) && (
             <p className="wf-node-warn">
-              The prompt was edited after this ran, so what's below is the previous
-              prompt's answer. Re-run the step to test the change.
+              This step was edited after it ran, so what's below is the previous
+              settings' answer. Re-run the step to test the change.
             </p>
           )}
           {/* Same shape of warning, one step removed: there the prompt moved under the
@@ -1447,45 +1548,159 @@ function NodeRun({ run, where, isEntry, open, staleInput, onToggle, onRerun, onE
 }
 
 /**
- * One step's prompt, as this run holds it — and, on a finished run, editable.
+ * A step being added to a run that has already finished — the debugging move the
+ * editing boxes can't make.
  *
- * The pair "edit the prompt, re-run this step" is the whole point. Before it, trying a
- * different wording meant editing the workflow and running the graph from the top: you
- * paid for every step above the one in question and compared the new answer against a
- * freshly-generated everything-else. Editing the run's own copy changes one variable —
- * the step is handed exactly the input it was handed before — and costs one session.
+ * Kept to name, prompt and effort. Where it goes is not asked, because the button that
+ * opened this form already answered it: the new step reads the step it was opened on.
+ * Offering a free choice of wiring here would be a second graph editor inside a run,
+ * for the one case ("after this") that is almost always meant — and the wiring is
+ * editable on the new row a moment later anyway.
+ */
+function AddStepAfter({ after, onCancel, onAdd }) {
+  const [name, setName] = useState('')
+  const [prompt, setPrompt] = useState('')
+  const [effort, setEffort] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [problem, setProblem] = useState(null)
+  const id = useId()
+
+  async function add() {
+    setSaving(true)
+    setProblem(null)
+    try {
+      await onAdd({ name: name.trim(), prompt, effort: effort || null })
+    } catch (e) {
+      setProblem(cleanError(e))
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="wf-add-step">
+      <span className="section-label">New step, reading “{after}”</span>
+      <input
+        className="wf-node-name"
+        value={name}
+        placeholder="Step name"
+        maxLength={200}
+        disabled={saving}
+        onChange={(e) => setName(e.target.value)}
+        aria-label="Name of the step to add"
+      />
+      <textarea
+        className="composer-desc wf-node-prompt"
+        rows={4}
+        placeholder={`What to do with “${after}”’s answer`}
+        value={prompt}
+        maxLength={20000}
+        disabled={saving}
+        onChange={(e) => setPrompt(e.target.value)}
+        aria-label="Prompt for the step to add"
+      />
+      <EffortPicker id={`add-effort-${id}`} value={effort} onChange={setEffort} />
+      <div className="wf-noderun-actions">
+        <button type="button" className="btn" onClick={add} disabled={!name.trim() || saving}>
+          {saving ? 'Adding…' : 'Add step'}
+        </button>
+        <button type="button" className="btn ghost" onClick={onCancel} disabled={saving}>
+          Cancel
+        </button>
+        <span className="wf-run-hint">
+          It arrives queued and nothing starts — the re-run button on the new step is
+          what spends a session. The workflow is not changed.
+        </span>
+      </div>
+      {problem && <p className="wf-node-warn">{problem}</p>}
+    </div>
+  )
+}
+
+/** What a step's settings are, for comparing a draft against the server's copy. */
+function settingsOf(run) {
+  return {
+    name: run.nodeName,
+    prompt: run.prompt || '',
+    // '' rather than null, so the <select> is a controlled component on the same
+    // value the "Default" option carries — the same swap draftFrom makes.
+    effort: run.effort || '',
+    inputs: run.dependsOn || [],
+  }
+}
+
+/**
+ * Two settings objects are the same when they would save the same. The order inputs
+ * were ticked in is not part of what a step is, so toggling a connection off and on
+ * again must not leave the form claiming there is something to save.
+ */
+function sameSettings(a, b) {
+  return JSON.stringify([a.name, a.prompt, a.effort, [...a.inputs].sort()])
+    === JSON.stringify([b.name, b.prompt, b.effort, [...b.inputs].sort()])
+}
+
+/**
+ * One step exactly as this run holds it — and, on a finished run, all of it editable.
  *
- * The edit stays in the run. A wording that turns out to be better is copied into the
+ * The pair "edit the step, re-run the step" is the whole point. Before it, trying a
+ * different version of a step meant editing the workflow and running the graph from
+ * the top: you paid for every step above the one in question and compared the new
+ * answer against a freshly-generated everything-else. Editing the run's own copy
+ * changes one variable — the step is handed exactly the input it was handed before —
+ * and costs one session.
+ *
+ * All four settings and not only the prompt, because "was this worth ultracode" and
+ * "should it have been reading step two as well" are the questions a disappointing
+ * step actually raises, and neither is a change of wording.
+ *
+ * The edit stays in the run. A version that turns out to be better is copied into the
  * editor by hand, which is the moment it stops being an experiment.
  */
-function NodeRunPrompt({ run, editable, stale, onSave }) {
-  const server = run.prompt || ''
+function NodeRunSettings({ run, siblings, isEntry, editable, stale, onSave }) {
+  const server = useMemo(() => settingsOf(run), [run])
   const [draft, setDraft] = useState(server)
   const [saving, setSaving] = useState(false)
   const [problem, setProblem] = useState(null)
-  // Open on its own when the box is the thing to look at: the prompt has been changed
-  // and the output below it is the old prompt's work.
+  // Open on its own when the boxes are the thing to look at: the step has been
+  // changed and the output below it is the old settings' work.
   const [open, setOpen] = useState(stale)
+  const id = useId()
 
-  // The runs pane polls, so `server` can move underneath the box — a re-run finishing,
-  // or the same run edited in another tab. Adopt the new text only when there is
-  // nothing to lose by it; half-typed keystrokes outrank a poll.
+  // The runs pane polls, so `server` can move underneath the form — a re-run
+  // finishing, or the same run edited in another tab. Adopt the new settings only
+  // when there is nothing to lose by it; half-typed keystrokes outrank a poll.
   const seen = useRef(server)
   useEffect(() => {
-    setDraft((current) => (current === seen.current ? server : current))
+    setDraft((current) => (sameSettings(current, seen.current) ? server : current))
     seen.current = server
   }, [server])
 
-  const dirty = draft !== server
+  // Anything downstream of this step would close a loop, so it isn't offered — the
+  // same rule the editor's chips follow, and the server refuses it either way.
+  const blocked = useMemo(() => descendantsOf(siblings, run.nodeId), [siblings, run.nodeId])
+  const candidates = siblings.filter((n) => n.id !== run.nodeId && !blocked.has(n.id))
+  const dirty = !sameSettings(draft, server)
+
+  function toggleInput(from) {
+    setDraft((d) => ({
+      ...d,
+      inputs: d.inputs.includes(from) ? d.inputs.filter((i) => i !== from) : [...d.inputs, from],
+    }))
+  }
 
   async function save() {
     setSaving(true)
     setProblem(null)
     try {
-      await onSave(draft)
+      await onSave({
+        name: draft.name.trim() || 'Untitled step',
+        prompt: draft.prompt,
+        // Back to null on the way out: the API reads blank as "the default".
+        effort: draft.effort || null,
+        inputs: draft.inputs,
+      })
     } catch (e) {
-      // Keep the draft: it is what the user typed, and the usual cause is that the run
-      // moved (someone started it again), which they can act on without retyping.
+      // Keep the draft: it is what the user typed, and the usual causes — the run
+      // moved, or the wiring would loop — are things they can act on without retyping.
       setProblem(cleanError(e))
     } finally {
       setSaving(false)
@@ -1499,22 +1714,59 @@ function NodeRunPrompt({ run, editable, stale, onSave }) {
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >
       <summary>
-        Prompt{run.promptEditedAt ? ` · edited ${relTime(run.promptEditedAt)}` : ''}
+        Step settings{run.settingsEditedAt ? ` · edited ${relTime(run.settingsEditedAt)}` : ''}
       </summary>
       {editable ? (
         <div className="wf-prompt-edit">
+          <input
+            className="wf-node-name"
+            value={draft.name}
+            placeholder="Step name"
+            maxLength={200}
+            disabled={saving}
+            onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+            aria-label={`Name of ${run.nodeName}`}
+          />
           <textarea
             className="composer-desc wf-node-prompt"
             rows={6}
-            value={draft}
+            value={draft.prompt}
             spellCheck={false}
             disabled={saving}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => setDraft((d) => ({ ...d, prompt: e.target.value }))}
             aria-label={`Prompt for ${run.nodeName}`}
           />
+          <EffortPicker
+            id={`run-effort-${id}`}
+            value={draft.effort}
+            onChange={(effort) => setDraft((d) => ({ ...d, effort }))}
+          />
+          <div className="wf-inputs">
+            <span className="wf-inputs-label">Input from</span>
+            {isEntry ? (
+              // Not a picker at all here. The entry is handed the run's own input, and
+              // the server refuses to wire it to a step — offering chips that can only
+              // be rejected would be a worse way to learn that.
+              <span className="wf-inputs-none">whatever you typed when starting the run</span>
+            ) : candidates.length === 0 ? (
+              <span className="wf-inputs-none">nothing else in this run to read</span>
+            ) : (
+              candidates.map((other) => (
+                <button
+                  key={other.id}
+                  type="button"
+                  className={`wf-chip ${draft.inputs.includes(other.id) ? 'on' : ''}`}
+                  disabled={saving}
+                  onClick={() => toggleInput(other.id)}
+                >
+                  {other.name || 'Untitled step'}
+                </button>
+              ))
+            )}
+          </div>
           <div className="wf-noderun-actions">
             <button type="button" className="btn" onClick={save} disabled={!dirty || saving}>
-              {saving ? 'Saving…' : 'Save prompt'}
+              {saving ? 'Saving…' : 'Save step'}
             </button>
             {dirty && !saving && (
               <button type="button" className="btn ghost" onClick={() => setDraft(server)}>
@@ -1524,15 +1776,15 @@ function NodeRunPrompt({ run, editable, stale, onSave }) {
             <span className="wf-run-hint">
               {dirty
                 ? 'Unsaved — saving changes this run only; the workflow keeps its own copy.'
-                : run.promptEditedAt
+                : run.settingsEditedAt
                   ? 'Saved to this run. Re-run the step above to see the effect.'
-                  : 'This run\u2019s own copy. Edit it, then re-run the step to test the change.'}
+                  : 'This run\u2019s own copy. Change it, then re-run the step to test it.'}
             </span>
           </div>
           {problem && <p className="wf-node-warn">{problem}</p>}
         </div>
       ) : (
-        <pre className="wf-pre">{server || 'This step has no prompt of its own.'}</pre>
+        <pre className="wf-pre">{server.prompt || 'This step has no prompt of its own.'}</pre>
       )}
     </details>
   )
