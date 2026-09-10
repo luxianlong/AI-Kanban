@@ -2,6 +2,7 @@ package com.kanban.workflow;
 
 import com.kanban.workflow.WorkflowDtos.EditNodePromptRequest;
 import com.kanban.workflow.WorkflowDtos.EditNodeRunRequest;
+import com.kanban.workflow.WorkflowDtos.ExecutionCountView;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
 import com.kanban.workflow.WorkflowDtos.FavoriteStepView;
 import com.kanban.workflow.WorkflowDtos.InsertNodeRunRequest;
@@ -64,6 +65,15 @@ public class WorkflowController {
     @GetMapping("/executions")
     public List<ExecutionView> executions(@RequestParam(required = false) String workflowId) {
         return service.listExecutions(workflowId);
+    }
+
+    /**
+     * How many runs that same scope holds — the honest total, not the capped page.
+     * Asked before deleting a workflow, so the confirm can name what goes with it.
+     */
+    @GetMapping("/executions/count")
+    public ExecutionCountView executionCount(@RequestParam(required = false) String workflowId) {
+        return service.countExecutions(workflowId);
     }
 
     @GetMapping("/executions/{executionId}")

@@ -183,3 +183,94 @@ export function pollInterval(anyLive, hidden) {
   if (hidden) return 0
   return anyLive ? LIVE_POLL_MS : IDLE_POLL_MS
 }
+
+/**
+ * What a run's state is called on screen. Lives here rather than in the page because
+ * the delete confirm has to use the same words the card does: a dialog that says
+ * "SUCCEEDED" about a run labelled "Done" is asking about something else, and this
+ * particular dialog is the last thing standing between somebody and work they cannot
+ * get back.
+ */
+export function stateLabel(status) {
+  return {
+    PENDING: 'Queued',
+    RUNNING: 'Running',
+    SUCCEEDED: 'Done',
+    FAILED: 'Failed',
+    SKIPPED: 'Skipped',
+    CANCELLED: 'Cancelled',
+  }[status] || status
+}
+
+/**
+ * How long Delete stays out of reach after a run settles.
+ *
+ * Not a nicety. Until now Cancel and Delete were the same slot in the same row: a
+ * running card offered "Cancel run" there, and the moment the run finished — which
+ * the poll notices within 2.5s — the identical position became "Delete run", with the
+ * same confirm-and-go behaviour and no undo. Pressing Cancel on a run that finished
+ * while your hand was moving deleted it instead, and the confirm ("Delete this run and
+ * everything it produced?") reads perfectly naturally to someone in the act of
+ * cancelling. That is card #333's best explanation for run #199: SUCCEEDED, 1,399
+ * characters of output, $0.1116, gone.
+ *
+ * The buttons are now in different places, which is the real fix. This is the second
+ * half of it, for the click already in flight when the layout moved.
+ */
+export const SETTLE_GRACE_MS = 6000
+
+/** Whether a run is still going, in the one place that decides it. */
+export function isLive(execution) {
+  return execution?.status === 'PENDING' || execution?.status === 'RUNNING'
+}
+
+/**
+ * Whether Delete should be held back, given when this card last saw the run live.
+ *
+ * `settledAt` is null for a run that was already finished when the card was opened —
+ * nobody was reaching for Cancel on that one, so it has nothing to be protected from
+ * and Delete is available immediately.
+ */
+export function deleteHeldBack(settledAt, now) {
+  if (settledAt == null) return false
+  return now - settledAt < SETTLE_GRACE_MS
+}
+
+/**
+ * The confirm shown before a run is destroyed.
+ *
+ * It names the run rather than describing the act, because "Delete this run and
+ * everything it produced?" is true of every run and therefore tells you nothing about
+ * the one under the cursor. The id is what is on the card, the state and the cost are
+ * how you recognise the run you did NOT mean to be deleting — a "Done, $0.11" in a
+ * dialog you opened to tidy up failures is the moment to stop.
+ */
+export function deleteRunPrompt(execution) {
+  if (!execution) return 'Delete this run and everything it produced?'
+  const parts = [stateLabel(execution.status)]
+  const steps = execution.totalNodes
+  if (steps) parts.push(`${steps} step${steps === 1 ? '' : 's'}`)
+  if (execution.costUsd != null) parts.push(`$${execution.costUsd.toFixed(4)}`)
+  const named = execution.workflowName ? ` of "${execution.workflowName}"` : ''
+  return `Delete run #${execution.id}${named} (${parts.join(', ')})?\n\n`
+    + 'Its output cannot be recovered.'
+}
+
+/**
+ * The confirm shown before a workflow — and every run it ever had — is destroyed.
+ *
+ * `total` comes from the server, not from the runs on screen. The panel lists at most
+ * a page of runs, and the browser used to count that page: above the cap a workflow
+ * with a hundred runs counted zero, so the dialog quietly dropped the clause about run
+ * history altogether and then the cascade deleted all hundred. `null` means the count
+ * could not be fetched, which is said out loud rather than rounded down to nothing.
+ */
+export function deleteWorkflowPrompt(name, total) {
+  if (total == null) {
+    return `Delete "${name}"?\n\nIts run history goes too, and this page could not reach `
+      + 'the server to find out how much of it there is. Nothing deleted can be recovered.'
+  }
+  if (!total) return `Delete "${name}"?\n\nIt has no runs.`
+  return `Delete "${name}" and its ${total} run${total === 1 ? '' : 's'}?\n\n`
+    + 'The runs and everything they produced cannot be recovered.'
+}

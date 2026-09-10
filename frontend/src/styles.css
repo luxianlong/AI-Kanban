@@ -1701,6 +1701,18 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .wf-run-body { padding: var(--s-3); border-top: 1px solid var(--hair); }
 .wf-run-actions { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-3); }
 .wf-run-actions .btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px var(--s-3); }
+/* Delete run sits at the far end of the row, away from where Cancel run was while the
+   run was still going. The two used to share a slot, so a run finishing under the
+   cursor turned "stop this" into "destroy this" without moving a pixel — see card #333
+   and the comment in workflowLive.js. Held for a beat after a run settles, too. */
+.wf-run-actions .wf-run-delete { margin-left: auto; }
+.wf-run-actions .wf-run-delete:disabled { opacity: 0.45; cursor: not-allowed; }
+.wf-runs-more {
+  margin: var(--s-2) 0 0;
+  padding: 0 var(--s-3);
+  font-size: var(--f-xs);
+  color: var(--faint);
+}
 
 /* Status word, shared by a run and each of its nodes. */
 .wf-state {
