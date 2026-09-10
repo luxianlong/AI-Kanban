@@ -5,7 +5,7 @@
     "href": "/p/page-ad60ff7a.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-10T08:08:45.285Z",
+    "updatedAt": "2026-09-10T08:10:55.534Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -21,7 +21,7 @@
     "file": "docs/server-worker-split.md",
     "updatedAt": "2026-09-10T07:08:18.210Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "docs/server-worker-split.md",
       "frontend/public/docs/server-worker-split.html"
@@ -39,20 +39,6 @@
     "paths": [
       "docs/token.md",
       "frontend/public/docs/token.html"
-    ]
-  },
-  {
-    "id": "upload-iphone-18-pro",
-    "title": "在你的城市，一台 iPhone 18 Pro 等于多少天工资",
-    "href": "/p/iphone-18-pro.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-10T04:03:32.718Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/iphone-18-pro.html",
-      "frontend/public/p/iphone-18-pro.meta.json"
     ]
   },
   {
