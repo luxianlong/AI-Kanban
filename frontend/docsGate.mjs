@@ -39,11 +39,23 @@ export function isUploadedPagePath(urlPath) {
 //                     lists 代理 tasks, claims one, and reports the outcome.
 //                     The backend only ever exposes tasks explicitly flagged
 //                     `delegated` there, so the private board can't leak through.
+//   /api/agent/...    the worker API. Unlike the two above, this one is NOT safe
+//                     for strangers: it hands out real board tasks and accepts
+//                     their results. It is exempt only because a worker is not a
+//                     browser and has no session cookie to present — it carries a
+//                     bearer token instead, which the backend checks in
+//                     AgentAuthFilter and WITHOUT which it answers 503. So the
+//                     password is not the protection here; the token is. Nothing
+//                     may be added to this branch that the backend does not
+//                     separately authenticate.
 export function isPublicApiPath(urlPath, method) {
   const m = (method || 'GET').toUpperCase()
   if (urlPath === '/api/pages') return m === 'POST' || m === 'GET'
   if (/^\/api\/pages\/[^/]+$/.test(urlPath)) return m === 'GET'
   if (urlPath === '/api/public' || urlPath.startsWith('/api/public/')) {
+    return m === 'GET' || m === 'POST'
+  }
+  if (urlPath === '/api/agent' || urlPath.startsWith('/api/agent/')) {
     return m === 'GET' || m === 'POST'
   }
   return false

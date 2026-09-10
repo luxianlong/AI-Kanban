@@ -3,7 +3,9 @@ package com.kanban.worker;
 import com.kanban.todo.Todo;
 import com.kanban.todo.TodoRepository;
 import com.kanban.todo.TodoStatus;
+import com.kanban.work.SessionOutcome;
 import com.kanban.work.TaskEligibility;
+import com.kanban.work.TaskOutcomeService;
 import com.kanban.work.TaskPromptBuilder;
 import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
 import jakarta.annotation.PostConstruct;
@@ -45,6 +47,7 @@ public class ClaudeWorkerService {
     private final ClaudeSessionRunner runner;
     private final TaskPromptBuilder prompts;
     private final TaskEligibility eligibility;
+    private final TaskOutcomeService outcomes;
     private final ReentrantLock tickLock = new ReentrantLock();
 
     /**
@@ -62,7 +65,7 @@ public class ClaudeWorkerService {
     public ClaudeWorkerService(TodoRepository repository, WorkerProperties props,
                                LiveLogRegistry liveLog, RunningSessionRegistry sessions,
                                ClaudeSessionRunner runner, TaskPromptBuilder prompts,
-                               TaskEligibility eligibility) {
+                               TaskEligibility eligibility, TaskOutcomeService outcomes) {
         this.repository = repository;
         this.props = props;
         this.liveLog = liveLog;
@@ -70,6 +73,7 @@ public class ClaudeWorkerService {
         this.runner = runner;
         this.prompts = prompts;
         this.eligibility = eligibility;
+        this.outcomes = outcomes;
     }
 
     /**
@@ -191,14 +195,6 @@ public class ClaudeWorkerService {
 
         try {
             ProcessResult r = runner.run(LiveLogRegistry.todoKey(todo.getId()), buildPrompt(todo));
-            // Record whatever the session reported about cost/runtime, whether it
-            // resolved or failed, so the card can show what the run consumed.
-            if (r.costUsd() != null) {
-                todo.setCostUsd(r.costUsd());
-            }
-            if (r.durationMs() != null) {
-                todo.setDurationMs(r.durationMs());
-            }
             if (shuttingDown) {
                 // Shutdown killed this session — it neither failed nor timed out, so don't
                 // record a terminal status. Leaving it IN_PROGRESS hands it to
@@ -209,43 +205,14 @@ public class ClaudeWorkerService {
                 log.info("Shutdown interrupted todo #{}; left IN_PROGRESS for requeue.", todo.getId());
                 return;
             }
-            if (sessions.consumeStopRequested(todo.getId())) {
-                // The user asked to stop this session: the process was killed
-                // deliberately, so don't dress it up as a timeout or crash.
-                liveLog.append(todo.getId(), "✗ Stopped by user request.");
-                fail(todo, "Stopped by user request. The running session was terminated "
-                        + "before it finished; requeue the task to run it again.");
-            } else if (r.timedOut()) {
-                liveLog.append(todo.getId(), "✗ Timed out after " + props.getTimeoutSeconds() + "s.");
-                fail(todo, "Timed out after " + props.getTimeoutSeconds() + "s.");
-            } else if (r.exitCode() != 0) {
-                liveLog.append(todo.getId(), "✗ Claude exited with code " + r.exitCode() + ".");
-                fail(todo, "Claude exited with code " + r.exitCode() + ".\n\n" + r.finalOutput());
-            } else if (r.abandonedBackgroundWork()) {
-                // Same failure the workflow runner guards against: the session handed its
-                // work to a dynamic workflow or a background sub-session, the CLI ran out
-                // of patience and killed it, and what the session said before that is a
-                // promise to report back. Sending that to Done would file a stand-in as
-                // the task's answer.
-                liveLog.append(todo.getId(), "✗ Background work was still running and was terminated.");
-                fail(todo, "The session ended while background work it had started was still"
-                        + " running, so the CLI terminated that work after "
-                        + props.getBackgroundWaitSeconds() + "s. What the session replied was"
-                        + " written before then and describes results it never received:\n\n"
-                        + r.finalOutput());
-            } else if (r.finalOutput().contains(FAIL_SENTINEL)) {
-                // The agent signalled semantic failure (e.g. a guarded deploy whose
-                // tests failed) even though the CLI exited cleanly.
-                liveLog.append(todo.getId(), "✗ Task reported failure.");
-                fail(todo, r.finalOutput());
-            } else {
-                String output = r.finalOutput().isBlank() ? "(no output)" : r.finalOutput();
-                todo.setStatus(TodoStatus.RESOLVED);
-                todo.setResult(output);
-                repository.save(todo);
-                liveLog.append(todo.getId(), "✔ Done.");
-                log.info("Resolved todo #{}.", todo.getId());
-            }
+            // What the run means is TaskOutcomeService's call, not this class's: a remote
+            // worker reports the same facts over the agent API and must be read the same way.
+            SessionOutcome outcome = new SessionOutcome(r.exitCode(), r.timedOut(),
+                    r.abandonedBackgroundWork(), sessions.consumeStopRequested(todo.getId()),
+                    r.finalOutput(), r.costUsd(), r.durationMs());
+            TaskOutcomeService.Applied applied = outcomes.apply(todo, outcome,
+                    props.getTimeoutSeconds(), props.getBackgroundWaitSeconds());
+            liveLog.append(todo.getId(), applied.logLine());
         } catch (Exception e) {
             log.error("Worker error on todo #{}", todo.getId(), e);
             liveLog.append(todo.getId(), "✗ Worker error: " + e.getMessage());

@@ -86,6 +86,29 @@ pages:
   max-pages: 200
   max-uploads-per-hour: 30
 
+# --- The agent API remote workers call (/api/agent/**) ---
+# A worker claims a unit of work here, heartbeats to keep it and to stream its live log, and
+# reports the raw facts of what its session produced. The server decides what those facts mean
+# (see TaskOutcomeService) — a worker jar on someone else's laptop is the one part of this
+# system a deploy cannot update, so it is never allowed to hold an opinion about a result.
+#
+# SECURITY: these endpoints are exempt from the site password, exactly as /api/public/ is, and
+# on a public domain the token below is the only thing in front of them. It is deliberately
+# EMPTY here: with no token the whole API answers 503 and hands out nothing, which is the right
+# failure for a missing credential. Supply it from the environment
+# (KANBAN_WORKER_TOKEN in scripts/env.sh), never from a file that gets committed.
+agent:
+  token: ""
+  # How long a claim survives without a heartbeat before LeaseReaper takes the work back.
+  # Comfortably longer than the worker's heartbeat interval: a laptop lid or a flaky
+  # connection should cost a couple of missed beats, not a session that was still running.
+  lease-seconds: 120
+  # A task about improving this project needs the repo checked out, so it is only offered to a
+  # worker declaring repo:<this name>. Everything else runs anywhere.
+  repo-name: Dashboard
+  reap-interval-ms: 15000
+  reap-initial-delay-ms: 20000
+
 # --- Claude Code worker ---
 worker:
   enabled: true

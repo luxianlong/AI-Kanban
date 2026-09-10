@@ -2,6 +2,8 @@ package com.kanban.todo;
 
 import com.kanban.attachment.AttachmentDtos.AttachmentView;
 import com.kanban.attachment.AttachmentService;
+import com.kanban.agent.AgentService;
+import com.kanban.protocol.WorkKind;
 import com.kanban.todo.TodoDtos.CreateTodoRequest;
 import com.kanban.todo.TodoDtos.RerunTodoRequest;
 import com.kanban.todo.TodoDtos.SetStoryRequest;
@@ -43,11 +45,13 @@ public class TodoController {
     private final StoryClassifier classifier;
     private final AiStoryClassifier aiClassifier;
     private final AttachmentService attachments;
+    /** How Stop reaches a session running on another machine — see {@link #stop}. */
+    private final AgentService agent;
 
     public TodoController(TodoRepository repository, StoryRepository storyRepository,
                           LiveLogRegistry liveLog, RunningSessionRegistry sessions,
                           StoryClassifier classifier, AiStoryClassifier aiClassifier,
-                          AttachmentService attachments) {
+                          AttachmentService attachments, AgentService agent) {
         this.repository = repository;
         this.storyRepository = storyRepository;
         this.liveLog = liveLog;
@@ -55,6 +59,7 @@ public class TodoController {
         this.classifier = classifier;
         this.aiClassifier = aiClassifier;
         this.attachments = attachments;
+        this.agent = agent;
     }
 
     @GetMapping
@@ -88,10 +93,16 @@ public class TodoController {
 
     /**
      * Stop the running Claude session for an in-progress task, on user request.
-     * Forcibly terminates the live process; the worker then records the task as
-     * FAILED ("Stopped by user request") and it lands in Needs Attention, from
-     * where it can be requeued. Only valid while the task is IN_PROGRESS with a
-     * live session — otherwise there is nothing to stop (409).
+     *
+     * <p>Two ways a task can be running, and stopping works differently for each. A session in
+     * THIS process is killed outright, and the worker records the task as FAILED ("Stopped by
+     * user request"). A session on a REMOTE worker cannot be reached at all — it may be on a
+     * laptop behind NAT — so the request is written onto its lease and the worker picks it up
+     * on its next heartbeat, which makes stopping as prompt as the heartbeat interval and no
+     * more. Either way the task lands in Needs Attention, from where it can be requeued.
+     *
+     * <p>Only valid while the task is IN_PROGRESS with something actually running — otherwise
+     * there is nothing to stop (409).
      */
     @PostMapping("/{id}/stop")
     public TodoResponse stop(@PathVariable Long id) {
@@ -100,15 +111,19 @@ public class TodoController {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Task #" + id + " is not running (status " + todo.getStatus() + ").");
         }
-        if (!sessions.stop(id)) {
-            // IN_PROGRESS but no live process: the session died with a previous
-            // backend, so there is nothing here to kill.
+        if (sessions.stop(id)) {
+            liveLog.append(id, "● Stop requested by user — terminating the session…");
+        } else if (agent.requestStop(WorkKind.TASK, id)) {
+            liveLog.append(id, "● Stop requested by user — asking the worker to terminate "
+                    + "the session on its next check-in…");
+        } else {
+            // IN_PROGRESS but nothing is running it: the session died with a previous
+            // backend, or the worker holding it has already lost its lease.
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "No live session found for task #" + id + " to stop.");
         }
-        liveLog.append(id, "● Stop requested by user — terminating the session…");
-        // The worker flips the task to FAILED once the killed process is reaped;
-        // return the current (still IN_PROGRESS) row and let the UI poll it through.
+        // The task flips to FAILED once the killed session is reported; return the current
+        // (still IN_PROGRESS) row and let the UI poll it through.
         return withAttachments(todo);
     }
 

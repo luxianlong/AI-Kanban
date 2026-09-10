@@ -97,6 +97,12 @@ export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"
 # so a task picked up mid-change can deploy or restart a half-migrated tree.
 export WORKER_ENABLED="${WORKER_ENABLED:-1}"
 
+# Shared secret remote workers authenticate with. Empty by default, which leaves the agent API
+# switched OFF (it answers 503) — the right failure for a missing credential on endpoints that
+# are exempt from the site password. Put a real value in scripts/local.env, which is gitignored:
+#   KANBAN_WORKER_TOKEN=$(openssl rand -base64 32)
+export KANBAN_WORKER_TOKEN="${KANBAN_WORKER_TOKEN:-}"
+
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"
 export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/kanban-frontend.log}"
 export JAR="$REPO/server/target/kanban-server-0.1.0.jar"
@@ -109,6 +115,7 @@ backend_launch_args() {
     --worker.working-directory="$WORKER_WORK_DIR"
     --worker.timeout-seconds="$WORKER_TIMEOUT"
     --worker.poll-interval-ms="$WORKER_POLL_MS"
+    --agent.token="$KANBAN_WORKER_TOKEN"
   )
   if [ "$WORKER_ENABLED" != "1" ]; then
     args+=(--worker.enabled=false)
