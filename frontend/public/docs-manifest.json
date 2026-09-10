@@ -7,7 +7,7 @@
     "file": "docs/token.md",
     "updatedAt": "2026-09-10T07:02:52.559Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "docs/token.md",
       "frontend/public/docs/token.html"
