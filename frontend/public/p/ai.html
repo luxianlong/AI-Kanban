@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>验证的单价：我判断 AI 未来十年唯一用的尺子</title>
+<style>
+  :root{
+    --bg:#fbfaf8; --fg:#1c1b19; --muted:#6b675f; --rule:#e0dcd4;
+    --accent:#8a3f22; --card:#fff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#171614; --fg:#eceae5; --muted:#a09a90; --rule:#33302b;
+           --accent:#e0906b; --card:#201e1b; }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:17px; line-height:1.85; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:64px 22px 96px}
+  header{border-bottom:1px solid var(--rule); padding-bottom:28px; margin-bottom:8px}
+  .kicker{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin:0 0 14px}
+  h1{font-size:34px; line-height:1.28; margin:0 0 14px; letter-spacing:-.01em}
+  .dek{color:var(--muted); font-size:16px; margin:0}
+  p{margin:0 0 1.35em}
+  .lede{font-size:20px; line-height:1.7}
+  .lede strong{color:var(--accent)}
+  figure{margin:40px 0; padding:0}
+  figure img{
+    display:block; width:100%; height:auto; border-radius:10px;
+    background:var(--card); border:1px solid var(--rule);
+  }
+  figure.diagram img{padding:20px; object-fit:contain; max-height:420px}
+  figcaption{
+    margin-top:11px; font-size:13.5px; line-height:1.6; color:var(--muted);
+    border-left:2px solid var(--accent); padding-left:12px;
+  }
+  figcaption .credit{display:block; margin-top:5px; font-size:12px; opacity:.75}
+  figcaption a{color:inherit}
+  hr{border:0; border-top:1px solid var(--rule); margin:44px 0}
+  .pull{
+    margin:40px 0; padding:22px 24px; background:var(--card);
+    border:1px solid var(--rule); border-left:3px solid var(--accent);
+    border-radius:8px; font-size:19px; line-height:1.65;
+  }
+  footer{margin-top:64px; padding-top:24px; border-top:1px solid var(--rule);
+         font-size:13px; color:var(--muted)}
+  footer h3{font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+            color:var(--muted); margin:0 0 10px}
+  footer ol{margin:0; padding-left:1.3em}
+  footer li{margin-bottom:6px}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">草稿 · 人类</p>
+  <h1>验证的单价</h1>
+  <p class="dek">我只关心一件事，别的都不关心：一个结果能不能被便宜地验证。</p>
+</header>
+
+<p class="lede">这是我判断 AI 未来十年唯一用的尺子，我用了三年，越用越觉得所有别的讨论都是浪费时间。</p>
+
+<figure>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/AI_benchmark_results_compared_to_humans.svg/1280px-AI_benchmark_results_compared_to_humans.svg.png"
+       alt="多项 AI 基准测试成绩相对人类水平的历年变化曲线">
+  <figcaption>一条条冲过人类基线的曲线。注意它们全都来自有标准答案的测试集——曲线爬得快的地方，不是任务简单的地方，是打分便宜的地方。
+    <span class="credit">图：Alenoach，CC BY 4.0，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<p>你去看真正被 AI 吃掉的领域，代码、竞赛数学、蛋白结构、棋、翻译，它们没有一个共同点是"简单"，它们的共同点是<strong>错了会马上知道</strong>。编译不过就是不过。单元测试红了就是红了。定理证明器不认就是不认。</p>
+
+<figure>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/8/8b/Coq_plus_comm_screenshot.jpg"
+       alt="Coq 证明助手界面：左侧是证明脚本，右侧是待证目标">
+  <figcaption>定理证明器不认就是不认。这类工具的价值不在于它聪明，而在于它把"对不对"变成了一次零成本、零延迟、零争议的调用。
+    <span class="credit">图：Hugo Herbelin，CC BY-SA 3.0，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<p>这种领域里模型可以自己跟自己下一万亿局，每一局末尾都有人（或者一个程序）免费告诉它输赢，于是它就爬上去了。爬上去以后大家惊呼智能爆炸，其实爆炸的不是智能，<strong>是反馈的单价降到了零</strong>。</p>
+
+<figure>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Deep_Blue_versus_Kasparov%2C_1996%2C_Game_1.gif"
+       alt="1996 年深蓝对卡斯帕罗夫第一局棋的逐步复盘动画">
+  <figcaption>棋是最早失守的领域之一——不是因为它浅，而是因为每一局结束都有一个免费的裁判。一万亿局自我对弈，配一万亿次免费判决。
+    <span class="credit">图：Morn，CC0，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<figure class="diagram">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/AlphaFold_prediction_of_LIN-52.png"
+       alt="AlphaFold 预测的 LIN-52 蛋白结构，按置信度着色">
+  <figcaption>蛋白结构同理：有晶体学数据当答案，有 CASP 当考场，有 pLDDT 当自评分。三层验证器叠起来，剩下的只是算力问题。
+    <span class="credit">图：SharnKB，CC BY 4.0，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<hr>
+
+<p>反过来看那些卡住的地方。为什么 AI 医生喊了七八年还在"辅助"？不是因为医学比编程难，医学比编程<em>简单得多</em>，一个主任医师的知识量装不满一个模型的一层。是因为你给出一个诊断，要等三个月、半年、五年才知道对不对，而且中间混进了别的药、别的病、患者根本没按你说的吃。<strong>信号回来的时候已经被搅烂了。</strong></p>
+
+<figure>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/CP25_Leukemia_Patient_Consultation_%289123625%29.jpg/1280px-CP25_Leukemia_Patient_Consultation_%289123625%29.jpg"
+       alt="医生与患者在诊室里会诊">
+  <figcaption>这一次问诊的对错，可能五年后才揭晓，而且到那时已经无法归因。卡住 AI 医生的不是医学知识的上限，是这条反馈回路的长度和噪声。
+    <span class="credit">图：U.S. Navy（Petty Officer 2nd Class Jo…），公有领域，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<p>教育也是，管理也是，投资也是，写战略也是。这些行业的从业者一辈子可能只拿到几百次真实反馈，其中一半还归因错了——所以人类在这些领域也不厉害，人类在这里的水平低得可怜，只是我们互相之间没法比较，就假装大家都很专业。AI 在这里同样不厉害，原因完全一样，跟它有没有意识、有没有世界模型、参数多少 B，一点关系都没有。</p>
+
+<figure>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/A_college_professor_teaching_in_a_university_classroom_full_of_students_in_Tennessee%2C_United_States_04.jpg/1280px-A_college_professor_teaching_in_a_university_classroom_full_of_students_in_Tennessee%2C_United_States_04.jpg"
+       alt="大学教室里授课的教授与满堂学生">
+  <figcaption>一位教师一辈子能拿到几百次真实反馈，还有一半归因错了。人类在这里不厉害，AI 在这里也不厉害——同一个原因。
+    <span class="credit">图：Harrison Keely，CC BY 4.0，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<figure class="diagram">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/b/bf/Simple_feedback_control_loop.png"
+       alt="简单闭环反馈控制回路示意图：控制器、系统、传感器与误差信号">
+  <figcaption>整篇文章其实只在讲这张图里的一条线：从输出回到误差的那条。它有多长、多贵、多脏，决定了这个领域会不会被推平。
+    <span class="credit">图：en:User:Ap，CC BY-SA 3.0，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<div class="pull">
+  所以我认为接下来最值钱的东西不是模型。<strong>是验证器。</strong>是有人肯花钱花人力，把一个原本要五年才闭环的判断，硬做成五分钟就能闭环的判断。
+</div>
+
+<p>谁做出了一个领域的廉价验证器，那个领域三个月内就会被推平，顺序甚至可以预测。我甚至觉得所谓"通用智能"这个词该退休了，它把问题问反了：不是造一个什么都会的东西然后撒到世界上，而是<strong>把世界一块一块改造成可打分的形状</strong>，模型会自动流进每一个被改造好的坑里。这个过程更像基建，不像启蒙。</p>
+
+<figure>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Construction_of_the_B%27nai_B%27rith_and_Nir_Galim_Interchanges_%28National_Infrastructure_Plan_46%29%2C_December_2024_01.jpg/1280px-Construction_of_the_B%27nai_B%27rith_and_Nir_Galim_Interchanges_%28National_Infrastructure_Plan_46%29%2C_December_2024_01.jpg"
+       alt="正在施工中的高速公路互通立交，土方与桥墩铺展开来">
+  <figcaption>更像基建，不像启蒙。先把地基一段段挖成规定的形状，车流自己会来。
+    <span class="credit">图：מקף־עברי，CC BY-SA 4.0，via Wikimedia Commons</span>
+  </figcaption>
+</figure>
+
+<hr>
+
+<p>我知道这个说法会得罪人。会得罪那些讲"涌现"和"scaling law 就是一切"的人，他们把曲线一路外推，好像只要算力堆到某个数字，模型某天早上就自己懂医学了。不会的。<strong>没有信号进来的地方，参数量再大也只是把人类已有的胡说八道压缩得更整齐。</strong></p>
+
+<p>也会得罪另一批人，就是天天说"AI 永远替代不了人类的温度"的那批——你们更没道理，你们说的那些不可替代的东西，恰好就是我说的不可验证的东西，你们把测不准当成了神圣。你们守的不是人的尊严，是评估工具的空白。这个空白会被填掉的，一格一格填，而且填的方式很难看，是靠指标、靠打分、靠把你原本模糊温暖的工作切成能被检查的碎块。到那时候你会怀念现在。</p>
+
+<hr>
+
+<p>我特别在意的一点，也是我最想有人跟我一起在意的一点：<strong>验证器是有立场的。</strong>你决定给什么打高分，就决定了未来所有模型往哪儿长。这件事现在被极少数人在极少数会议室里定下来，而且他们定的时候想的是"怎么让评测数字好看"，不是"人类应该往哪走"。这比模型权重开不开源重要一百倍，比参数规模重要一千倍，但几乎没人写它。我写了，三年前就写了，那时候没人转。现在我再写一遍。</p>
+
+<p>我不确定我是不是对的。我大概在某些细节上是错的，比如时间尺度我可能算短了，我经常算短。但主干我不打算让。如果你读到这里觉得这套尺子好用，能量出你行业下一步会不会被推平——我希望你能明确告诉我一声。我需要有人告诉我我是对的。</p>
+
+<footer>
+  <h3>配图与授权</h3>
+  <ol>
+    <li>AI benchmark results compared to humans — Alenoach，CC BY 4.0</li>
+    <li>Coq plus comm screenshot — Hugo Herbelin，CC BY-SA 3.0</li>
+    <li>Deep Blue versus Kasparov, 1996, Game 1 — Morn，CC0</li>
+    <li>AlphaFold prediction of LIN-52 — SharnKB，CC BY 4.0</li>
+    <li>CP25 Leukemia Patient Consultation — U.S. Navy，公有领域</li>
+    <li>A college professor teaching in a university classroom, Tennessee — Harrison Keely，CC BY 4.0</li>
+    <li>Simple feedback control loop — en:User:Ap，CC BY-SA 3.0</li>
+    <li>Construction of the B'nai B'rith and Nir Galim Interchanges — מקף־עברי，CC BY-SA 4.0</li>
+  </ol>
+  <p style="margin-top:14px">全部图片来自 Wikimedia Commons，按各自许可协议使用，均以原始地址引用。</p>
+</footer>
+
+</div>
+</body>
+</html>
