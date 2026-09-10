@@ -204,6 +204,38 @@ export const api = {
       body: JSON.stringify({ prompt }),
     }).then(json),
 
+  // Rewrite ALL of one step's settings inside one finished run — name, prompt, effort
+  // and which of the run's steps feed it. The wider form of the call above, and what
+  // makes a run debuggable rather than only re-wordable: "was this worth ultracode"
+  // and "should it have read step two as well" are not changes of wording. The whole
+  // settings object goes every time, the same wholesale-replace the graph editor does.
+  // Returns the whole run — rewiring renumbers the steps around it. 409 while the run
+  // is live or on a step the entry never reached; 400 for wiring that would loop,
+  // dangle, or cut the step off from where the run started.
+  editNodeRun: (nodeRunId, settings) =>
+    fetch(`${BASE}/workflows/node-runs/${nodeRunId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    }).then(json),
+
+  // Add a step to a finished run that the workflow never had — the debugging move the
+  // two calls above can't make, when the answer to "why did it come out like that" is
+  // a step that is MISSING. It lands queued and starts nothing; the step's own re-run
+  // button is what spends a session. `inputs` must name at least one step in the run.
+  insertNodeRun: (executionId, step) =>
+    fetch(`${BASE}/workflows/executions/${executionId}/node-runs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(step),
+    }).then(json),
+
+  // Take a step out of a run, splicing the chain shut behind it: whatever read the
+  // removed step now reads what it read. Its output goes with it, so ask first.
+  // Returns the run rather than nothing, since the steps around it are rewired.
+  deleteNodeRun: (nodeRunId) =>
+    fetch(`${BASE}/workflows/node-runs/${nodeRunId}`, { method: 'DELETE' }).then(json),
+
   deleteExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}`, { method: 'DELETE' }).then(json),
 
