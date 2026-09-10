@@ -1,19 +1,5 @@
 [
   {
-    "id": "probe",
-    "title": "probe",
-    "href": "/docs/probe.html",
-    "deletable": true,
-    "file": "docs/probe.md",
-    "updatedAt": "2026-09-10T03:34:28.049Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/probe.md",
-      "frontend/public/docs/probe.html"
-    ]
-  },
-  {
     "id": "workflow-effort-ultracode",
     "title": "Ultracode and the workflow Effort picker",
     "href": "/docs/workflow-effort-ultracode.html",
