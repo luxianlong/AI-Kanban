@@ -9,6 +9,12 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export REPO="${REPO:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
+# Optional local overrides, gitignored. Somewhere to park a setting for the duration of
+# a working session without editing a tracked file — and, unlike an inline environment
+# variable, it survives the restarts that deploy.sh schedules on its own. Delete the
+# file to go back to the defaults below.
+[ -f "$REPO/scripts/local.env" ] && source "$REPO/scripts/local.env"
+
 # Toolchain. Prefer an explicit full JDK 21 (needs javac; a headless JRE won't build).
 # Probe the usual locations instead of trusting one hardcoded path: pointing
 # JAVA_HOME at a directory that doesn't exist silently falls through to whatever
@@ -85,6 +91,11 @@ export WORKER_WORK_DIR="${WORKER_WORK_DIR:-$REPO}"
 export WORKER_TIMEOUT="${WORKER_TIMEOUT:-3600}"
 export WORKER_POLL_MS="${WORKER_POLL_MS:-5000}"
 export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"
+# Master switch for picking up work at all — both the board's task worker and the
+# workflow runner. Set to 0 (usually via scripts/local.env) while the repo itself is
+# being refactored: the worker runs sessions IN this repo with --dangerously-skip-permissions,
+# so a task picked up mid-change can deploy or restart a half-migrated tree.
+export WORKER_ENABLED="${WORKER_ENABLED:-1}"
 
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"
 export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/kanban-frontend.log}"
@@ -99,6 +110,9 @@ backend_launch_args() {
     --worker.timeout-seconds="$WORKER_TIMEOUT"
     --worker.poll-interval-ms="$WORKER_POLL_MS"
   )
+  if [ "$WORKER_ENABLED" != "1" ]; then
+    args+=(--worker.enabled=false)
+  fi
   if [ "$WORKER_SKIP_PERMS" = "1" ]; then
     args+=(--worker.extra-args=--output-format,stream-json,--verbose,--dangerously-skip-permissions)
   fi

@@ -28,3 +28,6 @@ frontend/dist/
 
 # Rotated pre-restart database backups (runtime state, never committed)
 backups/
+
+# Local script overrides (per-machine, per-session state)
+scripts/local.env

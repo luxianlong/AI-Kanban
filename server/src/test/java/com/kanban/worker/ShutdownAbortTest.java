@@ -1,6 +1,5 @@
 package com.kanban.worker;
 
-import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.TodoRepository;
 import com.kanban.todo.TodoStatus;
 import org.junit.jupiter.api.Test;
@@ -72,7 +71,7 @@ class ShutdownAbortTest {
         RunningSessionRegistry sessions = new RunningSessionRegistry();
         ClaudeWorkerService service = new ClaudeWorkerService(
                 repository, props, mock(LiveLogRegistry.class), sessions,
-                mock(ClaudeSessionRunner.class), mock(AttachmentService.class));
+                mock(ClaudeSessionRunner.class), null, null);
 
         service.shutdown();
         service.poll();

@@ -1,14 +1,10 @@
 package com.kanban.worker;
 
-import com.kanban.attachment.Attachment;
-import com.kanban.attachment.AttachmentService;
 import com.kanban.todo.Todo;
 import com.kanban.todo.TodoRepository;
 import com.kanban.todo.TodoStatus;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,17 +14,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for the prompt the worker hands to the Claude CLI. A plain
- * (non-story) task never touches the repository/props/liveLog collaborators in
- * {@link ClaudeWorkerService#buildPrompt}, so we can construct the service with
- * nulls (plus a stubbed attachment store) and assert on the generated prompt
- * directly.
+ * What the worker does with tasks a restart left behind.
+ *
+ * <p>The prompt and eligibility tests that used to live here moved to
+ * {@code com.kanban.work} with the code they cover — the server builds prompts for every
+ * worker now, not just this one. What is left is the recovery policy, which is still this
+ * class's own: a session that died with the JVM gets one retry, and past the cap it goes to
+ * Needs Attention rather than being run again over work it may already have done.
+ *
+ * <p>The collaborators a recovery pass never touches are passed as nulls.
  */
 class ClaudeWorkerServiceTest {
-
-    private final AttachmentService attachments = mock(AttachmentService.class);
-    private final ClaudeWorkerService service =
-            new ClaudeWorkerService(null, null, null, null, null, attachments);
 
     private Todo task(String title, boolean projectImprovement) {
         Todo t = new Todo();
@@ -36,53 +32,6 @@ class ClaudeWorkerServiceTest {
         t.setDescription("do the thing");
         t.setProjectImprovement(projectImprovement);
         return t;
-    }
-
-    @Test
-    void generalTaskIsToldNotToRestartOrDeploy() {
-        String prompt = service.buildPrompt(task("Research gold prices", false));
-
-        assertThat(prompt).contains("GENERAL task");
-        assertThat(prompt).contains("do NOT run scripts/deploy.sh");
-        assertThat(prompt).contains("do NOT ");
-        assertThat(prompt).contains("restart the website");
-        // A general task must not be pointed at the code-change / deploy flow.
-        assertThat(prompt).doesNotContain("how to make changes");
-    }
-
-    @Test
-    void generalTaskMayChangeResourcesButNotKanbanCode() {
-        String prompt = service.buildPrompt(task("Write a travel guide page", false));
-
-        // It is explicitly allowed to produce/change its resource/output files...
-        assertThat(prompt).contains("RESOURCE");
-        assertThat(prompt).contains("You MAY create or change");
-        // ...but not the Kanban application's own code.
-        assertThat(prompt).contains("OWN CODE");
-    }
-
-    @Test
-    void projectImprovementTaskKeepsTheDeployGuidance() {
-        String prompt = service.buildPrompt(task("Fix the board layout", true));
-
-        assertThat(prompt).contains("CLAUDE.md");
-        assertThat(prompt).contains("how to make changes");
-        // The improvement task must NOT carry the general-task restriction.
-        assertThat(prompt).doesNotContain("do NOT run scripts/deploy.sh");
-    }
-
-    // --- delegated (代理) tasks: handed out, never run here (task #471) ---
-
-    @Test
-    void aDelegatedTaskIsNeverPickedUpByTheWorker() {
-        Todo ours = task("Fix the board layout", true);
-        Todo handedOut = task("Book the venue", false);
-        handedOut.setDelegated(true);
-
-        // The whole point: this server leaves it in the queue for an outside
-        // worker to take through the public API, however long that takes.
-        assertThat(service.isEligible(handedOut)).isFalse();
-        assertThat(service.isEligible(ours)).isTrue();
     }
 
     @Test
@@ -102,7 +51,7 @@ class ClaudeWorkerServiceTest {
         when(repository.findByClassifyingTrue()).thenReturn(List.of());
         when(props.getMaxAttempts()).thenReturn(3);
 
-        new ClaudeWorkerService(repository, props, null, null, null, attachments).requeueOrphans();
+        new ClaudeWorkerService(repository, props, null, null, null, null, null).requeueOrphans();
 
         // Our own killed session is re-queued...
         assertThat(ourOwnSession.getStatus()).isEqualTo(TodoStatus.PENDING);
@@ -113,43 +62,6 @@ class ClaudeWorkerServiceTest {
         assertThat(claimed.getStatus()).isEqualTo(TodoStatus.IN_PROGRESS);
         assertThat(claimed.getDelegatedTo()).isEqualTo("outside-bot");
         verify(repository, never()).save(claimed);
-    }
-
-    // --- attached images (the agent must be told where the real files are) ---
-
-    private Attachment image(String id, String fileName) {
-        Attachment a = new Attachment();
-        a.setId(id);
-        a.setFileName(fileName);
-        a.setContentType("image/png");
-        a.setStoredName(id + ".png");
-        return a;
-    }
-
-    @Test
-    void attachedImagesArePassedToTheAgentAsReadablePaths() {
-        Todo t = task("Rebuild this screen", false);
-        ReflectionTestUtils.setField(t, "id", 42L);
-        Attachment a = image("abc", "screenshot.png");
-        when(attachments.listFor(42L)).thenReturn(List.of(a));
-        when(attachments.pathOf(a)).thenReturn(Path.of("/srv/data/attachments/abc.png"));
-
-        String prompt = service.buildPrompt(t);
-
-        assertThat(prompt).contains("ATTACHED IMAGES (1)");
-        // The absolute server-side path is the whole point: the session opens it.
-        assertThat(prompt).contains("/srv/data/attachments/abc.png");
-        assertThat(prompt).contains("screenshot.png");
-        assertThat(prompt).contains("Read tool");
-    }
-
-    @Test
-    void taskWithoutImagesGetsNoAttachmentSection() {
-        Todo t = task("Write a haiku", false);
-        ReflectionTestUtils.setField(t, "id", 7L);
-        when(attachments.listFor(7L)).thenReturn(List.of());
-
-        assertThat(service.buildPrompt(t)).doesNotContain("ATTACHED IMAGES");
     }
 
     // --- orphan re-queue cap (why an already-run task must not be re-executed forever) ---
@@ -169,7 +81,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null, null, null).requeueOrphans();
 
         // One automatic recovery retry is still allowed after a genuine crash.
         assertThat(t.getStatus()).isEqualTo(TodoStatus.PENDING);
@@ -183,7 +95,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
         assertThat(t.getResult()).contains("Interrupted by a backend restart");
@@ -199,7 +111,7 @@ class ClaudeWorkerServiceTest {
         when(repo.findByStatusOrderByCreatedAtAsc(TodoStatus.IN_PROGRESS)).thenReturn(List.of(t));
         when(repo.findByClassifyingTrue()).thenReturn(List.of());
 
-        new ClaudeWorkerService(repo, props, null, null, null, null).requeueOrphans();
+        new ClaudeWorkerService(repo, props, null, null, null, null, null).requeueOrphans();
 
         assertThat(t.getStatus()).isEqualTo(TodoStatus.FAILED);
     }
