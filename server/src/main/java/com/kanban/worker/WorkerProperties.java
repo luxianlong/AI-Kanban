@@ -115,6 +115,14 @@ public class WorkerProperties {
     /** Hard timeout for one background classification call, in seconds. */
     private long classifyTimeoutSeconds = 45;
 
+    /**
+     * Master switch for handing work out at all.
+     *
+     * <p>Read by {@code AgentService.claim} rather than by a poller: the server no longer runs
+     * sessions, so this is the only point where "run nothing" can still be enforced. It also
+     * still gates the story classifier, which is one of the few things the server does shell
+     * out for.
+     */
     public boolean isEnabled() {
         return enabled;
     }

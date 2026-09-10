@@ -127,18 +127,16 @@ export JAR="$REPO/server/target/kanban-server-0.1.0.jar"
 backend_launch_args() {
   local args=(
     -jar "$JAR"
+    # Still the server's: the story classifier shells out, the docs/pages services read the
+    # working directory, and the timeout is the ceiling it hands to workers. What is NOT here
+    # any more is --worker.extra-args: the server launches no sessions, so the flags for one
+    # belong to the worker (see worker_launch_args).
+    --worker.enabled="$( [ "$WORKER_ENABLED" = "1" ] && echo true || echo false )"
     --worker.claude-command="$CLAUDE_CMD"
     --worker.working-directory="$WORKER_WORK_DIR"
     --worker.timeout-seconds="$WORKER_TIMEOUT"
-    --worker.poll-interval-ms="$WORKER_POLL_MS"
     --agent.token="$KANBAN_WORKER_TOKEN"
   )
-  if [ "$WORKER_ENABLED" != "1" ]; then
-    args+=(--worker.enabled=false)
-  fi
-  if [ "$WORKER_SKIP_PERMS" = "1" ]; then
-    args+=(--worker.extra-args=--output-format,stream-json,--verbose,--dangerously-skip-permissions)
-  fi
   printf '%s\n' "${args[@]}"
 }
 

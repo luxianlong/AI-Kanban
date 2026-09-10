@@ -125,6 +125,13 @@ public class AgentService {
      */
     public Optional<WorkUnit> claim(ClaimRequest request) {
         requireCurrentProtocol(request);
+        if (!workerProps.isEnabled()) {
+            // The board's master switch. It used to stop the in-process poller; with execution
+            // outside, the only place it can still mean "run nothing" is here, at the point work
+            // is handed out — otherwise a worker on another machine would keep draining a board
+            // its owner had deliberately paused.
+            return Optional.empty();
+        }
         String worker = workerName(request);
         Set<String> capabilities = Set.copyOf(
                 request.capabilities() == null ? List.of() : request.capabilities());

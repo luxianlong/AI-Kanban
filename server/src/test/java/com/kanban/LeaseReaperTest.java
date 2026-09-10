@@ -37,7 +37,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @TestPropertySource(properties = {
-        "worker.enabled=false",
+        // Work must actually be handed out here — worker.enabled is the board's master
+        // switch for that now, not just a brake on a poller that no longer exists.
+        "worker.enabled=true",
+        // ...but nothing may shell out to the CLI: the story classifier is the one thing the
+        // server still launches itself, and it rides on the same switch.
+        "worker.classify-with-claude=false",
         "agent.token=test-worker-token",
         // Long enough that only the deliberate expiry below ever fires.
         "agent.lease-seconds=600",
