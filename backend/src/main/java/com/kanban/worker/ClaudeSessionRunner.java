@@ -140,9 +140,10 @@ public class ClaudeSessionRunner {
         // much shorter than the timeout enforced below and silent when it fires — see
         // WorkerProperties#getBackgroundWaitSeconds. Waiting is the whole point: work
         // that lands inside the ceiling gets the session another turn, and that turn is
-        // what the caller reads back.
+        // what the caller reads back. Unless it was configured outright the getter
+        // derives it from that same timeout, so the two can't drift apart.
         pb.environment().put("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS",
-                Long.toString(Math.max(0, props.getBackgroundWaitSeconds()) * 1000L));
+                Long.toString(props.getBackgroundWaitSeconds() * 1000L));
         Process process = pb.start();
         process.getOutputStream().close();
         // Expose the live process so a user can stop this session on demand; always
