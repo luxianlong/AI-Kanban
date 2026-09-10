@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The wire contract between the server and a worker.
+
+  Deliberately dependency-free beyond Jackson's annotations: a worker box should be able
+  to depend on this without pulling in Spring Web, JPA or the H2 driver. Nothing here may
+  reference an entity — the whole point is that a work unit describes a job, not a row.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.kanban</groupId>
+        <artifactId>kanban-parent</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
+    <artifactId>kanban-protocol</artifactId>
+    <name>kanban-protocol</name>
+    <description>Shared wire types for the server/worker agent protocol</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+    </dependencies>
+</project>

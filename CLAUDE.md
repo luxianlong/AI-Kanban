@@ -8,6 +8,11 @@ app redeploy itself. Follow it exactly.
 The app is a kanban board backed by a Spring Boot API. Tasks flow
 `PENDING → IN_PROGRESS → RESOLVED / FAILED`. The API is at `http://localhost:8080`.
 
+It is a Maven aggregator of three modules: `server/` (board API, H2 database, frontend
+host), `worker/` (claims work over the server's agent API and runs the Claude session)
+and `protocol/` (the wire types they share). Build from the repo root — `scripts/build.sh`
+runs the whole aggregator, so a change that breaks the worker fails the deploy gate.
+
 **Exposing the UI publicly** (tunnel + password gate): see
 [docs/public-tunnel.md](docs/public-tunnel.md) — how to put this app on a public URL
 via `cloudflared` (quick tunnel or stable named tunnel), gated by the Basic-Auth
@@ -52,7 +57,7 @@ If the task asks you to implement/fix/add something concrete:
    bash scripts/deploy.sh
    ```
 
-   `deploy.sh` builds the backend (running tests) and frontend. **If tests/build fail it
+   `deploy.sh` builds the Java modules (running tests) and frontend. **If tests/build fail it
    ABORTS** — nothing is merged, nothing restarts.
 
 6. Read the deploy output:

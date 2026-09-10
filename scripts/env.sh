@@ -28,7 +28,7 @@ if [ -z "${MVN:-}" ]; then
   if [ -x "$HOME/.local/apache-maven-3.9.9/bin/mvn" ]; then
     MVN="$HOME/.local/apache-maven-3.9.9/bin/mvn"
   else
-    MVN="$REPO/backend/mvnw"
+    MVN="$REPO/mvnw"
   fi
 fi
 export MVN
@@ -53,7 +53,7 @@ fi
 
 # Live H2 database directory. MUST be absolute: the JDBC url in application.yml
 # reads this, and a relative path would resolve against each launcher's cwd
-# (repo root for `java -jar`, backend/ for `mvnw spring-boot:run`) — which
+# (repo root for `java -jar`, server/ for `mvnw spring-boot:run`) — which
 # silently opened two different DB files and made the board "revert" after a
 # restart. Pinning it here keeps every launch on the one real database.
 export KANBAN_DATA_DIR="${KANBAN_DATA_DIR:-$REPO/data}"
@@ -88,7 +88,7 @@ export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"
 
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"
 export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/kanban-frontend.log}"
-export JAR="$REPO/backend/target/kanban-backend-0.1.0.jar"
+export JAR="$REPO/server/target/kanban-server-0.1.0.jar"
 
 # Build the java launch args array shared by start/restart.
 backend_launch_args() {
@@ -111,7 +111,11 @@ backend_launch_args() {
 # file is its own way to corrupt it.
 backend_pid() {
   local pid
-  pid="$(pgrep -f "kanban-backend-.*\.jar" 2>/dev/null | head -1)"
+  # Both names on purpose: the module was renamed backend -> server, and a restart
+  # that straddles the change still has to find the jar it is replacing. Dropping the
+  # old name here would leave the running JVM alive while a second one opened the same
+  # H2 file, which is how the database gets corrupted.
+  pid="$(pgrep -f "kanban-(backend|server)-.*\.jar" 2>/dev/null | head -1)"
   if [ -z "$pid" ]; then
     pid="$(ss -ltnp 2>/dev/null | grep ":$BACKEND_PORT" | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2)"
   fi

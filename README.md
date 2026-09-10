@@ -61,11 +61,11 @@ Maven is **not** required — the backend ships a Maven wrapper (`./mvnw`).
 ### 1. Backend (port 8080)
 
 ```bash
-cd backend
-./mvnw spring-boot:run
+cd server
+../mvnw spring-boot:run
 ```
 
-On first run this creates a file-based H2 database under `backend/data/` (todos
+On first run this creates a file-based H2 database under `data/` (todos
 survive restarts). The worker starts polling ~10s after boot.
 
 ### 2. Frontend (port 5173)
@@ -108,7 +108,7 @@ an in-memory transcript (`LiveLogRegistry`) as it arrives — that's what the li
 shows. On restart, any todo still marked `IN_PROGRESS` (its process died with the old
 JVM) is automatically requeued to `PENDING`.
 
-### Configuration (`backend/src/main/resources/application.yml`)
+### Configuration (`server/src/main/resources/application.yml`)
 
 | Key | Default | Meaning |
 | --- | --- | --- |
@@ -283,11 +283,11 @@ Covers the API with the worker disabled (no Claude process is launched).
 
 ```bash
 cd frontend && npm run build      # emits frontend/dist/
-cd ../backend && ./mvnw package   # emits backend/target/kanban-backend-*.jar
+./mvnw package                    # emits server/target/kanban-server-*.jar
 ```
 
 Serve `frontend/dist/` from any static host (or copy it into
-`backend/src/main/resources/static/`), and run the jar with `java -jar`.
+`server/src/main/resources/static/`), and run the jar with `java -jar`.
 
 ---
 
