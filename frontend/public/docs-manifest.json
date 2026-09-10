@@ -49,24 +49,10 @@
     "file": "docs/ddd-diagrams.md",
     "updatedAt": "2026-09-09T03:11:13.359Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "docs/ddd-diagrams.md",
       "frontend/public/docs/ddd-diagrams.html"
-    ]
-  },
-  {
-    "id": "task-context-isolation",
-    "title": "任务间的上下文是怎么管理的，有隔离吗",
-    "href": "/docs/task-context-isolation.html",
-    "deletable": true,
-    "file": "docs/task-context-isolation.md",
-    "updatedAt": "2026-09-09T02:32:19.446Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "docs/task-context-isolation.md",
-      "frontend/public/docs/task-context-isolation.html"
     ]
   },
   {
