@@ -1,5 +1,19 @@
 [
   {
+    "id": "server-worker-split",
+    "title": "How the board runs work",
+    "href": "/docs/server-worker-split.html",
+    "deletable": true,
+    "file": "docs/server-worker-split.md",
+    "updatedAt": "2026-09-10T06:51:57.646Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/server-worker-split.md",
+      "frontend/public/docs/server-worker-split.html"
+    ]
+  },
+  {
     "id": "upload-iphone-18-pro",
     "title": "在你的城市，一台 iPhone 18 Pro 等于多少天工资",
     "href": "/p/iphone-18-pro.html",

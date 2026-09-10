@@ -29,9 +29,9 @@ A todo flows: `PENDING → IN_PROGRESS → RESOLVED` (or `FAILED`).
 > this machine alongside the server. Start more anywhere you like — see
 > [Running a worker](#running-a-worker).
 
-See **[docs/architecture.md](docs/architecture.md)** for a full topology of the
-design — system, components, the todo lifecycle, the worker poll cycle, stories,
-and the guarded deploy — rendered as Mermaid diagrams.
+See **[docs/server-worker-split.md](docs/server-worker-split.md)** for how the two halves
+fit together — the claim/heartbeat/report loop, why the worker never decides what a result
+means, how a lease replaces "the process holding the row", and what capabilities are for.
 
 > 📌 **Sample output — 新加坡旅游攻略 (Singapore travel guide)**:
 > a complete, publish-ready travel guide the board's agent built end-to-end across a
