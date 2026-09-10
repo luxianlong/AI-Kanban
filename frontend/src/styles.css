@@ -1607,6 +1607,39 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 }
 
 .wf-add-node { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
+
+/* --- Favourite steps -------------------------------------------------------
+   The shelf: steps kept aside to be inserted into any workflow. It reads as a row
+   of chips like "Input from" does, because it is the same gesture — pick a name,
+   something happens to the graph — and it sits directly under "Add step", which is
+   the other way to add one. */
+.wf-favorites {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: var(--s-2);
+}
+/* Chip and its dismiss button ride together, so a wrap never leaves the × on the
+   next line from the name it belongs to. */
+.wf-favorite { display: inline-flex; align-items: center; }
+.wf-favorite-insert {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none;
+}
+.wf-favorite-drop {
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--hair); border-left: none; background: #fff; color: var(--faint);
+  padding: 4px 7px 4px 4px; cursor: pointer;
+  border-radius: 0 var(--r-pill) var(--r-pill) 0;
+  transition: color 0.14s, border-color 0.14s, background 0.14s;
+}
+.wf-favorite-drop:hover { color: var(--danger, #c0392b); border-color: var(--faint); }
+
+/* The star on a step's card. Quiet until the step is on the shelf, then filled —
+   the state it reports is "there is a favourite by this name", which is also why it
+   stays pressable: pressing it again is how that favourite is updated. */
+.wf-favorite-btn { color: var(--faint); }
+.wf-favorite-btn:hover:not(:disabled) { color: var(--brand); }
+.wf-favorite-btn.on { color: var(--brand); }
+.wf-favorite-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.wf-star-on { fill: currentColor; }
 .wf-editor-actions { display: flex; gap: var(--s-2); }
 
 .wf-run-box {

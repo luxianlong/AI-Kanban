@@ -15,7 +15,8 @@ import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // nodes carry their own `inputs` rather than a separate edge list, because that is
 // how they are edited. See workflowDraft.js.
 import {
-  EFFORT_LEVELS, ULTRACODE, blankDraft, draftFingerprint, draftFrom, newId, payloadFrom,
+  EFFORT_LEVELS, ULTRACODE, appendStep, blankDraft, blankStep, draftFingerprint, draftFrom,
+  favoriteFromStep, favoriteNamed, newId, payloadFrom, stepFromFavorite,
 } from './workflowDraft.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
@@ -55,6 +56,9 @@ export const ULTRACODE_HINT =
 export default function WorkflowsPage({ onBack }) {
   const [workflows, setWorkflows] = useState([])
   const [executions, setExecutions] = useState([])
+  // Steps kept aside to be used again. One shelf for the whole page, not per
+  // workflow — the point of a favourite is that it crosses from one graph to another.
+  const [favorites, setFavorites] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [draft, setDraft] = useState(null)
   const [error, setError] = useState(null)
@@ -74,6 +78,12 @@ export default function WorkflowsPage({ onBack }) {
   const loadWorkflows = useCallback(async () => {
     const list = await api.listWorkflows()
     setWorkflows(list)
+    return list
+  }, [])
+
+  const loadFavorites = useCallback(async () => {
+    const list = await api.listFavoriteSteps()
+    setFavorites(list)
     return list
   }, [])
 
@@ -100,11 +110,12 @@ export default function WorkflowsPage({ onBack }) {
           setDraft(draftFrom(list[0]))
         }
         await loadExecutions()
+        await loadFavorites()
       } catch (e) {
         setError(e.message)
       }
     })()
-  }, [loadWorkflows, loadExecutions])
+  }, [loadWorkflows, loadExecutions, loadFavorites])
 
   // Runs advance on the server, so poll while any of them is still going. Once
   // everything is finished the page is static and the poll costs a request every
@@ -216,6 +227,43 @@ export default function WorkflowsPage({ onBack }) {
     }
   }
 
+  /**
+   * Keep a step for later, under its own name.
+   *
+   * The shelf is keyed by name, so saving over one replaces it. That is nearly always
+   * what is meant — you star a step, edit it, star it again — but it is also the one
+   * way to lose a favourite without deleting it, so the case where a DIFFERENT step
+   * has taken the name asks first. The check is here rather than on the server because
+   * this is the side that knows the names: it renders them.
+   */
+  async function saveFavorite(node) {
+    const step = favoriteFromStep(node)
+    const existing = favoriteNamed(favorites, step.name)
+    if (existing && existing.prompt !== step.prompt && !window.confirm(
+      `A favourite step called "${existing.name}" already exists. `
+      + "Replace it with this step's prompt?")) return
+    setError(null)
+    try {
+      await api.saveFavoriteStep(step)
+      await loadFavorites()
+    } catch (e) {
+      setError(cleanError(e))
+    }
+  }
+
+  async function removeFavorite(favorite) {
+    if (!window.confirm(
+      `Remove "${favorite.name}" from your favourite steps? `
+      + 'Workflows built from it keep their own copy.')) return
+    setError(null)
+    try {
+      await api.deleteFavoriteStep(favorite.id)
+      await loadFavorites()
+    } catch (e) {
+      setError(cleanError(e))
+    }
+  }
+
   const shown = scopeAll || !selectedId
     ? executions
     : executions.filter((e) => e.workflowId === selectedId)
@@ -314,6 +362,9 @@ export default function WorkflowsPage({ onBack }) {
               onRun={run}
               onDuplicate={draft.id ? duplicate : null}
               onDelete={draft.id ? remove : null}
+              favorites={favorites}
+              onSaveFavorite={saveFavorite}
+              onRemoveFavorite={removeFavorite}
               busy={busy}
             />
           ) : (
@@ -451,7 +502,10 @@ function PaneHide({ label, dir, onClick }) {
 // Editor
 // ---------------------------------------------------------------------------
 
-function WorkflowEditor({ draft, onChange, onSave, onRun, onDuplicate, onDelete, busy }) {
+function WorkflowEditor({
+  draft, onChange, onSave, onRun, onDuplicate, onDelete,
+  favorites, onSaveFavorite, onRemoveFavorite, busy,
+}) {
   const [runInput, setRunInput] = useState('')
   // The graph is the editing surface: click a step in the picture and its card
   // opens underneath. Every prompt shown at once turned the page into a column of
@@ -463,19 +517,24 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDuplicate, onDelete,
   const setNode = (id, patch) =>
     update({ nodes: draft.nodes.map((n) => (n.id === id ? { ...n, ...patch } : n)) })
 
+  // Both ways of adding a step append it wired to the last one — see appendStep.
+  // The new step is selected either way, so its card opens: on a blank one that is
+  // where you type, and on a favourite it is how you see what you just inserted
+  // (which may be off the right edge of a wide graph).
   const addNode = () => {
     const id = newId()
     setSelectedId(id)
-    // A new step is wired to the last one by default: a chain is what people mean
-    // most of the time, and unhooking is easier than hunting for the connection.
-    const previous = draft.nodes[draft.nodes.length - 1]
-    update({
-      nodes: [
-        ...draft.nodes,
-        { id, name: `Step ${draft.nodes.length + 1}`, prompt: '', inputs: previous ? [previous.id] : [] },
-      ],
-      entryNodeId: draft.entryNodeId || id,
-    })
+    onChange(appendStep(draft, blankStep(id, draft.nodes.length)))
+  }
+
+  /**
+   * Write a favourite into this graph as a new step. A copy, not a link: from here
+   * on it is an ordinary step, editable without touching the shelf.
+   */
+  const insertFavorite = (favorite) => {
+    const id = newId()
+    setSelectedId(id)
+    onChange(appendStep(draft, stepFromFavorite(favorite, id)))
   }
 
   const removeNode = (id) => {
@@ -543,6 +602,38 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDuplicate, onDelete,
         <span className="wf-run-hint">Pick a step in the graph to edit it.</span>
       </div>
 
+      {/* The shelf, only once there is something on it: a row explaining that you
+          have no favourites is worse than no row, and the star that fills it is on
+          every step's card anyway. */}
+      {favorites.length > 0 && (
+        <div className="wf-favorites">
+          <span className="wf-inputs-label">Insert a favourite</span>
+          {favorites.map((favorite) => (
+            <span key={favorite.id} className="wf-favorite">
+              <button
+                type="button"
+                className="wf-chip wf-favorite-insert"
+                onClick={() => insertFavorite(favorite)}
+                title={`Add "${favorite.name}" as a new step${
+                  favorite.effort ? ` (${favorite.effort})` : ''}`}
+              >
+                <Icon name="star" size={11} className="wf-star-on" />
+                {favorite.name}
+              </button>
+              <button
+                type="button"
+                className="wf-favorite-drop"
+                onClick={() => onRemoveFavorite(favorite)}
+                aria-label={`Remove "${favorite.name}" from favourite steps`}
+                title={`Remove "${favorite.name}" from favourite steps`}
+              >
+                <Icon name="close" size={11} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
       {selected && (
         <NodeEditor
           key={selected.id}
@@ -555,6 +646,8 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDuplicate, onDelete,
           onMakeEntry={() => update({ entryNodeId: selected.id })}
           onToggleInput={(fromId) => toggleInput(selected.id, fromId)}
           onRemove={draft.nodes.length > 1 ? () => removeNode(selected.id) : null}
+          favorite={favoriteNamed(favorites, selected.name)}
+          onFavorite={() => onSaveFavorite(selected)}
         />
       )}
 
@@ -612,6 +705,7 @@ function WorkflowEditor({ draft, onChange, onSave, onRun, onDuplicate, onDelete,
 
 function NodeEditor({
   node, index, all, isEntry, unreached, onChange, onMakeEntry, onToggleInput, onRemove,
+  favorite, onFavorite,
 }) {
   // Anything downstream of this node would close a loop, so it isn't offered.
   const blocked = useMemo(() => descendantsOf(all, node.id), [all, node.id])
@@ -638,6 +732,29 @@ function NodeEditor({
             Make entry
           </button>
         )}
+        {/* Keep this step to use again. Filled once it is on the shelf under this
+            name — and still pressable then, because re-saving an edited step is the
+            commonest reason to press it a second time. A step with no prompt has
+            nothing worth keeping, so the star waits for one rather than saving a
+            favourite that inserts as blank. */}
+        <button
+          type="button"
+          className={`icon-btn wf-favorite-btn ${favorite ? 'on' : ''}`}
+          onClick={onFavorite}
+          disabled={!node.prompt.trim()}
+          aria-pressed={!!favorite}
+          aria-label={favorite
+            ? `Update the favourite step "${favorite.name}" from this step`
+            : `Save "${node.name || `step ${index + 1}`}" as a favourite step`}
+          title={node.prompt.trim()
+            ? (favorite
+              ? `Saved as a favourite. Press again to update "${favorite.name}" `
+                + 'with this step\'s prompt.'
+              : 'Keep this step as a favourite, to insert into any workflow.')
+            : 'Write a prompt first — a favourite is the prompt, not the box.'}
+        >
+          <Icon name="star" size={15} className={favorite ? 'wf-star-on' : undefined} />
+        </button>
         {onRemove && (
           <button
             type="button"
