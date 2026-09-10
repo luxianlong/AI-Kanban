@@ -274,6 +274,17 @@ public final class WorkflowDtos {
      * step is drawn differently, and a topological order can legitimately put another
      * node first. Null on runs recorded before the entry was snapshotted.
      */
+    /**
+     * How many runs exist in a scope, and how many of them a list call will hand back.
+     *
+     * <p>Two numbers rather than one because the page needs to know the difference:
+     * {@code total} is what deleting the workflow would destroy, {@code pageSize} is
+     * where the list stops. Sending the cap rather than letting the browser assume it
+     * keeps the number in one place — the server's.
+     */
+    public record ExecutionCountView(long total, int pageSize) {
+    }
+
     public record ExecutionView(
             Long id,
             String workflowId,

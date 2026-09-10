@@ -170,6 +170,13 @@ export const api = {
     fetch(`${BASE}/workflows/executions${workflowId ? `?workflowId=${encodeURIComponent(workflowId)}` : ''}`)
       .then(json),
 
+  // How many runs that scope really holds, and where the list above stops. The list
+  // is capped, so its length is not an answer to "how many runs would deleting this
+  // destroy?" — and that question is asked immediately before destroying them.
+  countExecutions: (workflowId) =>
+    fetch(`${BASE}/workflows/executions/count${workflowId ? `?workflowId=${encodeURIComponent(workflowId)}` : ''}`)
+      .then(json),
+
   // Stop a run in flight: kills the live node session and closes the run out.
   cancelExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}/cancel`, { method: 'POST' }).then(json),

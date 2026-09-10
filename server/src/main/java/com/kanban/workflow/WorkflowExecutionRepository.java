@@ -11,6 +11,9 @@ public interface WorkflowExecutionRepository extends JpaRepository<WorkflowExecu
 
     List<WorkflowExecution> findByWorkflowIdOrderByCreatedAtDesc(String workflowId);
 
+    /** How many runs one workflow has, without loading any of them. */
+    long countByWorkflowId(String workflowId);
+
     /** Runs the runner still owes work on, oldest first (FIFO across workflows). */
     List<WorkflowExecution> findByStatusInOrderByCreatedAtAsc(List<RunState> statuses);
 }

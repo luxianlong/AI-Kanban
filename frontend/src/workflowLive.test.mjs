@@ -1,8 +1,9 @@
 // node src/workflowLive.test.mjs
 import assert from 'node:assert/strict'
 import {
-  IDLE_POLL_MS, LIVE_POLL_MS, entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput,
-  outputPredatesSettings, pollInterval, sameValue,
+  IDLE_POLL_MS, LIVE_POLL_MS, SETTLE_GRACE_MS, deleteHeldBack, deleteRunPrompt,
+  deleteWorkflowPrompt, entryNodeIdOf, followedNode, isLive, mergeExecutions,
+  nodesWithStaleInput, outputPredatesSettings, pollInterval, sameValue, stateLabel,
 } from './workflowLive.js'
 
 const node = (over = {}) => ({
@@ -211,5 +212,89 @@ assert.equal(pollInterval(false, true), 0)
 // tests this value, so a rate that read as "don't" would silently stop the page.
 assert.ok(pollInterval(true, false) > 0)
 assert.ok(pollInterval(false, false) > 0)
+
+// --- isLive / stateLabel ---------------------------------------------------
+
+// The one place that decides whether a run is still going. Both PENDING and RUNNING
+// count: a queued run has a lane waiting for it, and Cancel is the button for it.
+assert.ok(isLive({ status: 'PENDING' }))
+assert.ok(isLive({ status: 'RUNNING' }))
+for (const settled of ['SUCCEEDED', 'FAILED', 'CANCELLED', 'SKIPPED']) {
+  assert.ok(!isLive({ status: settled }))
+}
+assert.ok(!isLive(undefined))
+
+// The label the confirm has to agree with the card about.
+assert.equal(stateLabel('SUCCEEDED'), 'Done')
+assert.equal(stateLabel('RUNNING'), 'Running')
+// An unknown state shows itself rather than disappearing.
+assert.equal(stateLabel('WHAT'), 'WHAT')
+
+// --- deleteHeldBack --------------------------------------------------------
+
+// A run that was already finished when the card was opened has no Cancel click on its
+// way to it, so Delete works straight away.
+assert.equal(deleteHeldBack(null, 1000), false)
+assert.equal(deleteHeldBack(undefined, 1000), false)
+
+// A run that settled under the cursor holds Delete for the grace, then releases it.
+assert.equal(deleteHeldBack(1000, 1000), true)
+assert.equal(deleteHeldBack(1000, 1000 + SETTLE_GRACE_MS - 1), true)
+assert.equal(deleteHeldBack(1000, 1000 + SETTLE_GRACE_MS), false)
+assert.equal(deleteHeldBack(1000, 1000 + SETTLE_GRACE_MS + 5000), false)
+
+// The grace must outlast the poll that reveals the run has settled — otherwise the
+// button can go live in the same instant the label changes, which is the bug.
+assert.ok(SETTLE_GRACE_MS > LIVE_POLL_MS)
+
+// --- deleteRunPrompt -------------------------------------------------------
+
+// The case card #333 is about: a finished, billed run that someone is about to delete
+// while meaning to cancel it. Every fact that would stop them is in the dialog.
+const doomed = deleteRunPrompt(run({ id: 199, workflowName: 'AI Writing', costUsd: 0.1116 }))
+assert.match(doomed, /#199/)
+assert.match(doomed, /AI Writing/)
+assert.match(doomed, /Done/)
+assert.match(doomed, /1 step\b/)
+assert.match(doomed, /\$0\.1116/)
+assert.match(doomed, /cannot be recovered/)
+// Never the raw enum: the card says "Done", so the dialog must too.
+assert.ok(!doomed.includes('SUCCEEDED'))
+
+assert.match(deleteRunPrompt(run({ totalNodes: 3, costUsd: 2.5 })), /3 steps/)
+
+// A run nobody was billed for says nothing about cost rather than "$null" — and a
+// never-started run has no cost recorded at all.
+const free = deleteRunPrompt(run({ id: 7, costUsd: null, status: 'FAILED' }))
+assert.match(free, /#7/)
+assert.match(free, /Failed/)
+assert.ok(!free.includes('$'))
+assert.ok(!free.includes('null'))
+
+// $0 is a real answer and stays in — 0 is not "unknown".
+assert.match(deleteRunPrompt(run({ costUsd: 0 })), /\$0\.0000/)
+
+// Called on whatever the poll last returned, so it must not throw on nothing.
+assert.match(deleteRunPrompt(undefined), /Delete this run/)
+
+// --- deleteWorkflowPrompt --------------------------------------------------
+
+// The number comes from the server, and the dialog says it. This is the path that
+// destroyed 24 of the 30 runs lost on 2026-09-10.
+assert.match(deleteWorkflowPrompt('Article', 74), /"Article" and its 74 runs\?/)
+assert.match(deleteWorkflowPrompt('Article', 1), /its 1 run\?/)
+assert.ok(!deleteWorkflowPrompt('Article', 1).includes('1 runs'))
+assert.match(deleteWorkflowPrompt('Article', 74), /cannot be recovered/)
+
+// Genuinely no runs: say that, rather than leaving it ambiguous with the case below.
+assert.match(deleteWorkflowPrompt('Article', 0), /no runs/)
+
+// Count unknown is NOT the same as zero, and must not be quietly rendered as it —
+// that silent downgrade is exactly what the capped client-side count used to do.
+const unknown = deleteWorkflowPrompt('Article', null)
+assert.match(unknown, /run history goes too/)
+assert.match(unknown, /could not reach/)
+assert.ok(!unknown.includes('no runs'))
+assert.notEqual(unknown, deleteWorkflowPrompt('Article', 0))
 
 console.log('ok')

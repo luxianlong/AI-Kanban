@@ -8,8 +8,9 @@ import {
   NODE_H, NODE_W, descendantsOf, edgePath, flowFor, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 import {
-  entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesSettings,
-  pollInterval,
+  deleteHeldBack, deleteRunPrompt, deleteWorkflowPrompt, entryNodeIdOf, followedNode, isLive,
+  mergeExecutions, nodesWithStaleInput, outputPredatesSettings, pollInterval, SETTLE_GRACE_MS,
+  stateLabel,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
@@ -86,6 +87,9 @@ export default function WorkflowsPage({ onBack }) {
   const [busy, setBusy] = useState(false)
   // Scope of the executions panel: the open workflow's runs, or every run.
   const [scopeAll, setScopeAll] = useState(false)
+  // {total, pageSize} for the current scope, straight from the server — how many runs
+  // there are as opposed to how many are listed. Null until it has been fetched.
+  const [runCount, setRunCount] = useState(null)
   // Which of the three panes are folded to a spine. Remembered per browser: on a
   // laptop the graph needs the whole window, and re-folding the list and the runs
   // on every visit is the kind of chore that makes people stop folding them.
@@ -108,9 +112,16 @@ export default function WorkflowsPage({ onBack }) {
     return list
   }, [])
 
+  // Which workflow the runs pane is asking the server about — null for "all of them".
+  // The pane used to fetch every run on the board and filter in the browser, which is
+  // fine until the server's page cap bites: past fifty runs the workflow you have open
+  // can be entirely absent from the newest fifty, and its pane then says "No runs yet"
+  // about a workflow that has dozens. The server has always taken this parameter.
+  const scopeWorkflowId = scopeAll || !selectedId ? null : selectedId
+
   const loadExecutions = useCallback(async () => {
     try {
-      const list = await api.listExecutions()
+      const list = await api.listExecutions(scopeWorkflowId)
       // Fold the poll into what is on screen rather than replacing it: an unchanged
       // run keeps its object, and a memo'd card then skips re-rendering altogether.
       // Reading a step's output is the slowest thing anyone does here, and a run
@@ -119,7 +130,22 @@ export default function WorkflowsPage({ onBack }) {
     } catch (e) {
       setError(e.message)
     }
-  }, [])
+  }, [scopeWorkflowId])
+
+  // How many runs the scope really holds, so the pane can admit when it is showing
+  // only the newest page. Deliberately NOT part of loadExecutions: that one is the
+  // poll, and doubling every poll to keep a "and 6 more" line honest is not a trade
+  // worth making. This is re-read when the scope changes and when the page catches
+  // up after being away — the two moments the number can have moved a lot.
+  const loadRunCount = useCallback(async () => {
+    try {
+      setRunCount(await api.countExecutions(scopeWorkflowId))
+    } catch {
+      // A count is a caption. Failing to fetch one must not paint an error over a
+      // page whose runs loaded perfectly well.
+      setRunCount(null)
+    }
+  }, [scopeWorkflowId])
 
   // First load: show the newest workflow, so the page never opens on nothing.
   useEffect(() => {
@@ -130,13 +156,22 @@ export default function WorkflowsPage({ onBack }) {
           setSelectedId(list[0].id)
           setDraft(draftFrom(list[0]))
         }
-        await loadExecutions()
         await loadFavorites()
       } catch (e) {
         setError(e.message)
       }
     })()
-  }, [loadWorkflows, loadExecutions, loadFavorites])
+    // Not loadExecutions: the scope effect below fetches the runs, and would fetch
+    // them a second time the moment this sets the open workflow.
+  }, [loadWorkflows, loadFavorites])
+
+  // Re-ask the server whenever the pane's scope changes — a different workflow opened,
+  // or the This one / All toggle flipped. Both callbacks are rebuilt when
+  // scopeWorkflowId does, so this covers the first load too.
+  useEffect(() => {
+    loadExecutions()
+    loadRunCount()
+  }, [loadExecutions, loadRunCount])
 
   // Everything on this page the server owns, re-read at once. The runs poll on
   // their own; the workflow list and the favourites shelf never did, so until now a
@@ -148,11 +183,12 @@ export default function WorkflowsPage({ onBack }) {
   // keystrokes outrank a refresh.
   const refreshAll = useCallback(() => {
     loadExecutions()
+    loadRunCount()
     // Quietly: a background refresh that fails should leave what is on screen alone
     // rather than paint an error over a page that is working.
     loadWorkflows().catch(() => {})
     loadFavorites().catch(() => {})
-  }, [loadExecutions, loadWorkflows, loadFavorites])
+  }, [loadExecutions, loadRunCount, loadWorkflows, loadFavorites])
 
   // Runs advance on the server, so poll while any of them is still going. Once
   // everything is finished the page is static and the poll costs a request every
@@ -267,18 +303,32 @@ export default function WorkflowsPage({ onBack }) {
     }
   }
 
+  /**
+   * Delete the open workflow — and, silently, every run it ever had.
+   *
+   * The count in the warning is asked of the server rather than counted off the pane.
+   * The pane holds at most a page of runs, so counting it answered "how many of this
+   * workflow's runs are among the newest fifty on the board", and above that cap the
+   * answer is often zero: the dialog then said `Delete "X"?` with no mention of run
+   * history, and the cascade went ahead and destroyed all of it. Card #333 traced 24
+   * of the 30 runs lost that day to this path.
+   */
   async function remove() {
     if (!draft?.id) return
-    const runs = executions.filter((e) => e.workflowId === draft.id).length
-    const warning = runs
-      ? `Delete "${draft.name}" and its ${runs} run${runs > 1 ? 's' : ''}?`
-      : `Delete "${draft.name}"?`
-    if (!window.confirm(warning)) return
+    let total = null
+    try {
+      total = (await api.countExecutions(draft.id)).total
+    } catch {
+      // Left null on purpose: deleteWorkflowPrompt then says the number is unknown.
+      // Falling back to the pane's count here would put the old, wrong number back.
+    }
+    if (!window.confirm(deleteWorkflowPrompt(draft.name, total))) return
     setBusy(true)
     try {
       await api.deleteWorkflow(draft.id)
       const list = await loadWorkflows()
       await loadExecutions()
+      await loadRunCount()
       if (list.length) selectWorkflow(list[0])
       else {
         setSelectedId(null)
@@ -328,9 +378,18 @@ export default function WorkflowsPage({ onBack }) {
     }
   }
 
-  const shown = scopeAll || !selectedId
-    ? executions
-    : executions.filter((e) => e.workflowId === selectedId)
+  // A card that deleted a run has changed the total as well as the list, and the
+  // "showing the newest N of M" line would otherwise keep quoting the old M.
+  const onRunsChanged = useCallback(() => {
+    loadExecutions()
+    loadRunCount()
+  }, [loadExecutions, loadRunCount])
+
+  // The pane asks the server for one workflow's runs already; this filter is what
+  // covers the moment between flipping the scope and that request coming back.
+  const shown = scopeWorkflowId
+    ? executions.filter((e) => e.workflowId === scopeWorkflowId)
+    : executions
 
   return (
     <div className="page wf-page">
@@ -493,10 +552,22 @@ export default function WorkflowsPage({ onBack }) {
                   key={execution.id}
                   execution={execution}
                   showWorkflowName={scopeAll || !selectedId}
-                  onChanged={loadExecutions}
+                  onChanged={onRunsChanged}
                 />
               ))}
             </ul>
+          )}
+          {/*
+            The list stops at the server's page. Saying so is the difference between a
+            pane that is showing you everything and one that only looks like it —
+            which is exactly the reading that turned "my runs are missing" into a
+            three-hour investigation (card #333).
+          */}
+          {runCount && runCount.total > shown.length && (
+            <p className="wf-runs-more">
+              Showing the newest {shown.length} of {runCount.total} runs
+              {scopeWorkflowId ? ' for this workflow' : ''}.
+            </p>
           )}
           </>
           )}
@@ -1142,7 +1213,27 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // Whether the card is still following the run. See the effect below.
   const [following, setFollowing] = useState(true)
   const [retrying, setRetrying] = useState(false)
-  const live = execution.status === 'PENDING' || execution.status === 'RUNNING'
+  const live = isLive(execution)
+
+  // When this card watched the run stop being live — null if it was already finished
+  // when the card was opened. See deleteHeldBack: for a few seconds after a run
+  // settles under your cursor, Delete is not clickable.
+  const [settledAt, setSettledAt] = useState(null)
+  const wasLive = useRef(live)
+  useEffect(() => {
+    if (wasLive.current && !live) setSettledAt(Date.now())
+    wasLive.current = live
+  }, [live])
+  // Nothing re-renders this card when a timer merely expires, so the grace has to end
+  // itself. One timeout per settle, cleared if the run goes live again (a retry).
+  const [graceOver, setGraceOver] = useState(false)
+  useEffect(() => {
+    if (settledAt == null) return undefined
+    setGraceOver(false)
+    const t = setTimeout(() => setGraceOver(true), SETTLE_GRACE_MS)
+    return () => clearTimeout(t)
+  }, [settledAt])
+  const holdDelete = !graceOver && deleteHeldBack(settledAt, Date.now())
 
   // Picking a step is how you say "this is the one I'm reading" — so it also stops
   // the card following the run. Toggling the same step shut is still a deliberate
@@ -1302,7 +1393,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
 
   async function remove(e) {
     e.stopPropagation()
-    if (!window.confirm('Delete this run and everything it produced?')) return
+    if (!window.confirm(deleteRunPrompt(execution))) return
     try {
       await api.deleteExecution(execution.id)
       onChanged()
@@ -1332,14 +1423,18 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
 
       {open && (
         <div className="wf-run-body">
+          {/*
+            Cancel and Delete are deliberately not in the same place. They used to be
+            the same slot — a live run offered Cancel there, and within 2.5s of the run
+            finishing the identical position offered Delete, which destroys the run and
+            everything it produced with no undo. Delete now lives at the far end of the
+            row, on its own, and it is held for a few seconds after a run settles under
+            your cursor. See workflowLive.js and card #333.
+          */}
           <div className="wf-run-actions">
-            {live ? (
+            {live && (
               <button type="button" className="btn ghost" onClick={cancel}>
                 <Icon name="stop" size={13} /> Cancel run
-              </button>
-            ) : (
-              <button type="button" className="btn danger-ghost" onClick={remove}>
-                <Icon name="delete" size={13} /> Delete run
               </button>
             )}
             {!live && execution.retryableNodes > 0 && (
@@ -1361,6 +1456,20 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
             )}
             {execution.costUsd != null && (
               <span className="wf-run-hint">${execution.costUsd.toFixed(4)} total</span>
+            )}
+            {!live && (
+              <button
+                type="button"
+                className="btn danger-ghost wf-run-delete"
+                onClick={remove}
+                disabled={holdDelete}
+                title={holdDelete
+                  ? 'This run has just finished. Delete is held for a moment so a click '
+                    + 'meant for Cancel does not destroy it.'
+                  : 'Delete this run and everything it produced. This cannot be undone.'}
+              >
+                <Icon name="delete" size={13} /> Delete run
+              </button>
             )}
           </div>
 
@@ -1934,17 +2043,6 @@ function NodeRunSettings({ run, siblings, isEntry, editable, stale, onSave }) {
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
-
-function stateLabel(status) {
-  return {
-    PENDING: 'Queued',
-    RUNNING: 'Running',
-    SUCCEEDED: 'Done',
-    FAILED: 'Failed',
-    SKIPPED: 'Skipped',
-    CANCELLED: 'Cancelled',
-  }[status] || status
-}
 
 /**
  * What re-running one step actually redoes. The count is the whole warning: clicking

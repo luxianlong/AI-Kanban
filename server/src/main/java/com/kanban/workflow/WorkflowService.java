@@ -6,11 +6,14 @@ import com.kanban.worker.LiveLogRegistry;
 import com.kanban.worker.SessionLogService;
 import com.kanban.workflow.WorkflowDtos.EdgeSpec;
 import com.kanban.workflow.WorkflowDtos.EditNodeRunRequest;
+import com.kanban.workflow.WorkflowDtos.ExecutionCountView;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
 import com.kanban.workflow.WorkflowDtos.InsertNodeRunRequest;
 import com.kanban.workflow.WorkflowDtos.NodeSpec;
 import com.kanban.workflow.WorkflowDtos.SaveWorkflowRequest;
 import com.kanban.workflow.WorkflowDtos.WorkflowView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +51,15 @@ public class WorkflowService {
 
     /** How many runs the executions panel lists at once. */
     private static final int EXECUTION_PAGE = 50;
+
+    /**
+     * Deleting a run is the only thing this service does that destroys work nobody can
+     * get back, so — like {@code DocsController} does for a document — it says so in
+     * the log. Card #333 had to be answered by reading twenty rotated database
+     * snapshots, purely because the two delete paths went about their business in
+     * silence.
+     */
+    private static final Logger log = LoggerFactory.getLogger(WorkflowService.class);
 
     public WorkflowService(WorkflowRepository workflows, WorkflowNodeRepository nodes, WorkflowEdgeRepository edges,
                            WorkflowExecutionRepository executions, NodeExecutionRepository nodeRuns,
@@ -219,7 +231,12 @@ public class WorkflowService {
     @Transactional
     public void delete(String id) {
         Workflow workflow = find(id);
-        for (WorkflowExecution e : executions.findByWorkflowIdOrderByCreatedAtDesc(id)) {
+        List<WorkflowExecution> history = executions.findByWorkflowIdOrderByCreatedAtDesc(id);
+        // Said before the cascade rather than after it, so that a failure part-way
+        // through still leaves the intent on the record — and said as a count, because
+        // the individual runs each get their own line from deleteExecutionRows below.
+        log.info("Deleting workflow '{}' ({}) and its {} run(s)", workflow.getName(), id, history.size());
+        for (WorkflowExecution e : history) {
             deleteExecutionRows(e);
         }
         nodes.deleteByWorkflowId(id);
@@ -283,6 +300,24 @@ public class WorkflowService {
             nodeRuns.save(run);
         }
         return executionView(execution);
+    }
+
+    /**
+     * How many runs there really are, in the same scope {@link #listExecutions} was
+     * asked for — which is not the same number, because that one stops at
+     * {@link #EXECUTION_PAGE}.
+     *
+     * <p>This exists because a capped list was being counted as if it were the whole
+     * history: the browser asked "how many runs does deleting this workflow destroy?"
+     * of a list that had already been truncated, and above fifty runs the answer came
+     * back zero. The confirm then said nothing about run history at all, and the
+     * cascade went ahead and deleted every one of them (card #333).
+     */
+    public ExecutionCountView countExecutions(String workflowId) {
+        long total = workflowId == null || workflowId.isBlank()
+                ? executions.count()
+                : executions.countByWorkflowId(workflowId);
+        return new ExecutionCountView(total, EXECUTION_PAGE);
     }
 
     /** Runs of one workflow, or of all of them when {@code workflowId} is null. */
@@ -982,14 +1017,42 @@ public class WorkflowService {
         deleteExecutionRows(findExecution(executionId));
     }
 
-    /** Drop one run's rows and the in-memory transcripts of its node sessions. */
+    /**
+     * Drop one run's rows and the in-memory transcripts of its node sessions — and
+     * write down what was destroyed before it stops existing.
+     *
+     * <p>The log line is the whole point of doing this in one place: both delete paths
+     * come through here, so there is no way to remove a run without it being recorded.
+     */
     private void deleteExecutionRows(WorkflowExecution execution) {
         List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId());
+        log.info("Deleted {}", describe(execution, runs.size()));
         for (NodeExecution run : runs) {
             liveLog.clear(LiveLogRegistry.nodeKey(run.getId()));
         }
         nodeRuns.deleteAll(runs);
         executions.delete(execution);
+    }
+
+    /**
+     * What a run was, in one line, for the log and for nothing else.
+     *
+     * <p>Everything here is chosen so the line answers the question somebody asks
+     * afterwards — "what was that run and was it worth anything?" — without the row
+     * still being there to look at: the id they saw on screen, the workflow it belonged
+     * to, whether it had finished, how much of it there was, and what it cost.
+     */
+    static String describe(WorkflowExecution execution, int nodeCount) {
+        String cost = execution.getCostUsd() == null
+                ? "no recorded cost"
+                : String.format("$%.4f", execution.getCostUsd());
+        return String.format("run #%d of '%s' (%s, %d step%s, %s)",
+                execution.getId(),
+                execution.getWorkflowName(),
+                execution.getStatus(),
+                nodeCount,
+                nodeCount == 1 ? "" : "s",
+                cost);
     }
 
     /**
