@@ -1488,6 +1488,11 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   overflow-x: auto;
 }
 .wf-graph svg { display: block; }
+/* Flowing downwards the picture is only as wide as its widest fan-out, which for the
+   usual straight chain is one box — so it would otherwise hug the left edge of a
+   box several times that wide. `auto` margins collapse to zero when the drawing IS
+   wider than the box, so this can't push the far side out of reach. */
+.wf-graph.down svg { margin-inline: auto; }
 /* Strokes are the one thing that shouldn't shrink with the picture: at 0.6 a 1.5px
    border is a smudge. vector-effect is per-shape — it doesn't inherit from <svg>. */
 .wf-edge, .wf-gnode rect { vector-effect: non-scaling-stroke; }
@@ -1805,4 +1810,46 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   .wf-list { flex-direction: row; flex-wrap: wrap; }
   .wf-list-item { width: auto; }
   .wf-blank { margin-top: var(--s-5); }
+}
+
+/* ---------- The workflow page on a phone ----------
+   A late block on a breakpoint the board already uses. It has to be late: the
+   board's own `@media (max-width: 720px)` sits a few hundred lines above the `.wf-*`
+   rules, so everything it says about `.composer-title` or a tap target is quietly
+   overruled by a workflow rule of equal specificity further down the file. The
+   cascade, not the media query, is what was missing. */
+@media (max-width: 720px) {
+  /* iOS zooms the page whenever a focused field's text is under 16px, and does not
+     zoom back out — so one tap on the workflow's name left the whole page enlarged
+     and scrolling sideways. `.wf-name` IS a `.composer-title`, which the board's
+     block already pins to 16px; `.wf-name`'s own font-size, being later, won. */
+  .wf-name, .wf-node-name, .wf-effort-select { font-size: 16px; }
+
+  /* The way back to the board — the page's only exit, and a 34px circle. */
+  .wf-back { width: var(--tap); height: var(--tap); }
+
+  /* Chips are how a graph gets wired ("Input from") and how a saved step is dropped
+     into one (the favourites shelf). At 24px tall they were a coin toss on a thumb. */
+  .wf-chip { min-height: 36px; padding: 6px 12px; }
+  /* Worst of the lot: the × that deletes a favourite outright was 23×21 and shares
+     an edge with the 104px-wide button that inserts it, so the two easiest things to
+     hit by mistake were "use this step" and "lose this step". */
+  .wf-favorite-drop {
+    min-height: 36px; min-width: 34px;
+    justify-content: center; padding: 0 9px 0 5px;
+  }
+  .wf-effort-select { min-height: 36px; }
+  .wf-scope-btn { min-height: 32px; padding: 6px 14px; }
+  .wf-make-entry { min-height: 32px; }
+
+  /* Opening a run, and opening a step inside it. Both are full-width rows, so only
+     their height was ever wrong — 35px and 30px against a 44px thumb. */
+  .wf-run-head { min-height: var(--tap); padding: 8px var(--s-3); }
+  .wf-noderun-head { min-height: var(--tap); padding: 8px var(--s-2); }
+
+  /* A button whose label breaks over two lines reads as two buttons. Let the row
+     wrap and keep each label whole — "Save changes" and "Run workflow" were both
+     landing as a stack of two words. */
+  .wf-editor-actions, .wf-run-box .composer-actions { flex-wrap: wrap; }
+  .wf-editor-actions .btn, .wf-run-box .composer-actions .btn { white-space: nowrap; }
 }

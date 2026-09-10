@@ -5,7 +5,7 @@ import Markdown from './Markdown.jsx'
 import { MaximizeButton } from './resultWindow.jsx'
 import { relTime, runMeta } from './time.js'
 import {
-  NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
+  NODE_H, NODE_W, descendantsOf, edgePath, flowFor, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 import {
   entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesSettings,
@@ -879,11 +879,18 @@ const MIN_SCALE = 0.6
  * window scroll at once: the layout keeps its own units and only the rendered size
  * changes. It stops shrinking at MIN_SCALE, below which the labels stop being
  * words, and scrolls sideways from there.
+ *
+ * In a column too narrow for any of that to help — a phone, or the executions pane
+ * — it turns ninety degrees and runs downwards instead (see flowFor). A picture
+ * that is as long as the workflow was the whole problem: sideways it is three
+ * screens of blind panning at a size the labels can't survive, and the panning is
+ * inside a 136px slit that a thumb hits by accident while scrolling the page.
+ * Downwards it is as wide as the widest fan-out, which nearly always fits, so the
+ * labels stay full size and reaching the last step is an ordinary scroll.
  */
 function WorkflowGraph({
   nodes, entryNodeId, reachable, selectedId, onSelect, statuses, label,
 }) {
-  const layout = useMemo(() => layoutGraph(nodes), [nodes])
   // The number on a box is the step's place in run order, which is what the
   // picture is arranged by — not the order the steps happen to be stored in.
   const order = useMemo(
@@ -894,29 +901,41 @@ function WorkflowGraph({
   // run has one) and duplicate SVG ids resolve to whichever came first.
   const arrow = `wf-arrow-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
-  // Fit the drawing to the room it has. clientWidth is the scroll box's own padding
-  // box, so it stays the width of the space available however wide the SVG inside it
-  // grows — scrollWidth is the one that would report the graph back to us.
+  // The room the drawing has to work with. clientWidth is the scroll box's own
+  // padding box, so it stays the width of the space available however wide the SVG
+  // inside it grows — scrollWidth is the one that would report the graph back to us.
+  //
+  // Null until it has been measured, which is the one render where the flow and the
+  // scale are guesses. Both guess "desktop", so the case that flickers is a phone,
+  // and it flickers from a picture it could not have read anyway.
   const boxRef = useRef(null)
-  const [scale, setScale] = useState(1)
+  const [room, setRoom] = useState(null)
   useEffect(() => {
     const el = boxRef.current
     if (!el) return undefined
-    const fit = () => {
+    const measure = () => {
       const pad = getComputedStyle(el)
-      const room = el.clientWidth
+      const inner = el.clientWidth
         - (parseFloat(pad.paddingLeft) || 0) - (parseFloat(pad.paddingRight) || 0)
-      if (room > 0) setScale(Math.min(1, Math.max(MIN_SCALE, room / layout.width)))
+      if (inner > 0) setRoom(inner)
     }
-    fit()
+    measure()
     if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', fit)
-      return () => window.removeEventListener('resize', fit)
+      window.addEventListener('resize', measure)
+      return () => window.removeEventListener('resize', measure)
     }
-    const observer = new ResizeObserver(fit)
+    const observer = new ResizeObserver(measure)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [layout.width])
+  }, [])
+
+  // Which way the picture runs, and how far it had to shrink to fit. Both are read
+  // off `room` rather than stored, so neither can be left behind by the other — a
+  // scale measured against the sideways layout while the downwards one is on screen
+  // would size the SVG from the wrong number.
+  const flow = flowFor(room)
+  const layout = useMemo(() => layoutGraph(nodes, flow), [nodes, flow])
+  const scale = room == null ? 1 : Math.min(1, Math.max(MIN_SCALE, room / layout.width))
 
   // Still too wide to fit at MIN_SCALE: it scrolls sideways, and "Add step" selects
   // the step it just made — which would otherwise appear off the right edge and
@@ -945,7 +964,7 @@ function WorkflowGraph({
   if (!nodes.length) return null
 
   return (
-    <div className="wf-graph" ref={boxRef}>
+    <div className={`wf-graph ${flow === 'tb' ? 'down' : ''}`} ref={boxRef}>
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
         width={Math.round(layout.width * scale)}
@@ -976,7 +995,7 @@ function WorkflowGraph({
               key={`${edge.from}-${edge.to}`}
               className={`wf-edge ${touches(edge, selectedId) ? 'on' : ''}`}
               markerEnd={`url(#${arrow})`}
-              d={edgePath(edge.points)}
+              d={edgePath(edge.points, flow)}
             />
           ))}
 
