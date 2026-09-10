@@ -159,8 +159,9 @@ workflow:
   # `free -m` before raising it further. Note that ~0.9 GB of what is resident today is
   # leaked headless-Chrome from earlier verification scaffolding, not the workers.
   #
-  # 1 restores the old strictly-serial behaviour.
-  max-concurrent-executions: 4
+  # 1 restores the old strictly-serial behaviour. Lowered back to 2 from 4 to keep the
+  # memory ceiling above comfortable — the paragraph above describes the earlier raise.
+  max-concurrent-executions: 2
   # --- What a step can SEE (every node, entry included) ---
   # Each step already runs in a scratch directory of its own. This is what keeps it
   # there: it passes permissions.blockReadsOutsideWorkingDirectories to the CLI, which
