@@ -164,11 +164,41 @@ public class WorkerProperties {
      * step's dynamic workflow was killed with half its allowance unspent.
      */
     public long getBackgroundWaitSeconds() {
+        return backgroundWaitSecondsFor(timeoutSeconds);
+    }
+
+    /**
+     * The same wait, for a session that is not living for {@link #getTimeoutSeconds()} —
+     * a workflow step given a longer ceiling than the worker's own, say.
+     *
+     * <p>The derivation is the point: whoever lengthens a session gets the longer wait
+     * for free, and cannot lengthen the one without the other. What does <em>not</em>
+     * scale is an explicitly configured wait, and that is deliberate — the setting is
+     * documented as pinning the wait regardless of the timeout, {@code 0} means "wait
+     * indefinitely", and an operator who wrote a number down meant that number rather
+     * than a starting point to multiply.
+     */
+    public long backgroundWaitSecondsFor(long sessionTimeoutSeconds) {
         if (backgroundWaitSeconds != null && backgroundWaitSeconds >= 0) {
             return backgroundWaitSeconds;
         }
         return Math.max(MIN_DERIVED_BACKGROUND_WAIT_SECONDS,
-                timeoutSeconds - BACKGROUND_WAIT_HEADROOM_SECONDS);
+                sessionTimeoutSeconds - BACKGROUND_WAIT_HEADROOM_SECONDS);
+    }
+
+    /** The pair of clocks a session runs against on this configuration. */
+    public SessionLimits sessionLimits() {
+        return sessionLimitsWithTimeout(timeoutSeconds);
+    }
+
+    /**
+     * The same pair for a session allowed to live longer (or shorter) than the
+     * configured timeout — the only way to build a {@link SessionLimits}, so a caller
+     * that changes the ceiling gets a wait that matches it rather than one left behind.
+     */
+    public SessionLimits sessionLimitsWithTimeout(long sessionTimeoutSeconds) {
+        return new SessionLimits(sessionTimeoutSeconds,
+                backgroundWaitSecondsFor(sessionTimeoutSeconds));
     }
 
     /** What was configured, or {@code null} when the wait is derived from the timeout. */

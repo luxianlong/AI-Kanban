@@ -1,6 +1,7 @@
 package com.kanban.workflow;
 
 import com.kanban.worker.ClaudeSessionRunner;
+import com.kanban.worker.SessionLimits;
 import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -160,7 +161,7 @@ class WorkflowParallelExecutionTest {
      */
     private CountDownLatch arriveAndBlock(int arrivals, Set<File> workDirs) throws Exception {
         CountDownLatch allArrived = new CountDownLatch(arrivals);
-        when(runner.run(anyString(), anyString(), any(File.class), anyList())).thenAnswer(call -> {
+        when(runner.run(anyString(), anyString(), any(File.class), anyList(), any(SessionLimits.class))).thenAnswer(call -> {
             workDirs.add(call.getArgument(2));
             allArrived.countDown();
             allArrived.await(10, TimeUnit.SECONDS);

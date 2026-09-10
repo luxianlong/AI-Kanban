@@ -117,6 +117,25 @@ public class ClaudeSessionRunner {
      */
     public ProcessResult run(String sessionKey, String prompt, File workDir, List<String> sessionArgs)
             throws IOException, InterruptedException {
+        return run(sessionKey, prompt, workDir, sessionArgs, props.sessionLimits());
+    }
+
+    /**
+     * As {@link #run(String, String, File, List)}, but on clocks of the caller's
+     * choosing rather than the worker's configured ones.
+     *
+     * <p>This exists for the one session that is not the same size of job as the rest: a
+     * workflow step at the {@code ultracode} effort level, whose real work happens in
+     * sub-sessions it starts and which therefore has to outlive its own last turn by a
+     * long way (see {@code WorkflowRunnerService#limitsFor}). Both clocks travel
+     * together in {@link SessionLimits} because raising one without the other is the
+     * mismatch that has already cost two rounds of debugging — a step allowed to live
+     * for hours whose background work is killed after twenty-five minutes reports a
+     * promise as its answer.
+     */
+    public ProcessResult run(String sessionKey, String prompt, File workDir,
+                             List<String> sessionArgs, SessionLimits limits)
+            throws IOException, InterruptedException {
         if (!workDir.exists() && !workDir.mkdirs()) {
             liveLog.append(sessionKey, "! Could not create working directory " + workDir);
         }
@@ -140,10 +159,10 @@ public class ClaudeSessionRunner {
         // much shorter than the timeout enforced below and silent when it fires — see
         // WorkerProperties#getBackgroundWaitSeconds. Waiting is the whole point: work
         // that lands inside the ceiling gets the session another turn, and that turn is
-        // what the caller reads back. Unless it was configured outright the getter
-        // derives it from that same timeout, so the two can't drift apart.
+        // what the caller reads back. It comes from the same SessionLimits as the
+        // timeout below, which is what stops the two drifting apart.
         pb.environment().put("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS",
-                Long.toString(props.getBackgroundWaitSeconds() * 1000L));
+                Long.toString(limits.backgroundWaitSeconds() * 1000L));
         Process process = pb.start();
         process.getOutputStream().close();
         // Expose the live process so a user can stop this session on demand; always
@@ -159,7 +178,7 @@ public class ClaudeSessionRunner {
                     "claude-reader-" + sessionKey);
             reader.start();
 
-            boolean finished = process.waitFor(props.getTimeoutSeconds(), TimeUnit.SECONDS);
+            boolean finished = process.waitFor(limits.timeoutSeconds(), TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
                 process.waitFor(10, TimeUnit.SECONDS);

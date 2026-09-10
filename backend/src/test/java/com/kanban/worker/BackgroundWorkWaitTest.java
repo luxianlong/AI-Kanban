@@ -107,6 +107,20 @@ class BackgroundWorkWaitTest {
         return new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry());
     }
 
+    /** Worker properties pointed at the stub, so a test can build limits from them. */
+    private WorkerProperties stubProps(Path dir, long timeoutSeconds) {
+        WorkerProperties props = new WorkerProperties();
+        props.setClaudeCommand(dir.resolve("claude-stub.sh").toString());
+        props.setExtraArgs(List.of());
+        props.setWorkingDirectory(dir.toString());
+        props.setTimeoutSeconds(timeoutSeconds);
+        return props;
+    }
+
+    private ClaudeSessionRunner runnerOn(WorkerProperties props) {
+        return new ClaudeSessionRunner(props, new LiveLogRegistry(), new RunningSessionRegistry());
+    }
+
     /**
      * A wait that is deliberately not {@link WorkerProperties}' default.
      *
@@ -272,5 +286,47 @@ class BackgroundWorkWaitTest {
         assertThat(props.getConfiguredBackgroundWaitSeconds()).isNull();
         assertThat(props.getBackgroundWaitSeconds())
                 .isEqualTo(props.getTimeoutSeconds() - WorkerProperties.BACKGROUND_WAIT_HEADROOM_SECONDS);
+    }
+
+    @Test
+    void aSessionAllowedToLiveLongerThanTheWorkerWaitsLongerToo(@TempDir Path dir)
+            throws Exception {
+        // A workflow step at the ultracode effort level is given a multiple of the
+        // worker's timeout, because its real work happens in sub-sessions it starts and
+        // waits for. Giving it only the longer life would be worse than giving it
+        // nothing: it would sit for three hours with its sub-sessions killed at
+        // fifty-five minutes, and report the promise it wrote before the kill.
+        writeStub(dir, RESULT_EVENT);
+        WorkerProperties props = stubProps(dir, 3600);
+
+        runnerOn(props).run("node:1", "go", dir.toFile(), List.of(),
+                props.sessionLimitsWithTimeout(10_800));
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt")))
+                .as("the ceiling should follow the ceiling this session was given, not the worker's")
+                .isEqualTo("10500000")
+                .isNotEqualTo(Long.toString(props.getBackgroundWaitSeconds() * 1000L));
+    }
+
+    @Test
+    void theHardTimeoutAlsoComesFromTheLimitsTheSessionWasGiven(@TempDir Path dir)
+            throws Exception {
+        // The other clock, and the one the ultracode change is actually about. The
+        // properties here allow 1800s, so a runner still reading them would sit through
+        // the stub's sleep and come back clean — this only goes red-to-green on the
+        // limits being what waitFor() is handed.
+        Path stub = dir.resolve("claude-stub.sh");
+        Files.writeString(stub, "#!/bin/sh\nsleep 30\n");
+        assertThat(stub.toFile().setExecutable(true)).isTrue();
+        WorkerProperties props = stubProps(dir, 1800);
+
+        long startedAt = System.currentTimeMillis();
+        ProcessResult result = runnerOn(props).run("node:1", "go", dir.toFile(), List.of(),
+                props.sessionLimitsWithTimeout(1));
+
+        assertThat(result.timedOut()).isTrue();
+        assertThat(System.currentTimeMillis() - startedAt)
+                .as("killed on the second it was given, not on the worker's 1800")
+                .isLessThan(20_000);
     }
 }

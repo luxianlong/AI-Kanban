@@ -1,6 +1,7 @@
 package com.kanban.workflow;
 
 import com.kanban.worker.ClaudeSessionRunner;
+import com.kanban.worker.SessionLimits;
 import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +95,7 @@ class WorkflowAbandonedBackgroundWorkTest {
     void aStepWhoseBackgroundWorkWasKilledDoesNotPassOffItsPromiseAsTheAnswer() throws Exception {
         // Exactly what the CLI reports in this case: exit 0, a real cost, and an answer
         // that was written before the work behind it was destroyed.
-        when(runner.run(anyString(), anyString(), any(File.class), anyList()))
+        when(runner.run(anyString(), anyString(), any(File.class), anyList(), any(SessionLimits.class)))
                 .thenReturn(new ProcessResult(0, STAND_IN, false, 2.47, 139261L, true));
         Long run = queueChain();
 
@@ -121,7 +122,7 @@ class WorkflowAbandonedBackgroundWorkTest {
         // The control, and the case the raised ceiling is there to produce: the work
         // landed inside the wait, the session got another turn, and this is that turn.
         // The two runs differ in one boolean, so the guard cannot be passing on the text.
-        when(runner.run(anyString(), anyString(), any(File.class), anyList()))
+        when(runner.run(anyString(), anyString(), any(File.class), anyList(), any(SessionLimits.class)))
                 .thenReturn(new ProcessResult(0, "Gold rose through 2026 because…", false,
                         2.47, 139261L, false));
         Long run = queueChain();
