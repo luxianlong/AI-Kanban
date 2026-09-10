@@ -5,10 +5,11 @@ import Markdown from './Markdown.jsx'
 import { MaximizeButton } from './resultWindow.jsx'
 import { relTime, runMeta } from './time.js'
 import {
-  NODE_H, NODE_W, descendantsOf, edgePath, inRunOrder, layoutGraph, reachableFrom,
+  NODE_H, NODE_W, descendantsOf, edgePath, flowFor, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 import {
   entryNodeIdOf, followedNode, mergeExecutions, nodesWithStaleInput, outputPredatesSettings,
+  pollInterval,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
@@ -48,6 +49,26 @@ export const ULTRACODE_HINT =
   + 'that work. It is given several times the usual time limit for exactly that reason. '
   + 'Where ultracode is unavailable the step fails rather than quietly running at the '
   + 'default.'
+
+/**
+ * Whether this tab is on screen right now.
+ *
+ * `document.hidden` is the state; the hook is here to make it a state React
+ * re-renders on, so a poll can be a piece of the render rather than a timer that
+ * has to be told. Starts from the real value rather than assuming true — a page
+ * opened in a background tab is hidden from its first render.
+ */
+function usePageVisible() {
+  const [visible, setVisible] = useState(() => typeof document === 'undefined' || !document.hidden)
+  useEffect(() => {
+    const sync = () => setVisible(!document.hidden)
+    document.addEventListener('visibilitychange', sync)
+    // The browser can have hidden the page between the first render and this line.
+    sync()
+    return () => document.removeEventListener('visibilitychange', sync)
+  }, [])
+  return visible
+}
 
 // ---------------------------------------------------------------------------
 // Page
@@ -117,14 +138,57 @@ export default function WorkflowsPage({ onBack }) {
     })()
   }, [loadWorkflows, loadExecutions, loadFavorites])
 
+  // Everything on this page the server owns, re-read at once. The runs poll on
+  // their own; the workflow list and the favourites shelf never did, so until now a
+  // workflow created, renamed or deleted anywhere else — the other tab, the phone,
+  // a step that edited its own run — stayed invisible here until a manual reload.
+  //
+  // `draft` is deliberately left alone: it is what the user typed, and loadWorkflows
+  // only replaces the list beside it. Same rule the settings form follows — half-typed
+  // keystrokes outrank a refresh.
+  const refreshAll = useCallback(() => {
+    loadExecutions()
+    // Quietly: a background refresh that fails should leave what is on screen alone
+    // rather than paint an error over a page that is working.
+    loadWorkflows().catch(() => {})
+    loadFavorites().catch(() => {})
+  }, [loadExecutions, loadWorkflows, loadFavorites])
+
   // Runs advance on the server, so poll while any of them is still going. Once
   // everything is finished the page is static and the poll costs a request every
-  // 8s just to notice a run someone started elsewhere.
+  // 8s just to notice a run someone started elsewhere — and while the tab is out of
+  // sight it costs nothing, because it isn't running. See pollInterval.
+  const visible = usePageVisible()
   const anyLive = executions.some((e) => e.status === 'PENDING' || e.status === 'RUNNING')
+  const every = pollInterval(anyLive, !visible)
   useEffect(() => {
-    const t = setInterval(loadExecutions, anyLive ? 2500 : 8000)
+    if (!every) return undefined
+    const t = setInterval(loadExecutions, every)
     return () => clearInterval(t)
-  }, [loadExecutions, anyLive])
+  }, [loadExecutions, every])
+
+  // Catching up the moment the page is looked at again, which is the other half of
+  // not polling while it isn't. Two events, because they are two different ways of
+  // coming back and neither implies the other: `visibilitychange` is switching tabs
+  // or returning to the browser on a phone, `focus` is this window being brought to
+  // the front from behind another one — where the page was never hidden at all, so
+  // its poll kept running, but a window that has sat in the background for an hour
+  // has been running it at whatever rate the browser allowed.
+  //
+  // Two tabs of this page need no messaging of their own, unlike the board's
+  // BroadcastChannel: you can only read one of them at a time, and reading it is
+  // what fires this.
+  const wasVisible = useRef(visible)
+  useEffect(() => {
+    const back = visible && !wasVisible.current
+    wasVisible.current = visible
+    if (back) refreshAll()
+  }, [visible, refreshAll])
+  useEffect(() => {
+    const onFocus = () => refreshAll()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [refreshAll])
 
   const selectWorkflow = (workflow) => {
     setSelectedId(workflow.id)
@@ -879,11 +943,18 @@ const MIN_SCALE = 0.6
  * window scroll at once: the layout keeps its own units and only the rendered size
  * changes. It stops shrinking at MIN_SCALE, below which the labels stop being
  * words, and scrolls sideways from there.
+ *
+ * In a column too narrow for any of that to help — a phone, or the executions pane
+ * — it turns ninety degrees and runs downwards instead (see flowFor). A picture
+ * that is as long as the workflow was the whole problem: sideways it is three
+ * screens of blind panning at a size the labels can't survive, and the panning is
+ * inside a 136px slit that a thumb hits by accident while scrolling the page.
+ * Downwards it is as wide as the widest fan-out, which nearly always fits, so the
+ * labels stay full size and reaching the last step is an ordinary scroll.
  */
 function WorkflowGraph({
   nodes, entryNodeId, reachable, selectedId, onSelect, statuses, label,
 }) {
-  const layout = useMemo(() => layoutGraph(nodes), [nodes])
   // The number on a box is the step's place in run order, which is what the
   // picture is arranged by — not the order the steps happen to be stored in.
   const order = useMemo(
@@ -894,29 +965,41 @@ function WorkflowGraph({
   // run has one) and duplicate SVG ids resolve to whichever came first.
   const arrow = `wf-arrow-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
-  // Fit the drawing to the room it has. clientWidth is the scroll box's own padding
-  // box, so it stays the width of the space available however wide the SVG inside it
-  // grows — scrollWidth is the one that would report the graph back to us.
+  // The room the drawing has to work with. clientWidth is the scroll box's own
+  // padding box, so it stays the width of the space available however wide the SVG
+  // inside it grows — scrollWidth is the one that would report the graph back to us.
+  //
+  // Null until it has been measured, which is the one render where the flow and the
+  // scale are guesses. Both guess "desktop", so the case that flickers is a phone,
+  // and it flickers from a picture it could not have read anyway.
   const boxRef = useRef(null)
-  const [scale, setScale] = useState(1)
+  const [room, setRoom] = useState(null)
   useEffect(() => {
     const el = boxRef.current
     if (!el) return undefined
-    const fit = () => {
+    const measure = () => {
       const pad = getComputedStyle(el)
-      const room = el.clientWidth
+      const inner = el.clientWidth
         - (parseFloat(pad.paddingLeft) || 0) - (parseFloat(pad.paddingRight) || 0)
-      if (room > 0) setScale(Math.min(1, Math.max(MIN_SCALE, room / layout.width)))
+      if (inner > 0) setRoom(inner)
     }
-    fit()
+    measure()
     if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', fit)
-      return () => window.removeEventListener('resize', fit)
+      window.addEventListener('resize', measure)
+      return () => window.removeEventListener('resize', measure)
     }
-    const observer = new ResizeObserver(fit)
+    const observer = new ResizeObserver(measure)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [layout.width])
+  }, [])
+
+  // Which way the picture runs, and how far it had to shrink to fit. Both are read
+  // off `room` rather than stored, so neither can be left behind by the other — a
+  // scale measured against the sideways layout while the downwards one is on screen
+  // would size the SVG from the wrong number.
+  const flow = flowFor(room)
+  const layout = useMemo(() => layoutGraph(nodes, flow), [nodes, flow])
+  const scale = room == null ? 1 : Math.min(1, Math.max(MIN_SCALE, room / layout.width))
 
   // Still too wide to fit at MIN_SCALE: it scrolls sideways, and "Add step" selects
   // the step it just made — which would otherwise appear off the right edge and
@@ -945,7 +1028,7 @@ function WorkflowGraph({
   if (!nodes.length) return null
 
   return (
-    <div className="wf-graph" ref={boxRef}>
+    <div className={`wf-graph ${flow === 'tb' ? 'down' : ''}`} ref={boxRef}>
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
         width={Math.round(layout.width * scale)}
@@ -976,7 +1059,7 @@ function WorkflowGraph({
               key={`${edge.from}-${edge.to}`}
               className={`wf-edge ${touches(edge, selectedId) ? 'on' : ''}`}
               markerEnd={`url(#${arrow})`}
-              d={edgePath(edge.points)}
+              d={edgePath(edge.points, flow)}
             />
           ))}
 
@@ -1359,6 +1442,12 @@ function NodeRun({
     setKept(null)
     let cancelled = false
     const tick = async () => {
+      // Nobody is reading a tab that is out of sight, and this fetches a transcript
+      // that can run to 200 KB every 1.5 seconds. So it doesn't, and the listener
+      // below makes the box current the instant the page is looked at again rather
+      // than up to one tick later — the same bargain the runs poll strikes in
+      // pollInterval, for the same reason: a background timer is not a poll.
+      if (document.hidden) return
       try {
         const { log: text } = await api.nodeRunLog(runIdRef.current)
         // Same transcript as last tick: leave the <pre> alone. Re-setting it would
@@ -1370,7 +1459,14 @@ function NodeRun({
     }
     tick()
     const t = setInterval(tick, 1500)
-    return () => { cancelled = true; clearInterval(t) }
+    // Deliberately the same `tick`, not a fresh fetch: it already knows to do
+    // nothing when the event was the page being hidden.
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      cancelled = true
+      clearInterval(t)
+      document.removeEventListener('visibilitychange', tick)
+    }
   }, [running])
 
   // The transcript of a step that has already finished. While it ran it streamed into

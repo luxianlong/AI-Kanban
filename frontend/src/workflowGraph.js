@@ -14,8 +14,13 @@ export const NODE_W = 152
 export const NODE_H = 46
 const COL_GAP = 62
 const ROW_GAP = 20
-const PAD_X = 14
-const PAD_Y = 14
+const PAD = 14
+/**
+ * Gap between one depth and the next when the picture flows downwards. Smaller than
+ * COL_GAP because it separates boxes across their short side: 62px of air between
+ * 46px boxes would read as a list of unrelated cards rather than a chain.
+ */
+const TB_DEPTH_GAP = 38
 /**
  * Room an edge reserves in every column it flies over. An edge that skips a column
  * used to be drawn straight through it, across whatever box happened to sit in the
@@ -104,6 +109,60 @@ export function reachableFrom(nodes, entryNodeId) {
 }
 
 /**
+ * The two directions the picture can flow, and the sizes that go with each.
+ *
+ * The layout below is written once, in the two directions that actually matter to
+ * it: `along` is the way depth advances, `across` is the way the steps at one depth
+ * are stacked. `at()` turns that pair back into a screen point, and is the only
+ * place either arrangement knows about x and y.
+ *
+ * `lr` is the desktop picture — depth runs rightwards, which is how a chain of
+ * prompts reads. `tb` is for a column too narrow for that: depth runs downwards, so
+ * the picture is as wide as its widest fan-out rather than as wide as it is long,
+ * and the thing you have to do to see the far end is scroll the page — which is the
+ * one gesture a phone is good at.
+ */
+const FLOWS = {
+  lr: {
+    alongSize: NODE_W,
+    acrossSize: NODE_H,
+    alongGap: COL_GAP,
+    at: (along, across) => ({ x: along, y: across }),
+  },
+  tb: {
+    alongSize: NODE_H,
+    acrossSize: NODE_W,
+    alongGap: TB_DEPTH_GAP,
+    at: (along, across) => ({ x: across, y: along }),
+  },
+}
+
+/** The flows a caller may ask for, for anything that wants to offer the choice. */
+export const FLOW_NAMES = Object.keys(FLOWS)
+
+/**
+ * Width below which a left-to-right picture has stopped being worth drawing. A
+ * phone gives the graph about 330–356px; the widest a box plus its neighbour's
+ * arrow needs is a little over 200, so anything under this can hold two steps at
+ * most before it is all scrolling.
+ */
+export const NARROW_ROOM = 560
+
+/**
+ * Which way to draw, given the width the picture has to work with (null while that
+ * is still unmeasured).
+ *
+ * Deliberately a function of the room alone and not of how big the graph is: a rule
+ * like "flow downwards once it no longer fits" would put the common desktop pane
+ * widths right on its own threshold, so adding a step — or nudging the window a few
+ * pixels — would swing the whole picture through ninety degrees. Keyed on the column
+ * it lives in, the arrangement is a property of where you are reading it.
+ */
+export function flowFor(room) {
+  return room != null && room < NARROW_ROOM ? 'tb' : 'lr'
+}
+
+/**
  * Where everything goes: one column per depth, and inside a column the rows follow
  * the average height of whatever feeds the node. That last part is what stops a
  * fan-out from crossing its own edges — without it, rows are insertion order and
@@ -116,11 +175,17 @@ export function reachableFrom(nodes, entryNodeId) {
  *
  * Columns are centred against the tallest one so a join reads as a join.
  *
+ * `flow` picks the direction depth advances in: 'lr' (the default) or 'tb'. It only
+ * changes where the boxes are put — the box itself is NODE_W by NODE_H either way,
+ * and every id, edge and ordering decision is the same, so a picture drawn one way
+ * is the same graph as the picture drawn the other.
+ *
  * Returns { positions: Map<id, {x, y}>, edges: [{from, to, points}], width, height }
  * — `positions` is the top-left corner of each box, `points` the polyline an edge
  * is drawn along (see edgePath).
  */
-export function layoutGraph(nodes) {
+export function layoutGraph(nodes, flow = 'lr') {
+  const f = FLOWS[flow] || FLOWS.lr
   const depth = depths(nodes)
   const known = new Set(nodes.map((n) => n.id))
   const depthOf = (id) => depth.get(id) ?? 0
@@ -150,7 +215,7 @@ export function layoutGraph(nodes) {
     add(depthOf(node.id), {
       id: node.id,
       box: true,
-      h: NODE_H,
+      h: f.acrossSize,
       index,
       after: edges
         .filter((edge) => edge.to === node.id)
@@ -170,41 +235,45 @@ export function layoutGraph(nodes) {
     })
   })
 
-  const stackHeight = (column) =>
+  const stackWidth = (column) =>
     column.reduce((sum, item) => sum + item.h, 0) + ROW_GAP * (column.length - 1)
-  const tallest = Math.max(NODE_H, ...columns.filter(Boolean).map(stackHeight))
+  const widest = Math.max(f.acrossSize, ...columns.filter(Boolean).map(stackWidth))
 
   const positions = new Map() // box id -> top-left corner
+  const spot = new Map() // box id -> the same corner, still in along/across
   const lanes = new Map() // lane id -> where the edge runs while crossing that column
   const middle = new Map() // every item id -> its centre line, for ordering the next column
 
   columns.forEach((column, d) => {
     if (!column) return
     const rowKey = (item) => {
-      const placed = item.after.map((id) => middle.get(id)).filter((y) => y != null)
-      // Nothing placed to the left: fall back to the order the steps were written.
+      const placed = item.after.map((id) => middle.get(id)).filter((v) => v != null)
+      // Nothing placed before it: fall back to the order the steps were written.
       return placed.length
-        ? placed.reduce((sum, y) => sum + y, 0) / placed.length
-        : PAD_Y + item.index * (NODE_H + ROW_GAP)
+        ? placed.reduce((sum, v) => sum + v, 0) / placed.length
+        : PAD + item.index * (f.acrossSize + ROW_GAP)
     }
-    const x = PAD_X + d * (NODE_W + COL_GAP)
-    let y = PAD_Y + (tallest - stackHeight(column)) / 2
+    const along = PAD + d * (f.alongSize + f.alongGap)
+    let across = PAD + (widest - stackWidth(column)) / 2
     column
       .map((item) => ({ item, key: rowKey(item) }))
       .sort((a, b) => a.key - b.key || a.item.index - b.item.index)
       .forEach(({ item }) => {
-        if (item.box) positions.set(item.id, { x, y })
-        else lanes.set(item.id, { x, y: y + item.h / 2 })
-        middle.set(item.id, y + item.h / 2)
-        y += item.h + ROW_GAP
+        if (item.box) {
+          positions.set(item.id, f.at(along, across))
+          spot.set(item.id, { along, across })
+        } else lanes.set(item.id, { along, across: across + item.h / 2 })
+        middle.set(item.id, across + item.h / 2)
+        across += item.h + ROW_GAP
       })
   })
 
   // Which port an edge gets: the ones on a side are handed out in the order of
   // where the edges come from (or go to), so fanning them out never introduces a
   // crossing that wasn't already there.
-  const nextY = (edge) => (edge.lanes.length ? middle.get(edge.lanes[0].id) : middle.get(edge.to))
-  const prevY = (edge) =>
+  const nextAcross = (edge) =>
+    (edge.lanes.length ? middle.get(edge.lanes[0].id) : middle.get(edge.to))
+  const prevAcross = (edge) =>
     (edge.lanes.length ? middle.get(edge.lanes[edge.lanes.length - 1].id) : middle.get(edge.from))
   const rank = (side, sortBy) => {
     const slot = new Map()
@@ -224,37 +293,36 @@ export function layoutGraph(nodes) {
     })
     return { slot, count }
   }
-  const out = rank('from', nextY)
-  const into = rank('to', prevY)
-  const portY = (top, i, count) => {
-    if (count <= 1) return top + NODE_H / 2
-    const spread = Math.min(NODE_H - 2 * PORT_INSET, (count - 1) * PORT_STEP)
-    return top + NODE_H / 2 - spread / 2 + (spread * i) / (count - 1)
+  const out = rank('from', nextAcross)
+  const into = rank('to', prevAcross)
+  const port = (start, i, count) => {
+    if (count <= 1) return start + f.acrossSize / 2
+    const spread = Math.min(f.acrossSize - 2 * PORT_INSET, (count - 1) * PORT_STEP)
+    return start + f.acrossSize / 2 - spread / 2 + (spread * i) / (count - 1)
   }
 
   const drawn = []
   edges.forEach((edge) => {
-    const from = positions.get(edge.from)
-    const to = positions.get(edge.to)
+    const from = spot.get(edge.from)
+    const to = spot.get(edge.to)
     if (!from || !to) return
-    const points = [
-      { x: from.x + NODE_W, y: portY(from.y, out.slot.get(edge), out.count.get(edge.from)) },
-    ]
+    const leaves = port(from.across, out.slot.get(edge), out.count.get(edge.from))
+    const arrives = port(to.across, into.slot.get(edge), into.count.get(edge.to))
+    const points = [f.at(from.along + f.alongSize, leaves)]
     edge.lanes.forEach((lane) => {
       const at = lanes.get(lane.id)
-      if (at) points.push({ x: at.x, y: at.y }, { x: at.x + NODE_W, y: at.y })
+      if (at) points.push(f.at(at.along, at.across), f.at(at.along + f.alongSize, at.across))
     })
-    points.push({ x: to.x, y: portY(to.y, into.slot.get(edge), into.count.get(edge.to)) })
+    points.push(f.at(to.along, arrives))
     drawn.push({ from: edge.from, to: edge.to, points })
   })
 
   const cols = Math.max(1, columns.length)
-  return {
-    positions,
-    edges: drawn,
-    width: PAD_X * 2 + cols * NODE_W + (cols - 1) * COL_GAP,
-    height: PAD_Y * 2 + tallest,
-  }
+  const span = f.at(
+    PAD * 2 + cols * f.alongSize + (cols - 1) * f.alongGap,
+    PAD * 2 + widest,
+  )
+  return { positions, edges: drawn, width: span.x, height: span.y }
 }
 
 /**
@@ -262,16 +330,27 @@ export function layoutGraph(nodes) {
  * curve's handles sit at the midpoint of the segment, so a segment never strays
  * outside its own two points' bounding box — which is what lets the lanes above
  * promise that no edge is drawn across a box.
+ *
+ * `flow` must match the one the points were laid out with. It says which way a
+ * segment travels, and so which coordinate the handles are spread along: get it
+ * wrong and every curve bends the wrong way — the drawing still joins the right
+ * boxes, but the S-bends leave their own bounding box and can cross a step.
  */
-export function edgePath(points) {
+export function edgePath(points, flow = 'lr') {
   if (!points || points.length < 2) return ''
+  const down = flow === 'tb'
   const r = (n) => Math.round(n * 100) / 100
   let d = `M${r(points[0].x)} ${r(points[0].y)}`
   for (let i = 1; i < points.length; i += 1) {
     const a = points[i - 1]
     const b = points[i]
-    if (Math.abs(a.y - b.y) < 0.5) {
+    // Straight while the across-coordinate holds still: y flowing rightwards, x
+    // flowing downwards.
+    if (Math.abs(down ? a.x - b.x : a.y - b.y) < 0.5) {
       d += ` L${r(b.x)} ${r(b.y)}`
+    } else if (down) {
+      const mid = r((a.y + b.y) / 2)
+      d += ` C${r(a.x)} ${mid}, ${r(b.x)} ${mid}, ${r(b.x)} ${r(b.y)}`
     } else {
       const mid = r((a.x + b.x) / 2)
       d += ` C${mid} ${r(a.y)}, ${mid} ${r(b.y)}, ${r(b.x)} ${r(b.y)}`
