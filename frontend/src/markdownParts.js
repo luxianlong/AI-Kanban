@@ -32,6 +32,36 @@ export function colorSpanParts(m) {
   return { color: (m[1] || m[3]).toLowerCase(), inner: m[2] ?? m[4] }
 }
 
+// --- inline HTML -------------------------------------------------------------
+// Markdown has no underline, so a step told to "mark every line you added"
+// answers with <u>…</u> — and those tags used to show up as literal text in the
+// result panel. Same shapes for the same reason: strikethrough and highlight
+// have no syntax here either, and a model that has already typed one HTML tag
+// tends to type <b>/<i> as well.
+//
+// The rule is the colour spans' rule: an allow-list of formatting tags carrying
+// no attributes, each mapped to an element we chose. Nothing the model wrote
+// reaches an attribute, so this adds no more injection surface than **bold**.
+const INLINE_HTML_TAGS = {
+  u: 'u',
+  mark: 'mark',
+  b: 'strong',
+  strong: 'strong',
+  i: 'em',
+  em: 'em',
+  s: 'del',
+  del: 'del',
+  strike: 'del',
+}
+
+// The backreference is what keeps <b>x</i> from matching: an unclosed tag stays
+// literal text rather than swallowing the rest of the paragraph.
+export const INLINE_HTML_RE = /<(u|mark|b|strong|i|em|s|del|strike)\s*>([\s\S]*?)<\/\1\s*>/i
+
+export function inlineHtmlParts(m) {
+  return { tag: INLINE_HTML_TAGS[m[1].toLowerCase()], inner: m[2] }
+}
+
 // --- tables ------------------------------------------------------------------
 // A leading pipe is required so that prose containing " | " isn't mistaken for
 // a table; the block is only accepted once the delimiter row parses, which is

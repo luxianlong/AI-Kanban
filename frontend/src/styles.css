@@ -1082,6 +1082,17 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .md-mark-red { color: var(--fail-ink); }
 .md-mark-green { color: var(--done-ink); }
 
+/* Inline HTML the model reaches for where Markdown offers no syntax: <u> to
+   mark what it added, <mark> to highlight, <del>/<s> to strike out. The browser
+   already underlines and strikes through; only the highlight needs a colour,
+   and the default black-on-yellow is louder than anything else in a result. */
+.md mark {
+  background: #fff3bf;
+  color: inherit;
+  padding: 0 2px;
+  border-radius: var(--r-xs);
+}
+
 .md-table-wrap { overflow-x: auto; margin: var(--s-3) 0; }
 .md-table { border-collapse: collapse; font-size: var(--f-sm); }
 .md-table th,

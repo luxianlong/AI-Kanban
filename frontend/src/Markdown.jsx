@@ -5,14 +5,24 @@
 // syntax. This renders the common subset to real React elements — no innerHTML, so
 // there's no XSS surface. Anything it doesn't recognise falls back to plain text.
 //
-// Diff blocks, colour spans and tables get the same treatment for a specific
-// reason: a workflow step asked to "show the changes in red and green" answers
-// in exactly those three shapes, and until they were handled the comparison
-// arrived as a wall of grey monospace.
+// Diff blocks, colour spans, inline HTML and tables get the same treatment for
+// a specific reason: a workflow step asked to "show the changes in red and
+// green" answers in exactly those shapes, and until they were handled the
+// comparison arrived as a wall of grey monospace — or, for a step told to
+// underline what it added, as visible <u> tags.
 
-import { COLOR_SPAN_RE, classifyDiffLine, colorSpanParts, parseTableBlock } from './markdownParts.js'
+import { createElement } from 'react'
 
-// --- inline: **bold**, *italic* / _italic_, `code`, [text](url) --------------
+import {
+  COLOR_SPAN_RE,
+  INLINE_HTML_RE,
+  classifyDiffLine,
+  colorSpanParts,
+  inlineHtmlParts,
+  parseTableBlock,
+} from './markdownParts.js'
+
+// --- inline: **bold**, *italic* / _italic_, `code`, [text](url), <u>…</u> ----
 // Returns an array of strings / React elements for a single line of text.
 function renderInline(text, keyPrefix) {
   // Ordered by precedence; each pattern captures its inner content.
@@ -26,6 +36,13 @@ function renderInline(text, keyPrefix) {
             {renderInline(inner, k)}
           </span>
         )
+      },
+    },
+    {
+      re: INLINE_HTML_RE,
+      node: (m, k) => {
+        const { tag, inner } = inlineHtmlParts(m)
+        return createElement(tag, { key: k }, renderInline(inner, k))
       },
     },
     { re: /`([^`]+)`/, node: (m, k) => <code key={k} className="md-code">{m[1]}</code> },
