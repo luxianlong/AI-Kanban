@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-page-ad60ff7a",
+    "title": "苹果手机发布会深入看点分析（配图版）",
+    "href": "/p/page-ad60ff7a.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-10T08:08:45.285Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/page-ad60ff7a.html",
+      "frontend/public/p/page-ad60ff7a.meta.json"
+    ]
+  },
+  {
     "id": "server-worker-split",
     "title": "How the board runs work",
     "href": "/docs/server-worker-split.html",
