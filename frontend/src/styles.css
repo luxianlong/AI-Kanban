@@ -1077,10 +1077,18 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .md-diff-del { color: #ffa198; background: rgba(248, 81, 73, 0.2); }
 .md-diff-meta { color: var(--faint); }
 
-/* Inline <span style="color:red"> from the model, mapped to our own palette. */
+/* Inline <span style="color:…"> from the model. Whatever colour it wrote is
+   snapped to one of these (markdownParts.js), so the value is always ours: it
+   sits in the board's palette and is always legible on the white result card,
+   which "#ffe066 because it looked nice in a terminal" would not be. */
 .md-mark { font-weight: 600; }
 .md-mark-red { color: var(--fail-ink); }
 .md-mark-green { color: var(--done-ink); }
+.md-mark-orange { color: #c2410c; }
+.md-mark-yellow { color: var(--warn-ink); }
+.md-mark-blue { color: var(--brand-ink); }
+.md-mark-purple { color: #6d28d9; }
+.md-mark-grey { color: var(--muted); }
 
 /* Inline HTML the model reaches for where Markdown offers no syntax: <u> to
    mark what it added, <mark> to highlight, <del>/<s> to strike out. The browser
