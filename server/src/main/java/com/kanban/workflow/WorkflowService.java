@@ -3,6 +3,7 @@ package com.kanban.workflow;
 import com.kanban.agent.AgentService;
 import com.kanban.protocol.WorkKind;
 import com.kanban.worker.LiveLogRegistry;
+import com.kanban.worker.SessionLogService;
 import com.kanban.workflow.WorkflowDtos.EdgeSpec;
 import com.kanban.workflow.WorkflowDtos.EditNodeRunRequest;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
@@ -41,6 +42,7 @@ public class WorkflowService {
     private final WorkflowExecutionRepository executions;
     private final NodeExecutionRepository nodeRuns;
     private final LiveLogRegistry liveLog;
+    private final SessionLogService sessionLogs;
     /** How Cancel reaches a step running on another machine — see {@link #cancel}. */
     private final AgentService agent;
 
@@ -49,13 +51,15 @@ public class WorkflowService {
 
     public WorkflowService(WorkflowRepository workflows, WorkflowNodeRepository nodes, WorkflowEdgeRepository edges,
                            WorkflowExecutionRepository executions, NodeExecutionRepository nodeRuns,
-                           LiveLogRegistry liveLog, AgentService agent) {
+                           LiveLogRegistry liveLog, SessionLogService sessionLogs,
+                           AgentService agent) {
         this.workflows = workflows;
         this.nodes = nodes;
         this.edges = edges;
         this.executions = executions;
         this.nodeRuns = nodeRuns;
         this.liveLog = liveLog;
+        this.sessionLogs = sessionLogs;
         this.agent = agent;
     }
 
@@ -988,14 +992,21 @@ public class WorkflowService {
         executions.delete(execution);
     }
 
-    /** Live transcript of one node's session, for polling while it runs. */
+    /**
+     * Transcript of one step's session: live while it runs, and the kept copy afterwards.
+     *
+     * <p>The step's {@code output} is the answer it handed on; this is how it got there.
+     * {@code archived} distinguishes "still being written" from "this is all of it" — see
+     * the same field on a task's log.
+     */
     public Map<String, Object> nodeLog(Long nodeRunId) {
         NodeExecution run = nodeRuns.findById(nodeRunId).orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND, "Node run not found: " + nodeRunId));
         return Map.of(
                 "id", run.getId(),
                 "status", run.getStatus(),
-                "log", liveLog.get(LiveLogRegistry.nodeKey(run.getId())));
+                "archived", sessionLogs.isArchived(run),
+                "log", sessionLogs.read(run));
     }
 
     private ExecutionView executionView(WorkflowExecution execution) {

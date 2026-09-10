@@ -10,6 +10,7 @@ import com.kanban.workflow.NodeExecutionRepository;
 import com.kanban.workflow.RunState;
 import com.kanban.workflow.WorkflowExecutionRepository;
 import com.kanban.worker.LiveLogRegistry;
+import com.kanban.worker.SessionLogService;
 import com.kanban.worker.WorkerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,17 +45,20 @@ public class LeaseReaper {
     private final LeaseRepository leases;
     private final TodoRepository todos;
     private final LiveLogRegistry liveLog;
+    private final SessionLogService sessionLogs;
     private final WorkerProperties workerProps;
     private final NodeExecutionRepository nodeRuns;
     private final WorkflowExecutionRepository executions;
     private final WorkflowGraphProgress graph;
 
     public LeaseReaper(LeaseRepository leases, TodoRepository todos, LiveLogRegistry liveLog,
+                       SessionLogService sessionLogs,
                        WorkerProperties workerProps, NodeExecutionRepository nodeRuns,
                        WorkflowExecutionRepository executions, WorkflowGraphProgress graph) {
         this.leases = leases;
         this.todos = todos;
         this.liveLog = liveLog;
+        this.sessionLogs = sessionLogs;
         this.workerProps = workerProps;
         this.nodeRuns = nodeRuns;
         this.executions = executions;
@@ -100,9 +104,10 @@ public class LeaseReaper {
                 + "Not re-run automatically, because it may already have done part of its work "
                 + "— retry the run if you decide another attempt is safe.");
         run.setFinishedAt(Instant.now());
-        nodeRuns.save(run);
         liveLog.append(LiveLogRegistry.nodeKey(run.getId()),
                 "✗ Worker '" + lease.getWorkerName() + "' stopped responding.");
+        sessionLogs.keep(run);
+        nodeRuns.save(run);
         executions.findById(run.getExecutionId()).ifPresent(graph::finishIfSettled);
         log.warn("Workflow node run #{} failed: worker '{}' stopped responding.",
                 run.getId(), lease.getWorkerName());
@@ -122,17 +127,19 @@ public class LeaseReaper {
                     + "automatically, because a worker that vanishes mid-run may already have "
                     + "done part of the work — re-running would duplicate it. Review what it "
                     + "produced and re-queue manually if needed.");
-            todos.save(todo);
             liveLog.append(todo.getId(),
                     "✗ Worker '" + worker + "' stopped responding; at the attempt cap, so this "
                             + "went to Needs Attention rather than being re-run.");
+            sessionLogs.keep(todo);
+            todos.save(todo);
             log.warn("Todo #{} routed to Needs Attention: worker '{}' went silent at the attempt cap.",
                     todo.getId(), worker);
         } else {
             todo.setStatus(TodoStatus.PENDING);
-            todos.save(todo);
             liveLog.append(todo.getId(),
                     "■ Worker '" + worker + "' stopped responding; requeued for another worker.");
+            sessionLogs.keep(todo);
+            todos.save(todo);
             log.info("Todo #{} requeued: worker '{}' stopped responding.", todo.getId(), worker);
         }
     }
