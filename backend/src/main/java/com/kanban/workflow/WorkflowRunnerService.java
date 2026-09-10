@@ -6,6 +6,7 @@ import com.kanban.worker.ClaudeSessionRunner;
 import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
 import com.kanban.worker.LiveLogRegistry;
 import com.kanban.worker.RunningSessionRegistry;
+import com.kanban.worker.SessionLimits;
 import com.kanban.worker.WorkerProperties;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -54,7 +55,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * starts and is drawn as such, but it is not given a stronger session than the rest: it
  * gets the same fence, the same prompt treatment and the same CLI flags. What a step
  * may differ in is what the workflow's author asked for — its own prompt and its own
- * effort level.
+ * effort level. The one thing that follows from the effort level rather than from the
+ * position is how long the step may live: an {@code ultracode} step is a step plus the
+ * sub-sessions it starts, so it is given a multiple of the ordinary ceiling and of the
+ * background wait that goes with it (see {@link #limitsFor}).
  *
  * <p><strong>Runs go in parallel; a single run stays sequential.</strong> The tick does
  * not run anything itself — it hands each eligible execution to a lane of a small pool
@@ -99,6 +103,13 @@ public class WorkflowRunnerService {
     private final boolean fenceReads;
 
     /**
+     * How much longer than {@code worker.timeout-seconds} an {@code ultracode} step may
+     * live — see {@link #limitsFor}. A multiplier rather than a number of seconds, so it
+     * follows whatever timeout is actually in force.
+     */
+    private final double ultracodeTimeoutMultiplier;
+
+    /**
      * Settings key that refuses file-tool reads (Read, Grep, Glob, LSP) outside the
      * session's working directory. Paired with {@link #workDirFor}, which gives every
      * node a directory of its own, this is what makes a node unable to see anything but
@@ -141,7 +152,9 @@ public class WorkflowRunnerService {
                                  ClaudeSessionRunner runner, LiveLogRegistry liveLog,
                                  RunningSessionRegistry sessions, WorkerProperties props,
                                  @Value("${workflow.max-concurrent-executions:4}") int maxConcurrentExecutions,
-                                 @Value("${workflow.node-fence-reads:true}") boolean fenceReads) {
+                                 @Value("${workflow.node-fence-reads:true}") boolean fenceReads,
+                                 @Value("${workflow.ultracode-timeout-multiplier:3}")
+                                 double ultracodeTimeoutMultiplier) {
         this.executions = executions;
         this.nodeRuns = nodeRuns;
         this.runner = runner;
@@ -150,6 +163,10 @@ public class WorkflowRunnerService {
         this.props = props;
         this.lanes = Math.max(1, maxConcurrentExecutions);
         this.fenceReads = fenceReads;
+        // Never below 1: ultracode is strictly more work than the level below it, so a
+        // configured 0.5 is a typo, and honouring it would give the step that fans out
+        // less time than the step that does not.
+        this.ultracodeTimeoutMultiplier = Math.max(1.0, ultracodeTimeoutMultiplier);
         this.pool = Executors.newFixedThreadPool(this.lanes, new LaneThreads());
     }
 
@@ -401,6 +418,7 @@ public class WorkflowRunnerService {
 
         EffortLevel effort = run.getEffort();
         List<String> sessionArgs = sessionArgsFor(effort);
+        SessionLimits limits = limitsFor(effort);
 
         String key = LiveLogRegistry.nodeKey(run.getId());
         liveLog.start(key);
@@ -413,11 +431,18 @@ public class WorkflowRunnerService {
         if (effort != null) {
             liveLog.append(key, "● Effort: " + effort.cliValue() + ".");
         }
+        // Only when it differs from every other step's. Saying "this one has longer" is
+        // worth a line precisely because a step that sits there for an hour looks stuck.
+        if (limits.timeoutSeconds() != props.getTimeoutSeconds()) {
+            liveLog.append(key, "● This step has " + limits.timeoutSeconds() + "s rather than the"
+                    + " usual " + props.getTimeoutSeconds() + "s, and may wait "
+                    + limits.backgroundWaitSeconds() + "s for work it starts in the background.");
+        }
         log.info("Workflow execution #{}: running node \"{}\".", execution.getId(), run.getNodeName());
 
         try {
-            ProcessResult result =
-                    runner.run(key, buildPrompt(run, input), workDirFor(execution, run), sessionArgs);
+            ProcessResult result = runner.run(key, buildPrompt(run, input),
+                    workDirFor(execution, run), sessionArgs, limits);
             // Added to, not replaced: on a retried node these are what the node has
             // cost across every attempt. An attempt that failed was billed all the
             // same, and a total that quietly forgot it would understate the run.
@@ -440,7 +465,7 @@ public class WorkflowRunnerService {
             }
             String output = result.finalOutput() == null ? "" : result.finalOutput();
             if (result.timedOut()) {
-                failNode(run, key, "Timed out after " + props.getTimeoutSeconds() + "s.");
+                failNode(run, key, "Timed out after " + limits.timeoutSeconds() + "s.");
             } else if (result.exitCode() != 0) {
                 failNode(run, key, "Claude exited with code " + result.exitCode() + ".\n\n" + output);
             } else if (result.abandonedBackgroundWork()) {
@@ -454,7 +479,7 @@ public class WorkflowRunnerService {
                 // their own outputs, so one abandoned step quietly spoils a whole run.
                 failNode(run, key, "The step ended while background work it had started was"
                         + " still running, so the CLI terminated that work after "
-                        + props.getBackgroundWaitSeconds() + "s.\n\nWhat the step replied was"
+                        + limits.backgroundWaitSeconds() + "s.\n\nWhat the step replied was"
                         + " written before then and describes results it never received, so it"
                         + " is not passed on:\n\n" + output);
             } else if (output.contains(ClaudeSessionRunner.FAIL_SENTINEL)) {
@@ -588,6 +613,50 @@ public class WorkflowRunnerService {
             body = handed + "\n\n" + instructions;
         }
         return body;
+    }
+
+    /**
+     * How long this step's session may live, and how long it may wait for work it hands
+     * to the background — the worker's configured clocks for every level but one.
+     *
+     * <p>{@link EffortLevel#ULTRACODE} gets a multiple of them, because it is the one
+     * level that changes <em>what a step is</em> rather than how long it thinks. The
+     * other five spend their whole allowance inside one session's turns, so the timeout
+     * that fits a step at {@code max} fits a step at {@code low} too — it is the same
+     * shape of work, done more carefully. An ultracode step instead hands its real work
+     * to sub-sessions and then waits: its wall-clock is that nested work's wall-clock
+     * plus its own, and each of those sub-sessions is doing a job the size of an
+     * ordinary step. Measuring it against one step's ceiling is measuring the wrong
+     * thing, and the step is killed at the ceiling holding nothing — having been billed
+     * for everything the sub-sessions did before the kill, which is the expensive way to
+     * find out.
+     *
+     * <p>A <em>multiplier</em> and not a number of seconds. The live backend is launched
+     * with {@code --worker.timeout-seconds=3600}, overriding the 1800 in the yml, so any
+     * absolute figure written here would be right in one of those two worlds and wrong
+     * in the other — and could quietly end up <em>shorter</em> than an ordinary step's
+     * timeout, which is the opposite of this method. Expressed as a multiple it follows
+     * whatever timeout is in force, which is the same rule the background wait already
+     * follows and for the same reason.
+     *
+     * <p>The wait comes from {@link WorkerProperties#sessionLimitsWithTimeout} rather
+     * than being computed here, so lengthening the step lengthens what the step may wait
+     * for. Getting only half of that would leave an ultracode step alive for three hours
+     * with its sub-sessions killed at fifty-five minutes — which does not fail, it
+     * reports the step's "I'll report back when it lands" sentence as the answer and
+     * hands that down every edge below it.
+     *
+     * <p>Set {@code workflow.ultracode-timeout-multiplier: 1} to turn this off; values
+     * below 1 are clamped to it. Note the cost of a large one: a step holds its lane for
+     * as long as it runs, and there are only {@code workflow.max-concurrent-executions}
+     * of those.
+     */
+    SessionLimits limitsFor(EffortLevel effort) {
+        if (effort != EffortLevel.ULTRACODE) {
+            return props.sessionLimits();
+        }
+        return props.sessionLimitsWithTimeout(
+                Math.round(props.getTimeoutSeconds() * ultracodeTimeoutMultiplier));
     }
 
     /**

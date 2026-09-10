@@ -43,8 +43,10 @@ export const EFFORT_HINT =
 export const ULTRACODE_HINT =
   'Ultracode is not one step above max. It is xhigh thinking plus sub-sessions this '
   + 'step can hand work out to, so it changes how many sessions the step is — the '
-  + 'most expensive option here by some way. Where ultracode is unavailable the step '
-  + 'fails rather than quietly running at the default.'
+  + 'most expensive option here by some way, and the slowest, since the step waits for '
+  + 'that work. It is given several times the usual time limit for exactly that reason. '
+  + 'Where ultracode is unavailable the step fails rather than quietly running at the '
+  + 'default.'
 
 // ---------------------------------------------------------------------------
 // Page
@@ -689,7 +691,8 @@ function NodeEditor({
           <span className="wf-effort-note">
             {node.effort === ULTRACODE
               ? 'Runs at ultracode: xhigh thinking plus sub-sessions it can hand work '
-                + 'out to. The most expensive level, and it fails outright where '
+                + 'out to, with several times the usual time limit because it waits for '
+                + 'them. The most expensive level, and it fails outright where '
                 + 'ultracode is unavailable rather than falling back to the default.'
               : `Runs at ${node.effort} instead of the default.`}
           </span>

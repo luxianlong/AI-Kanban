@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.kanban.worker.ClaudeSessionRunner;
 import com.kanban.worker.ClaudeSessionRunner.ProcessResult;
+import com.kanban.worker.SessionLimits;
+import com.kanban.worker.WorkerProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,9 @@ class WorkflowNodeSessionTest {
     @Autowired
     NodeExecutionRepository nodeRuns;
 
+    @Autowired
+    WorkerProperties props;
+
     @MockBean
     ClaudeSessionRunner runner;
 
@@ -64,6 +69,7 @@ class WorkflowNodeSessionTest {
     private final Map<String, List<String>> argsByNode = new ConcurrentHashMap<>();
     private final Map<String, String> promptByNode = new ConcurrentHashMap<>();
     private final Map<String, File> workDirByNode = new ConcurrentHashMap<>();
+    private final Map<String, SessionLimits> limitsByNode = new ConcurrentHashMap<>();
 
     @BeforeEach
     void clearQueue() throws Exception {
@@ -73,6 +79,7 @@ class WorkflowNodeSessionTest {
         argsByNode.clear();
         promptByNode.clear();
         workDirByNode.clear();
+        limitsByNode.clear();
     }
 
     /**
@@ -80,12 +87,17 @@ class WorkflowNodeSessionTest {
      * repositories, with the entry snapshotted as a real run has it.
      */
     private Long queueChain() {
+        return queueChain(null);
+    }
+
+    /** The same chain with the first step at {@code effort} and the second left alone. */
+    private Long queueChain(EffortLevel entryEffort) {
         WorkflowExecution execution = executions.save(
                 new WorkflowExecution("wf-a", "Research", "gold prices in 2026"));
         execution.setEntryNodeId("a");
         executions.save(execution);
         nodeRuns.save(new NodeExecution(execution.getId(),
-                new WorkflowNode("a", "wf-a", "Collect", "Find the sources", null, null, null),
+                new WorkflowNode("a", "wf-a", "Collect", "Find the sources", entryEffort, null, null),
                 List.of(), 0));
         nodeRuns.save(new NodeExecution(execution.getId(),
                 new WorkflowNode("b", "wf-a", "Summarise", "Summarise the input", null, null, null),
@@ -98,12 +110,14 @@ class WorkflowNodeSessionTest {
      * handed, since that is what tells the two steps apart on the runner's own signature.
      */
     private void recordSessions() throws Exception {
-        when(runner.run(anyString(), anyString(), any(File.class), anyList())).thenAnswer(call -> {
+        when(runner.run(anyString(), anyString(), any(File.class), anyList(),
+                any(SessionLimits.class))).thenAnswer(call -> {
             String prompt = call.getArgument(1);
             String node = prompt.contains("Find the sources") ? "Collect" : "Summarise";
             promptByNode.put(node, prompt);
             workDirByNode.put(node, call.getArgument(2));
             argsByNode.put(node, call.getArgument(3));
+            limitsByNode.put(node, call.getArgument(4));
             return new ProcessResult(0, "done", false, 0.01, 5L, false);
         });
     }
@@ -176,6 +190,43 @@ class WorkflowNodeSessionTest {
         assertThat(promptByNode.get("Summarise"))
                 .doesNotContain("chrome-devtools")
                 .endsWith("Summarise the input");
+    }
+
+    @Test
+    void anUltracodeStepIsHandedLongerClocksThanTheStepBesideIt() throws Exception {
+        // The claim the pure test cannot make: limitsFor() could compute the longer
+        // ceiling perfectly and runNode could still hand the CLI the worker's own, which
+        // is what it did before this change and what nothing would have noticed.
+        recordSessions();
+        Long run = queueChain(EffortLevel.ULTRACODE);
+
+        runToCompletion(run);
+
+        SessionLimits collect = limitsByNode.get("Collect");
+        SessionLimits summarise = limitsByNode.get("Summarise");
+        assertThat(collect.timeoutSeconds())
+                .as("the ultracode step should outlive an ordinary one")
+                .isGreaterThan(summarise.timeoutSeconds());
+        assertThat(summarise)
+                .as("a step with no level set is unaffected by this")
+                .isEqualTo(props.sessionLimits());
+    }
+
+    @Test
+    void theLongerStepMayAlsoWaitLongerForTheSubSessionsItStarts() throws Exception {
+        // Half of this change would be worse than none of it. A step alive for three
+        // hours whose background work is killed at fifty-five minutes does not fail: it
+        // reports the "I'll report back" sentence it wrote before the kill, and every
+        // step below it is handed that instead of an answer.
+        recordSessions();
+        Long run = queueChain(EffortLevel.ULTRACODE);
+
+        runToCompletion(run);
+
+        SessionLimits ultracode = limitsByNode.get("Collect");
+        assertThat(ultracode.backgroundWaitSeconds())
+                .isGreaterThan(props.getBackgroundWaitSeconds())
+                .isLessThan(ultracode.timeoutSeconds());
     }
 
     /** The settings blob the CLI would parse out of the args a node was launched with. */

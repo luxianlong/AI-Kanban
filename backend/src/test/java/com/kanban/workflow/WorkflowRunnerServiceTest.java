@@ -3,6 +3,8 @@ package com.kanban.workflow;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.kanban.worker.SessionLimits;
+import com.kanban.worker.WorkerProperties;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -30,8 +32,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class WorkflowRunnerServiceTest {
 
-    private final WorkflowRunnerService service =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1, true);
+    private final WorkflowRunnerService service = serviceWith(new WorkerProperties(), 3);
+
+    /**
+     * The service on a given worker configuration and ultracode multiplier.
+     *
+     * <p>{@code buildPrompt}/{@code assembleInput}/{@code sessionArgsFor} touch none of
+     * the collaborators, so those stay null; {@code limitsFor} reads the properties and
+     * nothing else.
+     */
+    private static WorkflowRunnerService serviceWith(WorkerProperties props, double multiplier) {
+        return new WorkflowRunnerService(null, null, null, null, null, props, 1, true, multiplier);
+    }
 
     private WorkflowNode node(String id, String name, String prompt) {
         return node(id, name, prompt, null);
@@ -161,7 +173,7 @@ class WorkflowRunnerServiceTest {
 
     /** The fence off too — the only shape with no --settings at all. */
     private final WorkflowRunnerService unfenced =
-            new WorkflowRunnerService(null, null, null, null, null, null, 1, false);
+            new WorkflowRunnerService(null, null, null, null, null, null, 1, false, 3);
 
     private WorkflowExecution executionFrom(String entryNodeId) {
         WorkflowExecution execution = execution("gold prices in 2026");
@@ -394,5 +406,105 @@ class WorkflowRunnerServiceTest {
         // "default" is how the picker labels the empty choice, not a level to send.
         assertThatThrownBy(() -> EffortLevel.parse("default"))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // --- how long a step is allowed to take -----------------------------
+
+    @Test
+    void everyLevelButUltracodeRunsOnTheWorkersOwnClocks() {
+        // Five of the six are the same shape of work thought about for longer, so one
+        // ceiling fits them: a step at max is a step at low done more carefully, and
+        // giving each level its own timeout would be five numbers to keep in step.
+        WorkerProperties props = new WorkerProperties();
+        WorkflowRunnerService service = serviceWith(props, 3);
+
+        assertThat(service.limitsFor(null)).isEqualTo(props.sessionLimits());
+        for (EffortLevel level : EffortLevel.values()) {
+            if (level == EffortLevel.ULTRACODE) {
+                continue;
+            }
+            assertThat(service.limitsFor(level)).as("level=" + level)
+                    .isEqualTo(props.sessionLimits());
+        }
+    }
+
+    @Test
+    void anUltracodeStepIsGivenLongerBecauseItsRealWorkHappensInSubSessions() {
+        // It is not a step that thinks harder, it is a step plus the sessions it starts
+        // and then waits for. Measured against one step's ceiling it gets killed holding
+        // nothing — after being billed for everything those sub-sessions did first.
+        WorkerProperties props = new WorkerProperties();
+        props.setTimeoutSeconds(3600);
+
+        assertThat(serviceWith(props, 3).limitsFor(EffortLevel.ULTRACODE).timeoutSeconds())
+                .isEqualTo(10_800);
+    }
+
+    @Test
+    void theExtraTimeIsAMultipleOfWhateverTimeoutIsInForceRatherThanAFixedNumber() {
+        // scripts/env.sh launches the live backend with --worker.timeout-seconds=3600,
+        // overriding the 1800 in application.yml. A number of seconds written down here
+        // would be right in one of those two worlds and wrong in the other — and could
+        // end up SHORTER than an ordinary step's timeout, which is the opposite of the
+        // point. This is the same lesson the background wait already learned.
+        for (long timeout : new long[]{600, 1800, 3600, 7200}) {
+            WorkerProperties props = new WorkerProperties();
+            props.setTimeoutSeconds(timeout);
+            WorkflowRunnerService service = serviceWith(props, 3);
+
+            assertThat(service.limitsFor(EffortLevel.ULTRACODE).timeoutSeconds())
+                    .as("ultracode against a %ss timeout", timeout)
+                    .isEqualTo(timeout * 3)
+                    .isGreaterThan(service.limitsFor(EffortLevel.MAX).timeoutSeconds());
+        }
+    }
+
+    @Test
+    void aStepGivenLongerToLiveMayWaitLongerForTheWorkItStarts() {
+        // The half that would be silently useless on its own. An ultracode step alive for
+        // three hours whose sub-sessions are killed at fifty-five minutes does not fail —
+        // it reports the "I'll report back when it lands" sentence written before the
+        // kill, and hands that down every edge below it.
+        WorkerProperties props = new WorkerProperties();
+        props.setTimeoutSeconds(3600);
+        SessionLimits limits = serviceWith(props, 3).limitsFor(EffortLevel.ULTRACODE);
+
+        assertThat(limits.backgroundWaitSeconds())
+                .as("derived from this session's own ceiling, not the worker's")
+                .isEqualTo(10_500)
+                .isGreaterThan(props.getBackgroundWaitSeconds())
+                // Still short of the ceiling, so the CLI can wind up and say why it
+                // stopped instead of being force-killed with no cost and no reason.
+                .isLessThan(limits.timeoutSeconds());
+    }
+
+    @Test
+    void aWaitSomebodyPinnedIsStillTheWaitEvenForAnUltracodeStep() {
+        // Deriving is the default, not the only option: worker.background-wait-seconds is
+        // documented as pinning the wait regardless of the timeout, and 0 means "wait
+        // indefinitely". Scaling a number an operator wrote down would be inventing one.
+        WorkerProperties props = new WorkerProperties();
+        props.setTimeoutSeconds(3600);
+        props.setBackgroundWaitSeconds(900L);
+
+        SessionLimits limits = serviceWith(props, 3).limitsFor(EffortLevel.ULTRACODE);
+
+        assertThat(limits.timeoutSeconds()).isEqualTo(10_800);
+        assertThat(limits.backgroundWaitSeconds()).isEqualTo(900);
+    }
+
+    @Test
+    void aMultiplierOfOneTurnsTheWholeThingOffAndAnythingLowerIsClampedToIt() {
+        // 1 is the off switch and has to leave ultracode on exactly the ordinary clocks.
+        // Below 1 is a typo, and honouring it would give the step that fans out LESS time
+        // than the step that does not — the one outcome this must never produce.
+        WorkerProperties props = new WorkerProperties();
+
+        assertThat(serviceWith(props, 1).limitsFor(EffortLevel.ULTRACODE))
+                .isEqualTo(props.sessionLimits());
+        assertThat(serviceWith(props, 0.5).limitsFor(EffortLevel.ULTRACODE))
+                .isEqualTo(props.sessionLimits());
+        assertThat(serviceWith(props, 0).limitsFor(EffortLevel.ULTRACODE))
+                .isEqualTo(props.sessionLimits());
     }
 }

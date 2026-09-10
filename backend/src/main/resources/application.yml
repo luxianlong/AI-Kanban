@@ -145,7 +145,8 @@ worker:
 # runner's own pool and the scheduler thread returns immediately, so a nine-minute node
 # no longer blocks anything. This and the worker above also get a scheduler thread each
 # (spring.task.scheduling.pool.size above), so neither waits on the other. A node
-# inherits worker.timeout-seconds; it runs in a scratch directory of its OWN under
+# inherits worker.timeout-seconds (except at the ultracode effort level — see
+# ultracode-timeout-multiplier below); it runs in a scratch directory of its OWN under
 # java.io.tmpdir (<tmp>/kanban-workflow/run-<run>/node-<step>), not
 # worker.working-directory, and node-fence-reads below keeps it there.
 workflow:
@@ -173,6 +174,26 @@ workflow:
   # 1 restores the old strictly-serial behaviour. Lowered back to 2 from 4 to keep the
   # memory ceiling above comfortable — the paragraph above describes the earlier raise.
   max-concurrent-executions: 2
+  # How much longer than worker.timeout-seconds a step at the ULTRACODE effort level may
+  # live. Every other level spends its whole allowance inside one session's turns, so one
+  # timeout fits all of them — a step at max is a step at low done more carefully. An
+  # ultracode step is not that shape: it hands its real work to sub-sessions and waits,
+  # so its wall clock is the nested work's plus its own, and each of those sub-sessions
+  # is a job the size of an ordinary step. Against a single step's ceiling it gets killed
+  # holding nothing, having been billed for everything the sub-sessions did first.
+  #
+  # A multiplier, not a number of seconds, because scripts/env.sh launches the backend
+  # with --worker.timeout-seconds=3600 and overrides the 1800 above: an absolute figure
+  # would be right in one of those worlds and wrong in the other, and could end up
+  # SHORTER than an ordinary step's timeout. The DERIVED background wait scales with it
+  # (a pinned worker.background-wait-seconds still wins) — half of this change would be a
+  # step alive for three hours whose sub-sessions are killed at fifty-five minutes, and
+  # that does not fail, it reports the promise the step wrote before the kill.
+  #
+  # 1 turns it off; below 1 is clamped to 1. Raising it is not free: a step holds its
+  # lane for as long as it runs, and there are only max-concurrent-executions of those,
+  # so a long ultracode step at 2 lanes leaves one lane for everything else.
+  ultracode-timeout-multiplier: 3
   # --- What a step can SEE (every node, entry included) ---
   # Each step already runs in a scratch directory of its own. This is what keeps it
   # there: it passes permissions.blockReadsOutsideWorkingDirectories to the CLI, which

@@ -50,6 +50,13 @@ public enum EffortLevel {
      * {@code ProcessResult#abandonedBackgroundWork()}, which fails the step rather than
      * passing that sentence down the graph when the wait does run out.
      *
+     * <p>It is also the one level that changes how long a step needs, and not only how
+     * much it costs: waiting for sub-sessions is time on top of the step's own turns, so
+     * a step here is given {@code workflow.ultracode-timeout-multiplier} times the
+     * ordinary ceiling, and the same multiple of the wait above
+     * ({@code WorkflowRunnerService#limitsFor}). The other five levels all share one
+     * timeout, which is right: they are the same shape of work thought about for longer.
+     *
      * <p>It is missing from {@code claude --help}'s {@code (low, medium, high, xhigh,
      * max)} list, which is the whole reason it was absent here: the picker was built
      * from that help text, and the help text is incomplete. The flag itself works — an
