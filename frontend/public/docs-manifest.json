@@ -42,20 +42,6 @@
     ]
   },
   {
-    "id": "article-b25b68e6",
-    "title": "苹果手机发布会深入看点分析",
-    "href": "/docs/article-b25b68e6.html",
-    "deletable": true,
-    "file": "docs/article-b25b68e6.md",
-    "updatedAt": "2026-09-10T03:38:40.716Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/article-b25b68e6.md",
-      "frontend/public/docs/article-b25b68e6.html"
-    ]
-  },
-  {
     "id": "workflow-effort-ultracode",
     "title": "Ultracode and the workflow Effort picker",
     "href": "/docs/workflow-effort-ultracode.html",
