@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The worker service: claims work from the server's agent API, runs a headless Claude
+  Code session, reports the outcome back. Packaged as a fat jar so any box with a JDK 21
+  and the `claude` CLI can run one.
+
+  It has no database and no web server of its own — it only makes outbound calls, which
+  is what lets it sit behind NAT on someone's laptop.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.kanban</groupId>
+        <artifactId>kanban-parent</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
+    <artifactId>kanban-worker</artifactId>
+    <name>kanban-worker</name>
+    <description>Kanban worker: runs Claude Code sessions for work claimed from the server</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.kanban</groupId>
+            <artifactId>kanban-protocol</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <!-- The worker speaks JSON to the agent API and parses the CLI's stream-json events,
+             but has no web stack to bring Jackson in behind it. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

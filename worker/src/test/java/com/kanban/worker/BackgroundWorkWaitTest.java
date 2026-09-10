@@ -1,0 +1,243 @@
+package com.kanban.worker;
+
+import com.kanban.protocol.SessionLimitsDto;
+import com.kanban.worker.session.ClaudeSessionRunner;
+import com.kanban.worker.session.ClaudeSessionRunner.ProcessResult;
+import com.kanban.worker.session.RunningSessions;
+import com.kanban.worker.session.SessionSettings;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * What happens to a session that hands its real work to something running in the
+ * background — a dynamic workflow, a background sub-session — and then ends its turn.
+ *
+ * <p>The CLI waits for that work before exiting, and if it lands the session gets a
+ * fresh turn and writes a real answer. If the wait runs out, the CLI kills the work and
+ * reports the sentence the session wrote <em>before</em> the wait, which is a promise to
+ * report back. Nothing in the terminal {@code result} event distinguishes the two: the
+ * exit code is 0 and the run looks clean.
+ *
+ * <p>So both halves are pinned here — the ceiling the CLI is given, and the fact that
+ * hitting it is detected — against a stub CLI rather than mocks, because the whole point
+ * is what a real process is handed and what comes back over its stdout.
+ */
+class BackgroundWorkWaitTest {
+
+    /** The line the CLI prints, verbatim, when it stops waiting and kills the work. */
+    private static final String CEILING_HIT =
+            "Background tasks still running after 1500s; terminating."
+                    + " Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.";
+
+    /**
+     * What the session said before the wait. It reads as an answer and is stored as one
+     * — that is the whole failure this guards.
+     */
+    private static final String STAND_IN = "The workflow is running; I'll report back when it lands.";
+
+    private static final String RESULT_EVENT =
+            "{\"type\":\"result\",\"result\":\"" + STAND_IN + "\","
+                    + "\"total_cost_usd\":2.47,\"duration_ms\":139261}";
+
+    /**
+     * A stub {@code claude} that records the ceiling it was given and then prints the
+     * lines a real one prints, in the real order: the plain-text warning first, the
+     * stream-json result event last.
+     */
+    private void writeStub(Path dir, String... stdoutLines) throws Exception {
+        writeStub(dir, List.of(), List.of(stdoutLines));
+    }
+
+    /**
+     * Writes a stub CLI that prints {@code stderrLines} to stderr and {@code stdoutLines}
+     * to stdout, in that order.
+     *
+     * <p>Which stream a line goes to is not a detail here. The real CLI prints the
+     * abandoned-work warning on <b>stderr</b>, while its stream-json events come back on
+     * stdout, and {@link ClaudeSessionRunner} reads exactly one stream. Detection
+     * therefore works in production only because the runner sets
+     * {@code redirectErrorStream(true)} — and a stub that printed the warning to stdout
+     * would pass just the same with that redirect deleted, leaving the whole guard dead
+     * against a green suite.
+     */
+    private void writeStub(Path dir, List<String> stderrLines, List<String> stdoutLines)
+            throws Exception {
+        StringBuilder script = new StringBuilder("#!/bin/sh\n");
+        script.append("printf '%s' \"$CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS\" > ")
+                .append(dir.resolve("ceiling.txt")).append('\n');
+        for (String line : stderrLines) {
+            script.append("cat >&2 <<'CLAUDE_STUB_EOF'\n").append(line).append("\nCLAUDE_STUB_EOF\n");
+        }
+        for (String line : stdoutLines) {
+            script.append("cat <<'CLAUDE_STUB_EOF'\n").append(line).append("\nCLAUDE_STUB_EOF\n");
+        }
+        Path stub = dir.resolve("claude-stub.sh");
+        Files.writeString(stub, script.toString());
+        assertThat(stub.toFile().setExecutable(true)).isTrue();
+    }
+
+    /** A runner pointed at the stub, with the CLI's own args left off. */
+    private ClaudeSessionRunner runnerFor(Path dir) {
+        return new ClaudeSessionRunner(
+                new StubSettings(dir.resolve("claude-stub.sh").toString()),
+                (key, line) -> { },
+                new RunningSessions());
+    }
+
+    /**
+     * The clocks a unit arrives with.
+     *
+     * <p>On the server these two are derived together from whatever timeout is in force; here
+     * they are simply what the work unit said. That is the whole reason both travel together —
+     * a worker handed only one of them would be back in the failure this class guards, running
+     * a session for an hour while killing its background work after twenty-five minutes.
+     */
+    private SessionLimitsDto limits(long waitSeconds) {
+        return new SessionLimitsDto(600, waitSeconds);
+    }
+
+    /** The settings a worker is configured with, pointed at the stub. */
+    private record StubSettings(String command) implements SessionSettings {
+        @Override
+        public String claudeCommand() {
+            return command;
+        }
+
+        @Override
+        public List<String> extraArgs() {
+            return List.of();
+        }
+    }
+
+    /**
+     * A wait that is deliberately not {@link WorkerProperties}' default.
+     *
+     * <p>It has to be. A child process inherits its parent's environment, and the parent
+     * here is this project's own worker session, which sets
+     * {@code CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS} to exactly the default — so a stub
+     * asked about the default reads back the right number whether the runner set it or
+     * not. Asserting the default made this test pass with the runner's own
+     * {@code environment().put(...)} deleted, every time the suite ran through
+     * {@code scripts/deploy.sh}, which is every time it guards a release.
+     */
+    private static final long UNUSUAL_WAIT_SECONDS = 1234;
+
+    @Test
+    void aSessionIsAllowedToWaitForItsBackgroundWorkForAsLongAsTheConfigSays(@TempDir Path dir)
+            throws Exception {
+        // The CLI's own default is 600s. That is not a number this project chose, it is
+        // three times shorter than the timeout it enforces, and it is applied silently,
+        // so the ceiling has to be passed in rather than inherited.
+        writeStub(dir, RESULT_EVENT);
+
+        runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(UNUSUAL_WAIT_SECONDS));
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt")))
+                .as("the session should be given the configured wait, in milliseconds")
+                .isEqualTo("1234000");
+    }
+
+    @Test
+    void theWaitIsGivenToTheSessionRatherThanLeftToWhateverTheParentHappenedToExport(
+            @TempDir Path dir) throws Exception {
+        // The companion to the above, stated as its own rule because it is the one the
+        // inherited environment can hide: whatever this project configures has to reach
+        // the session, and it must not be possible to satisfy that by doing nothing.
+        writeStub(dir, RESULT_EVENT);
+        String inherited = System.getenv("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS");
+
+        runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(UNUSUAL_WAIT_SECONDS));
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt")))
+                .as("the configured wait must win over anything the parent exported (%s)", inherited)
+                .isEqualTo("1234000")
+                .isNotEqualTo(inherited);
+    }
+
+    @Test
+    void aCeilingOfZeroIsPassedThroughAsWaitIndefinitely(@TempDir Path dir) throws Exception {
+        // 0 is the CLI's own spelling of "no ceiling", so it has to survive the
+        // seconds-to-milliseconds conversion rather than becoming a zero-length wait.
+        writeStub(dir, RESULT_EVENT);
+
+        runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(0L));
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt"))).isEqualTo("0");
+    }
+
+    @Test
+    void aSessionThatRanOutOfPatienceIsNotReportedAsACleanFinish(@TempDir Path dir) throws Exception {
+        // Everything about this run looks successful: exit 0, a terminal result event, a
+        // cost, and an answer. The only thing that says otherwise is the warning line,
+        // and it is gone from the output by the time the caller sees it.
+        // The warning goes to stderr because that is where the real CLI puts it; the
+        // result event to stdout. The runner only sees both because it merges the two.
+        writeStub(dir, List.of(CEILING_HIT), List.of(RESULT_EVENT));
+
+        ProcessResult result = runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(1500));
+
+        assertThat(result.exitCode()).isZero();
+        assertThat(result.abandonedBackgroundWork()).isTrue();
+        // Why a flag is needed at all: the result event replaces the output wholesale,
+        // so looking for the warning in finalOutput afterwards finds nothing.
+        assertThat(result.finalOutput()).isEqualTo(STAND_IN).doesNotContain("Background tasks");
+    }
+
+    @Test
+    void aSessionThatFinishedItsOwnWorkIsNotAccusedOfAbandoningAny(@TempDir Path dir) throws Exception {
+        // The control. Identical run, one line short, and the flag has to be off — a
+        // guard that fired on every session would send healthy work to Needs Attention.
+        writeStub(dir, RESULT_EVENT);
+
+        ProcessResult result = runnerFor(dir).run("todo:1", "go", dir.toFile(), List.of(), limits(1500));
+
+        assertThat(result.abandonedBackgroundWork()).isFalse();
+        assertThat(result.finalOutput()).isEqualTo(STAND_IN);
+        assertThat(result.costUsd()).isEqualTo(2.47);
+    }
+
+    @Test
+    void aSessionAllowedToLiveLongerThanTheWorkerWaitsLongerToo(@TempDir Path dir)
+            throws Exception {
+        // A workflow step at the ultracode effort level is given a multiple of the
+        // worker's timeout, because its real work happens in sub-sessions it starts and
+        // waits for. Giving it only the longer life would be worse than giving it
+        // nothing: it would sit for three hours with its sub-sessions killed at
+        // fifty-five minutes, and report the promise it wrote before the kill.
+        writeStub(dir, RESULT_EVENT);
+
+        runnerFor(dir).run("node:1", "go", dir.toFile(), List.of(),
+                new SessionLimitsDto(10_800, 10_500));
+
+        assertThat(Files.readString(dir.resolve("ceiling.txt")))
+                .as("the ceiling should follow the ceiling this session was given")
+                .isEqualTo("10500000");
+    }
+
+    @Test
+    void theHardTimeoutAlsoComesFromTheLimitsTheSessionWasGiven(@TempDir Path dir)
+            throws Exception {
+        // The other clock, and the one the ultracode change is actually about. The
+        // properties here allow 1800s, so a runner still reading them would sit through
+        // the stub's sleep and come back clean — this only goes red-to-green on the
+        // limits being what waitFor() is handed.
+        Path stub = dir.resolve("claude-stub.sh");
+        Files.writeString(stub, "#!/bin/sh\nsleep 30\n");
+        assertThat(stub.toFile().setExecutable(true)).isTrue();
+
+        long startedAt = System.currentTimeMillis();
+        ProcessResult result = runnerFor(dir).run("node:1", "go", dir.toFile(), List.of(),
+                new SessionLimitsDto(1, 1));
+
+        assertThat(result.timedOut()).isTrue();
+        assertThat(System.currentTimeMillis() - startedAt)
+                .as("killed on the second it was given")
+                .isLessThan(20_000);
+    }
+}

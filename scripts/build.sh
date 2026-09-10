@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build + test the whole project. This is the guarded-deploy gate: it exits
-# non-zero if the backend tests fail or either build fails, so a broken change
+# non-zero if the Java tests fail or either build fails, so a broken change
 # never gets deployed.
 set -euo pipefail
 source "$(dirname "$0")/env.sh"
@@ -23,8 +23,12 @@ if [ -n "$TRACKED_DB" ]; then
 fi
 echo "✔ No database files tracked in git."
 
-echo "▶ Building backend (runs tests)…"
-( cd "$REPO/backend" && "$MVN" -q -B package )
+# The aggregator build, so protocol + server + worker are all compiled and tested by
+# the same gate. Building only the server would let a change that breaks the worker
+# module through, and the worker is the half nobody notices is broken until a job is
+# claimed and nothing happens.
+echo "▶ Building server + worker (runs tests)…"
+( cd "$REPO" && "$MVN" -q -B package )
 
 echo "▶ Building frontend…"
 ( cd "$REPO/frontend" && npm run build --silent )

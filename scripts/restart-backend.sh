@@ -26,3 +26,9 @@ if wait_for_backend; then
 else
   echo "$(date) WARNING: backend did not come back up — see $BACKEND_LOG"
 fi
+
+# Restart the worker too, so a deploy actually ships new worker code. A worker is a separate
+# process and would otherwise keep running the jar it started with — which is fine while it is
+# only this box, and exactly the problem the protocol version guards on machines a deploy
+# cannot reach.
+start_worker

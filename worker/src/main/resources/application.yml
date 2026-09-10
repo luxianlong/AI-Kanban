@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: kanban-worker
+  main:
+    banner-mode: off
+  lifecycle:
+    # A worker shutting down kills its session and hands the lease back. Give it room to do
+    # that: vanishing instead costs the board a minute of a card looking busy while the lease
+    # runs out.
+    timeout-per-shutdown-phase: 20s
+
+# --- Which board to serve, and how to prove we may ---
+worker:
+  server-url: http://localhost:8080
+  # Must match the server's agent.token. Supply it at launch (--worker.token=...) or through
+  # the environment; do not write a real token into this file, which is committed.
+  token: ""
+  # Shown on the board so a card says where it ran. Defaults to $HOSTNAME.
+  # name: laptop-01
+
+  # What this worker is willing and able to run.
+  #
+  # general and workflow are portable — any machine can do them. A repo:<name> capability is a
+  # claim about THIS machine: that the named repository is checked out at repo-directory and
+  # may be edited, built and deployed from here. The server only offers a project-improvement
+  # task to a worker declaring it, because such a task edits the working tree and runs the
+  # guarded deploy. Declaring one you cannot honour is how a task ends up trying to deploy from
+  # an empty directory.
+  capabilities:
+    - general
+    - workflow
+
+  # Working tree for units that need the repo. Only meaningful alongside a repo: capability.
+  # repo-directory: /home/you/Dashboard
+
+  # Everything else runs in a throwaway directory under here, one per unit — which is what
+  # makes the read fence the server sends mean anything per step.
+  scratch-root: ${java.io.tmpdir}/kanban-worker
+
+  # How often to ask for work when idle.
+  poll-interval-ms: 5000
+
+  # How often to check in while running. This is also how promptly a Stop from the board is
+  # noticed and how far behind the card's live log runs, so it wants to be a good deal shorter
+  # than the server's agent.lease-seconds — which is what each of these renews.
+  heartbeat-interval-ms: 3000
+
+  claude-command: claude
+  # Args before the prompt for every session. stream-json (+ --verbose) is what makes the CLI
+  # emit events as they happen, which is what the live log is made of. To let sessions edit
+  # files and run commands unattended, add --dangerously-skip-permissions — only ever pointed
+  # at a machine you are willing to hand over.
+  extra-args:
+    - "--output-format"
+    - "stream-json"
+    - "--verbose"
+
+logging:
+  level:
+    com.kanban: INFO

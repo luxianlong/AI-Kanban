@@ -9,6 +9,12 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export REPO="${REPO:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
+# Optional local overrides, gitignored. Somewhere to park a setting for the duration of
+# a working session without editing a tracked file — and, unlike an inline environment
+# variable, it survives the restarts that deploy.sh schedules on its own. Delete the
+# file to go back to the defaults below.
+[ -f "$REPO/scripts/local.env" ] && source "$REPO/scripts/local.env"
+
 # Toolchain. Prefer an explicit full JDK 21 (needs javac; a headless JRE won't build).
 # Probe the usual locations instead of trusting one hardcoded path: pointing
 # JAVA_HOME at a directory that doesn't exist silently falls through to whatever
@@ -28,7 +34,7 @@ if [ -z "${MVN:-}" ]; then
   if [ -x "$HOME/.local/apache-maven-3.9.9/bin/mvn" ]; then
     MVN="$HOME/.local/apache-maven-3.9.9/bin/mvn"
   else
-    MVN="$REPO/backend/mvnw"
+    MVN="$REPO/mvnw"
   fi
 fi
 export MVN
@@ -53,7 +59,7 @@ fi
 
 # Live H2 database directory. MUST be absolute: the JDBC url in application.yml
 # reads this, and a relative path would resolve against each launcher's cwd
-# (repo root for `java -jar`, backend/ for `mvnw spring-boot:run`) — which
+# (repo root for `java -jar`, server/ for `mvnw spring-boot:run`) — which
 # silently opened two different DB files and made the board "revert" after a
 # restart. Pinning it here keeps every launch on the one real database.
 export KANBAN_DATA_DIR="${KANBAN_DATA_DIR:-$REPO/data}"
@@ -85,24 +91,114 @@ export WORKER_WORK_DIR="${WORKER_WORK_DIR:-$REPO}"
 export WORKER_TIMEOUT="${WORKER_TIMEOUT:-3600}"
 export WORKER_POLL_MS="${WORKER_POLL_MS:-5000}"
 export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"
+# Master switch for picking up work at all — both the board's task worker and the
+# workflow runner. Set to 0 (usually via scripts/local.env) while the repo itself is
+# being refactored: the worker runs sessions IN this repo with --dangerously-skip-permissions,
+# so a task picked up mid-change can deploy or restart a half-migrated tree.
+export WORKER_ENABLED="${WORKER_ENABLED:-1}"
+
+# Shared secret remote workers authenticate with. Empty by default, which leaves the agent API
+# switched OFF (it answers 503) — the right failure for a missing credential on endpoints that
+# are exempt from the site password. Put a real value in scripts/local.env, which is gitignored:
+#   KANBAN_WORKER_TOKEN=$(openssl rand -base64 32)
+export KANBAN_WORKER_TOKEN="${KANBAN_WORKER_TOKEN:-}"
+
+# --- The worker process ------------------------------------------------------------------
+#
+# The board no longer runs sessions itself: the server hands work out over /api/agent and a
+# WORKER process claims it, runs `claude`, and reports back. So one worker has to be running
+# for anything on the board to happen, and start.sh launches one here alongside the server.
+#
+# This local worker declares the repo, which is what makes it eligible for project-improvement
+# tasks — those edit this working tree and run the guarded deploy, so they can only run on a
+# box that has it. Workers on other machines declare only general/workflow and pick up
+# everything else. Start as many as you like, anywhere; they need no coordination, because the
+# server hands each unit out exactly once.
+export WORKER_JAR="$REPO/worker/target/kanban-worker-0.1.0.jar"
+export WORKER_NAME="${WORKER_NAME:-$(hostname -s 2>/dev/null || echo local)}"
+export WORKER_CAPABILITIES="${WORKER_CAPABILITIES:-general,workflow,repo:${KANBAN_REPO_NAME:-Dashboard}}"
+export WORKER_LOG="${WORKER_LOG:-/tmp/kanban-worker.log}"
 
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"
 export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/kanban-frontend.log}"
-export JAR="$REPO/backend/target/kanban-backend-0.1.0.jar"
+export JAR="$REPO/server/target/kanban-server-0.1.0.jar"
 
 # Build the java launch args array shared by start/restart.
 backend_launch_args() {
   local args=(
     -jar "$JAR"
+    # Still the server's: the story classifier shells out, the docs/pages services read the
+    # working directory, and the timeout is the ceiling it hands to workers. What is NOT here
+    # any more is --worker.extra-args: the server launches no sessions, so the flags for one
+    # belong to the worker (see worker_launch_args).
+    --worker.enabled="$( [ "$WORKER_ENABLED" = "1" ] && echo true || echo false )"
     --worker.claude-command="$CLAUDE_CMD"
     --worker.working-directory="$WORKER_WORK_DIR"
     --worker.timeout-seconds="$WORKER_TIMEOUT"
-    --worker.poll-interval-ms="$WORKER_POLL_MS"
+    --agent.token="$KANBAN_WORKER_TOKEN"
+  )
+  printf '%s\n' "${args[@]}"
+}
+
+# Build the java launch args array for the worker.
+worker_launch_args() {
+  local args=(
+    -jar "$WORKER_JAR"
+    --worker.server-url="http://localhost:$BACKEND_PORT"
+    --worker.token="$KANBAN_WORKER_TOKEN"
+    --worker.name="$WORKER_NAME"
+    --worker.capabilities="$WORKER_CAPABILITIES"
+    --worker.repo-directory="$WORKER_WORK_DIR"
+    --worker.claude-command="$CLAUDE_CMD"
   )
   if [ "$WORKER_SKIP_PERMS" = "1" ]; then
     args+=(--worker.extra-args=--output-format,stream-json,--verbose,--dangerously-skip-permissions)
   fi
   printf '%s\n' "${args[@]}"
+}
+
+# Ends in a printf, deliberately. Under `set -euo pipefail` a bare `pgrep | head` pipeline
+# returns pgrep's exit status when nothing matches, and `pid="$(worker_pid)"` would then abort
+# the whole script — which is exactly what silently stopped start.sh before the worker launched.
+worker_pid() {
+  local pid
+  pid="$(pgrep -f "java .*kanban-worker-.*\.jar" 2>/dev/null | head -1)" || true
+  printf '%s' "$pid"
+}
+
+# Stop the worker. It kills its own session and hands the lease back on the way down, so give
+# it a moment: vanishing instead leaves the card looking busy until the lease expires.
+kill_worker() {
+  local pid waited=0
+  pid="$(worker_pid)"
+  [ -n "$pid" ] || return 0
+  echo "▶ Stopping worker (pid $pid)…"
+  kill "$pid" 2>/dev/null || return 0
+  while kill -0 "$pid" 2>/dev/null; do
+    if [ "$waited" -ge 30 ]; then
+      kill -9 "$pid" 2>/dev/null || true
+      break
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+}
+
+# Start the worker, unless work is switched off entirely.
+start_worker() {
+  if [ "$WORKER_ENABLED" != "1" ]; then
+    echo "▶ Worker disabled (WORKER_ENABLED=0) — the board will not run anything."
+    return 0
+  fi
+  if [ -z "$KANBAN_WORKER_TOKEN" ]; then
+    echo "✖ No KANBAN_WORKER_TOKEN set — the agent API is off and the worker cannot claim."
+    echo "  Put one in scripts/local.env:  KANBAN_WORKER_TOKEN=\$(openssl rand -base64 32)"
+    return 0
+  fi
+  kill_worker
+  echo "▶ Starting worker '$WORKER_NAME' ($WORKER_CAPABILITIES)…"
+  setsid java $(worker_launch_args) < /dev/null > "$WORKER_LOG" 2>&1 &
+  disown || true
 }
 
 # PID of the running backend. Prefer matching the jar: during a graceful shutdown
@@ -111,7 +207,11 @@ backend_launch_args() {
 # file is its own way to corrupt it.
 backend_pid() {
   local pid
-  pid="$(pgrep -f "kanban-backend-.*\.jar" 2>/dev/null | head -1)"
+  # Both names on purpose: the module was renamed backend -> server, and a restart
+  # that straddles the change still has to find the jar it is replacing. Dropping the
+  # old name here would leave the running JVM alive while a second one opened the same
+  # H2 file, which is how the database gets corrupted.
+  pid="$(pgrep -f "kanban-(backend|server)-.*\.jar" 2>/dev/null | head -1)"
   if [ -z "$pid" ]; then
     pid="$(ss -ltnp 2>/dev/null | grep ":$BACKEND_PORT" | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2)"
   fi

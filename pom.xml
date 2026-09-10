@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Aggregator for the Kanban's two services.
+
+  The board used to be one process that was both the website and the machine that ran
+  the Claude sessions, so work could only happen on the box that owned the database.
+  The split gives each half its own artifact:
+
+    protocol/  the wire types both sides share. No Spring Web, no JPA — a worker
+               depends on it without dragging the server's world along.
+    server/    tasks, stories, workflows, executions, the frontend, and the agent API
+               workers call. Owns the H2 database.
+    worker/    claims work over that API, runs `claude`, reports back. Runs anywhere
+               with a JDK and the CLI.
+
+  Build everything from here (`./mvnw -q -B package`); scripts/build.sh does exactly
+  that. The Maven wrapper lives at this root rather than in a module, so the aggregator
+  build is the one that is easy to run.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.kanban</groupId>
+    <artifactId>kanban-parent</artifactId>
+    <version>0.1.0</version>
+    <packaging>pom</packaging>
+    <name>kanban-parent</name>
+    <description>Claude Code-powered todo kanban — server and worker</description>
+
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+    <modules>
+        <module>protocol</module>
+        <module>server</module>
+        <module>worker</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.kanban</groupId>
+                <artifactId>kanban-protocol</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

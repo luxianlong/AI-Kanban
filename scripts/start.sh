@@ -14,6 +14,10 @@ setsid java $(backend_launch_args) < /dev/null > "$BACKEND_LOG" 2>&1 &
 disown || true
 wait_for_backend && echo "✔ backend up" || { echo "✗ backend failed — see $BACKEND_LOG"; exit 1; }
 
+# The server hands work out; a worker is what actually runs it. Without one the board still
+# works — you can read it, file tasks, build workflows — but nothing is ever picked up.
+start_worker
+
 # "Up" means it answered at all. -f treats the Basic-Auth gate's 401 as a
 # failure, which is exactly what a locked-down public server returns, so this
 # checks for any HTTP status instead. -k because the certificate is issued to
@@ -29,6 +33,16 @@ if ! frontend_up; then
 fi
 if frontend_up; then echo "✔ frontend up"; else
   echo "✗ frontend did NOT come up — see $FRONTEND_LOG"; exit 1
+fi
+
+echo ""
+if [ "$WORKER_ENABLED" = "1" ] && [ -n "$KANBAN_WORKER_TOKEN" ]; then
+  sleep 2
+  if [ -n "$(worker_pid)" ]; then
+    echo "✔ worker '$WORKER_NAME' up  ($WORKER_CAPABILITIES)"
+  else
+    echo "✗ worker did NOT come up — see $WORKER_LOG"
+  fi
 fi
 
 echo ""

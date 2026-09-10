@@ -1,16 +1,19 @@
-# Java / Maven
-backend/target/
+# Java / Maven — one per module of the aggregator build
+target/
+protocol/target/
+server/target/
+worker/target/
 *.class
 
 # H2 database files
-backend/data/
+server/data/
 *.mv.db
 *.trace.db
 *.lock.db
 
 # Uploaded task attachments (user data, lives beside the live database)
 data/attachments/
-backend/data/attachments/
+server/data/attachments/
 
 # Node / Vite
 frontend/node_modules/
@@ -25,3 +28,6 @@ frontend/dist/
 
 # Rotated pre-restart database backups (runtime state, never committed)
 backups/
+
+# Local script overrides (per-machine, per-session state)
+scripts/local.env
