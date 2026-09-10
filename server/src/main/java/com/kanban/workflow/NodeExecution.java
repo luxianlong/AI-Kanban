@@ -140,6 +140,20 @@ public class NodeExecution {
     @Column(columnDefinition = "TEXT")
     private String error;
 
+    /**
+     * The step's session transcript, kept so it can still be read once the step is done.
+     *
+     * <p>{@code output} is the answer this step handed downstream; this is the working —
+     * the tool calls, the retries, the reasoning aloud. Live it is in memory, in
+     * {@code LiveLogRegistry}, which loses it at the next restart; this column is what
+     * makes "why did that step take twenty minutes?" answerable the following day. Written
+     * once when the step settles, and cleared by {@link #resetForRetry()} so a row shows
+     * the transcript of the attempt it is reporting on and no other.
+     */
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String sessionLog;
+
     private Instant startedAt;
 
     private Instant finishedAt;
@@ -272,6 +286,14 @@ public class NodeExecution {
         this.error = error;
     }
 
+    public String getSessionLog() {
+        return sessionLog;
+    }
+
+    public void setSessionLog(String sessionLog) {
+        this.sessionLog = sessionLog;
+    }
+
     public Instant getStartedAt() {
         return startedAt;
     }
@@ -385,6 +407,7 @@ public class NodeExecution {
         this.input = null;
         this.output = null;
         this.error = null;
+        this.sessionLog = null;
         this.startedAt = null;
         this.finishedAt = null;
     }

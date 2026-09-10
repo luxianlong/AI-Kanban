@@ -1124,6 +1124,7 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
 .transcript summary { cursor: pointer; color: var(--muted); font-size: var(--f-sm); }
 .transcript summary:hover { color: var(--ink); }
 .transcript .logbox { margin-top: var(--s-2); max-height: 240px; }
+.transcript-missing { margin-top: var(--s-3); color: var(--muted); font-size: var(--f-sm); }
 
 .badge {
   font-size: var(--f-xs); font-weight: 700; letter-spacing: 0.02em;

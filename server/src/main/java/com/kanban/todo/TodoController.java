@@ -10,6 +10,7 @@ import com.kanban.todo.TodoDtos.SetStoryRequest;
 import com.kanban.todo.TodoDtos.TodoResponse;
 import com.kanban.todo.TodoDtos.UpdateStatusRequest;
 import com.kanban.worker.LiveLogRegistry;
+import com.kanban.worker.SessionLogService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,7 @@ public class TodoController {
     private final TodoRepository repository;
     private final StoryRepository storyRepository;
     private final LiveLogRegistry liveLog;
+    private final SessionLogService sessionLogs;
     private final StoryClassifier classifier;
     private final AiStoryClassifier aiClassifier;
     private final AttachmentService attachments;
@@ -47,11 +49,13 @@ public class TodoController {
     private final AgentService agent;
 
     public TodoController(TodoRepository repository, StoryRepository storyRepository,
-                          LiveLogRegistry liveLog, StoryClassifier classifier, AiStoryClassifier aiClassifier,
+                          LiveLogRegistry liveLog, SessionLogService sessionLogs,
+                          StoryClassifier classifier, AiStoryClassifier aiClassifier,
                           AttachmentService attachments, AgentService agent) {
         this.repository = repository;
         this.storyRepository = storyRepository;
         this.liveLog = liveLog;
+        this.sessionLogs = sessionLogs;
         this.classifier = classifier;
         this.aiClassifier = aiClassifier;
         this.attachments = attachments;
@@ -75,8 +79,13 @@ public class TodoController {
     }
 
     /**
-     * Live session transcript for a todo — the running log of what the Claude
-     * session is doing. Useful to poll while the item is IN_PROGRESS.
+     * Session transcript for a todo: the running log while it is IN_PROGRESS, and the
+     * transcript that was kept once it finished.
+     *
+     * <p>{@code archived} says which of the two this is. It matters to a reader: the same
+     * text under "live" means the session is still writing, and under "saved" means this is
+     * the whole of it. It is also the only signal that a finished task has no transcript
+     * because it ran before the server last restarted, rather than because it did nothing.
      */
     @GetMapping("/{id}/log")
     public Map<String, Object> log(@PathVariable Long id) {
@@ -84,7 +93,8 @@ public class TodoController {
         return Map.of(
                 "id", todo.getId(),
                 "status", todo.getStatus(),
-                "log", liveLog.get(id));
+                "archived", sessionLogs.isArchived(todo),
+                "log", sessionLogs.read(todo));
     }
 
     /**

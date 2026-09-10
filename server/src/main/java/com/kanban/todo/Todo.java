@@ -86,6 +86,20 @@ public class Todo {
     private String result;
 
     /**
+     * The session transcript, kept so it can still be read once the task is done.
+     *
+     * <p>While a session runs the transcript lives in {@code LiveLogRegistry}, in memory,
+     * which is right for something being polled four times a minute and wrong for the
+     * question this column answers: "what did that task actually do?", asked hours later
+     * and across the restart that every deploy performs. It is written once, when the run
+     * reaches a terminal state, and cleared when the card is handed out again — a card
+     * shows the transcript of its current attempt or nothing.
+     */
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String sessionLog;
+
+    /**
      * Identifier of the story (an ordered chain of tasks) this item belongs to,
      * or {@code null} for a standalone task. All steps of one story share this id.
      */
@@ -242,6 +256,14 @@ public class Todo {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public String getSessionLog() {
+        return sessionLog;
+    }
+
+    public void setSessionLog(String sessionLog) {
+        this.sessionLog = sessionLog;
     }
 
     public Instant getCreatedAt() {

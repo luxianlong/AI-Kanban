@@ -10,6 +10,7 @@ import com.kanban.workflow.NodeExecutionRepository;
 import com.kanban.workflow.RunState;
 import com.kanban.workflow.WorkflowExecutionRepository;
 import com.kanban.worker.LiveLogRegistry;
+import com.kanban.worker.SessionLogService;
 import com.kanban.worker.WorkerProperties;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -48,18 +49,21 @@ public class OrphanSweep {
     private final WorkflowExecutionRepository executions;
     private final LeaseRepository leases;
     private final LiveLogRegistry liveLog;
+    private final SessionLogService sessionLogs;
     private final WorkerProperties workerProps;
     private final WorkflowGraphProgress graph;
 
     public OrphanSweep(TodoRepository todos, NodeExecutionRepository nodeRuns,
                        WorkflowExecutionRepository executions, LeaseRepository leases,
-                       LiveLogRegistry liveLog, WorkerProperties workerProps,
+                       LiveLogRegistry liveLog, SessionLogService sessionLogs,
+                       WorkerProperties workerProps,
                        WorkflowGraphProgress graph) {
         this.todos = todos;
         this.nodeRuns = nodeRuns;
         this.executions = executions;
         this.leases = leases;
         this.liveLog = liveLog;
+        this.sessionLogs = sessionLogs;
         this.workerProps = workerProps;
         this.graph = graph;
     }
@@ -131,9 +135,12 @@ public class OrphanSweep {
                     + "node may already have done part of its work — retry the run if you decide "
                     + "another attempt is safe.");
             run.setFinishedAt(Instant.now());
-            nodeRuns.save(run);
             liveLog.append(LiveLogRegistry.nodeKey(run.getId()),
                     "✗ Left running with no worker; failed on startup.");
+            // This sweep runs at startup, so memory holds only the line just written — but
+            // that is genuinely all this process knows, and saying so beats a blank box.
+            sessionLogs.keep(run);
+            nodeRuns.save(run);
             touched.add(run.getExecutionId());
             recovered++;
         }

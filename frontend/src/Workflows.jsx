@@ -1326,6 +1326,10 @@ function NodeRun({
   run, where, isEntry, open, staleInput, siblings, onToggle, onRerun, onEdit, onAddAfter, onRemove,
 }) {
   const [log, setLog] = useState('')
+  // The kept transcript of an attempt that has finished, and whether it is on its way.
+  // `null` means "not asked for yet", `''` means "asked, and the server has none".
+  const [kept, setKept] = useState(null)
+  const [fetching, setFetching] = useState(false)
   const [rerunning, setRerunning] = useState(false)
   // Whether the "add a step after this one" form is showing. Closed by default and
   // per-step, because where a step goes is the decision the form is for.
@@ -1347,6 +1351,12 @@ function NodeRun({
   runIdRef.current = run.id
   useEffect(() => {
     if (!running) return undefined
+    // A step that is running again is a new session, and everything on screen belongs to
+    // the attempt it replaces — the streamed transcript above and the kept one below alike.
+    // Without this the box would sit on the previous attempt until the first poll lands,
+    // and on it indefinitely if the server has nothing to replace it with.
+    setLog('')
+    setKept(null)
     let cancelled = false
     const tick = async () => {
       try {
@@ -1362,6 +1372,26 @@ function NodeRun({
     const t = setInterval(tick, 1500)
     return () => { cancelled = true; clearInterval(t) }
   }, [running])
+
+  // The transcript of a step that has already finished. While it ran it streamed into
+  // `log` above, so a step you watched finish still has one in hand; a page opened later
+  // has nothing, and asks the server for the copy it kept when the step settled.
+  //
+  // Fetched when the box is opened rather than with the run, because a run is nine steps
+  // and eight of those transcripts are ones nobody asked for — each of them up to 200 KB.
+  async function revealLog(e) {
+    if (!e.currentTarget.open || kept !== null || log || fetching) return
+    setFetching(true)
+    try {
+      const { log: text } = await api.nodeRunLog(run.id)
+      setKept(text || '')
+    } catch {
+      setKept('')
+    } finally {
+      setFetching(false)
+    }
+  }
+  const finishedLog = log || kept
 
   // A retried step is the same box with a second history behind it, so say which
   // attempt this is — otherwise a step that reads "Done" with a failure in its log
@@ -1537,6 +1567,21 @@ function NodeRun({
               </span>
               <pre className="wf-pre error-pre">{run.error}</pre>
             </div>
+          )}
+          {/* A step that never started has no session to show; one that did keeps its
+              transcript whatever it produced, which is the point — a step that failed
+              with no output is exactly the one whose working you want to read. */}
+          {!running && run.startedAt && (
+            <details className="wf-details" onToggle={revealLog}>
+              <summary>Session log</summary>
+              {finishedLog
+                ? <pre className="logbox wf-log">{finishedLog}</pre>
+                : <p className="wf-empty">
+                    {fetching || kept === null
+                      ? 'Loading…'
+                      : "No transcript was kept for this step — it ran before the server last restarted."}
+                  </p>}
+            </details>
           )}
           {!running && !run.output && !run.error && (
             <p className="wf-empty">Hasn't run yet.</p>

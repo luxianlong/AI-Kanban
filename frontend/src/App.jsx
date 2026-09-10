@@ -1641,11 +1641,21 @@ function Drawer({ todo, log, story, stories = [], docIndex, onSetStory, onClose,
                   ? <pre className="logbox result">{todo.result}</pre>
                   : <Markdown className="logbox result" text={linkifyDocRefs(todo.result, docIndex)} />)
               : <pre className="logbox result">(no result)</pre>}
-            {log && (
+            {log ? (
               <details className="transcript">
                 <summary>Full session log</summary>
                 <pre className="logbox">{log}</pre>
               </details>
+            ) : (
+              // Only for a card a worker actually ran. Saying "no transcript" on a task
+              // someone marked done by hand would be answering a question nobody asked;
+              // saying nothing on a card that ran leaves the reader wondering why this
+              // one has no log when the card above it does.
+              todo.processedAt && (
+                <p className="transcript-missing">
+                  No transcript was kept for this task — it ran before the server last restarted.
+                </p>
+              )
             )}
           </div>
         )}

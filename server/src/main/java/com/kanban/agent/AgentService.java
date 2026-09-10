@@ -31,6 +31,7 @@ import com.kanban.workflow.NodeExecutionRepository;
 import com.kanban.workflow.WorkflowExecution;
 import com.kanban.workflow.WorkflowExecutionRepository;
 import com.kanban.worker.LiveLogRegistry;
+import com.kanban.worker.SessionLogService;
 import com.kanban.worker.WorkerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +80,7 @@ public class AgentService {
     private final TaskOutcomeService outcomes;
     private final AttachmentService attachments;
     private final LiveLogRegistry liveLog;
+    private final SessionLogService sessionLogs;
     private final WorkerProperties workerProps;
     private final AgentProperties props;
     private final WorkflowWorkSource workflowWork;
@@ -92,7 +94,8 @@ public class AgentService {
     public AgentService(TodoRepository todos, LeaseRepository leases, TaskEligibility eligibility,
                         TaskPromptBuilder prompts, TaskOutcomeService outcomes,
                         AttachmentService attachments, LiveLogRegistry liveLog,
-                        WorkerProperties workerProps, AgentProperties props,
+                        SessionLogService sessionLogs, WorkerProperties workerProps,
+                        AgentProperties props,
                         WorkflowWorkSource workflowWork, WorkflowGraphProgress graph,
                         NodeSessionPlanner nodePlanner, NodeOutcomeService nodeOutcomes,
                         NodeExecutionRepository nodeRuns, WorkflowExecutionRepository executions) {
@@ -103,6 +106,7 @@ public class AgentService {
         this.outcomes = outcomes;
         this.attachments = attachments;
         this.liveLog = liveLog;
+        this.sessionLogs = sessionLogs;
         this.workerProps = workerProps;
         this.props = props;
         this.workflowWork = workflowWork;
@@ -229,6 +233,11 @@ public class AgentService {
         liveLog.append(todo.getId(),
                 "● Picked up todo #" + todo.getId() + ": " + todo.getTitle()
                         + "  (worker: " + worker + ")");
+        // The kept transcript belongs to the attempt just superseded. Drop it now rather than
+        // when the new one lands, so a restart mid-attempt can't serve the old session's text
+        // as if it were this one's.
+        sessionLogs.forget(todo);
+        todos.save(todo);
         log.info("Worker '{}' claimed todo #{} (lease {}).", worker, todo.getId(), lease.getId());
         return unitFor(lease, todo);
     }
@@ -290,9 +299,14 @@ public class AgentService {
         if (seq > lease.getLastSeq()) {
             lease.setLastSeq(seq);
             List<String> lines = request.logLines();
-            if (lines != null && !lines.isEmpty() && lease.getKind() == WorkKind.TASK) {
+            if (lines != null && !lines.isEmpty()) {
+                // Every kind of work streams its transcript. This used to be TASK-only, which
+                // left a running workflow step showing the two lines the server itself had
+                // written and nothing the session said — a "Live session" box that never
+                // moved. The worker was sending the lines all along; they were dropped here.
+                String key = logKey(lease);
                 for (String line : lines) {
-                    liveLog.append(lease.getRefId(), line);
+                    liveLog.append(key, line);
                 }
             }
         }
@@ -332,6 +346,7 @@ public class AgentService {
         TaskOutcomeService.Applied applied = outcomes.apply(todo, outcome,
                 lease.getTimeoutSeconds(), lease.getBackgroundWaitSeconds());
         liveLog.append(todo.getId(), applied.logLine());
+        sessionLogs.keep(todo);
         log.info("Worker '{}' reported todo #{} as {}.", lease.getWorkerName(), todo.getId(),
                 applied.status());
     }
@@ -343,6 +358,8 @@ public class AgentService {
         NodeOutcomeService.Applied applied = nodeOutcomes.apply(run, outcome,
                 lease.getTimeoutSeconds(), lease.getBackgroundWaitSeconds());
         liveLog.append(LiveLogRegistry.nodeKey(run.getId()), applied.logLine());
+        sessionLogs.keep(run);
+        nodeRuns.save(run);
         log.info("Worker '{}' reported node \"{}\" of execution #{} as {}.",
                 lease.getWorkerName(), run.getNodeName(), run.getExecutionId(), applied.status());
 
@@ -380,9 +397,10 @@ public class AgentService {
         todos.findById(lease.getRefId()).ifPresent(todo -> {
             if (todo.getStatus() == TodoStatus.IN_PROGRESS) {
                 todo.setStatus(TodoStatus.PENDING);
-                todos.save(todo);
                 liveLog.append(todo.getId(),
                         "■ Worker '" + lease.getWorkerName() + "' handed this back; requeued.");
+                sessionLogs.keep(todo);
+                todos.save(todo);
             }
         });
     }
@@ -397,11 +415,19 @@ public class AgentService {
                     + "step. Not re-run automatically, because the step may already have done "
                     + "part of its work — retry the run if you decide another attempt is safe.");
             run.setFinishedAt(Instant.now());
-            nodeRuns.save(run);
             liveLog.append(LiveLogRegistry.nodeKey(run.getId()),
                     "■ Worker '" + lease.getWorkerName() + "' handed this step back.");
+            sessionLogs.keep(run);
+            nodeRuns.save(run);
             executions.findById(run.getExecutionId()).ifPresent(graph::finishIfSettled);
         });
+    }
+
+    /** Which transcript this lease's session writes into — a card's or a workflow step's. */
+    private static String logKey(Lease lease) {
+        return lease.getKind() == WorkKind.WORKFLOW_NODE
+                ? LiveLogRegistry.nodeKey(lease.getRefId())
+                : LiveLogRegistry.todoKey(lease.getRefId());
     }
 
     /**
