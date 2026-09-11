@@ -82,8 +82,12 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,text/css,application/javascript
-    # Below this it costs more than it saves; /api/worker/status (136 bytes)
-    # stays uncompressed, the two big list endpoints do not.
+    # Nominally the floor below which compressing costs more than it saves. Note
+    # it does NOT bind here in practice: Tomcat can only apply it when it knows
+    # the length up front, and these responses go out chunked, so a small one is
+    # compressed anyway — measured, /api/worker/status is 136 bytes plain and 137
+    # gzipped. A byte on the smallest endpoint is not worth chasing; the setting
+    # stays because it does bind for any response that carries a Content-Length.
     min-response-size: 1024
 
 # --- Task attachments (images a user adds as input for the agent) ---
