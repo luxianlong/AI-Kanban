@@ -175,7 +175,7 @@ class WorkflowApiTest {
                                  "edges":[{"from":"a","to":"b"},{"from":"b","to":"a"}],"entryNodeId":"a"}
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("cycle")));
+                .andExpect(jsonPath("$.message", containsString("cycle")));
     }
 
     @Test
@@ -191,7 +191,7 @@ class WorkflowApiTest {
                                  "edges":[{"from":"a","to":"c"},{"from":"b","to":"c"}]}
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("exactly one entry node")));
+                .andExpect(jsonPath("$.message", containsString("exactly one entry node")));
     }
 
     @Test
@@ -921,8 +921,8 @@ class WorkflowApiTest {
                          "edges":[]}
                         """))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("low, medium, high, xhigh, max")))
-                .andExpect(status().reason(containsString("Reason it out")));
+                .andExpect(jsonPath("$.message", containsString("low, medium, high, xhigh, max")))
+                .andExpect(jsonPath("$.message", containsString("Reason it out")));
     }
 
     @Test
@@ -1087,12 +1087,12 @@ class WorkflowApiTest {
         // An ordinary step has no gate to open — it goes when its input arrives.
         mvc.perform(post("/api/workflows/node-runs/" + rowIds.get("a") + "/start"))
                 .andExpect(status().isConflict())
-                .andExpect(status().reason(containsString("doesn't wait to be started")));
+                .andExpect(jsonPath("$.message", containsString("doesn't wait to be started")));
 
         // The gated step is not waiting for anybody yet: nothing has produced its input.
         mvc.perform(post("/api/workflows/node-runs/" + rowIds.get("b") + "/start"))
                 .andExpect(status().isConflict())
-                .andExpect(status().reason(containsString("isn't waiting for you yet")));
+                .andExpect(jsonPath("$.message", containsString("isn't waiting for you yet")));
 
         mvc.perform(post("/api/workflows/node-runs/999999/start"))
                 .andExpect(status().isNotFound());
