@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-2026",
+    "title": "2026 苹果发布会：被记住的不会是那道折痕",
+    "href": "/p/2026.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-11T02:11:20.283Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/2026.html",
+      "frontend/public/p/2026.meta.json"
+    ]
+  },
+  {
     "id": "upload-touch-id",
     "title": "折叠屏不是重点，Touch ID 才是",
     "href": "/p/touch-id.html",
