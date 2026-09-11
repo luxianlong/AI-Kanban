@@ -210,83 +210,13 @@
     ]
   },
   {
-    "id": "article-8cc1d5a5",
-    "title": "微信公众号上最火的是哪类文章？",
-    "href": "/docs/article-8cc1d5a5.html",
-    "deletable": true,
-    "file": "docs/article-8cc1d5a5.md",
-    "updatedAt": "2026-09-04T10:48:55.873Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/article-8cc1d5a5.md",
-      "frontend/public/docs/article-8cc1d5a5.html"
-    ]
-  },
-  {
-    "id": "2026-2",
-    "title": "2026 国内信息流自媒体创业可行性分析",
-    "href": "/docs/2026-2.html",
-    "deletable": true,
-    "file": "docs/2026-2.md",
-    "updatedAt": "2026-09-04T10:47:52.343Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/2026-2.md",
-      "frontend/public/docs/2026-2.html"
-    ]
-  },
-  {
-    "id": "article-ce2808be",
-    "title": "上海高级工程师市场:一场你在领英上看不见的繁荣",
-    "href": "/docs/article-ce2808be.html",
-    "deletable": true,
-    "file": "docs/article-ce2808be.md",
-    "updatedAt": "2026-09-04T10:16:10.958Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "docs/article-ce2808be.md",
-      "frontend/public/docs/article-ce2808be.html"
-    ]
-  },
-  {
-    "id": "staff",
-    "title": "新加坡高级 / Staff 软件工程师的机会",
-    "href": "/docs/staff.html",
-    "deletable": true,
-    "file": "docs/staff.md",
-    "updatedAt": "2026-09-04T10:14:11.144Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/staff.md",
-      "frontend/public/docs/staff.html"
-    ]
-  },
-  {
-    "id": "2026",
-    "title": "2026 海外信息流自媒体创业可行性分析",
-    "href": "/docs/2026.html",
-    "deletable": true,
-    "file": "docs/2026.md",
-    "updatedAt": "2026-09-04T10:13:09.408Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/2026.md",
-      "frontend/public/docs/2026.html"
-    ]
-  },
-  {
     "id": "article-737d0a60",
     "title": "\"我在做自媒体\"：一个失业者如何在就业冰河期自我安慰",
     "href": "/docs/article-737d0a60.html",
     "deletable": true,
     "file": "docs/article-737d0a60.md",
     "updatedAt": "2026-09-04T10:12:19.376Z",
-    "isNew": true,
+    "isNew": false,
     "private": false,
     "paths": [
       "docs/article-737d0a60.md",
@@ -308,6 +238,34 @@
     ]
   },
   {
+    "id": "2026-2",
+    "title": "2026 国内信息流自媒体创业可行性分析",
+    "href": "/docs/2026-2.html",
+    "deletable": true,
+    "file": "docs/2026-2.md",
+    "updatedAt": "2026-09-04T10:47:52.343Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "docs/2026-2.md",
+      "frontend/public/docs/2026-2.html"
+    ]
+  },
+  {
+    "id": "2026",
+    "title": "2026 海外信息流自媒体创业可行性分析",
+    "href": "/docs/2026.html",
+    "deletable": true,
+    "file": "docs/2026.md",
+    "updatedAt": "2026-09-04T10:13:09.408Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "docs/2026.md",
+      "frontend/public/docs/2026.html"
+    ]
+  },
+  {
     "id": "upload-jing-tian-career-penalty",
     "title": "464 万那笔罚款,和她的演艺事业是两件事",
     "href": "/p/jing-tian-career-penalty.html",
@@ -319,6 +277,20 @@
     "paths": [
       "frontend/public/p/jing-tian-career-penalty.html",
       "frontend/public/p/jing-tian-career-penalty.meta.json"
+    ]
+  },
+  {
+    "id": "article-ce2808be",
+    "title": "上海高级工程师市场:一场你在领英上看不见的繁荣",
+    "href": "/docs/article-ce2808be.html",
+    "deletable": true,
+    "file": "docs/article-ce2808be.md",
+    "updatedAt": "2026-09-04T10:16:10.958Z",
+    "isNew": false,
+    "private": true,
+    "paths": [
+      "docs/article-ce2808be.md",
+      "frontend/public/docs/article-ce2808be.html"
     ]
   },
   {
@@ -361,6 +333,34 @@
     "paths": [
       "frontend/public/p/jing-tian-symbolized.html",
       "frontend/public/p/jing-tian-symbolized.meta.json"
+    ]
+  },
+  {
+    "id": "article-8cc1d5a5",
+    "title": "微信公众号上最火的是哪类文章？",
+    "href": "/docs/article-8cc1d5a5.html",
+    "deletable": true,
+    "file": "docs/article-8cc1d5a5.md",
+    "updatedAt": "2026-09-04T10:48:55.873Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "docs/article-8cc1d5a5.md",
+      "frontend/public/docs/article-8cc1d5a5.html"
+    ]
+  },
+  {
+    "id": "staff",
+    "title": "新加坡高级 / Staff 软件工程师的机会",
+    "href": "/docs/staff.html",
+    "deletable": true,
+    "file": "docs/staff.md",
+    "updatedAt": "2026-09-04T10:14:11.144Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "docs/staff.md",
+      "frontend/public/docs/staff.html"
     ]
   },
   {
