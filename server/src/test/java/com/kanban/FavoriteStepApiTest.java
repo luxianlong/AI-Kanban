@@ -140,7 +140,7 @@ class FavoriteStepApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(favorite("Odd", "x", "turbo")))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("low, medium, high, xhigh, max, ultracode")));
+                .andExpect(jsonPath("$.message", containsString("low, medium, high, xhigh, max, ultracode")));
 
         mvc.perform(get("/api/workflows/favorites")).andExpect(jsonPath("$", hasSize(0)));
     }
@@ -173,7 +173,7 @@ class FavoriteStepApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(favorite("One more", "x", null)))
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason(containsString("Remove one")));
+                .andExpect(jsonPath("$.message", containsString("Remove one")));
 
         // Replacing one already on a full shelf adds nothing, so it is still allowed.
         save(favorite("Step 7", "rewritten", null));
