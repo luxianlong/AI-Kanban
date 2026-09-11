@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-manus",
+    "title": "Manus团队测模型一点微小的经验",
+    "href": "/p/manus.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-11T02:12:19.693Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/manus.html",
+      "frontend/public/p/manus.meta.json"
+    ]
+  },
+  {
     "id": "upload-2026",
     "title": "2026 苹果发布会：被记住的不会是那道折痕",
     "href": "/p/2026.html",
