@@ -21,7 +21,14 @@ async function json(res) {
 }
 
 export const api = {
+  // The board list. Each task's `result` here is a PREVIEW — the server caps it
+  // and sets `resultTruncated` when it did, because the full text is unbounded
+  // (a research task writes tens of KB) and the list draws at most two lines of
+  // it. Anything that needs the whole result asks getTodo for that one task.
   listTodos: () => fetch(`${BASE}/todos`).then(json),
+
+  // One task, with its result in full. What the detail drawer opens.
+  getTodo: (id) => fetch(`${BASE}/todos/${id}`).then(json),
 
   // `projectImprovement` marks the task as one that improves the Kanban project
   // itself; it defaults to false (a general task) when omitted. `attachmentIds`

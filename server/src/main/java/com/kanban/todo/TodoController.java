@@ -69,7 +69,7 @@ public class TodoController {
         Map<Long, List<AttachmentView>> byTodo =
                 attachments.viewsForAll(todos.stream().map(Todo::getId).toList());
         return todos.stream()
-                .map(t -> TodoResponse.from(t, byTodo.get(t.getId())))
+                .map(t -> TodoResponse.summary(t, byTodo.get(t.getId())))
                 .toList();
     }
 

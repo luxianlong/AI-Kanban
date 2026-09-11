@@ -687,4 +687,62 @@ class TodoApiTest {
                         .content("{\"storyId\":\"does-not-exist\"}"))
                 .andExpect(status().isNotFound());
     }
+
+    /**
+     * A result is whatever the agent wrote, so a list of them has no size bound. The
+     * board polls this list every four seconds and draws at most two lines of any
+     * result, so the list carries a preview and says so; the whole text stays one
+     * fetch away on the task's own endpoint. Without this the board moved ~180 MB an
+     * hour and lost bodies mid-flight on a phone.
+     */
+    @Test
+    void listCarriesAPreviewOfALongResultWhileTheTaskItselfCarriesAllOfIt() throws Exception {
+        long id = createTodo("Writes a long answer");
+        String longResult = "x".repeat(5000);
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(
+                                java.util.Map.of("status", "RESOLVED", "result", longResult))))
+                .andExpect(status().isOk());
+
+        JsonNode listed = findInList(id);
+        org.junit.jupiter.api.Assertions.assertTrue(listed.get("resultTruncated").asBoolean(),
+                "the list must declare that it cut the result");
+        org.junit.jupiter.api.Assertions.assertTrue(
+                listed.get("result").asText().length() < longResult.length(),
+                "the list must not carry the whole result");
+
+        // ...and the task's own endpoint is where the rest of it lives.
+        mvc.perform(get("/api/todos/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result", is(longResult)))
+                .andExpect(jsonPath("$.resultTruncated", is(false)));
+    }
+
+    /** A result short enough to draw is passed through whole, and not flagged. */
+    @Test
+    void listCarriesAShortResultUntouched() throws Exception {
+        long id = createTodo("Writes a short answer");
+        mvc.perform(patch("/api/todos/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"RESOLVED\",\"result\":\"all done\"}"))
+                .andExpect(status().isOk());
+
+        JsonNode listed = findInList(id);
+        org.junit.jupiter.api.Assertions.assertEquals("all done", listed.get("result").asText());
+        org.junit.jupiter.api.Assertions.assertFalse(listed.get("resultTruncated").asBoolean());
+    }
+
+    /** The listed form of one task, by id. */
+    private JsonNode findInList(long id) throws Exception {
+        String body = mvc.perform(get("/api/todos"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        for (JsonNode node : mapper.readTree(body)) {
+            if (node.get("id").asLong() == id) {
+                return node;
+            }
+        }
+        throw new AssertionError("task " + id + " is missing from /api/todos");
+    }
 }

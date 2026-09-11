@@ -395,7 +395,37 @@ export default function App() {
     }
   }
 
-  const selected = todos.find((t) => t.id === selectedId) || null
+  // The open task, with its result restored to the full text. The list only
+  // carries a preview (see api.listTodos), so the drawer — the one place that
+  // renders a whole result — fetches it for the single task being read. Keyed by
+  // updatedAt as well as id so a re-run, which rewrites the result in place,
+  // invalidates what we cached rather than showing the previous run's answer.
+  const openTodo = todos.find((t) => t.id === selectedId) || null
+  const [fullResults, setFullResults] = useState({}) // id -> { at, text }
+  const wantedFull = openTodo?.resultTruncated ? openTodo : null
+  const cachedFull = wantedFull ? fullResults[wantedFull.id] : null
+  const needFull = wantedFull && cachedFull?.at !== wantedFull.updatedAt
+  useEffect(() => {
+    if (!needFull) return undefined
+    const { id, updatedAt } = wantedFull
+    let cancelled = false
+    api
+      .getTodo(id)
+      // On failure, cache the preview we already have against this updatedAt.
+      // The drawer then shows the truncated text instead of retrying on every
+      // 4-second poll for as long as the task stays open.
+      .then((full) => !cancelled && setFullResults((p) => ({ ...p, [id]: { at: updatedAt, text: full.result } })))
+      .catch(() => !cancelled && setFullResults((p) => ({ ...p, [id]: { at: updatedAt, text: null } })))
+    return () => { cancelled = true }
+  }, [needFull, wantedFull?.id, wantedFull?.updatedAt])
+
+  const selected = useMemo(() => {
+    if (!openTodo) return null
+    const full = fullResults[openTodo.id]
+    if (!openTodo.resultTruncated || full?.at !== openTodo.updatedAt || full.text == null) return openTodo
+    return { ...openTodo, result: full.text, resultTruncated: false }
+  }, [openTodo, fullResults])
+
   const storyMeta = computeStoryMeta(todos)
   // Existing stories (id + name), for the drawer's manual story picker — includes
   // empty stories so a task can be filed into one that has no tasks yet.

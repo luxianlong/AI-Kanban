@@ -67,6 +67,24 @@ server:
   # window leaves a file whose newest chunks were never flushed — unrecoverable,
   # by any rollback point (that is exactly how the DB was lost on 2026-08-29).
   shutdown: graceful
+  # Compress JSON on the way out. The board polls three endpoints every four
+  # seconds and the workflow page polls its run list; those bodies are almost
+  # entirely prose the agent wrote, which is the most compressible thing there
+  # is (measured 8-10x on this data). Uncompressed, an open board moved ~180 MB
+  # an hour, and on a phone a 100 KB body is long enough that a cellular
+  # handover cuts it mid-transfer — which arrives in the browser as a bare
+  # "Failed to fetch" and in this log as "Connection reset by peer".
+  #
+  # This is invisible to a worker: compression only happens when the client asks
+  # with Accept-Encoding, and the worker's java.net.http client never sends that
+  # header (see AgentClient), so /api/agent responses go out as plain JSON
+  # exactly as before. No protocol change, no worker rebuild.
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,text/css,application/javascript
+    # Below this it costs more than it saves; /api/worker/status (136 bytes)
+    # stays uncompressed, the two big list endpoints do not.
+    min-response-size: 1024
 
 # --- Task attachments (images a user adds as input for the agent) ---
 # Files live next to the live H2 database so one data directory holds all user

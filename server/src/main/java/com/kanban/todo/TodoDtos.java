@@ -93,7 +93,9 @@ public final class TodoDtos {
                     storyId,
                     name,
                     when,
-                    steps.stream().map(TodoResponse::from).toList());
+                    // summary, not from: a story's steps are whole tasks, so listing
+                    // stories shipped every result a second time alongside /api/todos.
+                    steps.stream().map(t -> TodoResponse.summary(t, List.of())).toList());
         }
     }
 
@@ -125,7 +127,14 @@ public final class TodoDtos {
     public record SetStoryRequest(String storyId) {
     }
 
-    /** Full view returned to clients. */
+    /**
+     * Full view returned to clients.
+     *
+     * <p>{@code result} is the one field here that has no bound: it is whatever the
+     * agent wrote, and a research task writes tens of kilobytes. That is fine for a
+     * single task and ruinous for a list — see {@link #summary} and
+     * {@code resultTruncated}.
+     */
     public record TodoResponse(
             Long id,
             String title,
@@ -146,7 +155,15 @@ public final class TodoDtos {
             boolean delegated,
             String delegatedTo,
             Instant delegateClaimedAt,
-            List<AttachmentView> attachments) {
+            List<AttachmentView> attachments,
+            boolean resultTruncated) {
+
+        /**
+         * How much of a result a LIST carries. A board card renders at most the first
+         * couple of lines of it (only a failed one shows any), so this is generous for
+         * the only thing a list actually draws, while capping what used to be unbounded.
+         */
+        private static final int PREVIEW_CHARS = 400;
 
         /**
          * View without attachments. Used where the caller doesn't load them (a
@@ -155,6 +172,46 @@ public final class TodoDtos {
          */
         public static TodoResponse from(Todo t) {
             return from(t, List.of());
+        }
+
+        /**
+         * The same view with {@code result} cut down to a preview — for the endpoints
+         * that return MANY tasks, where the full text is both unbounded and unread.
+         *
+         * <p>It was the whole of the board's bandwidth problem: {@code GET /api/todos}
+         * was 101 KB for 26 tasks, 72 KB of it results the list never draws, and
+         * {@code GET /api/stories} shipped the very same text a second time because a
+         * story's steps are these objects too. Together, polled every four seconds,
+         * that is ~180 MB an hour — and a body that big is one a phone loses mid-flight
+         * often enough to be noticed, which is what surfaced as an intermittent
+         * "Failed to fetch" over the board.
+         *
+         * <p>{@code resultTruncated} is what makes this safe rather than lossy: it tells
+         * a client the text it is holding is a preview, so whoever needs the whole thing
+         * (the detail drawer) fetches {@code GET /api/todos/{id}} for the one task being
+         * read instead of every client paying for every task's result forever.
+         */
+        public static TodoResponse summary(Todo t, List<AttachmentView> attachments) {
+            TodoResponse full = from(t, attachments);
+            String result = full.result();
+            if (result == null || result.length() <= PREVIEW_CHARS) {
+                return full;
+            }
+            // Don't cut between the halves of a surrogate pair: that emits a lone
+            // surrogate, which is not valid JSON text. These results are routinely CJK
+            // and carry emoji, so the boundary is a real one, not a theoretical one.
+            int end = PREVIEW_CHARS;
+            if (Character.isHighSurrogate(result.charAt(end - 1))) {
+                end--;
+            }
+            return new TodoResponse(
+                    full.id(), full.title(), full.description(), full.status(),
+                    result.substring(0, end), full.projectImprovement(),
+                    full.createdAt(), full.updatedAt(), full.processedAt(),
+                    full.costUsd(), full.durationMs(), full.storyId(), full.storyName(),
+                    full.storyOrder(), full.storyPlanner(), full.unread(),
+                    full.delegated(), full.delegatedTo(), full.delegateClaimedAt(),
+                    full.attachments(), true);
         }
 
         public static TodoResponse from(Todo t, List<AttachmentView> attachments) {
@@ -178,7 +235,8 @@ public final class TodoDtos {
                     t.isDelegated(),
                     t.getDelegatedTo(),
                     t.getDelegateClaimedAt(),
-                    attachments == null ? List.of() : attachments);
+                    attachments == null ? List.of() : attachments,
+                    false);
         }
     }
 }
