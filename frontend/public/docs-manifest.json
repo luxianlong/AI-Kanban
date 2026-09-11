@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-page-89f133c0",
+    "title": "苹果发布会（配图版）",
+    "href": "/p/page-89f133c0.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-11T07:36:46.225Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/page-89f133c0.html",
+      "frontend/public/p/page-89f133c0.meta.json"
+    ]
+  },
+  {
     "id": "upload-manus",
     "title": "Manus团队测模型一点微小的经验",
     "href": "/p/manus.html",
