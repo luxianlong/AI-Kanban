@@ -61,19 +61,39 @@ export default function App() {
     [todos],
   )
 
+  // How many poll cycles in a row have to fail before the banner appears. A poll
+  // is three separate requests every four seconds, so on a phone a single one
+  // losing its connection — a cellular handover, a tab resumed from the
+  // background, the dev server rebinding its port after an auto-deploy touched
+  // vite.config.js — is ordinary, not news. It used to paint "Failed to fetch"
+  // over the board on the first one, which is where the intermittent error the
+  // board seemed to throw at random came from. Three cycles is ~12s of silence:
+  // long enough that something is really wrong, short enough to still tell you.
+  const FAILURES_BEFORE_ERROR = 3
+  const failureStreak = useRef(0)
+
   const refresh = useCallback(async () => {
-    try {
-      const [list, storyList, status] = await Promise.all([
-        api.listTodos(),
-        api.listStories(),
-        api.workerStatus(),
-      ])
-      setTodos(list)
-      setStories(storyList)
-      setWorker(status)
+    // allSettled, not all: one failed request must not discard the two that
+    // worked. Whatever answered updates its own slice; whatever didn't leaves
+    // the last good copy on screen rather than blanking the board.
+    const [list, storyList, status] = await Promise.allSettled([
+      api.listTodos(),
+      api.listStories(),
+      api.workerStatus(),
+    ])
+    if (list.status === 'fulfilled') setTodos(list.value)
+    if (storyList.status === 'fulfilled') setStories(storyList.value)
+    if (status.status === 'fulfilled') setWorker(status.value)
+
+    const failed = [list, storyList, status].filter((r) => r.status === 'rejected')
+    if (failed.length === 0) {
+      failureStreak.current = 0
       setError(null)
-    } catch (e) {
-      setError(e.message)
+      return
+    }
+    failureStreak.current += 1
+    if (failureStreak.current >= FAILURES_BEFORE_ERROR) {
+      setError(failed[0].reason?.message || 'Lost contact with the server.')
     }
   }, [])
 
@@ -82,7 +102,13 @@ export default function App() {
   useEffect(() => {
     refresh()
     if (route !== 'board') return undefined
-    const t = setInterval(refresh, 4000)
+    // Don't poll a board nobody is looking at. A hidden tab cannot show what it
+    // fetched, and the requests it fires are the ones most likely to fail: the
+    // browser throttles the timer, then wakes it on a connection that has gone
+    // stale. The visibilitychange handler below refreshes the moment the tab is
+    // back, so nothing is stale by the time it is on screen again.
+    const tick = () => { if (!document.hidden) refresh() }
+    const t = setInterval(tick, 4000)
     return () => clearInterval(t)
   }, [refresh, route])
 
