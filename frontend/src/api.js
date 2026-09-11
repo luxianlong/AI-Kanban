@@ -4,7 +4,18 @@ const BASE = '/api'
 async function json(res) {
   if (!res.ok) {
     const text = await res.text().catch(() => '')
-    throw new Error(`${res.status} ${res.statusText} ${text}`.trim())
+    const err = new Error(`${res.status} ${res.statusText} ${text}`.trim())
+    err.status = res.status
+    // The sentence the API wrote about this refusal, when it wrote one. `cleanError`
+    // digs the same thing back out of the message for the forms that just print it;
+    // this is for the callers that have to tell "the server explained itself" from
+    // "it didn't" and say something different in each case.
+    try {
+      err.detail = JSON.parse(text)?.message || ''
+    } catch {
+      err.detail = ''
+    }
+    throw err
   }
   return res.status === 204 ? null : res.json()
 }

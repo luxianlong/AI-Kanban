@@ -1428,11 +1428,16 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
       // Live again, and the step to watch is the one just released.
       setFollowing(true)
       onChanged()
-    } catch {
-      // Same reasoning as retry(): a refusal means the run moved under the page — it was
-      // cancelled, or somebody else pressed this a moment ago.
-      window.alert('This run has changed since the page last read it, so that step was '
-        + 'not started. The runs list has been refreshed.')
+    } catch (e) {
+      // A refusal here is always the run having moved under the page, but it is one of
+      // four moves — cancelled, finished, already released by another tab, or an upstream
+      // step that came back and took the input away again — and the server names which.
+      // Guessing one of the four in a single sentence told three users out of four
+      // something that wasn't so, so show what it said and keep the guess for the case
+      // where there is nothing to show (the request never arrived).
+      window.alert(e?.detail
+        || 'This run has changed since the page last read it, so that step was not '
+          + 'started. The runs list has been refreshed.')
       onChanged()
     }
   }
