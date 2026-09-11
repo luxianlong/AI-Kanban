@@ -539,10 +539,7 @@ function Topbar({ notify, onToggleNotify, unread, onOpenUnread, onMarkAllRead, d
     <header className="topbar">
       <div className="brand">
         <span className="mark" aria-hidden />
-        <div>
-          <h1>Kanban</h1>
-          <p className="tagline">Queue a task — an AI agent picks it up and works it.</p>
-        </div>
+        <h1>Kanban</h1>
       </div>
       <div className="status">
         <NotificationCenter

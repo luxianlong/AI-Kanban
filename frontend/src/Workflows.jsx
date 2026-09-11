@@ -408,13 +408,7 @@ export default function WorkflowsPage({ onBack }) {
           <button type="button" className="wf-back" onClick={onBack} title="Back to the board">
             <Icon name="back" size={18} />
           </button>
-          <div>
-            <h1>Workflows</h1>
-            <p className="tagline">
-              Chain prompts into a graph. Each step runs as its own session and passes
-              its answer to the next.
-            </p>
-          </div>
+          <h1>Workflows</h1>
         </div>
       </header>
 
@@ -849,11 +843,14 @@ function WorkflowEditor({
 }
 
 /**
- * The "how hard does this step think" picker, with the sentence that explains a level
- * once it is set. One component because a step's effort is now chosen in two places —
- * in the editor, where it is what every future run does, and inside a finished run,
- * where it is an experiment costing one session — and two pickers offering different
- * levels, or explaining ultracode differently, would be a bug waiting to happen.
+ * The "how hard does this step think" picker. One component because a step's effort is
+ * now chosen in two places — in the editor, where it is what every future run does, and
+ * inside a finished run, where it is an experiment costing one session — and two pickers
+ * offering different levels, or explaining ultracode differently, would be a bug waiting
+ * to happen.
+ *
+ * The levels explain themselves on hover and nowhere else: a paragraph under the picker
+ * is read once and then in the way of the step it belongs to.
  */
 function EffortPicker({ id, value, onChange, label = 'Effort' }) {
   return (
@@ -879,18 +876,6 @@ function EffortPicker({ id, value, onChange, label = 'Effort' }) {
           <option value={ULTRACODE} title={ULTRACODE_HINT}>{ULTRACODE}</option>
         </optgroup>
       </select>
-      {/* Only when it is set: a line under every step saying "this is normal" is
-          noise, and the point of the label is that this step is not. */}
-      {value && (
-        <span className="wf-effort-note">
-          {value === ULTRACODE
-            ? 'Runs at ultracode: xhigh thinking plus sub-sessions it can hand work '
-              + 'out to, with several times the usual time limit because it waits for '
-              + 'them. The most expensive level, and it fails outright where '
-              + 'ultracode is unavailable rather than falling back to the default.'
-            : `Runs at ${value} instead of the default.`}
-        </span>
-      )}
     </div>
   )
 }
@@ -900,9 +885,9 @@ function EffortPicker({ id, value, onChange, label = 'Effort' }) {
  * rather than about the work.
  *
  * A checkbox and not a picker, because it has two states and the off one is the default
- * for nearly every step: a workflow's whole point is that it walks itself. The sentence
- * underneath appears only when it is on, the same rule the effort note follows — a line
- * under every step saying "this one doesn't wait" is noise.
+ * for nearly every step: a workflow's whole point is that it walks itself. What ticking
+ * it does is on the label's tooltip, not spelled out underneath — and a run that stops
+ * here says so on the step itself, which is where it matters.
  */
 function ManualStartToggle({ id, checked, onChange }) {
   return (
@@ -916,13 +901,6 @@ function ManualStartToggle({ id, checked, onChange }) {
         />
         Wait for me before this step runs
       </label>
-      {checked && (
-        <span className="wf-effort-note">
-          A run stops here once the steps feeding this one have finished, with the input
-          ready, and shows a Start button on this step. Everything else in the graph still
-          runs by itself.
-        </span>
-      )}
     </div>
   )
 }
