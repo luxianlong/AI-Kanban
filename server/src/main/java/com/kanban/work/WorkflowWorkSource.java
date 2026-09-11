@@ -90,7 +90,7 @@ public class WorkflowWorkSource {
         graph.skipUnreachableWork(runs, byNodeId);
 
         for (NodeExecution run : runs) {
-            if (run.getStatus() != RunState.PENDING || !graph.dependenciesSucceeded(run, byNodeId)) {
+            if (!graph.readyToStart(run, byNodeId)) {
                 continue;
             }
             String input = graph.assembleInput(execution, run, byNodeId);
@@ -105,9 +105,10 @@ public class WorkflowWorkSource {
             return Optional.of(new ClaimedNode(execution, claimed, input));
         }
 
-        // Nothing runnable: either work is still to come from a node that has not finished, or
-        // the run is over. finishIfSettled() decides which, and is also what closes a run out
-        // now that no lane sits inside it to notice.
+        // Nothing runnable: work is still to come from a node that has not finished, the run
+        // is parked in front of a manual step waiting for the user, or the run is over.
+        // finishIfSettled() decides which, and is also what closes a run out now that no lane
+        // sits inside it to notice.
         graph.finishIfSettled(execution);
         return Optional.empty();
     }

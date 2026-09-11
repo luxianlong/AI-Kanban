@@ -135,7 +135,7 @@ public class WorkflowService {
         edges.flush();
         for (NodeSpec n : nodeSpecs) {
             nodes.save(new WorkflowNode(n.id(), workflow.getId(), n.name().trim(), n.prompt(),
-                    effortOf(n), n.x(), n.y()));
+                    effortOf(n), Boolean.TRUE.equals(n.manualStart()), n.x(), n.y()));
         }
         for (EdgeSpec e : edgeSpecs) {
             edges.save(new WorkflowEdge(workflow.getId(), e.from(), e.to()));
@@ -187,7 +187,7 @@ public class WorkflowService {
 
         for (WorkflowNode n : nodes.findByWorkflowIdOrderByIdAsc(id)) {
             nodes.save(new WorkflowNode(n.getNodeId(), copy.getId(), n.getName(), n.getPrompt(),
-                    n.getEffort(), n.getPosX(), n.getPosY()));
+                    n.getEffort(), n.isManualStart(), n.getPosX(), n.getPosY()));
         }
         for (WorkflowEdge e : edges.findByWorkflowId(id)) {
             edges.save(new WorkflowEdge(copy.getId(), e.getFromNodeId(), e.getToNodeId()));
@@ -425,6 +425,9 @@ public class WorkflowService {
             // together reads as one long session that contradicts itself.
             liveLog.clear(LiveLogRegistry.nodeKey(run.getId()));
             run.resetForRetry();
+        }
+        releaseStartedByHand(retrying, runs);
+        for (NodeExecution run : retrying) {
             nodeRuns.save(run);
         }
         // Back in the queue. startedAt is left alone — the run began when it began,
@@ -560,6 +563,9 @@ public class WorkflowService {
             // single session that contradicts itself.
             liveLog.clear(LiveLogRegistry.nodeKey(run.getId()));
             run.resetForRetry();
+        }
+        releaseStartedByHand(rerunning, runs);
+        for (NodeExecution run : rerunning) {
             nodeRuns.save(run);
         }
         execution.setStatus(RunState.PENDING);
@@ -567,6 +573,112 @@ public class WorkflowService {
         execution.setFinishedAt(null);
         executions.save(execution);
         return executionView(execution);
+    }
+
+    /**
+     * Give the go-ahead to the manual steps a restart is starting <em>right now</em>, so a
+     * restart doesn't need a second click to do the thing that was just asked for.
+     *
+     * <p>Pressing Retry, or a step's own re-run button, is a person saying "run this" — and
+     * {@link NodeExecution#resetForRetry()} has just taken the previous go-ahead away,
+     * because a go-ahead belongs to the attempt it was given for. Without this a manual
+     * step that failed would come back from Retry still waiting to be released, which reads
+     * as the button having done nothing.
+     *
+     * <p>Only the steps whose input is already sitting there, though — the ones a worker
+     * could pick up on the next tick. A manual step further down the chain has had its
+     * upstream reset too, so it is not the step the user pointed at; it will stop and ask
+     * when the run reaches it, which is the whole point of marking it manual.
+     *
+     * <p>Called after every row in {@code restarted} has been reset, since the dependency
+     * check reads the states the reset has just written.
+     */
+    private static void releaseStartedByHand(List<NodeExecution> restarted, List<NodeExecution> runs) {
+        for (NodeExecution run : restarted) {
+            if (run.isManualStartPending() && dependenciesSucceeded(runs, run)) {
+                run.approveStart();
+            }
+        }
+    }
+
+    /**
+     * Release one step that is waiting to be told to go — the play button on a paused run.
+     *
+     * <p>A step marked manual stops the run in front of it even once everything feeding it
+     * has succeeded (see {@code WorkflowNode#isManualStart}). This is the other half of
+     * that: the row keeps its PENDING state and gains the user's go-ahead, and the next
+     * worker to ask for work takes it like any other ready step. Nothing is launched here,
+     * exactly as nothing is launched by starting a run.
+     *
+     * <p>Refused with a sentence saying which of the reasons it is — the run has finished,
+     * the step isn't a manual one, it has already gone, or its input hasn't arrived yet.
+     * A bare 409 on a page whose whole job is to explain what a run is waiting for would
+     * be the one thing this feature cannot afford.
+     */
+    @Transactional
+    public ExecutionView startNode(Long nodeRunId) {
+        NodeExecution target = findNodeRun(nodeRunId);
+        WorkflowExecution execution = findExecution(target.getExecutionId());
+        List<NodeExecution> runs = nodeRuns.findByExecutionIdOrderByOrderIndexAsc(execution.getId());
+        if (!awaitingManualStart(execution, runs, target)) {
+            throw conflict(whyNotWaiting(execution, target));
+        }
+        target.approveStart();
+        nodeRuns.save(target);
+        log.info("Step '{}' of run #{} was released by the user.",
+                target.getNodeName(), execution.getId());
+        return executionView(execution);
+    }
+
+    /**
+     * Whether this step is a manual one sitting with its input ready, waiting for the user.
+     *
+     * <p>The same rule {@code WorkflowGraphProgress.awaitingManualStart} applies when it
+     * decides not to close the run out, with the run's own state added: a run that has gone
+     * terminal is not waiting for anybody, whatever its rows say. Stated here rather than
+     * shared because this side also answers it for every row of every listed run — it is
+     * what the page puts the play button on — and doing that through the progress component
+     * would mean handing it a map per row.
+     */
+    static boolean awaitingManualStart(WorkflowExecution execution, List<NodeExecution> runs,
+                                      NodeExecution target) {
+        return !execution.getStatus().isTerminal()
+                && target.isManualStartPending()
+                && dependenciesSucceeded(runs, target);
+    }
+
+    /** Which of a run's steps are waiting for the user, by node id. */
+    static Map<String, Boolean> awaitingStartFlags(List<NodeExecution> runs, WorkflowExecution execution) {
+        if (execution.getStatus().isTerminal()) {
+            return Map.of();
+        }
+        Map<String, Boolean> flags = new HashMap<>();
+        for (NodeExecution run : runs) {
+            flags.put(run.getNodeId(), awaitingManualStart(execution, runs, run));
+        }
+        return flags;
+    }
+
+    /** Why this step cannot be released — in the order the cases stop being true. */
+    private static String whyNotWaiting(WorkflowExecution execution, NodeExecution target) {
+        String step = "Step \"" + target.getNodeName() + "\"";
+        if (execution.getStatus().isTerminal()) {
+            return "Run #" + execution.getId() + " has already finished (" + execution.getStatus()
+                    + "), so " + step + " is not waiting for anything. Re-run it from the "
+                    + "step's own buttons instead.";
+        }
+        if (!target.isManualStart()) {
+            return step + " doesn't wait to be started: it runs on its own as soon as the "
+                    + "steps feeding it have succeeded.";
+        }
+        if (target.getStatus() != RunState.PENDING) {
+            return step + " is already " + target.getStatus() + ".";
+        }
+        if (target.getStartApprovedAt() != null) {
+            return step + " has already been started — it is waiting for a worker to take it.";
+        }
+        return step + " isn't waiting for you yet: the steps feeding it haven't all "
+                + "succeeded, so there is nothing to hand it.";
     }
 
     /**
@@ -1078,7 +1190,8 @@ public class WorkflowService {
 
     private static ExecutionView view(WorkflowExecution execution, List<NodeExecution> runs) {
         return ExecutionView.from(execution, runs, nodesToRetry(runs, execution).size(),
-                rerunFromCounts(runs, execution), rerunAloneFlags(runs, execution));
+                rerunFromCounts(runs, execution), rerunAloneFlags(runs, execution),
+                awaitingStartFlags(runs, execution));
     }
 
     private WorkflowExecution findExecution(Long id) {

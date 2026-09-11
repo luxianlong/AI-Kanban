@@ -26,12 +26,17 @@ public final class WorkflowDtos {
      * a bad value is rejected with a sentence naming the levels, instead of Jackson's
      * deserialisation error — and so that the casing the picker sends ("xhigh") is the
      * casing the API takes.
+     *
+     * <p>{@code manualStart} marks a step a run must be told to start, even once every
+     * step feeding it has succeeded. Null is off, which is what every client that predates
+     * the flag sends and what the overwhelming majority of steps want.
      */
     public record NodeSpec(
             @NotBlank @Size(max = 100) String id,
             @NotBlank @Size(max = 200) String name,
             @Size(max = 20_000) String prompt,
             @Size(max = 20) String effort,
+            Boolean manualStart,
             Integer x,
             Integer y) {
     }
@@ -140,12 +145,16 @@ public final class WorkflowDtos {
             @NotEmpty @Size(max = 50) List<@NotBlank @Size(max = 100) String> inputs) {
     }
 
-    /** {@code effort} is null when the step runs at the CLI's default. */
-    public record NodeView(String id, String name, String prompt, String effort, Integer x, Integer y) {
+    /**
+     * {@code effort} is null when the step runs at the CLI's default; {@code manualStart}
+     * is true on a step a run stops in front of and waits to be told to start.
+     */
+    public record NodeView(String id, String name, String prompt, String effort,
+                           boolean manualStart, Integer x, Integer y) {
         static NodeView from(WorkflowNode n) {
             return new NodeView(n.getNodeId(), n.getName(), n.getPrompt(),
                     n.getEffort() == null ? null : n.getEffort().cliValue(),
-                    n.getPosX(), n.getPosY());
+                    n.isManualStart(), n.getPosX(), n.getPosY());
         }
     }
 
@@ -199,6 +208,13 @@ public final class WorkflowDtos {
      * <p>{@code addedAt} is null on a step the run snapshotted from the workflow, and
      * set on one inserted into the run afterwards — the one thing in the record that
      * reading the workflow would never explain.
+     *
+     * <p>{@code manualStart} is the snapshotted flag — this step waits to be told to go —
+     * and {@code startApprovedAt} is when it was told, so a finished run still shows which
+     * of its steps were held and for how long. {@code awaitingStart} is the live question
+     * the play button hangs off: this step is manual, its input is ready, and nobody has
+     * released it yet (see {@link WorkflowService#awaitingManualStart}). It is false on a
+     * run that has finished — nothing there is waiting for anyone.
      */
     public record NodeRunView(
             Long id,
@@ -220,9 +236,13 @@ public final class WorkflowDtos {
             Long durationMs,
             int attempt,
             int rerunFromCount,
-            boolean canRerunAlone) {
+            boolean canRerunAlone,
+            boolean manualStart,
+            Instant startApprovedAt,
+            boolean awaitingStart) {
 
-        static NodeRunView from(NodeExecution n, int rerunFromCount, boolean canRerunAlone) {
+        static NodeRunView from(NodeExecution n, int rerunFromCount, boolean canRerunAlone,
+                                boolean awaitingStart) {
             return new NodeRunView(
                     n.getId(),
                     n.getNodeId(),
@@ -243,7 +263,10 @@ public final class WorkflowDtos {
                     n.getDurationMs(),
                     n.getAttempt(),
                     rerunFromCount,
-                    canRerunAlone);
+                    canRerunAlone,
+                    n.isManualStart(),
+                    n.getStartApprovedAt(),
+                    awaitingStart);
         }
     }
 
@@ -304,7 +327,8 @@ public final class WorkflowDtos {
 
         static ExecutionView from(WorkflowExecution e, List<NodeExecution> nodes, int retryableNodes,
                                   Map<String, Integer> rerunFromCounts,
-                                  Map<String, Boolean> rerunAloneFlags) {
+                                  Map<String, Boolean> rerunAloneFlags,
+                                  Map<String, Boolean> awaitingStartFlags) {
             long done = nodes.stream().filter(n -> n.getStatus().isTerminal()).count();
             return new ExecutionView(
                     e.getId(),
@@ -324,7 +348,8 @@ public final class WorkflowDtos {
                     nodes.stream()
                             .map(n -> NodeRunView.from(n,
                                     rerunFromCounts.getOrDefault(n.getNodeId(), 0),
-                                    rerunAloneFlags.getOrDefault(n.getNodeId(), false)))
+                                    rerunAloneFlags.getOrDefault(n.getNodeId(), false),
+                                    awaitingStartFlags.getOrDefault(n.getNodeId(), false)))
                             .toList());
         }
     }

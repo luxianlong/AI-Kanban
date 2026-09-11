@@ -35,7 +35,7 @@ class WorkflowGraphProgressTest {
     }
 
     private WorkflowNode node(String id, String name, String prompt, EffortLevel effort) {
-        return new WorkflowNode(id, "wf", name, prompt, effort, null, null);
+        return new WorkflowNode(id, "wf", name, prompt, effort, false, null, null);
     }
 
     private NodeExecution run(WorkflowNode node, List<String> dependsOn, int order) {

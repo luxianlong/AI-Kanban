@@ -62,6 +62,31 @@ public class WorkflowNode {
     @Enumerated(EnumType.STRING)
     private EffortLevel effort;
 
+    /**
+     * Whether a run must wait for the user before starting this step, even once
+     * everything feeding it has succeeded.
+     *
+     * <p>The default is off, and that default is the whole design of a workflow: the
+     * graph says what follows what, and a run walks it without being asked twice. This
+     * is the exception for the steps where the <em>input</em> is not the only thing that
+     * has to be ready — a step that publishes, that spends something, or that is only
+     * worth running once somebody has read what the step above it produced. Before this
+     * the only way to get that pause was to cut the graph in two and run the second half
+     * as its own workflow, which loses the run, its record and its wiring.
+     *
+     * <p>A property of the node and not of the run, because which step needs a human in
+     * front of it is a fact about the work, the same way {@link #effort} is. The run
+     * snapshots it (see {@code NodeExecution}) so a finished run still says which of its
+     * steps waited.
+     *
+     * <p>{@link Boolean} rather than {@code boolean}: the column is added to a table that
+     * already has rows, so every node saved before this reads back null. {@link
+     * #isManualStart()} is the only reader and treats null as off — a graph that has run
+     * for weeks without pausing does not start pausing because of a migration.
+     */
+    @Column(name = "manual_start")
+    private Boolean manualStart;
+
     /** Editor layout only — where the node sits on the canvas. Never used at run time. */
     private Integer posX;
 
@@ -71,12 +96,13 @@ public class WorkflowNode {
     }
 
     public WorkflowNode(String nodeId, String workflowId, String name, String prompt,
-                        EffortLevel effort, Integer posX, Integer posY) {
+                        EffortLevel effort, boolean manualStart, Integer posX, Integer posY) {
         this.nodeId = nodeId;
         this.workflowId = workflowId;
         this.name = name;
         this.prompt = prompt;
         this.effort = effort;
+        this.manualStart = manualStart;
         this.posX = posX;
         this.posY = posY;
     }
@@ -99,6 +125,11 @@ public class WorkflowNode {
 
     public EffortLevel getEffort() {
         return effort;
+    }
+
+    /** Whether a run pauses for the user here. Null (an older row) is off. */
+    public boolean isManualStart() {
+        return manualStart != null && manualStart;
     }
 
     public Integer getPosX() {

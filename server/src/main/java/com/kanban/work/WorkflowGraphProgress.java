@@ -24,6 +24,10 @@ import java.util.Map;
  * its result arrives. Nothing about the rules changes — a node still waits for every
  * dependency to have SUCCEEDED, a failed node still poisons the branch below it, and a run
  * still ends when nothing is left that could run.
+ *
+ * <p>One rule has been added since: a node marked manual waits for the user as well as for
+ * its input (see {@link #readyToStart}), so "nothing left that could run" and "nothing left
+ * to do" came apart — a run parked in front of such a step is neither working nor finished.
  */
 @Component
 public class WorkflowGraphProgress {
@@ -88,6 +92,35 @@ public class WorkflowGraphProgress {
             }
         }
         return true;
+    }
+
+    /**
+     * Whether this step may be handed to a worker right now: queued, everything feeding
+     * it has succeeded, and — where it is a manual step — the user has said go.
+     *
+     * <p>The one place that answers the question, because two places answered it before
+     * and both have to agree: the work source hands a step out, and
+     * {@link #finishIfSettled} decides a run with nothing left to hand out is over.
+     * Teaching one about the gate and not the other would mean a run that pauses
+     * correctly and is then closed as finished while it is still waiting.
+     */
+    public boolean readyToStart(NodeExecution run, Map<String, NodeExecution> byNodeId) {
+        return run.getStatus() == RunState.PENDING
+                && !run.isManualStartPending()
+                && dependenciesSucceeded(run, byNodeId);
+    }
+
+    /**
+     * Whether this step is a manual one sitting there with its input ready, waiting for
+     * the user — the one state in which a run is neither working nor finished.
+     *
+     * <p>The dependency check is what makes this narrower than the flag on the row. A
+     * manual step below one that failed is not waiting for anybody: it is already
+     * unreachable, {@link #skipUnreachableWork} marks it SKIPPED, and treating it as a
+     * pause would hold a dead run open forever with a button that could never help.
+     */
+    public boolean awaitingManualStart(NodeExecution run, Map<String, NodeExecution> byNodeId) {
+        return run.isManualStartPending() && dependenciesSucceeded(run, byNodeId);
     }
 
     /**
@@ -182,10 +215,16 @@ public class WorkflowGraphProgress {
             return; // something is still going
         }
         Map<String, NodeExecution> byNodeId = byNodeId(runs);
-        boolean anyRunnable = runs.stream()
-                .anyMatch(r -> r.getStatus() == RunState.PENDING && dependenciesSucceeded(r, byNodeId));
+        boolean anyRunnable = runs.stream().anyMatch(r -> readyToStart(r, byNodeId));
         if (anyRunnable) {
             return; // more work to hand out
+        }
+        if (runs.stream().anyMatch(r -> awaitingManualStart(r, byNodeId))) {
+            // Waiting for a person, which is not the same as having nothing left to do.
+            // The run stays open — and stays out of the "stuck" case below, which is for
+            // a snapshot whose dependencies cannot resolve and would otherwise swallow
+            // every paused run as a failure the moment the poller looked at it.
+            return;
         }
         if (runs.stream().anyMatch(r -> r.getStatus() == RunState.PENDING)) {
             // Nothing ready, nothing running, yet work is left: the snapshot's

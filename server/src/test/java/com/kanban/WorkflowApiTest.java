@@ -1000,4 +1000,101 @@ class WorkflowApiTest {
                 .andExpect(jsonPath("$.nodes[?(@.id=='a')].effort", is(java.util.List.of("high"))))
                 .andExpect(jsonPath("$.nodes[?(@.id=='b')].effort", is(DEFAULT_EFFORT)));
     }
+
+    // --- a step the run waits to be told to start ------------------------
+
+    @Test
+    void aStepCanBeMarkedManualAndTheRestOfTheGraphStaysAutomatic() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Manual publish",
+                 "nodes":[{"id":"a","name":"Collect","prompt":"x"},
+                          {"id":"b","name":"Publish","prompt":"y","manualStart":true}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+
+        mvc.perform(get("/api/workflows/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[?(@.id=='b')].manualStart", is(java.util.List.of(true))))
+                // A step that says nothing runs by itself, which is what a workflow is for.
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].manualStart", is(java.util.List.of(false))));
+    }
+
+    @Test
+    void aRunSnapshotsWhichOfItsStepsWaitForSomebody() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Snapshot manual",
+                 "nodes":[{"id":"a","name":"Collect","prompt":"x"},
+                          {"id":"b","name":"Publish","prompt":"y","manualStart":true}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+        long executionId = mapper.readTree(mvc.perform(post("/api/workflows/" + id + "/run")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"input\":\"go\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).get("id").asLong();
+
+        // Take the gate off the workflow. The run already made its copy, and a finished
+        // run has to keep saying which of its steps was held.
+        mvc.perform(put("/api/workflows/" + id).contentType(MediaType.APPLICATION_JSON).content("""
+                        {"name":"Snapshot manual",
+                         "nodes":[{"id":"a","name":"Collect","prompt":"x"},
+                                  {"id":"b","name":"Publish","prompt":"y"}],
+                         "edges":[{"from":"a","to":"b"}]}
+                        """))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/workflows/executions/" + executionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes[?(@.nodeId=='b')].manualStart",
+                        is(java.util.List.of(true))))
+                // Not waiting for anybody yet, though: the step above it hasn't run, so
+                // there is nothing to hand it and the button would do nothing.
+                .andExpect(jsonPath("$.nodes[?(@.nodeId=='b')].awaitingStart",
+                        is(java.util.List.of(false))));
+    }
+
+    @Test
+    void duplicatingAWorkflowCarriesTheGateAcross() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Manual original",
+                 "nodes":[{"id":"a","name":"A","prompt":"x"},
+                          {"id":"b","name":"B","prompt":"y","manualStart":true}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+
+        mvc.perform(post("/api/workflows/" + id + "/duplicate"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nodes[?(@.id=='b')].manualStart", is(java.util.List.of(true))))
+                .andExpect(jsonPath("$.nodes[?(@.id=='a')].manualStart", is(java.util.List.of(false))));
+    }
+
+    @Test
+    void startingAStepThatIsNotWaitingIsRefusedWithAReason() throws Exception {
+        String id = createWorkflow("""
+                {"name":"Manual refusals",
+                 "nodes":[{"id":"a","name":"Collect","prompt":"x"},
+                          {"id":"b","name":"Publish","prompt":"y","manualStart":true}],
+                 "edges":[{"from":"a","to":"b"}]}
+                """);
+        long executionId = mapper.readTree(mvc.perform(post("/api/workflows/" + id + "/run")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"input\":\"go\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString()).get("id").asLong();
+        java.util.Map<String, Long> rowIds = new java.util.HashMap<>();
+        for (NodeExecution run : nodeRuns.findByExecutionIdOrderByOrderIndexAsc(executionId)) {
+            rowIds.put(run.getNodeId(), run.getId());
+        }
+
+        // An ordinary step has no gate to open — it goes when its input arrives.
+        mvc.perform(post("/api/workflows/node-runs/" + rowIds.get("a") + "/start"))
+                .andExpect(status().isConflict())
+                .andExpect(status().reason(containsString("doesn't wait to be started")));
+
+        // The gated step is not waiting for anybody yet: nothing has produced its input.
+        mvc.perform(post("/api/workflows/node-runs/" + rowIds.get("b") + "/start"))
+                .andExpect(status().isConflict())
+                .andExpect(status().reason(containsString("isn't waiting for you yet")));
+
+        mvc.perform(post("/api/workflows/node-runs/999999/start"))
+                .andExpect(status().isNotFound());
+    }
 }

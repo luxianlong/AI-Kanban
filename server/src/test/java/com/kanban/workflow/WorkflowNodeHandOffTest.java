@@ -76,10 +76,10 @@ class WorkflowNodeHandOffTest {
         execution.setEntryNodeId("a");
         executions.save(execution);
         nodeRuns.save(new NodeExecution(execution.getId(),
-                new WorkflowNode("a", "wf-a", "Collect", "Find the sources", entryEffort, null, null),
+                new WorkflowNode("a", "wf-a", "Collect", "Find the sources", entryEffort, false, null, null),
                 List.of(), 0));
         nodeRuns.save(new NodeExecution(execution.getId(),
-                new WorkflowNode("b", "wf-a", "Summarise", "Summarise the input", null, null, null),
+                new WorkflowNode("b", "wf-a", "Summarise", "Summarise the input", null, false, null, null),
                 List.of("a"), 1));
         return execution.getId();
     }
