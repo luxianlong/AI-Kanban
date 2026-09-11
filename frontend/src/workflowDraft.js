@@ -30,7 +30,7 @@ export function blankDraft() {
     name: '',
     description: '',
     entryNodeId: entry,
-    nodes: [{ id: entry, name: 'Step 1', prompt: '', effort: '', inputs: [] }],
+    nodes: [{ id: entry, name: 'Step 1', prompt: '', effort: '', manualStart: false, inputs: [] }],
   }
 }
 
@@ -42,6 +42,10 @@ export function draftFrom(workflow) {
     // '' rather than null, so the <select> is a controlled component on the same
     // value the "Default" option carries.
     effort: n.effort || '',
+    // Whether a run stops in front of this step and waits to be told to go. Coerced
+    // rather than passed through: the checkbox must be controlled on a boolean, and an
+    // older workflow's nodes come back without the field at all.
+    manualStart: !!n.manualStart,
     inputs: workflow.edges.filter((e) => e.to === n.id).map((e) => e.from),
   }))
   return {
@@ -69,6 +73,7 @@ export function payloadFrom(draft) {
       // Back to null on the way out: the API reads blank as "the default", and it
       // rejects anything that isn't a level rather than quietly ignoring it.
       effort: n.effort || null,
+      manualStart: !!n.manualStart,
     })),
     edges: draft.nodes.flatMap((n) => n.inputs.map((from) => ({ from, to: n.id }))),
   }
@@ -101,7 +106,7 @@ export function appendStep(draft, step) {
  * name has always made: a name you can edit beats a number that renumbers under you.
  */
 export function blankStep(id, count) {
-  return { id, name: `Step ${count + 1}`, prompt: '', effort: '' }
+  return { id, name: `Step ${count + 1}`, prompt: '', effort: '', manualStart: false }
 }
 
 /**
@@ -109,8 +114,10 @@ export function blankStep(id, count) {
  * the favourite are unrelated, so editing the step doesn't rewrite the shelf and
  * re-saving the favourite doesn't reach into graphs already built from it.
  *
- * Only name, prompt and effort come across. Where a step sits and what feeds it belong
- * to the graph it is being inserted INTO, not to the work the step does.
+ * Only name, prompt and effort come across. Where a step sits, what feeds it, and whether
+ * the run waits for a person in front of it belong to the graph it is being inserted INTO,
+ * not to the work the step does — the same prompt is worth pausing for in the graph that
+ * publishes what it writes and not in the one that only drafts.
  */
 export function stepFromFavorite(favorite, id) {
   return {
@@ -120,6 +127,7 @@ export function stepFromFavorite(favorite, id) {
     // Same '' as draftFrom uses: null is what the API stores, '' is what the picker
     // edits, and the two must not be mixed or the <select> stops being controlled.
     effort: favorite.effort || '',
+    manualStart: false,
   }
 }
 

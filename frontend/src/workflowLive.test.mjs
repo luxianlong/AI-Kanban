@@ -2,8 +2,9 @@
 import assert from 'node:assert/strict'
 import {
   IDLE_POLL_MS, LIVE_POLL_MS, SETTLE_GRACE_MS, deleteHeldBack, deleteRunPrompt,
-  deleteWorkflowPrompt, entryNodeIdOf, followedNode, isLive, mergeExecutions,
-  nodesWithStaleInput, outputPredatesSettings, pollInterval, sameValue, stateLabel,
+  deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel, followedNode, isLive,
+  mergeExecutions, nodeStateLabel, nodesWithStaleInput, outputPredatesSettings, pollInterval,
+  sameValue, stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
 
 const node = (over = {}) => ({
@@ -296,5 +297,53 @@ assert.match(unknown, /run history goes too/)
 assert.match(unknown, /could not reach/)
 assert.ok(!unknown.includes('no runs'))
 assert.notEqual(unknown, deleteWorkflowPrompt('Article', 0))
+
+// --- a run waiting for the user -------------------------------------------
+
+// Parked in front of a manual step: the run's own status is RUNNING and nothing is
+// running. Both labels have to say so, or the card reads as a run getting on with it.
+const parked = run({
+  status: 'RUNNING',
+  doneNodes: 1,
+  totalNodes: 2,
+  nodes: [
+    node({ nodeId: 'a', nodeName: 'Collect' }),
+    node({
+      id: 2, nodeId: 'b', nodeName: 'Publish', status: 'PENDING', output: null,
+      dependsOn: ['a'], manualStart: true, awaitingStart: true,
+    }),
+  ],
+})
+assert.deepEqual(stepsAwaitingStart(parked).map((n) => n.nodeName), ['Publish'])
+assert.equal(executionStateLabel(parked), 'Waiting')
+assert.equal(nodeStateLabel(parked.nodes[1]), 'Waiting for you')
+// The step that has run keeps its own word.
+assert.equal(nodeStateLabel(parked.nodes[0]), 'Done')
+
+// A queued step that has simply not got its turn yet is NOT waiting for anybody, and
+// must keep saying "Queued" — the two are opposite situations on the page.
+assert.equal(nodeStateLabel({ status: 'PENDING', manualStart: true, awaitingStart: false }),
+  'Queued')
+assert.deepEqual(stepsAwaitingStart(run({ status: 'RUNNING' })), [])
+assert.equal(executionStateLabel(run({ status: 'RUNNING' })), 'Running')
+
+// Two branches can arrive at once, and then each needs its own go-ahead.
+const twoWaiting = run({
+  status: 'RUNNING',
+  nodes: [
+    node({ nodeId: 'a', nodeName: 'Collect' }),
+    node({ id: 2, nodeId: 'b', nodeName: 'Publish', status: 'PENDING', awaitingStart: true }),
+    node({ id: 3, nodeId: 'c', nodeName: 'Post', status: 'PENDING', awaitingStart: true }),
+  ],
+})
+assert.equal(stepsAwaitingStart(twoWaiting).length, 2)
+
+// A finished run is waiting for nobody, whatever a leftover row claims — the server
+// clears the flag, and the label must not promise a button the run can't offer.
+assert.equal(executionStateLabel({ ...parked, status: 'SUCCEEDED' }), 'Done')
+
+// Called on whatever the poll last returned, so neither may throw on nothing.
+assert.deepEqual(stepsAwaitingStart(undefined), [])
+assert.equal(nodeStateLabel(undefined), undefined)
 
 console.log('ok')

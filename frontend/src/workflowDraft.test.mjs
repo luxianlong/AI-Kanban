@@ -209,4 +209,44 @@ assert.equal(favoriteNamed(shelf, undefined), null)
 // is still this favourite's step, and pressing the star again is what updates it.
 assert.equal(favoriteNamed(shelf, 'Summarise').prompt, 'Five bullets')
 
+// --- manual start: the flag that stops a run in front of a step ---------------
+
+// It round-trips, and it is a boolean on both sides: the checkbox has to be controlled
+// on one, and the API stores one.
+const gated = draftFrom({
+  ...workflow,
+  nodes: [
+    { id: 'a', name: 'Collect', prompt: 'Find sources' },
+    { id: 'b', name: 'Summarise', prompt: null, manualStart: true },
+    { id: 'c', name: 'Publish', prompt: 'Write it up', manualStart: false },
+  ],
+})
+assert.deepEqual(gated.nodes.map((n) => n.manualStart), [false, true, false])
+assert.deepEqual(payloadFrom(gated).nodes.map((n) => n.manualStart), [false, true, false])
+
+// A workflow saved before the flag existed comes back without the field at all, and must
+// read as off rather than as undefined — an uncontrolled checkbox warns and then ignores
+// the first click.
+assert.equal(draftFrom(workflow).nodes.every((n) => n.manualStart === false), true)
+
+// Off on a new step. A graph that walks itself is what a workflow is for; pausing is the
+// exception somebody asks for.
+assert.equal(blankStep('n1', 0).manualStart, false)
+assert.equal(blankDraft().nodes[0].manualStart, false)
+
+// And off on a step written from a favourite, even where the step it was saved from
+// paused: whether a person is wanted in front of this step belongs to the graph it is
+// being inserted into, not to the prompt.
+assert.equal(stepFromFavorite({ name: 'Publish', prompt: 'Ship it' }, 'n2').manualStart, false)
+assert.equal(favoriteFromStep({ name: 'Publish', prompt: 'Ship it', manualStart: true }).manualStart,
+  undefined)
+
+// Turning it on is an unsaved edit — otherwise duplicating a workflow would quietly
+// duplicate the version that still runs straight through.
+const toggled = {
+  ...gated,
+  nodes: gated.nodes.map((n) => (n.id === 'c' ? { ...n, manualStart: true } : n)),
+}
+assert.notEqual(draftFingerprint(toggled), draftFingerprint(gated))
+
 console.log('ok')

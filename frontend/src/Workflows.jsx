@@ -8,9 +8,9 @@ import {
   NODE_H, NODE_W, descendantsOf, edgePath, flowFor, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 import {
-  deleteHeldBack, deleteRunPrompt, deleteWorkflowPrompt, entryNodeIdOf, followedNode, isLive,
-  mergeExecutions, nodesWithStaleInput, outputPredatesSettings, pollInterval, SETTLE_GRACE_MS,
-  stateLabel,
+  deleteHeldBack, deleteRunPrompt, deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel,
+  followedNode, isLive, mergeExecutions, nodeStateLabel, nodesWithStaleInput,
+  outputPredatesSettings, pollInterval, SETTLE_GRACE_MS, stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
@@ -50,6 +50,16 @@ export const ULTRACODE_HINT =
   + 'that work. It is given several times the usual time limit for exactly that reason. '
   + 'Where ultracode is unavailable the step fails rather than quietly running at the '
   + 'default.'
+
+// What marking a step "wait for me" does. Said once, and shown both on the checkbox in
+// the editor and on the badge a run puts on the step, because the whole feature is one
+// claim — the graph still runs by itself, this one step excepted — and a run that stops
+// where nobody expected it to is the worst way to learn that.
+export const MANUAL_START_HINT =
+  'Stop the run here. Every step feeding this one still runs by itself; when they have '
+  + 'finished, the run waits with the input ready and this step shows a Start button. For '
+  + 'the step you want to read the run so far before paying for — the one that publishes, '
+  + 'or spends, or takes an hour.'
 
 /**
  * Whether this tab is on screen right now.
@@ -885,6 +895,38 @@ function EffortPicker({ id, value, onChange, label = 'Effort' }) {
   )
 }
 
+/**
+ * "Wait for me before this step runs" — the one control on a step that is about the run
+ * rather than about the work.
+ *
+ * A checkbox and not a picker, because it has two states and the off one is the default
+ * for nearly every step: a workflow's whole point is that it walks itself. The sentence
+ * underneath appears only when it is on, the same rule the effort note follows — a line
+ * under every step saying "this one doesn't wait" is noise.
+ */
+function ManualStartToggle({ id, checked, onChange }) {
+  return (
+    <div className="wf-node-manual">
+      <label className="wf-manual-label" htmlFor={id} title={MANUAL_START_HINT}>
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        Wait for me before this step runs
+      </label>
+      {checked && (
+        <span className="wf-effort-note">
+          A run stops here once the steps feeding this one have finished, with the input
+          ready, and shows a Start button on this step. Everything else in the graph still
+          runs by itself.
+        </span>
+      )}
+    </div>
+  )
+}
+
 function NodeEditor({
   node, index, all, isEntry, unreached, onChange, onMakeEntry, onToggleInput, onRemove,
   favorite, onFavorite,
@@ -906,6 +948,12 @@ function NodeEditor({
         />
         {node.effort && (
           <span className="wf-badge effort-badge" title={EFFORT_HINT}>{node.effort}</span>
+        )}
+        {/* On the head as well as on the checkbox below, because this is the one setting
+            that changes whether the run reaches the end on its own — worth seeing while
+            scanning the list, not only while editing the step. */}
+        {node.manualStart && (
+          <span className="wf-badge manual-badge" title={MANUAL_START_HINT}>Manual</span>
         )}
         {isEntry ? (
           <span className="wf-badge entry-badge" title="Every run starts here">Entry</span>
@@ -968,6 +1016,12 @@ function NodeEditor({
         onChange={(effort) => onChange({ effort })}
       />
 
+      <ManualStartToggle
+        id={`manual-${node.id}`}
+        checked={!!node.manualStart}
+        onChange={(manualStart) => onChange({ manualStart })}
+      />
+
       <div className="wf-inputs">
         <span className="wf-inputs-label">Input from</span>
         {candidates.length === 0 ? (
@@ -1024,7 +1078,7 @@ const MIN_SCALE = 0.6
  * labels stay full size and reaching the last step is an ordinary scroll.
  */
 function WorkflowGraph({
-  nodes, entryNodeId, reachable, selectedId, onSelect, statuses, label,
+  nodes, entryNodeId, reachable, selectedId, onSelect, statuses, awaiting, label,
 }) {
   // The number on a box is the step's place in run order, which is what the
   // picture is arranged by — not the order the steps happen to be stored in.
@@ -1139,15 +1193,24 @@ function WorkflowGraph({
           if (!at) return null
           const isEntry = node.id === entryNodeId
           const status = statuses?.get(node.id)
-          const subtitle = status
-            ? stateLabel(status)
-            : (isEntry ? 'Entry' : (reachable && !reachable.has(node.id) ? 'Unreached' : null))
+          // A step waiting to be started is PENDING like any other queued step, and on
+          // the picture those are the two things that must not look alike: one is about
+          // to go, the other is where the run has stopped and is the only box worth
+          // clicking. "Waiting" rather than the row's "Waiting for you" — a box is 152
+          // units wide and the longer phrase runs off the end of it.
+          const waiting = awaiting?.has(node.id)
+          const subtitle = waiting
+            ? 'Waiting'
+            : (status
+              ? stateLabel(status)
+              : (isEntry ? 'Entry' : (reachable && !reachable.has(node.id) ? 'Unreached' : null)))
           const classes = [
             'wf-gnode',
             isEntry ? 'entry' : '',
             reachable && !reachable.has(node.id) ? 'unreached' : '',
             selectedId === node.id ? 'on' : '',
             status ? status.toLowerCase() : '',
+            waiting ? 'awaiting' : '',
             onSelect ? 'pickable' : '',
           ].filter(Boolean).join(' ')
           return (
@@ -1256,6 +1319,16 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // still says "Done", but the input it was written from has moved since. Derived for
   // the whole run at once because it is a question about the graph, not about a row.
   const staleInput = useMemo(() => nodesWithStaleInput(execution.nodes), [execution.nodes])
+  // The steps marked "wait for me" that are now waiting — the run has stopped and this is
+  // the only thing that will move it. The server decides which they are; the card only has
+  // to put them where they can be seen, which is twice: in the picture, and on a button at
+  // the top of the card, since a run parked on step seven of nine is otherwise a run that
+  // looks merely slow.
+  const waitingSteps = useMemo(() => stepsAwaitingStart(execution), [execution])
+  const awaiting = useMemo(
+    () => new Set(waitingSteps.map((n) => n.nodeId)),
+    [waitingSteps],
+  )
   // The step this run started from, as the run itself recorded it — it is drawn
   // differently, and marked as the entry in the step list.
   const entryNodeId = entryNodeIdOf(execution)
@@ -1345,6 +1418,25 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
     }
   }
 
+  // Starting a step the run has stopped in front of. No confirm: the step is marked as
+  // one that waits for a person, so the person is already in front of it deciding — and
+  // the button's own label is the question. What it costs is one session, which is what
+  // the step was always going to cost once released.
+  async function startStep(run) {
+    try {
+      await api.startNodeRun(run.id)
+      // Live again, and the step to watch is the one just released.
+      setFollowing(true)
+      onChanged()
+    } catch {
+      // Same reasoning as retry(): a refusal means the run moved under the page — it was
+      // cancelled, or somebody else pressed this a moment ago.
+      window.alert('This run has changed since the page last read it, so that step was '
+        + 'not started. The runs list has been refreshed.')
+      onChanged()
+    }
+  }
+
   // Editing a step inside the run rather than in the workflow. The run holds its own
   // copy of every step — prompt, effort and wiring — and that is what makes this a
   // cheap experiment: change one thing, re-run that one step, and the step is handed
@@ -1405,7 +1497,11 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   return (
     <li className={`wf-run ${open ? 'open' : ''}`}>
       <button type="button" className="wf-run-head" onClick={() => setOpen((v) => !v)}>
-        <span className={`wf-state ${execution.status.toLowerCase()}`}>{stateLabel(execution.status)}</span>
+        <span
+          className={`wf-state ${execution.status.toLowerCase()} ${waitingSteps.length ? 'awaiting' : ''}`}
+        >
+          {executionStateLabel(execution)}
+        </span>
         <span className="wf-run-title">
           {showWorkflowName && <strong>{execution.workflowName} </strong>}
           <span className="wf-run-id">#{execution.id}</span>
@@ -1432,6 +1528,21 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
             your cursor. See workflowLive.js and card #333.
           */}
           <div className="wf-run-actions">
+            {/* First in the row, and the only filled button on a card: on a run that has
+                stopped to ask, this is the answer. One per waiting step — usually one, but
+                two branches can arrive at the same time and each needs its own go-ahead,
+                so the name is on the button rather than implied by there being one. */}
+            {waitingSteps.map((run) => (
+              <button
+                key={run.id}
+                type="button"
+                className="btn primary"
+                onClick={(e) => { e.stopPropagation(); startStep(run) }}
+                title={MANUAL_START_HINT}
+              >
+                <Icon name="play" size={13} /> Start “{run.nodeName}”
+              </button>
+            ))}
             {live && (
               <button type="button" className="btn ghost" onClick={cancel}>
                 <Icon name="stop" size={13} /> Cancel run
@@ -1485,6 +1596,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
             nodes={graphNodes}
             entryNodeId={entryNodeId}
             statuses={statuses}
+            awaiting={awaiting}
             selectedId={openNodeId}
             onSelect={pickNode}
             label={`Run #${execution.id} graph — pick a step to see what it did`}
@@ -1501,6 +1613,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
                 staleInput={staleInput.has(run.nodeId)}
                 onToggle={() => pickNode(run.nodeId)}
                 onRerun={(downstream) => rerunFrom(run, downstream)}
+                onStart={() => startStep(run)}
                 onEdit={(settings) => editStep(run, settings)}
                 onAddAfter={(step) => addStepAfter(run, step)}
                 onRemove={() => removeStep(run)}
@@ -1515,7 +1628,8 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
 })
 
 function NodeRun({
-  run, where, isEntry, open, staleInput, siblings, onToggle, onRerun, onEdit, onAddAfter, onRemove,
+  run, where, isEntry, open, staleInput, siblings, onToggle, onRerun, onStart, onEdit,
+  onAddAfter, onRemove,
 }) {
   const [log, setLog] = useState('')
   // The kept transcript of an attempt that has finished, and whether it is on its way.
@@ -1523,6 +1637,7 @@ function NodeRun({
   const [kept, setKept] = useState(null)
   const [fetching, setFetching] = useState(false)
   const [rerunning, setRerunning] = useState(false)
+  const [starting, setStarting] = useState(false)
   // Whether the "add a step after this one" form is showing. Closed by default and
   // per-step, because where a step goes is the decision the form is for.
   const [adding, setAdding] = useState(false)
@@ -1534,6 +1649,15 @@ function NodeRun({
       await onRerun(downstream)
     } finally {
       setRerunning(false)
+    }
+  }
+
+  async function start() {
+    setStarting(true)
+    try {
+      await onStart()
+    } finally {
+      setStarting(false)
     }
   }
 
@@ -1611,6 +1735,9 @@ function NodeRun({
     // snapshotted — so a run keeps saying what it did after the workflow moves on.
     // Absent on a step left at the default, where there is nothing to explain.
     run.effort ? `effort ${run.effort}` : '',
+    // Only where it says something the row doesn't: a step that was held and has since
+    // run looks exactly like any other finished step, and the gap before it is unexplained.
+    run.manualStart && run.startApprovedAt ? 'started by hand' : '',
     stale ? 'settings edited' : '',
     staleInput ? 'input changed' : '',
     runMeta(run),
@@ -1626,6 +1753,12 @@ function NodeRun({
         {isEntry && (
           <span className="wf-badge entry-badge" title="This run started here">Entry</span>
         )}
+        {/* Kept on the row after the step has run, not only while it is waiting: "this
+            step was held for a person" is part of what the run did, and it explains a
+            twenty-minute gap between two steps that nothing else on the page accounts for. */}
+        {run.manualStart && (
+          <span className="wf-badge manual-badge" title={MANUAL_START_HINT}>Manual</span>
+        )}
         {/* The one thing in the record that reading the workflow would never explain. */}
         {run.addedAt && (
           <span
@@ -1635,12 +1768,34 @@ function NodeRun({
             Added
           </span>
         )}
-        <span className="wf-noderun-state">{stateLabel(run.status)}</span>
+        <span className={`wf-noderun-state ${run.awaitingStart ? 'awaiting' : ''}`}>
+          {nodeStateLabel(run)}
+        </span>
         {meta && <span className="wf-noderun-meta">{meta}</span>}
       </button>
 
       {open && (
         <div className="wf-noderun-body">
+          {/* The run has stopped here. Offered on the step as well as at the top of the
+              card because this is where the reason to press it is — the input it was
+              handed is two boxes below, and the output of the step above it is the thing
+              the pause exists to let somebody read. */}
+          {run.awaitingStart && (
+            <div className="wf-noderun-actions">
+              <button
+                type="button"
+                className="btn primary"
+                onClick={start}
+                disabled={starting}
+                title={MANUAL_START_HINT}
+              >
+                <Icon name="play" size={13} /> {starting ? 'Starting…' : 'Start this step'}
+              </button>
+              <span className="wf-run-hint">
+                Its input is ready. Nothing runs here until you start it.
+              </span>
+            </div>
+          )}
           {/* Zero on a live run and on a step the entry never reached — the server
               decides both, so the buttons are offered exactly when they would work. */}
           {run.rerunFromCount > 0 && (
@@ -1789,7 +1944,11 @@ function NodeRun({
             </details>
           )}
           {!running && !run.output && !run.error && (
-            <p className="wf-empty">Hasn't run yet.</p>
+            <p className="wf-empty">
+              {run.awaitingStart
+                ? "Hasn't run yet — it is waiting for you to start it."
+                : "Hasn't run yet."}
+            </p>
           )}
         </div>
       )}

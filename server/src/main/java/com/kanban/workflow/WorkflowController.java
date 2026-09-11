@@ -117,6 +117,23 @@ public class WorkflowController {
     }
 
     /**
+     * Start one step that is waiting to be told to go — the play button on a paused run.
+     *
+     * <p>A step marked "manual start" in the editor holds the run up even once everything
+     * feeding it has succeeded, so that somebody can read what came out above before the
+     * next session is paid for. This releases exactly one such step; a worker picks it up
+     * on its next tick, and the run carries on by itself from there until the next one.
+     *
+     * <p>409, with a sentence saying which it is, when the step is not waiting for
+     * anybody: the run has finished, the step isn't a manual one, it has already been
+     * released, or its input hasn't arrived yet.
+     */
+    @PostMapping("/node-runs/{nodeRunId}/start")
+    public ExecutionView startNode(@PathVariable Long nodeRunId) {
+        return service.startNode(nodeRunId);
+    }
+
+    /**
      * Rewrite one step's prompt inside this run only — the workflow keeps its own text.
      * Pair it with the re-run above to try a wording for the price of one session
      * instead of a whole graph. 409 while the run is live, or if the entry never

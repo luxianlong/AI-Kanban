@@ -110,6 +110,39 @@ public class NodeExecution {
     private EffortLevel effort;
 
     /**
+     * Snapshot of the node's manual-start flag: whether this run stops in front of this
+     * step and waits to be told to go, even once everything feeding it has succeeded.
+     *
+     * <p>Snapshotted like the prompt and the effort, and for the same reason — a finished
+     * run should still say which of its steps waited for somebody, after the workflow has
+     * been edited or deleted. It is also what re-arms the gate on a retry: a step marked
+     * manual asks again the next time round rather than inheriting a go-ahead given to a
+     * previous attempt.
+     *
+     * <p>A {@link Boolean} for the same reason it is one on {@code WorkflowNode}: rows
+     * written before this column existed read back null, and null is off.
+     */
+    @Column(name = "manual_start")
+    private Boolean manualStart;
+
+    /**
+     * When the user released this step to run, or null while it is still waiting to be —
+     * and on every ordinary step, which was never waiting for anything.
+     *
+     * <p>A stamp rather than a flag because it is the answer to "was this step actually
+     * held up, and for how long": the gap between the last dependency's
+     * {@link #finishedAt} and this is the run sitting there waiting for a human, which is
+     * time the run took and nothing in it spent.
+     *
+     * <p>Cleared by {@link #resetForRetry()}, so the go-ahead belongs to one attempt. A
+     * manual step that is retried waits again — the point of the gate is that somebody
+     * looks before this step runs, and the state of the run when it is retried is not the
+     * state they looked at.
+     */
+    @Column(name = "start_approved_at")
+    private Instant startApprovedAt;
+
+    /**
      * Comma-separated ids of the nodes whose output feeds this one, snapshotted from
      * the graph's edges. Empty for the entry node. Stored flat rather than as a join
      * table because it is only ever read whole, for this one row.
@@ -179,6 +212,7 @@ public class NodeExecution {
         this.nodeName = node.getName();
         this.prompt = node.getPrompt();
         this.effort = node.getEffort();
+        this.manualStart = node.isManualStart();
         this.dependsOn = String.join(",", dependsOn);
         this.orderIndex = orderIndex;
     }
@@ -191,6 +225,10 @@ public class NodeExecution {
      * <p>Its {@code nodeId} is minted by the service rather than taken from a client:
      * ids are only unique within a run, and a caller picking one could land on a node
      * that is already there and quietly become a second row for it.
+     *
+     * <p>Never a manual-start step. A step added to a finished run is already started by
+     * hand — by its own re-run button — so a gate in front of it would be a second click
+     * asking the same question.
      */
     NodeExecution(Long executionId, String nodeId, String nodeName, String prompt,
                   EffortLevel effort, List<String> dependsOn, int orderIndex) {
@@ -234,6 +272,39 @@ public class NodeExecution {
 
     public EffortLevel getEffort() {
         return effort;
+    }
+
+    /** Whether this run stops in front of this step and waits to be told to go. */
+    public boolean isManualStart() {
+        return manualStart != null && manualStart;
+    }
+
+    public Instant getStartApprovedAt() {
+        return startApprovedAt;
+    }
+
+    /**
+     * Whether this step is a manual one that has not been released yet.
+     *
+     * <p>Row-local, so it says nothing about whether the step's <em>input</em> is ready:
+     * a gated step three below the one that failed answers true here and is never going
+     * to run. Pair it with the dependency check — {@code WorkflowGraphProgress} does, in
+     * the one place that decides what may start.
+     */
+    public boolean isManualStartPending() {
+        return status == RunState.PENDING && isManualStart() && startApprovedAt == null;
+    }
+
+    /**
+     * Record the user's go-ahead, so the next worker to ask for work may take this step.
+     *
+     * <p>Written here rather than by moving the row to some other state because the row
+     * is already in the right one: it is PENDING, which is what "ready to be handed out"
+     * means everywhere else in the graph. The gate is the absence of this stamp, and
+     * nothing else has to know about it.
+     */
+    void approveStart() {
+        this.startApprovedAt = Instant.now();
     }
 
     public String getDependsOn() {
@@ -404,6 +475,7 @@ public class NodeExecution {
             this.attempt = getAttempt() + 1;
         }
         this.status = RunState.PENDING;
+        this.startApprovedAt = null;
         this.input = null;
         this.output = null;
         this.error = null;

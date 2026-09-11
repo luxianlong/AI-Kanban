@@ -203,6 +203,43 @@ export function stateLabel(status) {
 }
 
 /**
+ * The steps of a run that are waiting for the user to start them.
+ *
+ * `awaitingStart` is the server's own answer — this step is marked manual, its input is
+ * ready, and nobody has released it — so the page never re-derives the rule that the work
+ * source acts on. Nearly always one step, but not necessarily: two branches can both be
+ * ready at once, and then both are waiting and each needs its own go-ahead.
+ */
+export function stepsAwaitingStart(execution) {
+  return (execution?.nodes || []).filter((n) => n.awaitingStart)
+}
+
+/**
+ * What a step's state is called on screen.
+ *
+ * A step waiting to be started is PENDING, the same as one whose turn has simply not come
+ * — and on the page those are opposite situations. One will start by itself in a minute;
+ * the other will sit there until somebody presses something, and "Queued" is exactly the
+ * word that would stop them looking.
+ */
+export function nodeStateLabel(run) {
+  if (run?.awaitingStart) return 'Waiting for you'
+  return stateLabel(run?.status)
+}
+
+/**
+ * What a run's state is called on the collapsed card, where the run's own status is
+ * RUNNING while it is in fact waiting for a person and nothing is running at all.
+ *
+ * Short on purpose — it shares a pill with five other words and sits next to the step
+ * count. The sentence naming the step is inside the card, on the button that ends the wait.
+ */
+export function executionStateLabel(execution) {
+  if (isLive(execution) && stepsAwaitingStart(execution).length) return 'Waiting'
+  return stateLabel(execution?.status)
+}
+
+/**
  * How long Delete stays out of reach after a run settles.
  *
  * Not a nicety. Until now Cancel and Delete were the same slot in the same row: a

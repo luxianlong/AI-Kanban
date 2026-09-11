@@ -200,6 +200,15 @@ export const api = {
       method: 'POST',
     }).then(json),
 
+  // Start one step of a live run that is waiting to be told to go — the play button on
+  // a step marked "wait for me" in the editor. Nothing is launched by this: the step
+  // becomes claimable and a worker takes it on its next tick, exactly as starting a run
+  // works. Returns the whole run. 409, with a sentence saying which it is, when the step
+  // is not waiting for anybody — the run has finished, the step isn't a manual one, it
+  // has already gone, or its input hasn't arrived yet.
+  startNodeRun: (nodeRunId) =>
+    fetch(`${BASE}/workflows/node-runs/${nodeRunId}/start`, { method: 'POST' }).then(json),
+
   // Rewrite one step's prompt inside one finished run. The workflow keeps its own
   // text — this is the run's private copy, which is what makes trying a wording cost
   // one session (edit here, then retryNodeRun) instead of a whole graph. Returns the
