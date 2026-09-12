@@ -3,7 +3,7 @@
     "id": "upload-daodejing-en",
     "title": "The Daodejing (English)",
     "href": "/p/daodejing-en.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T11:07:58.355Z",
@@ -18,7 +18,7 @@
     "id": "upload-daodejing-hans",
     "title": "道德经 · 简体版",
     "href": "/p/daodejing-hans.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T11:07:58.355Z",
@@ -33,7 +33,7 @@
     "id": "upload-daodejing",
     "title": "道德經 · 繁體版",
     "href": "/p/daodejing.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T11:07:58.354Z",
@@ -63,7 +63,7 @@
     "id": "upload-bingjian-en",
     "title": "The Ice Mirror (English)",
     "href": "/p/bingjian-en.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T10:46:14.458Z",
@@ -78,7 +78,7 @@
     "id": "upload-bingjian-hans",
     "title": "冰鉴 · 简体版",
     "href": "/p/bingjian-hans.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T10:46:14.457Z",
@@ -93,7 +93,7 @@
     "id": "upload-bingjian",
     "title": "冰鑑 · 繁體版",
     "href": "/p/bingjian.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T10:46:14.455Z",
@@ -108,7 +108,7 @@
     "id": "upload-sanshiliuji-en",
     "title": "The Thirty-Six Stratagems (English)",
     "href": "/p/sanshiliuji-en.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T10:18:34.846Z",
@@ -123,7 +123,7 @@
     "id": "upload-sanshiliuji-hans",
     "title": "三十六计 · 简体版",
     "href": "/p/sanshiliuji-hans.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T10:18:34.845Z",
@@ -138,7 +138,7 @@
     "id": "upload-sanshiliuji",
     "title": "三十六計 · 繁體版",
     "href": "/p/sanshiliuji.html",
-    "zone": "article",
+    "zone": "classic",
     "deletable": true,
     "file": null,
     "updatedAt": "2026-09-12T10:18:34.829Z",
@@ -237,6 +237,51 @@
     "paths": [
       "frontend/public/p/sunzi-en.html",
       "frontend/public/p/sunzi-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun-hans",
+    "title": "了凡四训 · 简体版",
+    "href": "/p/liaofansixun-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T15:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun-hans.html",
+      "frontend/public/p/liaofansixun-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun",
+    "title": "了凡四訓 · 繁體版",
+    "href": "/p/liaofansixun.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T15:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun.html",
+      "frontend/public/p/liaofansixun.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun-en",
+    "title": "Liaofan’s Four Lessons (English)",
+    "href": "/p/liaofansixun-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T15:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun-en.html",
+      "frontend/public/p/liaofansixun-en.meta.json"
     ]
   },
   {

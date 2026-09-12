@@ -113,10 +113,6 @@ body.has-tabs .hero { border-bottom: none; }
   font-family: var(--mono); font-size: 11px; font-weight: 500;
   letter-spacing: 0.1em; color: var(--muted);
 }
-.zone-note {
-  margin: 30px 0 0; color: var(--muted); font-size: 15px;
-  line-height: 1.72; text-wrap: pretty; max-width: 62ch;
-}
 
 /* ---------- 典籍: a library grid, several books to a row --------------------
    Kindle-shaped, but the objects are stitched Chinese books, so they are drawn
@@ -126,7 +122,9 @@ body.has-tabs .hero { border-bottom: none; }
 .classics {
   --board-hi: #dcc9a3; --board-mid: #b99f74; --board-lo: #8e7549;
   --leaf-hi: #f2ead6; --leaf-lo: #ddd0ae;
-  margin-top: 34px;
+  /* No zone note above the shelf any more (task #380), so the books carry
+     their own top margin. */
+  margin-top: 46px;
 }
 .shelf {
   display: grid;
@@ -219,21 +217,6 @@ body.has-tabs .hero { border-bottom: none; }
   margin: 44px 0 0; text-align: center;
   font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
 }
-/* The shelf shows covers, not controls. The owner still needs the delete and
-   privacy switches these pages had as cards, so the ordinary cards stay — folded
-   away under the shelf, and only for the owner. */
-.manage { margin: 52px 0 0; border-top: 1px solid var(--line); padding-top: 10px; }
-.manage > summary {
-  cursor: pointer; list-style: none;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
-  text-transform: uppercase; color: var(--muted); padding: 8px 0;
-}
-.manage > summary::-webkit-details-marker { display: none; }
-.manage > summary::before { content: "▸ "; display: inline-block; transition: transform 0.16s ease; }
-.manage[open] > summary::before { content: "▾ "; }
-.manage > summary:hover { color: var(--accent); }
-.manage .manage-note { margin: 0 0 4px; color: var(--muted); font-size: 14px; }
-body:not(.is-owner) .manage { display: none; }
 @media (max-width: 700px) {
   .tabs { padding: 0 20px; gap: 20px; }
   .tab { font-size: 15.5px; }
@@ -446,111 +429,12 @@ body.is-owner .hero .write { display: inline-block; }
 <button class="write" type="button" id="write-open">✎ 写文章</button>
 </header>
 <nav class="tabs" role="tablist" aria-label="存档分区">
-  <button type="button" class="tab" role="tab" id="tab-articles" aria-controls="panel-articles" aria-selected="true">文章收藏<span class="n" data-count-of="panel-articles">37</span></button>
-  <button type="button" class="tab" role="tab" id="tab-classics" aria-controls="panel-classics" aria-selected="false" tabindex="-1">典籍<span class="n">2</span></button>
+  <button type="button" class="tab" role="tab" id="tab-articles" aria-controls="panel-articles" aria-selected="true">文章收藏<span class="n" data-count-of="panel-articles">28</span></button>
+  <button type="button" class="tab" role="tab" id="tab-classics" aria-controls="panel-classics" aria-selected="false" tabindex="-1">典籍<span class="n">6</span></button>
 </nav>
 <div class="wrap">
 <section id="panel-articles" role="tabpanel" aria-labelledby="tab-articles" tabindex="0">
 <div class="grid">
-<div class="card-wrap is-new" data-id="upload-daodejing-en" data-private="false">
-  <a class="doc-card" href="/p/daodejing-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>The Daodejing (English)</h2>
-  <p>A complete English translation of Laozi’s Daodejing: all eighty-one chapters, Book One on the Way and Book Two on Power.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: The Daodejing (English)" data-id="upload-daodejing-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete The Daodejing (English)" data-id="upload-daodejing-en" data-title="The Daodejing (English)">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-daodejing-hans" data-private="false">
-  <a class="doc-card" href="/p/daodejing-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>道德经 · 简体版</h2>
-  <p>《道德经》全本简体：上篇道经三十七章、下篇德经四十四章，民国上海文瑞楼本为底本。注释可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 道德经 · 简体版" data-id="upload-daodejing-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 道德经 · 简体版" data-id="upload-daodejing-hans" data-title="道德经 · 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-daodejing" data-private="false">
-  <a class="doc-card" href="/p/daodejing.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>道德經 · 繁體版</h2>
-  <p>《道德經》全本繁體：上篇道經三十七章、下篇德經四十四章，民國上海文瑞樓本為底本。註釋可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 道德經 · 繁體版" data-id="upload-daodejing" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 道德經 · 繁體版" data-id="upload-daodejing" data-title="道德經 · 繁體版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-bingjian-en" data-private="false">
-  <a class="doc-card" href="/p/bingjian-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>The Ice Mirror (English)</h2>
-  <p>A complete English translation of the Bingjian (Ice Mirror): all seven chapters on reading a man — spirit and bone, hard and yielding, frame and face, manner, beard and brow, voice, and colour — with Wu Rongguang’s colophon.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: The Ice Mirror (English)" data-id="upload-bingjian-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete The Ice Mirror (English)" data-id="upload-bingjian-en" data-title="The Ice Mirror (English)">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-bingjian-hans" data-private="false">
-  <a class="doc-card" href="/p/bingjian-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>冰鉴 · 简体版</h2>
-  <p>《冰鉴》全本简体：神骨、刚柔、容貌、情态、须眉、声音、气色七章，附清吴荣光跋。注释可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 冰鉴 · 简体版" data-id="upload-bingjian-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 冰鉴 · 简体版" data-id="upload-bingjian-hans" data-title="冰鉴 · 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-bingjian" data-private="false">
-  <a class="doc-card" href="/p/bingjian.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>冰鑑 · 繁體版</h2>
-  <p>《冰鑑》全本繁體：神骨、剛柔、容貌、情態、鬚眉、聲音、氣色七章，附清吳榮光跋。註釋可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 冰鑑 · 繁體版" data-id="upload-bingjian" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 冰鑑 · 繁體版" data-id="upload-bingjian" data-title="冰鑑 · 繁體版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sanshiliuji-en" data-private="false">
-  <a class="doc-card" href="/p/sanshiliuji-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>The Thirty-Six Stratagems (English)</h2>
-  <p>A complete English translation of the Thirty-Six Stratagems: the general discussion and all thirty-six, each with its verse and commentary.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: The Thirty-Six Stratagems (English)" data-id="upload-sanshiliuji-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete The Thirty-Six Stratagems (English)" data-id="upload-sanshiliuji-en" data-title="The Thirty-Six Stratagems (English)">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sanshiliuji-hans" data-private="false">
-  <a class="doc-card" href="/p/sanshiliuji-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>三十六计 · 简体版</h2>
-  <p>《三十六计》全本简体：总说与胜、敌、攻、混、并、败六套三十六计，每计含解语与按语。注释可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 三十六计 · 简体版" data-id="upload-sanshiliuji-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 三十六计 · 简体版" data-id="upload-sanshiliuji-hans" data-title="三十六计 · 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sanshiliuji" data-private="false">
-  <a class="doc-card" href="/p/sanshiliuji.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>三十六計 · 繁體版</h2>
-  <p>《三十六計》全本繁體：總說與勝、敵、攻、混、並、敗六套三十六計，每計含解語與按語。註釋可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 三十六計 · 繁體版" data-id="upload-sanshiliuji" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 三十六計 · 繁體版" data-id="upload-sanshiliuji" data-title="三十六計 · 繁體版">✕</button>
-</div>
 <div class="card-wrap is-new" data-id="upload-page-89f133c0" data-private="false">
   <a class="doc-card" href="/p/page-89f133c0.html">
   <div class="entry-date"><span class="date">2026.09.11</span><span class="views" hidden></span></div>
@@ -856,7 +740,6 @@ body.is-owner .hero .write { display: inline-block; }
 </section>
 <section id="panel-classics" role="tabpanel" aria-labelledby="tab-classics" tabindex="0" hidden>
 <div class="classics">
-<p class="zone-note">读了千年还在读的那几种。都是<b>白文本</b>——只有正文，不载旧注；每种各有简体、繁體、English 三个读本，点封面进正文。</p>
 <ul class="shelf">
     <li class="bay">
       <div class="stand">
@@ -868,7 +751,7 @@ body.is-owner .hero .write { display: inline-block; }
       </div>
       <div class="plate">
         <h3><a href="/p/sunzi-hans.html">孙子兵法</a></h3>
-        <p class="imprint">春秋 · 白文十三篇</p>
+        <p class="imprint">春秋 · 十三篇</p>
         <p class="eds">
           <a class="ed first" href="/p/sunzi-hans.html">简体</a>
           <a class="ed" href="/p/sunzi.html">繁體</a>
@@ -886,7 +769,7 @@ body.is-owner .hero .write { display: inline-block; }
       </div>
       <div class="plate">
         <h3><a href="/p/guiguzi-hans.html">鬼谷子</a></h3>
-        <p class="imprint">战国 · 白文三卷二十一篇</p>
+        <p class="imprint">战国 · 三卷二十一篇</p>
         <p class="eds">
           <a class="ed first" href="/p/guiguzi-hans.html">简体</a>
           <a class="ed" href="/p/guiguzi.html">繁體</a>
@@ -894,91 +777,80 @@ body.is-owner .hero .write { display: inline-block; }
         </p>
       </div>
     </li>
+    <li class="bay">
+      <div class="stand">
+        <a class="vol" href="/p/sanshiliuji-hans.html" aria-label="打开《三十六计》">
+          <div class="book" style="--ar:.5855">
+            <div class="cover" role="img" aria-label="民国三十年瑞琴楼刊本《三十六计》原书封面，题「三十六计（秘本兵法）」" style="background-image:url(/img/classics/sanshiliuji-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+          </div>
+        </a>
+      </div>
+      <div class="plate">
+        <h3><a href="/p/sanshiliuji-hans.html">三十六计</a></h3>
+        <p class="imprint">明清 · 六套三十六计</p>
+        <p class="eds">
+          <a class="ed first" href="/p/sanshiliuji-hans.html">简体</a>
+          <a class="ed" href="/p/sanshiliuji.html">繁體</a>
+          <a class="ed" href="/p/sanshiliuji-en.html">English</a>
+        </p>
+      </div>
+    </li>
+    <li class="bay">
+      <div class="stand">
+        <a class="vol" href="/p/bingjian-hans.html" aria-label="打开《冰鉴》">
+          <div class="book" style="--ar:.5764">
+            <div class="cover" role="img" aria-label="民国十四年上海昌文书局本《神骨冰鉴》原书封面，题「神骨冰鉴 白鹤仙数 合一册」" style="background-image:url(/img/classics/bingjian-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+          </div>
+        </a>
+      </div>
+      <div class="plate">
+        <h3><a href="/p/bingjian-hans.html">冰鉴</a></h3>
+        <p class="imprint">清 · 七篇</p>
+        <p class="eds">
+          <a class="ed first" href="/p/bingjian-hans.html">简体</a>
+          <a class="ed" href="/p/bingjian.html">繁體</a>
+          <a class="ed" href="/p/bingjian-en.html">English</a>
+        </p>
+      </div>
+    </li>
+    <li class="bay">
+      <div class="stand">
+        <a class="vol" href="/p/daodejing-hans.html" aria-label="打开《道德经》">
+          <div class="book" style="--ar:.6582">
+            <div class="cover" role="img" aria-label="民国上海文瑞楼石印本《老子道德经》原书封面，题「老子道德经　晋王弼注　王儒舲点句　陆德明释文坿　上海文瑞楼印行」" style="background-image:url(/img/classics/daodejing-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+          </div>
+        </a>
+      </div>
+      <div class="plate">
+        <h3><a href="/p/daodejing-hans.html">道德经</a></h3>
+        <p class="imprint">春秋 · 八十一章</p>
+        <p class="eds">
+          <a class="ed first" href="/p/daodejing-hans.html">简体</a>
+          <a class="ed" href="/p/daodejing.html">繁體</a>
+          <a class="ed" href="/p/daodejing-en.html">English</a>
+        </p>
+      </div>
+    </li>
+    <li class="bay">
+      <div class="stand">
+        <a class="vol" href="/p/liaofansixun-hans.html" aria-label="打开《了凡四训》">
+          <div class="book" style="--ar:.6250">
+            <div class="cover" role="img" aria-label="民国二十三年上海佛学书局本《了凡四训》原书内封，题「了凡四训」，下署「上海佛学书局印行」，钤北海公园图书室藏书印" style="background-image:url(/img/classics/liaofansixun-cover.png);background-size:100% 100%;background-position:0% 0%"></div>
+          </div>
+        </a>
+      </div>
+      <div class="plate">
+        <h3><a href="/p/liaofansixun-hans.html">了凡四训</a></h3>
+        <p class="imprint">明 · 四篇</p>
+        <p class="eds">
+          <a class="ed first" href="/p/liaofansixun-hans.html">简体</a>
+          <a class="ed" href="/p/liaofansixun.html">繁體</a>
+          <a class="ed" href="/p/liaofansixun-en.html">English</a>
+        </p>
+      </div>
+    </li>
   </ul>
 <p class="shelf-more"><a href="/p/dianji.html">整页书架 →</a></p>
-<details class="manage">
-  <summary>管理这些页面</summary>
-  <p class="manage-note">书架上只放封面。要改某个读本的隐私或删掉它，用下面的卡片——控件和文章那边是同一套。</p>
-  <div class="grid manage-grid">
-<div class="card-wrap is-new" data-id="upload-dianji" data-private="false">
-  <a class="doc-card" href="/p/dianji.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经</h2>
-  <p>《孙子兵法》《鬼谷子》《三十六计》《冰鉴》《道德经》，按书影排开。各有简体、繁体、English 三个读本，默认简体。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经" data-id="upload-dianji" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经" data-id="upload-dianji" data-title="典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi" data-private="false">
-  <a class="doc-card" href="/p/guiguzi.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子 · 繁體版</h2>
-  <p>《鬼谷子》三卷二十一篇繁體，帶標點，不載陶注（嘉慶秦刻本）。註釋可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子 · 繁體版" data-id="upload-guiguzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子 · 繁體版" data-id="upload-guiguzi" data-title="鬼谷子 · 繁體版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi" data-private="false">
-  <a class="doc-card" href="/p/sunzi.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孫子兵法 · 繁體版</h2>
-  <p>《孫子兵法》十三篇繁體，帶標點，不載舊注；附佚文及吳王問對十七則。註釋可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孫子兵法 · 繁體版" data-id="upload-sunzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孫子兵法 · 繁體版" data-id="upload-sunzi" data-title="孫子兵法 · 繁體版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi-hans" data-private="false">
-  <a class="doc-card" href="/p/guiguzi-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子 · 简体版</h2>
-  <p>《鬼谷子》三卷二十一篇简体，带标点，不载陶注（嘉庆秦刻本）。注释可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子 · 简体版" data-id="upload-guiguzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子 · 简体版" data-id="upload-guiguzi-hans" data-title="鬼谷子 · 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi-hans" data-private="false">
-  <a class="doc-card" href="/p/sunzi-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孙子兵法 · 简体版</h2>
-  <p>《孙子兵法》十三篇简体，带标点，不载旧注；附佚文及吴王问对十七则。注释可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孙子兵法 · 简体版" data-id="upload-sunzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孙子兵法 · 简体版" data-id="upload-sunzi-hans" data-title="孙子兵法 · 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi-en" data-private="false">
-  <a class="doc-card" href="/p/guiguzi-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>Guiguzi — The Master of Ghost Valley (English)</h2>
-  <p>The Guiguzi in three scrolls, complete English translation of all twenty-one chapters, from the 1805 Qin Enfu edition.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-title="Guiguzi — The Master of Ghost Valley (English)">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi-en" data-private="false">
-  <a class="doc-card" href="/p/sunzi-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>Sunzi — The Art of War (English)</h2>
-  <p>The Sunzi (Art of War) in thirteen chapters, complete English translation, with the seventeen surviving fragments.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-title="Sunzi — The Art of War (English)">✕</button>
-</div>
-  </div>
-</details>
 </div>
 </section>
 </div>
@@ -1088,9 +960,9 @@ body.is-owner .hero .write { display: inline-block; }
   // UX (task #278): the raw window.confirm()/alert() are replaced with an
   // accessible styled modal (focus trap, Esc to cancel, restores focus), a
   // smooth card-collapse animation, and toast feedback for success and errors.
-  // Scoped to the articles panel (task #377): the classics tab holds a second
-  // .grid of cards under 管理这些页面, and blanking .wrap on the last delete
-  // would take the tab bar and the shelf with it.
+  // Scoped to the articles panel (task #377): blanking .wrap on the last delete
+  // would take the tab bar and the shelf with it. Since task #382 the classics
+  // tab holds no cards at all, so there is nothing over there to delete either.
   var grid = document.querySelector('#panel-articles .grid') || document.querySelector('.grid');
   var wrapEl = document.getElementById('panel-articles') || document.querySelector('.wrap');
   var modal = document.getElementById('del-modal');
