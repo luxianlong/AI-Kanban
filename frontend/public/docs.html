@@ -204,6 +204,12 @@ body.has-tabs .hero { border-bottom: none; }
   margin: 7px 0 0; font-size: 12.5px; line-height: 1.7;
   letter-spacing: 0.02em; color: var(--muted);
 }
+/* The plate carries the reading it names (task #397), so the type can follow it.
+   The wide tracking above is set for 简体/繁體 titles, where it opens the
+   characters up; English words only come apart under it — "Liaofan's" reads as
+   two words. Trim it back for the English reading only. */
+.plate h3:lang(en) { letter-spacing: 0.01em; text-indent: 0; }
+.plate .imprint:lang(en) { letter-spacing: 0; }
 /* ---------- one switch for the whole shelf (task #393) ----------------------
    The three readings used to hang under every book, which asked the same
    question once per volume. They are now a single control in the top-right
@@ -763,126 +769,126 @@ body.is-owner .hero .write { display: inline-block; }
 <section id="panel-classics" role="tabpanel" aria-labelledby="tab-classics" tabindex="0" hidden>
 <div class="classics">
 <div class="langbar" role="group" aria-label="读本语言" data-default="hans">
-  <button type="button" class="lang" data-lang="hans" aria-pressed="true">简体</button>
-  <button type="button" class="lang" data-lang="hant" aria-pressed="false">繁體</button>
-  <button type="button" class="lang" data-lang="en" aria-pressed="false">English</button>
+  <button type="button" class="lang" data-lang="hans" data-bcp47="zh-Hans" aria-pressed="true">简体</button>
+  <button type="button" class="lang" data-lang="hant" data-bcp47="zh-Hant" aria-pressed="false">繁體</button>
+  <button type="button" class="lang" data-lang="en" data-bcp47="en" aria-pressed="false">English</button>
 </div>
 <ul class="shelf">
-    <li class="bay" data-title="孙子兵法" data-href="/p/sunzi-hans.html" data-href-hans="/p/sunzi-hans.html" data-href-hant="/p/sunzi.html" data-href-en="/p/sunzi-en.html">
+    <li class="bay" data-title="孙子兵法" data-imprint="春秋 · 十三篇" data-href="/p/sunzi-hans.html" data-href-hans="/p/sunzi-hans.html" data-title-hans="孙子兵法" data-imprint-hans="春秋 · 十三篇" data-label-hans="打开《孙子兵法》简体读本" data-href-hant="/p/sunzi.html" data-title-hant="孫子兵法" data-imprint-hant="春秋 · 十三篇" data-label-hant="打開《孫子兵法》繁體讀本" data-href-en="/p/sunzi-en.html" data-title-en="The Art of War" data-imprint-en="Spring and Autumn period · thirteen chapters" data-label-en="Open The Art of War (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/sunzi-hans.html" aria-label="打开《孙子兵法》">
+        <a class="vol" href="/p/sunzi-hans.html" aria-label="打开《孙子兵法》简体读本">
           <div class="book" style="--ar:.5595">
             <div class="cover" role="img" aria-label="宋刻《十一家注孙子》卷首「孙子本传」书影" style="background-image:url(/img/classics/sunzi-cover.jpg);background-size:207.5% 104.2%;background-position:3.4% 48.8%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/sunzi-hans.html">孙子兵法</a></h3>
-        <p class="imprint">春秋 · 十三篇</p>
+        <h3 lang="zh-Hans"><a href="/p/sunzi-hans.html">孙子兵法</a></h3>
+        <p class="imprint" lang="zh-Hans">春秋 · 十三篇</p>
       </div>
     </li>
-    <li class="bay" data-title="鬼谷子" data-href="/p/guiguzi-hans.html" data-href-hans="/p/guiguzi-hans.html" data-href-hant="/p/guiguzi.html" data-href-en="/p/guiguzi-en.html">
+    <li class="bay" data-title="鬼谷子" data-imprint="战国 · 三卷二十一篇" data-href="/p/guiguzi-hans.html" data-href-hans="/p/guiguzi-hans.html" data-title-hans="鬼谷子" data-imprint-hans="战国 · 三卷二十一篇" data-label-hans="打开《鬼谷子》简体读本" data-href-hant="/p/guiguzi.html" data-title-hant="鬼谷子" data-imprint-hant="戰國 · 三卷二十一篇" data-label-hant="打開《鬼谷子》繁體讀本" data-href-en="/p/guiguzi-en.html" data-title-en="Guiguzi" data-imprint-en="Warring States · three scrolls, twenty-one chapters" data-label-en="Open Guiguzi (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/guiguzi-hans.html" aria-label="打开《鬼谷子》">
+        <a class="vol" href="/p/guiguzi-hans.html" aria-label="打开《鬼谷子》简体读本">
           <div class="book" style="--ar:.632">
             <div class="cover" role="img" aria-label="清嘉庆秦恩复刻本《鬼谷子》原书封面，题「鬼谷子三卷 陶贞白注本 通介叟校」" style="background-image:url(/img/classics/guiguzi-cover.jpg);background-size:101.7% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/guiguzi-hans.html">鬼谷子</a></h3>
-        <p class="imprint">战国 · 三卷二十一篇</p>
+        <h3 lang="zh-Hans"><a href="/p/guiguzi-hans.html">鬼谷子</a></h3>
+        <p class="imprint" lang="zh-Hans">战国 · 三卷二十一篇</p>
       </div>
     </li>
-    <li class="bay" data-title="三十六计" data-href="/p/sanshiliuji-hans.html" data-href-hans="/p/sanshiliuji-hans.html" data-href-hant="/p/sanshiliuji.html" data-href-en="/p/sanshiliuji-en.html">
+    <li class="bay" data-title="三十六计" data-imprint="明清 · 六套三十六计" data-href="/p/sanshiliuji-hans.html" data-href-hans="/p/sanshiliuji-hans.html" data-title-hans="三十六计" data-imprint-hans="明清 · 六套三十六计" data-label-hans="打开《三十六计》简体读本" data-href-hant="/p/sanshiliuji.html" data-title-hant="三十六計" data-imprint-hant="明清 · 六套三十六計" data-label-hant="打開《三十六計》繁體讀本" data-href-en="/p/sanshiliuji-en.html" data-title-en="The Thirty-Six Stratagems" data-imprint-en="Ming–Qing · six sets of six" data-label-en="Open The Thirty-Six Stratagems (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/sanshiliuji-hans.html" aria-label="打开《三十六计》">
+        <a class="vol" href="/p/sanshiliuji-hans.html" aria-label="打开《三十六计》简体读本">
           <div class="book" style="--ar:.5855">
             <div class="cover" role="img" aria-label="民国三十年瑞琴楼刊本《三十六计》原书封面，题「三十六计（秘本兵法）」" style="background-image:url(/img/classics/sanshiliuji-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/sanshiliuji-hans.html">三十六计</a></h3>
-        <p class="imprint">明清 · 六套三十六计</p>
+        <h3 lang="zh-Hans"><a href="/p/sanshiliuji-hans.html">三十六计</a></h3>
+        <p class="imprint" lang="zh-Hans">明清 · 六套三十六计</p>
       </div>
     </li>
-    <li class="bay" data-title="冰鉴" data-href="/p/bingjian-hans.html" data-href-hans="/p/bingjian-hans.html" data-href-hant="/p/bingjian.html" data-href-en="/p/bingjian-en.html">
+    <li class="bay" data-title="冰鉴" data-imprint="清 · 七篇" data-href="/p/bingjian-hans.html" data-href-hans="/p/bingjian-hans.html" data-title-hans="冰鉴" data-imprint-hans="清 · 七篇" data-label-hans="打开《冰鉴》简体读本" data-href-hant="/p/bingjian.html" data-title-hant="冰鑑" data-imprint-hant="清 · 七篇" data-label-hant="打開《冰鑑》繁體讀本" data-href-en="/p/bingjian-en.html" data-title-en="The Ice Mirror" data-imprint-en="Qing · seven chapters" data-label-en="Open The Ice Mirror (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/bingjian-hans.html" aria-label="打开《冰鉴》">
+        <a class="vol" href="/p/bingjian-hans.html" aria-label="打开《冰鉴》简体读本">
           <div class="book" style="--ar:.5764">
             <div class="cover" role="img" aria-label="民国十四年上海昌文书局本《神骨冰鉴》原书封面，题「神骨冰鉴 白鹤仙数 合一册」" style="background-image:url(/img/classics/bingjian-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/bingjian-hans.html">冰鉴</a></h3>
-        <p class="imprint">清 · 七篇</p>
+        <h3 lang="zh-Hans"><a href="/p/bingjian-hans.html">冰鉴</a></h3>
+        <p class="imprint" lang="zh-Hans">清 · 七篇</p>
       </div>
     </li>
-    <li class="bay" data-title="道德经" data-href="/p/daodejing-hans.html" data-href-hans="/p/daodejing-hans.html" data-href-hant="/p/daodejing.html" data-href-en="/p/daodejing-en.html">
+    <li class="bay" data-title="道德经" data-imprint="春秋 · 八十一章" data-href="/p/daodejing-hans.html" data-href-hans="/p/daodejing-hans.html" data-title-hans="道德经" data-imprint-hans="春秋 · 八十一章" data-label-hans="打开《道德经》简体读本" data-href-hant="/p/daodejing.html" data-title-hant="道德經" data-imprint-hant="春秋 · 八十一章" data-label-hant="打開《道德經》繁體讀本" data-href-en="/p/daodejing-en.html" data-title-en="The Daodejing" data-imprint-en="Spring and Autumn period · eighty-one chapters" data-label-en="Open The Daodejing (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/daodejing-hans.html" aria-label="打开《道德经》">
+        <a class="vol" href="/p/daodejing-hans.html" aria-label="打开《道德经》简体读本">
           <div class="book" style="--ar:.6582">
             <div class="cover" role="img" aria-label="民国上海文瑞楼石印本《老子道德经》原书封面，题「老子道德经　晋王弼注　王儒舲点句　陆德明释文坿　上海文瑞楼印行」" style="background-image:url(/img/classics/daodejing-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/daodejing-hans.html">道德经</a></h3>
-        <p class="imprint">春秋 · 八十一章</p>
+        <h3 lang="zh-Hans"><a href="/p/daodejing-hans.html">道德经</a></h3>
+        <p class="imprint" lang="zh-Hans">春秋 · 八十一章</p>
       </div>
     </li>
-    <li class="bay" data-title="了凡四训" data-href="/p/liaofansixun-hans.html" data-href-hans="/p/liaofansixun-hans.html" data-href-hant="/p/liaofansixun.html" data-href-en="/p/liaofansixun-en.html">
+    <li class="bay" data-title="了凡四训" data-imprint="明 · 四篇" data-href="/p/liaofansixun-hans.html" data-href-hans="/p/liaofansixun-hans.html" data-title-hans="了凡四训" data-imprint-hans="明 · 四篇" data-label-hans="打开《了凡四训》简体读本" data-href-hant="/p/liaofansixun.html" data-title-hant="了凡四訓" data-imprint-hant="明 · 四篇" data-label-hant="打開《了凡四訓》繁體讀本" data-href-en="/p/liaofansixun-en.html" data-title-en="Liaofan’s Four Lessons" data-imprint-en="Ming · four lessons" data-label-en="Open Liaofan’s Four Lessons (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/liaofansixun-hans.html" aria-label="打开《了凡四训》">
+        <a class="vol" href="/p/liaofansixun-hans.html" aria-label="打开《了凡四训》简体读本">
           <div class="book" style="--ar:.6250">
             <div class="cover" role="img" aria-label="民国二十三年上海佛学书局本《了凡四训》原书内封，题「了凡四训」，下署「上海佛学书局印行」，钤北海公园图书室藏书印" style="background-image:url(/img/classics/liaofansixun-cover.png);background-size:100% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/liaofansixun-hans.html">了凡四训</a></h3>
-        <p class="imprint">明 · 四篇</p>
+        <h3 lang="zh-Hans"><a href="/p/liaofansixun-hans.html">了凡四训</a></h3>
+        <p class="imprint" lang="zh-Hans">明 · 四篇</p>
       </div>
     </li>
-    <li class="bay" data-title="素书" data-href="/p/sushu-hans.html" data-href-hans="/p/sushu-hans.html" data-href-hant="/p/sushu.html" data-href-en="/p/sushu-en.html">
+    <li class="bay" data-title="素书" data-imprint="秦 · 六章" data-href="/p/sushu-hans.html" data-href-hans="/p/sushu-hans.html" data-title-hans="素书" data-imprint-hans="秦 · 六章" data-label-hans="打开《素书》简体读本" data-href-hant="/p/sushu.html" data-title-hant="素書" data-imprint-hant="秦 · 六章" data-label-hant="打開《素書》繁體讀本" data-href-en="/p/sushu-en.html" data-title-en="Su Shu" data-imprint-en="Qin · six chapters" data-label-en="Open Su Shu (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/sushu-hans.html" aria-label="打开《素书》">
+        <a class="vol" href="/p/sushu-hans.html" aria-label="打开《素书》简体读本">
           <div class="book" style="--ar:.5600">
             <div class="cover" role="img" aria-label="明万历吴兴慎懋赏解本《黄石公素书》卷前手书题耑，大字题「黄石公素书」，旁有道光丁亥（1827）行书题记，钤「小桐」等藏印" style="background-image:url(/img/classics/sushu-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/sushu-hans.html">素书</a></h3>
-        <p class="imprint">秦 · 六章</p>
+        <h3 lang="zh-Hans"><a href="/p/sushu-hans.html">素书</a></h3>
+        <p class="imprint" lang="zh-Hans">秦 · 六章</p>
       </div>
     </li>
-    <li class="bay" data-title="商君书" data-href="/p/shangjunshu-hans.html" data-href-hans="/p/shangjunshu-hans.html" data-href-hant="/p/shangjunshu.html" data-href-en="/p/shangjunshu-en.html">
+    <li class="bay" data-title="商君书" data-imprint="战国 · 五卷二十六篇" data-href="/p/shangjunshu-hans.html" data-href-hans="/p/shangjunshu-hans.html" data-title-hans="商君书" data-imprint-hans="战国 · 五卷二十六篇" data-label-hans="打开《商君书》简体读本" data-href-hant="/p/shangjunshu.html" data-title-hant="商君書" data-imprint-hant="戰國 · 五卷二十六篇" data-label-hant="打開《商君書》繁體讀本" data-href-en="/p/shangjunshu-en.html" data-title-en="The Book of Lord Shang" data-imprint-en="Warring States · five scrolls, twenty-six chapters" data-label-en="Open The Book of Lord Shang (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/shangjunshu-hans.html" aria-label="打开《商君书》">
+        <a class="vol" href="/p/shangjunshu-hans.html" aria-label="打开《商君书》简体读本">
           <div class="book" style="--ar:.5680">
             <div class="cover" role="img" aria-label="四部丛刊景印天一阁藏明刊本《商子》原书封面，左上题签墨书「商子」" style="background-image:url(/img/classics/shangjunshu-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/shangjunshu-hans.html">商君书</a></h3>
-        <p class="imprint">战国 · 五卷二十六篇</p>
+        <h3 lang="zh-Hans"><a href="/p/shangjunshu-hans.html">商君书</a></h3>
+        <p class="imprint" lang="zh-Hans">战国 · 五卷二十六篇</p>
       </div>
     </li>
-    <li class="bay" data-title="罗织经" data-href="/p/luozhijing-hans.html" data-href-hans="/p/luozhijing-hans.html" data-href-hant="/p/luozhijing.html" data-href-en="/p/luozhijing-en.html">
+    <li class="bay" data-title="罗织经" data-imprint="旧题唐 · 十二卷" data-href="/p/luozhijing-hans.html" data-href-hans="/p/luozhijing-hans.html" data-title-hans="罗织经" data-imprint-hans="旧题唐 · 十二卷" data-label-hans="打开《罗织经》简体读本" data-href-hant="/p/luozhijing.html" data-title-hant="羅織經" data-imprint-hant="舊題唐 · 十二卷" data-label-hant="打開《羅織經》繁體讀本" data-href-en="/p/luozhijing-en.html" data-title-en="The Classic of Netting" data-imprint-en="Ascribed to the Tang · twelve scrolls" data-label-en="Open The Classic of Netting (English reading)">
       <div class="stand">
-        <a class="vol" href="/p/luozhijing-hans.html" aria-label="打开《罗织经》">
+        <a class="vol" href="/p/luozhijing-hans.html" aria-label="打开《罗织经》简体读本">
           <div class="book" style="--ar:.5833">
             <div class="cover" role="img" aria-label="明嘉靖十七年闻人诠刻本《旧唐书》卷一百八十六上《酷吏上》卷端叶，首列来俊臣，下接「古今御天下者，其政有四」序文" style="background-image:url(/img/classics/luozhijing-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="/p/luozhijing-hans.html">罗织经</a></h3>
-        <p class="imprint">旧题唐 · 十二卷</p>
+        <h3 lang="zh-Hans"><a href="/p/luozhijing-hans.html">罗织经</a></h3>
+        <p class="imprint" lang="zh-Hans">旧题唐 · 十二卷</p>
       </div>
     </li>
   </ul>
@@ -992,39 +998,62 @@ body.is-owner .hero .write { display: inline-block; }
   // chosen reading. The choice is remembered, so a reader who reads in 繁體
   // does not have to say so again on the next visit or on the full-page shelf.
   //
-  // A volume that has no page in the chosen reading keeps its default (简体)
-  // and SAYS SO on the link rather than handing over a different language
-  // without a word.
+  // Since task #397 it also RENAMES the books: the plate under each cover shows
+  // the title and imprint of the reading being offered — 孫子兵法 in 繁體, The
+  // Art of War in English — because a shelf that answers 繁體 by keeping every
+  // name in 简体 has only half heard the question. Every string is baked into
+  // the bay at build time, so this loop copies text, never composes it.
+  //
+  // A volume that has no page in the chosen reading keeps its default reading —
+  // name and all, so the plate always describes what the link opens — and SAYS
+  // SO on the link rather than handing over a different language without a word.
   (function () {
     var bar = document.querySelector('.langbar');
     if (!bar) return;
     var KEY = 'classics:lang';
     var btns = [].slice.call(bar.querySelectorAll('.lang'));
     var bays = [].slice.call(document.querySelectorAll('.bay'));
-    var labels = {};
-    btns.forEach(function (b) { labels[b.getAttribute('data-lang')] = b.textContent; });
+    var tags = {};
+    btns.forEach(function (b) { tags[b.getAttribute('data-lang')] = b.getAttribute('data-bcp47'); });
 
     function apply(lang, remember) {
       btns.forEach(function (b) {
         b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
       });
       bays.forEach(function (bay) {
-        var title = bay.getAttribute('data-title') || '';
-        var want = bay.getAttribute('data-href-' + lang);
-        var href = want || bay.getAttribute('data-href');
+        // The reading this bay can actually give: the one asked for, or its own
+        // default when it hasn't got that one.
+        var use = bay.getAttribute('data-href-' + lang) ? lang : bar.getAttribute('data-default');
+        var href = bay.getAttribute('data-href-' + use) || bay.getAttribute('data-href');
         if (!href) return;
+        var note = bay.getAttribute('data-note-' + lang);
+        var label = bay.getAttribute('data-label-' + lang);
         var vol = bay.querySelector('a.vol');
         var head = bay.querySelector('.plate h3 a');
         [vol, head].forEach(function (a) {
           if (!a) return;
           a.setAttribute('href', href);
-          if (want) a.removeAttribute('title');
-          else a.setAttribute('title', '《' + title + '》暂无' + labels[lang] + '读本，打开' + labels[bar.getAttribute('data-default')] + '本');
+          if (note) a.setAttribute('title', note);
+          else a.removeAttribute('title');
         });
-        if (vol) {
-          vol.setAttribute('aria-label', want
-            ? '打开《' + title + '》' + labels[lang] + '读本'
-            : '打开《' + title + '》（暂无' + labels[lang] + '读本）');
+        if (vol && label) vol.setAttribute('aria-label', label);
+        // The plate speaks the reading it opens: title, imprint and the lang tag
+        // that tells the browser and a screen reader which of the three it is.
+        var name = bay.getAttribute('data-title-' + use) || bay.getAttribute('data-title');
+        var h3 = bay.querySelector('.plate h3');
+        if (head && name) head.textContent = name;
+        var imp = bay.querySelector('.plate .imprint');
+        var lines = (bay.getAttribute('data-imprint-' + use) || bay.getAttribute('data-imprint') || '').split('\n');
+        if (imp) {
+          imp.textContent = '';
+          lines.forEach(function (line, i) {
+            if (i) imp.appendChild(document.createElement('br'));
+            imp.appendChild(document.createTextNode(line));
+          });
+        }
+        if (tags[use]) {
+          if (h3) h3.setAttribute('lang', tags[use]);
+          if (imp) imp.setAttribute('lang', tags[use]);
         }
       });
       if (remember) { try { localStorage.setItem(KEY, lang); } catch (e) {} }

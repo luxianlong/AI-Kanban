@@ -19,7 +19,10 @@
 //   4. no shelved page is orphaned — since task #393 the shelf's covers carry
 //      one reading each, so the other two are reachable through the corner
 //      switch's data and through the volume's own toolbar, and the test holds
-//      the two entrances (the 典籍 tab and /p/dianji.html) to the same offer.
+//      the two entrances (the 典籍 tab and /p/dianji.html) to the same offer;
+//   5. since task #397 the switch also renames the books — every reading a bay
+//      offers brings its own title and imprint, so pressing 繁體 can't leave the
+//      shelf labelling nine volumes in 简体.
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -79,8 +82,40 @@ const CLASSICS_SHELF_HREF = (generator.match(/const CLASSICS_SHELF_HREF = '([^']
   assert.match(generator, /var KEY = 'classics:lang'/, 'the chosen reading is remembered')
   assert.match(
     generator,
-    /data-href-\$\{LANG_KEY_BY_LABEL\.get\(e\.label\)\}=/,
+    / data-href-\$\{l\.key\}="/,
     'every bay must carry the editions the switch can point it at',
+  )
+
+  // Task #397: a reading names the book. The name lives on the edition, so the
+  // registry can't hold a volume that follows the switch but won't be renamed by
+  // it, and the build fails rather than shipping a 繁體 shelf written in 简体.
+  for (const a of [/ data-title-\$\{l\.key\}="/, / data-imprint-\$\{l\.key\}="/]) {
+    assert.match(generator, a, 'every bay must carry each reading\'s own name')
+  }
+  assert.match(
+    generator,
+    /if \(!ed\.title \|\| !ed\.imprint[\s\S]{0,200}?throw new Error/,
+    'an edition with no name of its own must fail the build',
+  )
+  assert.match(
+    generator,
+    /head\.textContent = name/,
+    'the switch must rewrite the plate, not just re-point the link',
+  )
+  assert.match(
+    generator,
+    /data-label-\$\{l\.key\}="/,
+    'the link label is baked per reading — a script in the page can only write Chinese',
+  )
+  assert.doesNotMatch(
+    generator,
+    /'打开《' \+ title/,
+    'the switch must not compose its labels in one language at runtime (task #397)',
+  )
+  assert.match(
+    generator,
+    /h3\.setAttribute\('lang', tags\[use\]\)/,
+    'the plate must be tagged with the language it is written in',
   )
 
   // Deleting the last article must not be able to wipe the tab bar.
@@ -200,6 +235,47 @@ const CLASSICS_SHELF_HREF = (generator.match(/const CLASSICS_SHELF_HREF = '([^']
         bayCount,
         'every bay must name the reading the switch defaults to',
       )
+      // Task #397: the switch renames the books as well as re-pointing them, so
+      // every reading a bay offers has to arrive with its own title and imprint —
+      // one bay left out would keep its 简体 name while the rest of the shelf
+      // turned 繁體, which is the exact half-translated shelf this guards against.
+      for (const [attr, what] of [
+        [' data-title-', 'a title'],
+        [' data-imprint-', 'an imprint'],
+        [' data-label-', 'a link label'],
+      ]) {
+        for (const lang of ['hans', 'hant', 'en']) {
+          const hrefs = (afterClassics.match(new RegExp(` data-href-${lang}="`, 'g')) || []).length
+          const names = (afterClassics.match(new RegExp(`${attr}${lang}="`, 'g')) || []).length
+          assert.ok(
+            names >= hrefs,
+            `every ${lang} reading on the shelf must bring ${what} of its own`,
+          )
+        }
+      }
+      // A label is there even for a reading a volume hasn't got, so the switch
+      // never leaves a cover unexplained.
+      for (const lang of ['hans', 'hant', 'en']) {
+        assert.equal(
+          (afterClassics.match(new RegExp(` data-label-${lang}="`, 'g')) || []).length,
+          bayCount,
+          `every bay must say what pressing ${lang} does to it`,
+        )
+      }
+      // The names really are different from one reading to the next — a shelf
+      // that "switches" to 繁體 and shows the same 简体 titles would pass every
+      // structural check above.
+      const titlesFor = (lang) =>
+        [...afterClassics.matchAll(new RegExp(` data-title-${lang}="([^"]+)"`, 'g'))].map((m) => m[1])
+      assert.notDeepEqual(
+        titlesFor('hans'),
+        titlesFor('en'),
+        'the English reading must carry English titles',
+      )
+      assert.ok(
+        titlesFor('hans').some((t, i) => t !== titlesFor('hant')[i]),
+        'the 繁體 reading must carry 繁體 titles',
+      )
 
       // At least one volume is actually on the shelf, drawn as a book.
       assert.ok(
@@ -221,7 +297,11 @@ const CLASSICS_SHELF_HREF = (generator.match(/const CLASSICS_SHELF_HREF = '([^']
           const out = new Map()
           for (const m of src.matchAll(/<li class="bay"([^>]*)>/g)) {
             const at = Object.fromEntries(
-              [...m[1].matchAll(/data-(href[\w-]*|title)="([^"]+)"/g)].map((a) => [a[1], a[2]]),
+              [
+                ...m[1].matchAll(
+                  /data-(href[\w-]*|title[\w-]*|imprint[\w-]*|label[\w-]*|note[\w-]*)="([^"]+)"/g,
+                ),
+              ].map((a) => [a[1], a[2]]),
             )
             if (at.title) out.set(at.title, at)
           }
@@ -259,6 +339,21 @@ const CLASSICS_SHELF_HREF = (generator.match(/const CLASSICS_SHELF_HREF = '([^']
           dianji.includes("var KEY = 'classics:lang'"),
           'both entrances must remember the reading under the same key',
         )
+        // And both actually rewrite the plate (task #397) — the offer is the
+        // same only if pressing 繁體 renames the books on either entrance.
+        for (const [src, where] of [
+          [afterClassics, 'the 典籍 tab'],
+          [dianji, '/p/dianji.html'],
+        ]) {
+          assert.ok(
+            src.includes('head.textContent = name'),
+            `${where} must rename the books when the reading changes`,
+          )
+          assert.ok(
+            /data-bcp47="zh-Hant"/.test(src),
+            `${where} must tag the plate with the language it is written in`,
+          )
+        }
       }
     }
   }

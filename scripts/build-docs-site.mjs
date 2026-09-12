@@ -46,6 +46,11 @@ const UPLOADS_DIR = path.join(ROOT, 'frontend', 'public', 'p')
 // a docs/*.md slug. The backend derives the same id (PageUploadService).
 const UPLOAD_ID_PREFIX = 'upload-'
 
+// esc() is enough for text between tags; an attribute value also has to survive
+// a double quote, and the classics shelf bakes strings that carry line breaks
+// (an imprint is a list of lines, read back out by the language switch).
+const attr = (s) => esc(String(s)).replace(/"/g, '&quot;').replace(/\n/g, '&#10;')
+
 // /docs.html holds two kinds of thing (task #377), so it holds them in two tabs
 // instead of one interleaved timeline:
 //
@@ -74,19 +79,51 @@ const UPLOAD_ID_PREFIX = 'upload-'
 // switch's buttons and each volume's edition list. `key` is what the markup and
 // localStorage speak; `label` is what both the buttons and the CLASSICS entries
 // below are written in.
+//
+// A reading also carries the WORDS that go with it (task #397). Pressing 繁體
+// used to re-point the covers while the shelf went on naming the books in 简体,
+// so a reader who had asked for 繁體 was handed 孙子兵法 and opened 孫子兵法.
+// The name a volume goes by belongs to the reading, not to the volume, so each
+// edition below carries its own `title`/`imprint`, and the label a screen reader
+// hears is written here once per reading rather than assembled in the page's
+// script — where it could only ever be assembled in Chinese.
+// `bcp47` tags the plate for the browser: 简体/繁體/English are three languages
+// as far as font selection and a screen reader's voice are concerned.
 const LANGS = [
-  { key: 'hans', label: '简体' },
-  { key: 'hant', label: '繁體' },
-  { key: 'en', label: 'English' },
+  {
+    key: 'hans',
+    label: '简体',
+    bcp47: 'zh-Hans',
+    open: (t) => `打开《${t}》简体读本`,
+    missing: (t) => `打开《${t}》（暂无简体读本）`,
+    note: (t, def) => `《${t}》暂无简体读本，打开的是${def}本`,
+  },
+  {
+    key: 'hant',
+    label: '繁體',
+    bcp47: 'zh-Hant',
+    open: (t) => `打開《${t}》繁體讀本`,
+    missing: (t) => `打開《${t}》（暫無繁體讀本）`,
+    note: (t, def) => `《${t}》暫無繁體讀本，打開的是${def}本`,
+  },
+  {
+    key: 'en',
+    label: 'English',
+    bcp47: 'en',
+    open: (t) => `Open ${t} (English reading)`,
+    missing: (t) => `Open ${t} (no English reading)`,
+    note: (t, def) => `No English reading of ${t} — this opens the ${def} one`,
+  },
 ]
 const LANG_KEY_BY_LABEL = new Map(LANGS.map((l) => [l.label, l.key]))
+const LANG_BY_KEY = new Map(LANGS.map((l) => [l.key, l]))
+const DEFAULT_LANG = LANGS[0]
 
 const CLASSICS_SHELF_ID = 'upload-dianji'
 const CLASSICS_SHELF_HREF = '/p/dianji.html'
 const CLASSICS = [
   {
     key: 'sunzi',
-    title: '孙子兵法',
     cover: '/img/classics/sunzi-cover.jpg',
     // The crop was measured off the scan itself (column/row luminance), not
     // eyeballed: a 1141x1024 two-page opening whose left leaf is x 20..570,
@@ -94,31 +131,37 @@ const CLASSICS = [
     crop: 'background-size:207.5% 104.2%;background-position:3.4% 48.8%',
     ar: '.5595', // cover width/height AFTER the crop, so the book has the proportions of the object
     coverAlt: '宋刻《十一家注孙子》卷首「孙子本传」书影',
-    imprint: ['春秋 · 十三篇'],
     editions: [
-      { label: '简体', id: 'upload-sunzi-hans' },
-      { label: '繁體', id: 'upload-sunzi' },
-      { label: 'English', id: 'upload-sunzi-en' },
+      { label: '简体', id: 'upload-sunzi-hans', title: '孙子兵法', imprint: ['春秋 · 十三篇'] },
+      { label: '繁體', id: 'upload-sunzi', title: '孫子兵法', imprint: ['春秋 · 十三篇'] },
+      {
+        label: 'English',
+        id: 'upload-sunzi-en',
+        title: 'The Art of War',
+        imprint: ['Spring and Autumn period · thirteen chapters'],
+      },
     ],
   },
   {
     key: 'guiguzi',
-    title: '鬼谷子',
     cover: '/img/classics/guiguzi-cover.jpg',
     // 655x1019 front cover -> x 0..644, dropping the black photographic surround.
     crop: 'background-size:101.7% 100%;background-position:0% 0%',
     ar: '.632',
     coverAlt: '清嘉庆秦恩复刻本《鬼谷子》原书封面，题「鬼谷子三卷 陶贞白注本 通介叟校」',
-    imprint: ['战国 · 三卷二十一篇'],
     editions: [
-      { label: '简体', id: 'upload-guiguzi-hans' },
-      { label: '繁體', id: 'upload-guiguzi' },
-      { label: 'English', id: 'upload-guiguzi-en' },
+      { label: '简体', id: 'upload-guiguzi-hans', title: '鬼谷子', imprint: ['战国 · 三卷二十一篇'] },
+      { label: '繁體', id: 'upload-guiguzi', title: '鬼谷子', imprint: ['戰國 · 三卷二十一篇'] },
+      {
+        label: 'English',
+        id: 'upload-guiguzi-en',
+        title: 'Guiguzi',
+        imprint: ['Warring States · three scrolls, twenty-one chapters'],
+      },
     ],
   },
   {
     key: 'sanshiliuji',
-    title: '三十六计',
     cover: '/img/classics/sanshiliuji-cover.jpg',
     // 民国三十年(1941)瑞琴楼刊本的原书封面 — the printing the modern text descends
     // from. The JPEG is already cropped to the cover itself (the 500x747 page
@@ -127,16 +170,19 @@ const CLASSICS = [
     crop: 'background-size:100% 100%;background-position:0% 0%',
     ar: '.5855',
     coverAlt: '民国三十年瑞琴楼刊本《三十六计》原书封面，题「三十六计（秘本兵法）」',
-    imprint: ['明清 · 六套三十六计'],
     editions: [
-      { label: '简体', id: 'upload-sanshiliuji-hans' },
-      { label: '繁體', id: 'upload-sanshiliuji' },
-      { label: 'English', id: 'upload-sanshiliuji-en' },
+      { label: '简体', id: 'upload-sanshiliuji-hans', title: '三十六计', imprint: ['明清 · 六套三十六计'] },
+      { label: '繁體', id: 'upload-sanshiliuji', title: '三十六計', imprint: ['明清 · 六套三十六計'] },
+      {
+        label: 'English',
+        id: 'upload-sanshiliuji-en',
+        title: 'The Thirty-Six Stratagems',
+        imprint: ['Ming–Qing · six sets of six'],
+      },
     ],
   },
   {
     key: 'bingjian',
-    title: '冰鉴',
     cover: '/img/classics/bingjian-cover.jpg',
     // 民国十四年(1925)上海昌文书局《神骨冰鉴・白鹤仙数》合一册的原书封面 —
     // the printing the text on these pages was collated against. The JPEG is
@@ -146,16 +192,19 @@ const CLASSICS = [
     crop: 'background-size:100% 100%;background-position:0% 0%',
     ar: '.5764',
     coverAlt: '民国十四年上海昌文书局本《神骨冰鉴》原书封面，题「神骨冰鉴 白鹤仙数 合一册」',
-    imprint: ['清 · 七篇'],
     editions: [
-      { label: '简体', id: 'upload-bingjian-hans' },
-      { label: '繁體', id: 'upload-bingjian' },
-      { label: 'English', id: 'upload-bingjian-en' },
+      { label: '简体', id: 'upload-bingjian-hans', title: '冰鉴', imprint: ['清 · 七篇'] },
+      { label: '繁體', id: 'upload-bingjian', title: '冰鑑', imprint: ['清 · 七篇'] },
+      {
+        label: 'English',
+        id: 'upload-bingjian-en',
+        title: 'The Ice Mirror',
+        imprint: ['Qing · seven chapters'],
+      },
     ],
   },
   {
     key: 'daodejing',
-    title: '道德经',
     cover: '/img/classics/daodejing-cover.jpg',
     // 民国上海文瑞楼石印《老子道德经》(华亭张氏原本、晋王弼注) 的原书封面 —
     // the printing the text on these pages was collated against. The printed
@@ -165,16 +214,19 @@ const CLASSICS = [
     crop: 'background-size:100% 100%;background-position:0% 0%',
     ar: '.6582',
     coverAlt: '民国上海文瑞楼石印本《老子道德经》原书封面，题「老子道德经　晋王弼注　王儒舲点句　陆德明释文坿　上海文瑞楼印行」',
-    imprint: ['春秋 · 八十一章'],
     editions: [
-      { label: '简体', id: 'upload-daodejing-hans' },
-      { label: '繁體', id: 'upload-daodejing' },
-      { label: 'English', id: 'upload-daodejing-en' },
+      { label: '简体', id: 'upload-daodejing-hans', title: '道德经', imprint: ['春秋 · 八十一章'] },
+      { label: '繁體', id: 'upload-daodejing', title: '道德經', imprint: ['春秋 · 八十一章'] },
+      {
+        label: 'English',
+        id: 'upload-daodejing-en',
+        title: 'The Daodejing',
+        imprint: ['Spring and Autumn period · eighty-one chapters'],
+      },
     ],
   },
   {
     key: 'liaofansixun',
-    title: '了凡四训',
     cover: '/img/classics/liaofansixun-cover.png',
     // 民国二十三年(1934)上海佛学书局《了凡四训》(印光法师鉴定、尤惜阴圈点注释,
     // 中国国家图书馆藏) 的原书内封 — the printing the text on these pages was
@@ -187,16 +239,19 @@ const CLASSICS = [
     crop: 'background-size:100% 100%;background-position:0% 0%',
     ar: '.6250',
     coverAlt: '民国二十三年上海佛学书局本《了凡四训》原书内封，题「了凡四训」，下署「上海佛学书局印行」，钤北海公园图书室藏书印',
-    imprint: ['明 · 四篇'],
     editions: [
-      { label: '简体', id: 'upload-liaofansixun-hans' },
-      { label: '繁體', id: 'upload-liaofansixun' },
-      { label: 'English', id: 'upload-liaofansixun-en' },
+      { label: '简体', id: 'upload-liaofansixun-hans', title: '了凡四训', imprint: ['明 · 四篇'] },
+      { label: '繁體', id: 'upload-liaofansixun', title: '了凡四訓', imprint: ['明 · 四篇'] },
+      {
+        label: 'English',
+        id: 'upload-liaofansixun-en',
+        title: 'Liaofan’s Four Lessons',
+        imprint: ['Ming · four lessons'],
+      },
     ],
   },
   {
     key: 'sushu',
-    title: '素书',
     cover: '/img/classics/sushu-cover.jpg',
     // 明万历吴兴慎懋赏解本《黄石公素书》(中国国家图书馆藏) 卷前的手书题耑 — the
     // very leaf that fronts the copy these pages were collated against, leaf by
@@ -208,16 +263,14 @@ const CLASSICS = [
     crop: 'background-size:100% 100%;background-position:0% 0%',
     ar: '.5600',
     coverAlt: '明万历吴兴慎懋赏解本《黄石公素书》卷前手书题耑，大字题「黄石公素书」，旁有道光丁亥（1827）行书题记，钤「小桐」等藏印',
-    imprint: ['秦 · 六章'],
     editions: [
-      { label: '简体', id: 'upload-sushu-hans' },
-      { label: '繁體', id: 'upload-sushu' },
-      { label: 'English', id: 'upload-sushu-en' },
+      { label: '简体', id: 'upload-sushu-hans', title: '素书', imprint: ['秦 · 六章'] },
+      { label: '繁體', id: 'upload-sushu', title: '素書', imprint: ['秦 · 六章'] },
+      { label: 'English', id: 'upload-sushu-en', title: 'Su Shu', imprint: ['Qin · six chapters'] },
     ],
   },
   {
     key: 'shangjunshu',
-    title: '商君书',
     cover: '/img/classics/shangjunshu-cover.jpg',
     // 《四部叢刊初編》景印上海涵芬樓藏天一閣范氏明刊本《商子》五卷 — the copy
     // the text on these pages was checked against. The 涵芬樓 leaf that carries
@@ -230,16 +283,19 @@ const CLASSICS = [
     crop: 'background-size:100% 100%;background-position:0% 0%',
     ar: '.5680',
     coverAlt: '四部丛刊景印天一阁藏明刊本《商子》原书封面，左上题签墨书「商子」',
-    imprint: ['战国 · 五卷二十六篇'],
     editions: [
-      { label: '简体', id: 'upload-shangjunshu-hans' },
-      { label: '繁體', id: 'upload-shangjunshu' },
-      { label: 'English', id: 'upload-shangjunshu-en' },
+      { label: '简体', id: 'upload-shangjunshu-hans', title: '商君书', imprint: ['战国 · 五卷二十六篇'] },
+      { label: '繁體', id: 'upload-shangjunshu', title: '商君書', imprint: ['戰國 · 五卷二十六篇'] },
+      {
+        label: 'English',
+        id: 'upload-shangjunshu-en',
+        title: 'The Book of Lord Shang',
+        imprint: ['Warring States · five scrolls, twenty-six chapters'],
+      },
     ],
   },
   {
     key: 'luozhijing',
-    title: '罗织经',
     cover: '/img/classics/luozhijing-cover.jpg',
     // This is the one book on the shelf with no edition of its own. The title
     // is recorded — 《旧唐书·酷吏传上·来俊臣》 and 《资治通鉴》卷二〇三 both name
@@ -257,24 +313,37 @@ const CLASSICS = [
     crop: 'background-size:100% 100%;background-position:0% 0%',
     ar: '.5833',
     coverAlt: '明嘉靖十七年闻人诠刻本《旧唐书》卷一百八十六上《酷吏上》卷端叶，首列来俊臣，下接「古今御天下者，其政有四」序文',
-    imprint: ['旧题唐 · 十二卷'],
     editions: [
-      { label: '简体', id: 'upload-luozhijing-hans' },
-      { label: '繁體', id: 'upload-luozhijing' },
-      { label: 'English', id: 'upload-luozhijing-en' },
+      { label: '简体', id: 'upload-luozhijing-hans', title: '罗织经', imprint: ['旧题唐 · 十二卷'] },
+      { label: '繁體', id: 'upload-luozhijing', title: '羅織經', imprint: ['舊題唐 · 十二卷'] },
+      {
+        label: 'English',
+        id: 'upload-luozhijing-en',
+        title: 'The Classic of Netting',
+        imprint: ['Ascribed to the Tang · twelve scrolls'],
+      },
     ],
   },
 ]
 
 // A label that isn't one of LANGS would drop that edition off the switch without
 // a word — the volume would simply refuse to follow the corner control. Catch it
-// at build time instead: a typo in an edition label fails the deploy gate.
+// at build time instead: a typo in an edition label fails the deploy gate. The
+// same goes for a reading with no name of its own (task #397): the shelf would
+// silently go on calling that volume by the default reading's name, which is
+// exactly the bug this registry now exists to prevent.
 for (const book of CLASSICS) {
   for (const ed of book.editions) {
     if (!LANG_KEY_BY_LABEL.has(ed.label)) {
       throw new Error(
         `CLASSICS: ${book.key} lists edition label "${ed.label}", which is not one of ` +
           LANGS.map((l) => l.label).join(' / ')
+      )
+    }
+    if (!ed.title || !ed.imprint || !ed.imprint.length) {
+      throw new Error(
+        `CLASSICS: ${book.key}'s ${ed.label} edition must carry its own title and imprint — ` +
+          'the shelf names a book in the reading it is offering'
       )
     }
   }
@@ -302,7 +371,16 @@ function resolveShelf(cards) {
       .map((ed) => ({ ...ed, card: byId.get(ed.id) }))
       .filter((ed) => ed.card && !ed.card.private)
     if (!editions.length) continue
-    books.push({ ...book, editions, href: editions[0].card.href })
+    // The volume's default IS its first surviving edition — page, name and all.
+    // If the 简体 reading ever drops off the shelf, the bay falls back to what it
+    // actually opens rather than going on advertising a page that isn't there.
+    books.push({
+      ...book,
+      editions,
+      href: editions[0].card.href,
+      title: editions[0].title,
+      imprint: editions[0].imprint,
+    })
   }
   return books
 }
@@ -909,6 +987,12 @@ body.has-tabs .hero { border-bottom: none; }
   margin: 7px 0 0; font-size: 12.5px; line-height: 1.7;
   letter-spacing: 0.02em; color: var(--muted);
 }
+/* The plate carries the reading it names (task #397), so the type can follow it.
+   The wide tracking above is set for 简体/繁體 titles, where it opens the
+   characters up; English words only come apart under it — "Liaofan's" reads as
+   two words. Trim it back for the English reading only. */
+.plate h3:lang(en) { letter-spacing: 0.01em; text-indent: 0; }
+.plate .imprint:lang(en) { letter-spacing: 0; }
 /* ---------- one switch for the whole shelf (task #393) ----------------------
    The three readings used to hang under every book, which asked the same
    question once per volume. They are now a single control in the top-right
@@ -1183,7 +1267,7 @@ function renderCard(c) {
 function renderLangbar() {
   const btns = LANGS.map(
     (l, i) =>
-      `  <button type="button" class="lang" data-lang="${l.key}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(l.label)}</button>`
+      `  <button type="button" class="lang" data-lang="${l.key}" data-bcp47="${l.bcp47}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(l.label)}</button>`
   ).join('\n')
   return `<div class="langbar" role="group" aria-label="读本语言" data-default="${LANGS[0].key}">
 ${btns}
@@ -1203,20 +1287,45 @@ function renderShelf(books) {
       // corner of the page. `data-href` is the volume's default (editions[0],
       // 简体), which is where a bay lands with JS off or when the chosen
       // reading doesn't exist for this book.
-      const eds = b.editions
-        .map((e) => ` data-href-${LANG_KEY_BY_LABEL.get(e.label)}="${esc(e.card.href)}"`)
-        .join('')
-      return `    <li class="bay" data-title="${esc(b.title)}" data-href="${esc(b.href)}"${eds}>
+      //
+      // A reading brings its own NAME with it (task #397): pressing 繁體 has to
+      // turn 孙子兵法 into 孫子兵法 and 战国 · 三卷二十一篇 into 戰國 · 三卷二十一篇,
+      // or the shelf is labelling every book in a script the reader just said
+      // they don't read. Every word the switch can put on a bay is baked here,
+      // finished — including the link's aria-label, which a script in the page
+      // could only ever have assembled in Chinese. What the page's JS does is
+      // copy strings across; it writes none of them.
+      const eds = LANGS.map((l) => {
+        const ed = b.editions.find((e) => LANG_KEY_BY_LABEL.get(e.label) === l.key)
+        if (!ed) {
+          // No such reading of this book: the bay stays on its default, and says
+          // so on the link instead of handing over another language in silence.
+          return (
+            ` data-label-${l.key}="${attr(l.missing(b.title))}"` +
+            ` data-note-${l.key}="${attr(l.note(b.title, DEFAULT_LANG.label))}"`
+          )
+        }
+        return (
+          ` data-href-${l.key}="${attr(ed.card.href)}"` +
+          ` data-title-${l.key}="${attr(ed.title)}"` +
+          ` data-imprint-${l.key}="${attr(ed.imprint.join('\n'))}"` +
+          ` data-label-${l.key}="${attr(l.open(ed.title))}"`
+        )
+      }).join('')
+      const defLang = LANG_BY_KEY.get(LANG_KEY_BY_LABEL.get(b.editions[0].label)) || DEFAULT_LANG
+      return `    <li class="bay" data-title="${attr(b.title)}" data-imprint="${attr(
+        b.imprint.join('\n')
+      )}" data-href="${attr(b.href)}"${eds}>
       <div class="stand">
-        <a class="vol" href="${b.href}" aria-label="打开《${esc(b.title)}》">
+        <a class="vol" href="${b.href}" aria-label="${attr(defLang.open(b.title))}">
           <div class="book" style="--ar:${b.ar}">
             ${face}
           </div>
         </a>
       </div>
       <div class="plate">
-        <h3><a href="${b.href}">${esc(b.title)}</a></h3>
-        <p class="imprint">${b.imprint.map(esc).join('<br />')}</p>
+        <h3 lang="${defLang.bcp47}"><a href="${b.href}">${esc(b.title)}</a></h3>
+        <p class="imprint" lang="${defLang.bcp47}">${b.imprint.map(esc).join('<br />')}</p>
       </div>
     </li>`
     })
@@ -1378,39 +1487,62 @@ ${body}
   // chosen reading. The choice is remembered, so a reader who reads in 繁體
   // does not have to say so again on the next visit or on the full-page shelf.
   //
-  // A volume that has no page in the chosen reading keeps its default (简体)
-  // and SAYS SO on the link rather than handing over a different language
-  // without a word.
+  // Since task #397 it also RENAMES the books: the plate under each cover shows
+  // the title and imprint of the reading being offered — 孫子兵法 in 繁體, The
+  // Art of War in English — because a shelf that answers 繁體 by keeping every
+  // name in 简体 has only half heard the question. Every string is baked into
+  // the bay at build time, so this loop copies text, never composes it.
+  //
+  // A volume that has no page in the chosen reading keeps its default reading —
+  // name and all, so the plate always describes what the link opens — and SAYS
+  // SO on the link rather than handing over a different language without a word.
   (function () {
     var bar = document.querySelector('.langbar');
     if (!bar) return;
     var KEY = 'classics:lang';
     var btns = [].slice.call(bar.querySelectorAll('.lang'));
     var bays = [].slice.call(document.querySelectorAll('.bay'));
-    var labels = {};
-    btns.forEach(function (b) { labels[b.getAttribute('data-lang')] = b.textContent; });
+    var tags = {};
+    btns.forEach(function (b) { tags[b.getAttribute('data-lang')] = b.getAttribute('data-bcp47'); });
 
     function apply(lang, remember) {
       btns.forEach(function (b) {
         b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
       });
       bays.forEach(function (bay) {
-        var title = bay.getAttribute('data-title') || '';
-        var want = bay.getAttribute('data-href-' + lang);
-        var href = want || bay.getAttribute('data-href');
+        // The reading this bay can actually give: the one asked for, or its own
+        // default when it hasn't got that one.
+        var use = bay.getAttribute('data-href-' + lang) ? lang : bar.getAttribute('data-default');
+        var href = bay.getAttribute('data-href-' + use) || bay.getAttribute('data-href');
         if (!href) return;
+        var note = bay.getAttribute('data-note-' + lang);
+        var label = bay.getAttribute('data-label-' + lang);
         var vol = bay.querySelector('a.vol');
         var head = bay.querySelector('.plate h3 a');
         [vol, head].forEach(function (a) {
           if (!a) return;
           a.setAttribute('href', href);
-          if (want) a.removeAttribute('title');
-          else a.setAttribute('title', '《' + title + '》暂无' + labels[lang] + '读本，打开' + labels[bar.getAttribute('data-default')] + '本');
+          if (note) a.setAttribute('title', note);
+          else a.removeAttribute('title');
         });
-        if (vol) {
-          vol.setAttribute('aria-label', want
-            ? '打开《' + title + '》' + labels[lang] + '读本'
-            : '打开《' + title + '》（暂无' + labels[lang] + '读本）');
+        if (vol && label) vol.setAttribute('aria-label', label);
+        // The plate speaks the reading it opens: title, imprint and the lang tag
+        // that tells the browser and a screen reader which of the three it is.
+        var name = bay.getAttribute('data-title-' + use) || bay.getAttribute('data-title');
+        var h3 = bay.querySelector('.plate h3');
+        if (head && name) head.textContent = name;
+        var imp = bay.querySelector('.plate .imprint');
+        var lines = (bay.getAttribute('data-imprint-' + use) || bay.getAttribute('data-imprint') || '').split('\\n');
+        if (imp) {
+          imp.textContent = '';
+          lines.forEach(function (line, i) {
+            if (i) imp.appendChild(document.createElement('br'));
+            imp.appendChild(document.createTextNode(line));
+          });
+        }
+        if (tags[use]) {
+          if (h3) h3.setAttribute('lang', tags[use]);
+          if (imp) imp.setAttribute('lang', tags[use]);
         }
       });
       if (remember) { try { localStorage.setItem(KEY, lang); } catch (e) {} }
