@@ -1039,7 +1039,7 @@ function renderIndex(cards) {
   const hasShelfPage = cards.some((c) => c.id === CLASSICS_SHELF_ID)
   const body = tabbed
     ? `<nav class="tabs" role="tablist" aria-label="存档分区">
-  <button type="button" class="tab" role="tab" id="tab-articles" aria-controls="panel-articles" aria-selected="true">文章收藏<span class="n">${articles.length}</span></button>
+  <button type="button" class="tab" role="tab" id="tab-articles" aria-controls="panel-articles" aria-selected="true">文章收藏<span class="n" data-count-of="panel-articles">${articles.length}</span></button>
   <button type="button" class="tab" role="tab" id="tab-classics" aria-controls="panel-classics" aria-selected="false" tabindex="-1">典籍<span class="n">${shelf.length}</span></button>
 </nav>
 <div class="wrap">
@@ -1165,6 +1165,19 @@ ${body}
     }
     window.addEventListener('hashchange', fromHash);
     fromHash();
+    // The count on a tab is baked at build time, when every card still exists.
+    // An anonymous visitor is served the page with the private cards stripped
+    // out (docsGate), and the owner deletes cards without a rebuild — either way
+    // the label would then promise entries that aren't in the panel, and the
+    // overcount tells a stranger exactly how many private docs are being kept
+    // from them. So count what the panel actually holds, right now.
+    window.recountTabs = function () {
+      [].forEach.call(document.querySelectorAll('.tab .n[data-count-of]'), function (n) {
+        var panel = document.getElementById(n.getAttribute('data-count-of'));
+        if (panel) n.textContent = panel.querySelectorAll('.card-wrap').length;
+      });
+    };
+    window.recountTabs();
   })();
 </script>
 
@@ -1233,6 +1246,8 @@ ${body}
       if (grid && !grid.querySelector('.card-wrap') && wrapEl) {
         wrapEl.innerHTML = '<p class="empty">还没有文章。</p>';
       }
+      // The tab label counts the panel, so it has to be told the panel shrank.
+      if (window.recountTabs) window.recountTabs();
     };
     if (prefersReduced) finish();
     else setTimeout(finish, 260);
