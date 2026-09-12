@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>孫子兵法 · 繁體版</title>
-<meta name="description" content="《孫子兵法》十三篇全文，附孫子佚文及吳王問對。繁體原文、帶標點，不載曹操以下十一家舊注；另備現代文今注（AI 生成）可開關。">
+<meta name="description" content="《孫子兵法》十三篇全文，附孫子佚文及吳王問對。繁體原文、帶標點，不載曹操以下十一家舊注；另備現代文註釋（AI 生成）可開關。">
 <style>
 :root{
   --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
@@ -57,7 +57,8 @@ header.mast::after{
 .bar button[aria-pressed="true"],.bar .btn.cur{
   background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
 .grp{display:inline-flex; gap:4px; align-items:center}
-.bar .tag{font-size:.72em; letter-spacing:.08em; opacity:.75; margin-left:.45em}
+.bar .tag{font-size:.6em; letter-spacing:.06em; opacity:.7; margin-left:.4em;
+  align-self:flex-start; margin-top:.5em}
 .langs .cur{cursor:default}
 
 /* ---------- layout ---------- */
@@ -112,7 +113,7 @@ main > p{text-indent:2em}
 .var{border-bottom:1px dotted var(--seal); cursor:help}
 .yin{font-size:.72em; color:var(--ink-soft); letter-spacing:0}
 
-/* 現代文今注（AI 生成）— hidden by default */
+/* 現代文註釋（AI 生成）— hidden by default */
 .ai{display:none}
 body.ai-on .ai{
   display:block; margin:.85em 0 1.5em; padding:.75em 2px .75em 16px;
@@ -124,7 +125,7 @@ body.ai-on .ai{
     "Microsoft JhengHei","Noto Sans CJK SC",system-ui,sans-serif;
 }
 body.ai-on .ai::before{
-  content:"今注"; float:left; margin:.22em .7em .1em 0;
+  content:"註釋"; float:left; margin:.22em .7em .1em 0;
   color:var(--accent); border:1px solid var(--accent); border-radius:3px;
   padding:0 5px; font-size:.78em; letter-spacing:.16em; text-indent:.16em;
   opacity:.9; white-space:nowrap;
@@ -135,8 +136,8 @@ body.ai-on .ai-head{
     color-mix(in srgb,var(--accent) 14%,transparent), transparent 85%);
 }
 body.ai-on .ai-head::before{content:"篇旨"}
-/* 今注 toggle. The hover tint paints the label green, so it must never apply
-   while the button is ON — green-on-green fill made 今注 and the AI tag
+/* 註釋 toggle. The hover tint paints the label green, so it must never apply
+   while the button is ON — green-on-green fill made 註釋 and the AI tag
    vanish into a solid green pill. Keep an explicit readable colour in both. */
 .bar button#ai[aria-pressed="true"]{
   background:var(--accent); border-color:var(--accent); color:var(--paper-2)}
@@ -160,7 +161,7 @@ body.ai-on .ai-head::before{content:"篇旨"}
 
 <div class="bar">
   <div class="grp">
-    <button id="ai" aria-pressed="false" title="現代文今注（AI 生成），預設隱藏">今注 <span class="tag">AI</span></button>
+    <button id="ai" aria-pressed="false" title="現代文註釋（AI 生成），預設隱藏">註釋 <span class="tag">AI</span></button>
   </div>
   <div class="grp langs">
     <a class="btn" href="/p/sunzi-hans.html">简体</a>
