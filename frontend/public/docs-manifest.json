@@ -1,25 +1,25 @@
 [
   {
-    "id": "upload-guiguzi-en",
-    "title": "Guiguzi — The Master of Ghost Valley (English)",
-    "href": "/p/guiguzi-en.html",
+    "id": "upload-sunzi",
+    "title": "孫子兵法（白文·十三篇）",
+    "href": "/p/sunzi.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T06:55:17.921Z",
+    "updatedAt": "2026-09-12T07:31:18.845Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/guiguzi-en.html",
-      "frontend/public/p/guiguzi-en.meta.json"
+      "frontend/public/p/sunzi.html",
+      "frontend/public/p/sunzi.meta.json"
     ]
   },
   {
     "id": "upload-guiguzi-hans",
-    "title": "鬼谷子（陶弘景注·嘉庆秦刻本）· 简体版",
+    "title": "鬼谷子（白文·嘉庆秦刻本）· 简体版",
     "href": "/p/guiguzi-hans.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T06:55:15.614Z",
+    "updatedAt": "2026-09-12T07:19:47.473Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -29,16 +29,30 @@
   },
   {
     "id": "upload-guiguzi",
-    "title": "鬼谷子（陶弘景注·嘉慶秦刻本）",
+    "title": "鬼谷子（白文·嘉慶秦刻本）",
     "href": "/p/guiguzi.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T06:39:07.718Z",
+    "updatedAt": "2026-09-12T07:19:47.471Z",
     "isNew": true,
     "private": false,
     "paths": [
       "frontend/public/p/guiguzi.html",
       "frontend/public/p/guiguzi.meta.json"
+    ]
+  },
+  {
+    "id": "upload-guiguzi-en",
+    "title": "Guiguzi — The Master of Ghost Valley (English)",
+    "href": "/p/guiguzi-en.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T07:14:58.159Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi-en.html",
+      "frontend/public/p/guiguzi-en.meta.json"
     ]
   },
   {
