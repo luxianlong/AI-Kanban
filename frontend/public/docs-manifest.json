@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-guiguzi-en",
+    "title": "Guiguzi — The Master of Ghost Valley (English)",
+    "href": "/p/guiguzi-en.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T06:55:17.921Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi-en.html",
+      "frontend/public/p/guiguzi-en.meta.json"
+    ]
+  },
+  {
     "id": "upload-guiguzi-hans",
     "title": "鬼谷子（陶弘景注·嘉庆秦刻本）· 简体版",
     "href": "/p/guiguzi-hans.html",
