@@ -113,10 +113,6 @@ body.has-tabs .hero { border-bottom: none; }
   font-family: var(--mono); font-size: 11px; font-weight: 500;
   letter-spacing: 0.1em; color: var(--muted);
 }
-.zone-note {
-  margin: 30px 0 0; color: var(--muted); font-size: 15px;
-  line-height: 1.72; text-wrap: pretty; max-width: 62ch;
-}
 
 /* ---------- 典籍: a library grid, several books to a row --------------------
    Kindle-shaped, but the objects are stitched Chinese books, so they are drawn
@@ -126,7 +122,9 @@ body.has-tabs .hero { border-bottom: none; }
 .classics {
   --board-hi: #dcc9a3; --board-mid: #b99f74; --board-lo: #8e7549;
   --leaf-hi: #f2ead6; --leaf-lo: #ddd0ae;
-  margin-top: 34px;
+  /* No zone note above the shelf any more (task #380), so the books carry
+     their own top margin. */
+  margin-top: 46px;
 }
 .shelf {
   display: grid;
@@ -823,7 +821,6 @@ body.is-owner .hero .write { display: inline-block; }
 </section>
 <section id="panel-classics" role="tabpanel" aria-labelledby="tab-classics" tabindex="0" hidden>
 <div class="classics">
-<p class="zone-note">读了千年还在读的那几种。都是<b>白文本</b>——只有正文，不载旧注；每种各有简体、繁體、English 三个读本，点封面进正文。</p>
 <ul class="shelf">
     <li class="bay">
       <div class="stand">
@@ -835,7 +832,7 @@ body.is-owner .hero .write { display: inline-block; }
       </div>
       <div class="plate">
         <h3><a href="/p/sunzi-hans.html">孙子兵法</a></h3>
-        <p class="imprint">春秋 · 白文十三篇</p>
+        <p class="imprint">春秋 · 十三篇</p>
         <p class="eds">
           <a class="ed first" href="/p/sunzi-hans.html">简体</a>
           <a class="ed" href="/p/sunzi.html">繁體</a>
@@ -853,7 +850,7 @@ body.is-owner .hero .write { display: inline-block; }
       </div>
       <div class="plate">
         <h3><a href="/p/guiguzi-hans.html">鬼谷子</a></h3>
-        <p class="imprint">战国 · 白文三卷二十一篇</p>
+        <p class="imprint">战国 · 三卷二十一篇</p>
         <p class="eds">
           <a class="ed first" href="/p/guiguzi-hans.html">简体</a>
           <a class="ed" href="/p/guiguzi.html">繁體</a>
@@ -871,7 +868,7 @@ body.is-owner .hero .write { display: inline-block; }
   <a class="doc-card" href="/p/dianji.html">
   <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
   <h2>典籍 · 孙子兵法 · 鬼谷子</h2>
-  <p>《孙子兵法》《鬼谷子》白文本，按书影排开。各有简体、繁体、English 三个读本，默认简体。</p>
+  <p>《孙子兵法》《鬼谷子》，按书影排开。各有简体、繁体、English 三个读本，默认简体。</p>
   <div class="meta">阅读全文 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
@@ -881,24 +878,24 @@ body.is-owner .hero .write { display: inline-block; }
 <div class="card-wrap is-new" data-id="upload-sunzi-hans" data-private="false">
   <a class="doc-card" href="/p/sunzi-hans.html">
   <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孙子兵法（白文·十三篇）· 简体版</h2>
-  <p>《孙子兵法》十三篇白文·简体，带标点，不载旧注；附佚文及吴王问对十七则。今注可开关。</p>
+  <h2>孙子兵法 · 简体版</h2>
+  <p>《孙子兵法》十三篇简体，带标点，不载旧注；附佚文及吴王问对十七则。今注可开关。</p>
   <div class="meta">阅读全文 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孙子兵法（白文·十三篇）· 简体版" data-id="upload-sunzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孙子兵法（白文·十三篇）· 简体版" data-id="upload-sunzi-hans" data-title="孙子兵法（白文·十三篇）· 简体版">✕</button>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孙子兵法 · 简体版" data-id="upload-sunzi-hans" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孙子兵法 · 简体版" data-id="upload-sunzi-hans" data-title="孙子兵法 · 简体版">✕</button>
 </div>
 <div class="card-wrap is-new" data-id="upload-sunzi" data-private="false">
   <a class="doc-card" href="/p/sunzi.html">
   <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孫子兵法（白文·十三篇）</h2>
-  <p>《孫子兵法》十三篇白文·繁體，帶標點，不載舊注；附佚文及吳王問對十七則。今注可開關。</p>
+  <h2>孫子兵法 · 繁體版</h2>
+  <p>《孫子兵法》十三篇繁體，帶標點，不載舊注；附佚文及吳王問對十七則。今注可開關。</p>
   <div class="meta">阅读全文 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孫子兵法（白文·十三篇）" data-id="upload-sunzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孫子兵法（白文·十三篇）" data-id="upload-sunzi" data-title="孫子兵法（白文·十三篇）">✕</button>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孫子兵法 · 繁體版" data-id="upload-sunzi" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孫子兵法 · 繁體版" data-id="upload-sunzi" data-title="孫子兵法 · 繁體版">✕</button>
 </div>
 <div class="card-wrap is-new" data-id="upload-guiguzi-en" data-private="false">
   <a class="doc-card" href="/p/guiguzi-en.html">
@@ -914,24 +911,24 @@ body.is-owner .hero .write { display: inline-block; }
 <div class="card-wrap is-new" data-id="upload-guiguzi-hans" data-private="false">
   <a class="doc-card" href="/p/guiguzi-hans.html">
   <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子（白文·嘉庆秦刻本）· 简体版</h2>
-  <p>《鬼谷子》三卷二十一篇白文·简体，带标点，不载陶注（嘉庆秦刻本）。今注可开关。</p>
+  <h2>鬼谷子 · 简体版</h2>
+  <p>《鬼谷子》三卷二十一篇简体，带标点，不载陶注（嘉庆秦刻本）。今注可开关。</p>
   <div class="meta">阅读全文 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子（白文·嘉庆秦刻本）· 简体版" data-id="upload-guiguzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子（白文·嘉庆秦刻本）· 简体版" data-id="upload-guiguzi-hans" data-title="鬼谷子（白文·嘉庆秦刻本）· 简体版">✕</button>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子 · 简体版" data-id="upload-guiguzi-hans" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子 · 简体版" data-id="upload-guiguzi-hans" data-title="鬼谷子 · 简体版">✕</button>
 </div>
 <div class="card-wrap is-new" data-id="upload-guiguzi" data-private="false">
   <a class="doc-card" href="/p/guiguzi.html">
   <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子（白文·嘉慶秦刻本）</h2>
-  <p>《鬼谷子》三卷二十一篇白文·繁體，帶標點，不載陶注（嘉慶秦刻本）。今注可開關。</p>
+  <h2>鬼谷子 · 繁體版</h2>
+  <p>《鬼谷子》三卷二十一篇繁體，帶標點，不載陶注（嘉慶秦刻本）。今注可開關。</p>
   <div class="meta">阅读全文 →</div>
 </a>
   <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子（白文·嘉慶秦刻本）" data-id="upload-guiguzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子（白文·嘉慶秦刻本）" data-id="upload-guiguzi" data-title="鬼谷子（白文·嘉慶秦刻本）">✕</button>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子 · 繁體版" data-id="upload-guiguzi" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子 · 繁體版" data-id="upload-guiguzi" data-title="鬼谷子 · 繁體版">✕</button>
 </div>
 <div class="card-wrap is-new" data-id="upload-sunzi-en" data-private="false">
   <a class="doc-card" href="/p/sunzi-en.html">

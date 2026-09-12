@@ -16,7 +16,7 @@
   },
   {
     "id": "upload-sunzi-hans",
-    "title": "孙子兵法（白文·十三篇）· 简体版",
+    "title": "孙子兵法 · 简体版",
     "href": "/p/sunzi-hans.html",
     "zone": "classic",
     "deletable": true,
@@ -31,7 +31,7 @@
   },
   {
     "id": "upload-sunzi",
-    "title": "孫子兵法（白文·十三篇）",
+    "title": "孫子兵法 · 繁體版",
     "href": "/p/sunzi.html",
     "zone": "classic",
     "deletable": true,
@@ -61,7 +61,7 @@
   },
   {
     "id": "upload-guiguzi-hans",
-    "title": "鬼谷子（白文·嘉庆秦刻本）· 简体版",
+    "title": "鬼谷子 · 简体版",
     "href": "/p/guiguzi-hans.html",
     "zone": "classic",
     "deletable": true,
@@ -76,7 +76,7 @@
   },
   {
     "id": "upload-guiguzi",
-    "title": "鬼谷子（白文·嘉慶秦刻本）",
+    "title": "鬼谷子 · 繁體版",
     "href": "/p/guiguzi.html",
     "zone": "classic",
     "deletable": true,
