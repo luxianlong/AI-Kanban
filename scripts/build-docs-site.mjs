@@ -215,6 +215,55 @@ const CLASSICS = [
       { label: 'English', id: 'upload-sushu-en' },
     ],
   },
+  {
+    key: 'shangjunshu',
+    title: '商君书',
+    cover: '/img/classics/shangjunshu-cover.jpg',
+    // 《四部叢刊初編》景印上海涵芬樓藏天一閣范氏明刊本《商子》五卷 — the copy
+    // the text on these pages was checked against. The 涵芬樓 leaf that carries
+    // the printer's note gives the original block as 六寸五分 high by 四寸九分
+    // wide, and the first leaf of the text is stamped 「四明范氏天一閣藏書」.
+    // Page one of that facsimile IS the cover: a plain wrapper with the title
+    // slip 「商子」 ruled down the left, and no scanner bed around it. The
+    // render is 1280x2254 and the JPEG is simply that, scaled to 560 wide —
+    // so it fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.5680',
+    coverAlt: '四部丛刊景印天一阁藏明刊本《商子》原书封面，左上题签墨书「商子」',
+    imprint: ['战国 · 五卷二十六篇'],
+    editions: [
+      { label: '简体', id: 'upload-shangjunshu-hans' },
+      { label: '繁體', id: 'upload-shangjunshu' },
+      { label: 'English', id: 'upload-shangjunshu-en' },
+    ],
+  },
+  {
+    key: 'luozhijing',
+    title: '罗织经',
+    cover: '/img/classics/luozhijing-cover.jpg',
+    // This is the one book on the shelf with no edition of its own. The title
+    // is recorded — 《旧唐书·酷吏传上·来俊臣》 and 《资治通鉴》卷二〇三 both name
+    // it — but the scroll itself was lost, no later bibliography lists it, and
+    // the twelve-scroll text read here was written under Lai Junchen's name in
+    // modern times (the reading pages say so on the first chapter and again in
+    // the colophon). So the cover is not this book's cover: it is the opening
+    // leaf of 《旧唐书》卷一百八十六上《酷吏上》 in the 1538 吴郡 printing by
+    // 闻人诠 — the earliest surviving printing of that history, and the chapter
+    // that carries the only old record of the title. National Central Library,
+    // Taipei; 14 columns to the half-leaf, 26 characters to the column, block
+    // 21.2 x 14.7 cm. The 1920px render of the opened spread is cut to the left
+    // half-leaf (x 134..800, y 56..1198, the fold measured off column luminance)
+    // and scaled to 560 wide, so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.5833',
+    coverAlt: '明嘉靖十七年闻人诠刻本《旧唐书》卷一百八十六上《酷吏上》卷端叶，首列来俊臣，下接「古今御天下者，其政有四」序文',
+    imprint: ['旧题唐 · 十二卷'],
+    editions: [
+      { label: '简体', id: 'upload-luozhijing-hans' },
+      { label: '繁體', id: 'upload-luozhijing' },
+      { label: 'English', id: 'upload-luozhijing-en' },
+    ],
+  },
 ]
 
 // A label that isn't one of LANGS would drop that edition off the switch without
@@ -1040,6 +1089,14 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 }
 body.is-owner .hero .write { display: inline-block; }
 .hero .write:hover { color: var(--accent); border-color: var(--accent); }
+/* "Mark everything read" (task #412) — the companion to the red NEW stamps.
+   It sits next to 写文章 and stays out of sight until the read-state probe finds
+   something actually unread, so the masthead only grows a second button when
+   there is something for it to do. The [hidden] rule has to be spelled out:
+   the owner rule above sets an explicit display, which would otherwise beat the
+   browser's own [hidden] { display: none }. */
+.hero .write.mark-read { margin-left: 10px; }
+.hero .write[hidden] { display: none !important; }
 
 /* The editor pop-up (task #223): a wider sheet than the delete confirmation,
    holding a title line and the Markdown itself. The paper/ink palette carries
@@ -1216,6 +1273,7 @@ ${INDEX_CSS}</style>
 <header class="hero">
 <h1>文章存档</h1>
 <button class="write" type="button" id="write-open">✎ 写文章</button>
+<button class="write mark-read" type="button" id="mark-all-read" hidden>✓ 全部标为已读</button>
 </header>
 ${body}
 
@@ -1518,18 +1576,77 @@ ${body}
       var dot = wrap.querySelector('.new-dot');
       if (dot) dot.remove();
     }
+    // "Mark everything read" (task #412). Both the NEW stamps here and the
+    // board's Docs badge mean "in the manifest, not yet in /api/docs/reads", so
+    // one button that POSTs every unread id clears both at once — including the
+    // 典籍, which stand on the shelf rather than in a card and so can never be
+    // clicked off one by one. The button is owner-only like the other masthead
+    // controls (an anonymous POST is answered by the gate with a no-op) and
+    // stays hidden while there is nothing unread.
+    var allBtn = document.getElementById('mark-all-read');
+    var seen = Object.create(null); // doc ids the user has already opened
+    var unread = [];                // manifest ids still unread — what the button sends
+
+    function refreshAllBtn() {
+      if (!allBtn) return;
+      allBtn.hidden = unread.length === 0;
+      allBtn.title = unread.length
+        ? '把 ' + unread.length + ' 篇未读（含书架上的典籍）标记为已读'
+        : '';
+    }
+    function forget(id) { // this one just became read
+      if (!id) return;
+      seen[id] = true;
+      var i = unread.indexOf(id);
+      if (i >= 0) unread.splice(i, 1);
+      refreshAllBtn();
+    }
     fetch('/api/docs/reads')
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (ids) {
-        if (!Array.isArray(ids) || !ids.length) return;
-        var seen = Object.create(null);
-        ids.forEach(function (id) { seen[id] = true; });
+        if (Array.isArray(ids)) ids.forEach(function (id) { seen[id] = true; });
         var wraps = document.querySelectorAll('.card-wrap[data-id]');
         for (var i = 0; i < wraps.length; i++) {
           if (seen[wraps[i].getAttribute('data-id')]) clearNew(wraps[i]);
         }
+        // Count what the board counts: the whole manifest minus what's been
+        // opened — not just the cards on this page.
+        return fetch('/docs-manifest.json', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (docs) {
+            if (!Array.isArray(docs)) return;
+            unread = docs
+              .map(function (d) { return d && d.id; })
+              .filter(function (id) { return id && !seen[id]; });
+            refreshAllBtn();
+          });
       })
       .catch(function () {});
+    if (allBtn) {
+      allBtn.addEventListener('click', function () {
+        if (!unread.length) return;
+        var ids = unread.slice();
+        allBtn.disabled = true;
+        fetch('/api/docs/reads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: ids }),
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            ids.forEach(function (id) { seen[id] = true; });
+            unread = [];
+            refreshAllBtn();
+            var wraps = document.querySelectorAll('.card-wrap');
+            for (var i = 0; i < wraps.length; i++) clearNew(wraps[i]);
+            if (typeof toast === 'function') toast('已把 ' + ids.length + ' 篇标为已读', false);
+          })
+          .catch(function (err) {
+            if (typeof toast === 'function') toast('标记已读失败：' + err.message, true);
+          })
+          .then(function () { allBtn.disabled = false; });
+      });
+    }
     // Per-article visit tallies (task #523). Counting happens server-side in the
     // gate as each article is served, so the index only reads the numbers back
     // and paints them next to the date; an article nobody has opened stays bare.
@@ -1554,6 +1671,7 @@ ${body}
       if (!wrap) return;
       markRead(wrap.getAttribute('data-id'));
       clearNew(wrap);
+      forget(wrap.getAttribute('data-id'));
     });
   })();
 </script>
