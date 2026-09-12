@@ -9,12 +9,10 @@
 :root{
   --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
   --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
-  --shadow:0 1px 2px rgba(60,45,20,.06),0 12px 34px rgba(60,45,20,.09);
 }
 @media (prefers-color-scheme:dark){
   :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
-         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1;
-         --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.45); }
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -147,26 +145,7 @@ body.ai-on .ai-head::before{content:"篇旨"}
   background:var(--accent); border-color:var(--accent); color:var(--paper-2);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper-2) 55%,transparent)}
 
-/* ---------- colophon card ---------- */
-.about{
-  margin:96px 0 0; border:1px solid var(--rule); border-radius:10px;
-  background:var(--paper-2); padding:26px 28px; font-size:.85rem;
-  line-height:1.95; box-shadow:var(--shadow);
-}
-.about > summary{
-  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.2em;
-  color:var(--ink-soft);
-}
-.about > summary::-webkit-details-marker{display:none}
-.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
-.about[open] > summary{margin:0 0 14px}
-.about[open] > summary::after{content:"−"}
-.about:not([open]){padding:15px 28px}
-.about p{text-indent:0; margin:.6em 0}
-.about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
-.about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.1em}
-.about dd{margin:0}
-.top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
   text-decoration:none; font-size:.78rem; letter-spacing:.24em}
 @media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
 </style>
@@ -509,25 +488,6 @@ body.ai-on .ai-head::before{content:"篇旨"}
 <p id="g120">陶宏景注《鬼谷子》，为《道藏》旧本。吾乡秦编修敦夫博览嗜，古精于校雠，因刺取诸书，考订讹谬，梓行之。其略见《自序》中。元读《鬼谷子》，中多韵语。又其《抵巇篇》曰︰「巇者，罅也。」读巇如呼，合古声训字之义，非后人所能依托。其篇名有《飞箝》。按：《周礼‧春官‧典同》︰「微声韽。」后郑读为「飞钻涅韽」之「韽」。</p>
 <div class="ai" id="ai-g120">陶弘景注《鬼谷子》，本是《道藏》旧本。我同乡秦编修敦夫博览好古、精于校勘，因而广辑群书、考订讹谬，把它刻印出来，经过大略见于他的自序。我读《鬼谷子》，发现书中多有韵语；又《抵巇篇》说「巇者，罅也」，把「巇」读如「呼」，合于古人声训的通例，不是后人所能伪托。它的篇名有《飞箝》：按《周礼·春官·典同》「微声韽」，郑玄读作「飞钻涅韽」的「韽」，</div><p id="g121">箝、钻同字。贾疏即引《鬼谷子》证之，又《揣》、《摩》二篇，似放《苏秦传》「简练以为揣摩」之语为之。然《史记‧虞卿传》称《虞氏春秋》亦有《揣摩篇》，则亦游说者之通语也。窃谓书苟为《隋》、《唐志》所著录，而今仅存者，无不当精校传世，况是编为纵横家独存之子书？陶氏注又世所久佚，诚罔罗古籍者所乐睹也。乾隆戊申冬月，仪真阮元跋尾。</p>
 <div class="ai" id="ai-g121">而「箝」与「钻」是同一个字，贾公彦疏正引《鬼谷子》来作证。又《揣》《摩》二篇，似乎是仿《史记·苏秦传》「简练以为揣摩」一语而立；但《史记·虞卿传》说《虞氏春秋》也有《揣摩篇》，可见这本是游说之士的通用语（并非苏秦专有，所以不能据此断定此书即苏秦所作）。我以为凡是《隋志》《唐志》著录而今天仅存的书，都应当精校传世，何况这部是纵横家唯一留存的子书？陶氏的注又久已散佚，实在是搜罗古籍的人乐于见到的。乾隆戊申（1788）冬月，仪真阮元跋尾。</div>
-
-    <details class="about">
-      <summary>关于此本（简体版）</summary>
-      <p>本页正文为《鬼谷子》<b>原文</b>，标点依底本校录。文字由<a href="/p/guiguzi.html">繁体版</a>机器转换而来，<b>只换字形，不改一字文义</b>。
-         底本所附梁陶弘景（一说唐尹知章）旧注已一并删去，本页专存正文。
-         另备一层<b>现代文今注</b>（AI 生成，预设隐藏），按上方「今注」可显示。
-         个别字旁有虚线者，为底本与《道藏》本等校异之字，滑过可见校语。<br>另有<a href="/p/guiguzi.html">繁體版</a>与<a href="/p/guiguzi-en.html">English edition</a>，内容相同。</p>
-      <dl>
-        <dt>底本</dt><dd>《鬼谷子》三卷，篇目考一卷，附录一卷；清嘉庆十年（1805）江都秦恩复刻本。</dd>
-        <dt>体例</dt><dd>底本题梁·陶弘景注（清人周广业以注中避唐讳，疑为唐·尹知章注），本页不录旧注，仅存正文。</dd>
-        <dt>篇目</dt><dd>卷上《捭阖》至《抵巇》四篇；卷中《飞箝》至《符言》八篇（《转丸》《胠乱》二篇旧佚）；卷下《本经阴符七术》《持枢》《中经》。</dd>
-        <dt>原刻本</dt><dd>南京图书馆藏本扫描（90 叶，公有领域），经维基共享资源取得。</dd>
-        <dt>简体转换</dt><dd>先将刻本俗字、古字（夲→本、隂→阴、㣲→微、旣→既、卽→即、徃→往、収→收 等 105 组）回改为通行正字，再以 OpenCC 繁→简逐字转换；「乾坤」「乾隆」等不可径简之字已按词义保留。个别刻本独用的僻字（如《太平御览》所引异文字形）因无确切对应，一仍其旧。「今注」亦由繁体版同步转换。</dd>
-        <dt>文本</dt><dd>维基文库校录本（公有领域），依上述底本逐字录入并施标点。</dd>
-        <dt>今注</dt><dd>现代汉语串讲 150 则（正文逐段 118 则、篇旨 32 则），由 AI（Anthropic Claude）
-          依底本原文生成，并参酌《史记》《隋志》《唐志》等书中与本书相关的记载。
-          属于<b>机器生成的辅助读物</b>，难免有误，不作为校勘或训诂依据；原文一字未改。</dd>
-      </dl>
-    </details>
 
     <a class="top" href="#">— 回顶 —</a>
   </main>

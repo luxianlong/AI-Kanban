@@ -9,12 +9,10 @@
 :root{
   --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
   --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
-  --shadow:0 1px 2px rgba(60,45,20,.06),0 12px 34px rgba(60,45,20,.09);
 }
 @media (prefers-color-scheme:dark){
   :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
-         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1;
-         --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.45); }
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -147,26 +145,7 @@ body.ai-on .ai-head::before{content:"篇旨"}
   background:var(--accent); border-color:var(--accent); color:var(--paper-2);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper-2) 55%,transparent)}
 
-/* ---------- colophon card ---------- */
-.about{
-  margin:96px 0 0; border:1px solid var(--rule); border-radius:10px;
-  background:var(--paper-2); padding:26px 28px; font-size:.85rem;
-  line-height:1.95; box-shadow:var(--shadow);
-}
-.about > summary{
-  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.2em;
-  color:var(--ink-soft);
-}
-.about > summary::-webkit-details-marker{display:none}
-.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
-.about[open] > summary{margin:0 0 14px}
-.about[open] > summary::after{content:"−"}
-.about:not([open]){padding:15px 28px}
-.about p{text-indent:0; margin:.6em 0}
-.about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
-.about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.1em}
-.about dd{margin:0}
-.top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
   text-decoration:none; font-size:.78rem; letter-spacing:.24em}
 @media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
 </style>
@@ -509,24 +488,6 @@ body.ai-on .ai-head::before{content:"篇旨"}
 <p id="g120">陶宏景注《鬼谷子》，爲《道藏》舊夲。吾鄉秦編修敦夫博覽嗜，古精于校讐，因刺取諸書，考訂譌謬，梓行之。其畧見《自序》中。元讀《鬼谷子》，中多韻語。又其《抵巇篇》曰︰「巇者，罅也。」讀巇如呼，合古聲訓字之義，非後人所能依託。其篇名有《飛箝》。按：《周禮‧春官‧典同》︰「微聲韽。」後鄭讀爲「飛鉆湼韽」之「韽」。</p>
 <div class="ai" id="ai-g120">陶弘景注《鬼谷子》，本是《道藏》舊本。我同鄉秦編修敦夫博覽好古、精於校勘，因而廣輯群書、考訂訛謬，把它刻印出來，經過大略見於他的自序。我讀《鬼谷子》，發現書中多有韻語；又《抵巇篇》說「巇者，罅也」，把「巇」讀如「呼」，合於古人聲訓的通例，不是後人所能偽託。它的篇名有《飛箝》：按《周禮·春官·典同》「微聲韽」，鄭玄讀作「飛鉆涅韽」的「韽」，</div><p id="g121">箝、鉆同字。賈疏即引《鬼谷子》證之，又《揣》、《摩》二篇，似放《蘇秦傳》「簡練以爲揣摩」之語爲之。然《史記‧虞卿傳》稱《虞氏春秋》亦有《揣摩篇》，則亦游說者之通語也。竊謂書苟爲《隋》、《唐志》所著録，而今僅存者，無不當精校傳世，况是編爲縱橫家獨存之子書？陶氏注又世所久佚，誠罔羅古籍者所樂覩也。乾隆戊申冬月，儀眞阮元䟦尾。</p>
 <div class="ai" id="ai-g121">而「箝」與「鉆」是同一個字，賈公彥疏正引《鬼谷子》來作證。又《揣》《摩》二篇，似乎是仿《史記·蘇秦傳》「簡練以為揣摩」一語而立；但《史記·虞卿傳》說《虞氏春秋》也有《揣摩篇》，可見這本是遊說之士的通用語（並非蘇秦專有，所以不能據此斷定此書即蘇秦所作）。我以為凡是《隋志》《唐志》著録而今天僅存的書，都應當精校傳世，何況這部是縱橫家唯一留存的子書？陶氏的注又久已散佚，實在是搜羅古籍的人樂於見到的。乾隆戊申（1788）冬月，儀真阮元跋尾。</div>
-
-    <details class="about">
-      <summary>關於此本</summary>
-      <p>本頁正文為《鬼谷子》<b>原文</b>，不載舊注，標點依底本校錄。
-         底本所附梁陶弘景（一説唐尹知章）舊注已一併刪去，本頁專存正文。
-         另備一層<b>現代文今注</b>（AI 生成，預設隱藏），按上方「今注」可顯示。
-         個別字旁有虛線者，為底本與《道藏》本等校異之字，滑過可見校語。<br>另有<a href="/p/guiguzi-hans.html">简体版</a>與<a href="/p/guiguzi-en.html">English edition</a>，內容相同。</p>
-      <dl>
-        <dt>底本</dt><dd>《鬼谷子》三卷，篇目考一卷，附録一卷；清嘉慶十年（1805）江都秦恩復刻本。</dd>
-        <dt>體例</dt><dd>底本題梁·陶弘景注（清人周廣業以注中避唐諱，疑為唐·尹知章注），本頁不錄舊注，僅存正文。</dd>
-        <dt>篇目</dt><dd>卷上《捭闔》至《抵巇》四篇；卷中《飛箝》至《符言》八篇（《轉丸》《胠亂》二篇舊佚）；卷下《夲經隂符七術》《持樞》《中經》。</dd>
-        <dt>原刻本</dt><dd>南京圖書館藏本掃描（90 葉，公有領域），經維基共享資源取得。</dd>
-        <dt>文本</dt><dd>維基文庫校錄本（公有領域），依上述底本逐字錄入並施標點。</dd>
-        <dt>今注</dt><dd>現代漢語串講 150 則（正文逐段 118 則、篇旨 32 則），由 AI（Anthropic Claude）
-          依底本原文生成，並參酌《史記》《隋志》《唐志》等書中與本書相關的記載。
-          屬於<b>機器生成的輔助讀物</b>，難免有誤，不作為校勘或訓詁依據；原文一字未改。</dd>
-      </dl>
-    </details>
 
     <a class="top" href="#">— 回頂 —</a>
   </main>

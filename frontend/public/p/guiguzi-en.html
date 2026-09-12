@@ -9,12 +9,10 @@
 :root{
   --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
   --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
-  --shadow:0 1px 2px rgba(60,45,20,.06),0 12px 34px rgba(60,45,20,.09);
 }
 @media (prefers-color-scheme:dark){
   :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
-         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1;
-         --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.45); }
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -115,27 +113,7 @@ p{margin:1.05em 0}
 
 .var{border-bottom:1px dotted var(--seal); cursor:help}
 
-/* ---------- colophon card ---------- */
-.about{
-  margin:96px 0 0; border:1px solid var(--rule); border-radius:10px;
-  background:var(--paper-2); padding:26px 28px; font-size:.86rem;
-  line-height:1.7; box-shadow:var(--shadow);
-}
-.about > summary{
-  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.06em;
-  color:var(--ink-soft);
-}
-.about > summary::-webkit-details-marker{display:none}
-.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
-.about[open] > summary{margin:0 0 14px}
-.about[open] > summary::after{content:"−"}
-.about:not([open]){padding:15px 28px}
-.about p{margin:.6em 0}
-.about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
-.about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.04em}
-.about dd{margin:0 0 .5em}
-@media(max-width:560px){ .about dl{grid-template-columns:1fr} .about dt{margin-top:.6em} }
-.top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
   text-decoration:none; font-size:.76rem; letter-spacing:.2em}
 @media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
 </style>
@@ -1490,41 +1468,6 @@ school, with a commentary by Tao long lost to the world besides. Those who gathe
 it.</p>
 <p class="byline">Winter, <i>wushen</i> of Qianlong (1788). Colophon by Ruan Yuan of Yizhen.</p>
 
-
-    <details class="about">
-      <summary>About this edition</summary>
-      <p>This page is a complete English translation of the <i>Guiguzi</i> in three scrolls &mdash;
-         all twenty-one surviving chapters, together with Qin Enfu's 1805 preface, his study of the
-         chapter list, the appended fragments and the three colophons. The old commentary attributed
-         to Tao Hongjing that the blockprint carries interlinearly is
-         not reproduced here, so what follows is the <i>Guiguzi</i> itself.</p>
-      <p>The translation is made from the Chinese text of the
-         <a href="/p/guiguzi.html">traditional-character edition</a> on this site, which reproduces
-         the 1805 Qin Enfu woodblock. A dotted underline marks a word where the blockprint and the
-         collated copies read different graphs &mdash; hover or focus to see which.</p>
-      <dl>
-        <dt>Base text</dt><dd><i>Guiguzi</i> in three scrolls, with one scroll of the study of the
-          chapter list and one of appended matter; cut by Qin Enfu 秦恩復 of Jiangdu, Jiaqing 10
-          (1805).</dd>
-        <dt>Commentary</dt><dd>Not included. The blockprint carries an old commentary ascribed to
-          Tao Hongjing 陶弘景 of the Liang (Zhou Guangye, in his colophon here, argues from the Tang
-          taboo-names in it that the commentator is really Yin Zhizhang 尹知章 of the Tang); this
-          edition prints the text alone.</dd>
-        <dt>Chapters</dt><dd>Scroll one, <i>Opening and Closing</i> to <i>Striking the Fissure</i>,
-          four chapters; scroll two, <i>Flying and Clamping</i> to <i>Words as Tallies</i>, eight
-          chapters (<i>Turning the Pellet</i> and <i>Prying the Chest</i> long lost); scroll three,
-          the <i>Seven Arts of the Yin Tally</i> of the Root Canon, <i>Holding the Pivot</i> and the
-          <i>Middle Canon</i>.</dd>
-        <dt>On the rendering</dt><dd>Chapter titles keep the Chinese alongside, because most of them
-          are technical terms of the book rather than ordinary words &mdash; <i>bai he</i> 捭闔,
-          <i>fei qian</i> 飛箝, <i>di xi</i> 抵巇. Recurring terms are rendered consistently:
-          <i>dao</i> as "the Way," <i>qi</i> as "breath," <i>shen</i> as "spirit," <i>shi</i> as
-          "force," <i>wei</i> as "awe," <i>ji</i> 幾 as "the incipient," <i>quan</i> as "weighing"
-          or "the handle" as the sense requires.</dd>
-        <dt>Original blocks</dt><dd>Scan of the copy held by the Nanjing Library (90 leaves, public
-          domain), by way of Wikimedia Commons.</dd>
-      </dl>
-    </details>
 
     <a class="top" href="#">&mdash; top &mdash;</a>
   </main>

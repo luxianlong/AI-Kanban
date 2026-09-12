@@ -9,12 +9,10 @@
 :root{
   --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
   --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
-  --shadow:0 1px 2px rgba(60,45,20,.06),0 12px 34px rgba(60,45,20,.09);
 }
 @media (prefers-color-scheme:dark){
   :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
-         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1;
-         --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.45); }
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -148,26 +146,7 @@ body.ai-on .ai-head::before{content:"篇旨"}
   background:var(--accent); border-color:var(--accent); color:var(--paper-2);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper-2) 55%,transparent)}
 
-/* ---------- colophon card ---------- */
-.about{
-  margin:96px 0 0; border:1px solid var(--rule); border-radius:10px;
-  background:var(--paper-2); padding:26px 28px; font-size:.85rem;
-  line-height:1.95; box-shadow:var(--shadow);
-}
-.about p{text-indent:0; margin:.6em 0}
-.about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
-.about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.1em}
-.about dd{margin:0}
-.about > summary{
-  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.2em;
-  color:var(--ink-soft);
-}
-.about > summary::-webkit-details-marker{display:none}
-.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
-.about[open] > summary{margin:0 0 14px}
-.about[open] > summary::after{content:"−"}
-.about:not([open]){padding:15px 28px}
-.top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
   text-decoration:none; font-size:.78rem; letter-spacing:.24em}
 @media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
 </style>
@@ -440,26 +419,6 @@ body.ai-on .ai-head::before{content:"篇旨"}
 <div class="ai" id="ai-s90">《孙子占》佚文，属古代兵阴阳家的观兆之术：三军将行，旌旗从容前指叫「天送」，宜速击，可擒敌将；旌旗低垂如被雨打湿叫「天沾」，主帅将失利；旌旗在上方乱飘、四方无定向，这支军队回不来；将要列阵时下雨，叫「浴师」，不宜列阵交战；将战而军上有赤云，不宜列阵，先列阵交战的一方会全军覆没；行军时大风从军前卷起，向右旋而截断军队，主将将亡；向右旋而止于军中，则可得粮。此类以云气旌旗占吉凶的内容，与十三篇《用间》「不可取于鬼神」的立场并不一致，旧多疑为后人附益，附此以存其旧。</div>
 <p id="s91">又按：《北堂书钞》引《孙子兵法》云：「贵之而无骄，委之而不专，扶之而无隐，危之而不惧。故良将之动心，犹璧玉之不可污也。」《太平御览》以为出诸葛亮《兵要》。又引《孙子兵法秘要》云：「良将思计如饥，所以战必胜，攻必克也。」按：《兵法秘要》，孙子无其书。魏武有《兵法接要》一卷，或亦名为《孙子兵法接要》，犹魏武所作《兵法》，亦名为《续孙子兵法》也。《北堂书钞》又引《孙子兵法论》云：「非文无以平治，非武无以治乱。善用兵者，有三畧焉：上畧伐智，中畧伐义，下畧伐势。」按：此亦不似孙武语，盖后世兵多祖孙武，故作《兵法论》，即名为《孙子兵法论》也。附识于此，以备考。</p>
 <div class="ai" id="ai-s91">后人按语，考辨三条题为《孙子》的佚文：一、《北堂书钞》引「贵之而无骄，委之而不专……犹璧玉之不可污也」，但《太平御览》认为出自诸葛亮《兵要》；二、所引《孙子兵法秘要》「良将思计如饥」一条，按孙子并无此书，疑即曹操《兵法接要》——曹操所著兵书也曾被称作《续孙子兵法》；三、《孙子兵法论》「上畧伐智，中畧伐义，下畧伐势」一条，语气也不像孙武，大概是后世兵家宗法孙武而作，遂冠以孙子之名。附记于此以备考。</div>
-
-    <details class="about">
-      <summary>关于此本</summary>
-      <p>本页正文为《孙子兵法》<b>原文</b>，不载旧注，标点依校录本。
-         曹操、李筌、杜牧以下十一家旧注一概不录，本页专存正文。
-         另备一层<b>现代文今注</b>（AI 生成，预设隐藏），按上方「今注」可显示。
-         个别字下有虚线者，为异文或底本阙字，滑过可见校语。<br>另有<a href="/p/sunzi.html">繁體原文版</a>，内容相同。</p>
-      <dl>
-        <dt>作者</dt><dd>旧题春秋·孙武（字长卿，齐人，事吴王阖闾）。十三篇的成书年代学界有春秋末、战国前期诸说；
-          一九七二年山东临沂银雀山汉墓同出《孙子兵法》与《孙膑兵法》竹简，证实孙武、孙膑各有其书，非一人一书。</dd>
-        <dt>篇目</dt><dd>《始计》《作战》《谋攻》《军形》《兵势》《虚实》《军争》《九变》《行军》《地形》《九地》《火攻》《用间》，凡十三篇，约六千言。</dd>
-        <dt>体例</dt><dd>今存《孙子》以宋刊《十一家注孙子》与《武经七书》两系为主，本页不录诸家旧注，仅存正文。</dd>
-        <dt>文本</dt><dd>本页由繁体版逐字以 OpenCC 繁转简而成；繁体版文本取自维基文库校录本（公有领域），该页自标校对程度 75%；底本中直排用的标点变体（︰﹔）已统一为横排形式，
-          文字一仍其旧，异文与阙字以虚线标出。</dd>
-        <dt>附录</dt><dd>《越绝书》《通典》《太平御览》《北堂书钞》等书所引孙子佚文及吴王阖闾问对共十七则，
-          <b>不属十三篇正文</b>，旧说或疑出后人依托，附以备考。</dd>
-        <dt>今注</dt><dd>现代汉语串讲 105 则（正文逐段 74 则、佚文逐则 17 则、篇旨 14 则），由 AI（Anthropic Claude）
-          依原文生成。属于<b>机器生成的辅助读物</b>，难免有误，不作为校勘或训诂依据；原文一字未改。</dd>
-      </dl>
-    </details>
 
     <a class="top" href="#">— 回顶 —</a>
   </main>

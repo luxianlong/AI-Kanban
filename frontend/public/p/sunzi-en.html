@@ -9,12 +9,10 @@
 :root{
   --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
   --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
-  --shadow:0 1px 2px rgba(60,45,20,.06),0 12px 34px rgba(60,45,20,.09);
 }
 @media (prefers-color-scheme:dark){
   :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
-         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1;
-         --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.45); }
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -118,27 +116,7 @@ p{margin:1.05em 0}
 .note{display:block; margin-top:.9em; color:var(--ink-soft); font-size:.88em;
   border-left:2px solid var(--rule); padding-left:12px}
 
-/* ---------- colophon card ---------- */
-.about{
-  margin:96px 0 0; border:1px solid var(--rule); border-radius:10px;
-  background:var(--paper-2); padding:26px 28px; font-size:.86rem;
-  line-height:1.7; box-shadow:var(--shadow);
-}
-.about > summary{
-  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.06em;
-  color:var(--ink-soft);
-}
-.about > summary::-webkit-details-marker{display:none}
-.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
-.about[open] > summary{margin:0 0 14px}
-.about[open] > summary::after{content:"−"}
-.about:not([open]){padding:15px 28px}
-.about p{margin:.6em 0}
-.about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
-.about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.04em}
-.about dd{margin:0 0 .5em}
-@media(max-width:560px){ .about dl{grid-template-columns:1fr} .about dt{margin-top:.6em} }
-.top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
   text-decoration:none; font-size:.76rem; letter-spacing:.2em}
 @media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
 </style>
@@ -1092,56 +1070,6 @@ lowest attacks power." Note: this too does not sound like the words of Sun Wu. L
 mostly took Sun Wu for their ancestor, and so a <i>Discourse on the Art of War</i> was written and
 given the name <i>Discourse on the Sunzi bingfa</i>. It is appended here for reference.</span></p>
 
-
-    <details class="about">
-      <summary>About this edition</summary>
-      <p>This page is a complete English translation of the <i>Sunzi</i> &mdash; the <i>Art of
-         War</i> &mdash; in thirteen chapters, together with the seventeen fragments and dialogues
-         with King Hel&uuml; of Wu that the old encyclopaedias preserve outside the received text.
-         The eleven old commentaries from Cao Cao onward, which the
-         standard Song editions carry interlinearly, are not reproduced here, so what follows is the
-         <i>Sunzi</i> itself.</p>
-      <p>The translation is made from the Chinese text of the
-         <a href="/p/sunzi.html">traditional-character edition</a> on this site. Each chapter opens
-         with a short note in smaller type setting out what the chapter does; these notes are the
-         translator's, not Sunzi's. A dotted underline marks a word where the copies differ or where
-         the base text has lost a graph &mdash; hover or focus to see the collation note.</p>
-      <dl>
-        <dt>Author</dt><dd>Traditionally Sun Wu 孫武 (styled Changqing) of Qi, in the service of King
-          Hel&uuml; of Wu, in the Spring and Autumn period. Scholars place the composition of the
-          thirteen chapters variously in the late Spring and Autumn or the early Warring States. The
-          Yinqueshan tomb finds of 1972 at Linyi in Shandong, which yielded bamboo slips of both the
-          <i>Sunzi bingfa</i> and the <i>Sun Bin bingfa</i>, settled that Sun Wu and Sun Bin each had
-          a book of his own and that the two are not one work by one man.</dd>
-        <dt>Chapters</dt><dd><i>Reckonings</i>, <i>Waging War</i>, <i>Attack by Stratagem</i>,
-          <i>Dispositions</i>, <i>Force</i>, <i>The Full and the Empty</i>, <i>The Contest of
-          Armies</i>, <i>The Nine Variations</i>, <i>The Army on the March</i>, <i>Terrain</i>,
-          <i>The Nine Grounds</i>, <i>Attack by Fire</i>, <i>The Use of Spies</i> &mdash; thirteen
-          in all, some six thousand graphs.</dd>
-        <dt>Commentary</dt><dd>Not included. The surviving <i>Sunzi</i> comes down in two main lines,
-          the Song <i>Sunzi with the Eleven Commentaries</i> and the <i>Seven Military Classics</i>;
-          the commentaries of Cao Cao, Li Quan, Du Mu and the rest are omitted here, and the text
-          alone is given.</dd>
-        <dt>Appendix</dt><dd>Seventeen pieces quoting Sunzi in the <i>Yuejue shu</i>, the
-          <i>Tongdian</i>, the <i>Taiping yulan</i>, the <i>Beitang shuchao</i> and other works,
-          together with the dialogues with King Hel&uuml; of Wu. These are <b>not part of the
-          thirteen chapters</b>, and some scholars have long held them to be later work put into Sun
-          Wu's mouth; they are appended for reference.</dd>
-        <dt>On the rendering</dt><dd>Recurring technical terms are rendered consistently:
-          <i>dao</i> 道 as "the Way," <i>xing</i> 形 as "form," <i>shi</i> 勢 as "force,"
-          <i>jie</i> 節 as "timing," <i>qi</i> 奇 and <i>zheng</i> 正 as "the odd" and "the
-          straight," <i>xu</i> 虛 and <i>shi</i> 實 as "the empty" and "the full," <i>jian</i> 間 as
-          "agent," <i>quan</i> 權 as "the handle of power." Distances are left in <i>li</i> and
-          capacities in <i>zhong</i> and <i>dan</i>, since the point of those passages is the ratio
-          and not the absolute size.</dd>
-        <dt>Base text</dt><dd>The Wikisource collated edition (public domain), which marks its own
-          collation as 75 per cent complete. Variant readings and lost graphs are shown with a dotted
-          underline.</dd>
-      </dl>
-      <p>The Chinese text is also on this site in
-         <a href="/p/sunzi.html">traditional</a> and <a href="/p/sunzi-hans.html">simplified</a>
-         characters, each with a layer of modern-Chinese notes.</p>
-    </details>
 
     <a class="top" href="#">&mdash; top &mdash;</a>
   </main>

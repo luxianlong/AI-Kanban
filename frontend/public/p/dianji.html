@@ -49,27 +49,9 @@ header.mast::after{
 .mast .cross a{text-decoration:none; border-bottom:1px solid var(--rule); padding-bottom:2px}
 .mast .cross a:hover{border-color:var(--seal); color:var(--seal)}
 
-main{max-width:900px; margin:0 auto; padding:64px 26px 8px}
+main{max-width:900px; margin:0 auto; padding:64px 26px 96px}
 
-/* ---------- colophon: folded away, one line of chrome ---------- */
-footer{
-  max-width:900px; margin:74px auto 0; padding:22px 26px 72px;
-  border-top:1px solid var(--rule);
-  font-size:.76rem; letter-spacing:.1em; color:var(--ink-soft);
-}
-.colophon summary{
-  display:inline-block; cursor:pointer; list-style:none; opacity:.7;
-  border-bottom:1px solid var(--rule); padding-bottom:2px;
-}
-.colophon summary::-webkit-details-marker{display:none}
-.colophon summary:hover{color:var(--seal); border-color:var(--seal)}
-.colophon p{
-  margin:14px 0 0; max-width:46em; font-size:.74rem;
-  line-height:1.9; letter-spacing:0; opacity:.9;
-}
-footer a{text-decoration:none; border-bottom:1px solid var(--rule); padding-bottom:2px}
-footer a:hover{border-color:var(--seal); color:var(--seal)}
-@media (max-width:640px){ main{padding:44px 20px 8px} }
+@media (max-width:640px){ main{padding:44px 20px 72px} }
 
 /* ---------- the shelf: a library grid, several books to a row ---------- */
 .shelf{
@@ -226,14 +208,6 @@ footer a:hover{border-color:var(--seal); color:var(--seal)}
     </li>
   </ul>
 </main>
-
-<footer>
-  <details class="colophon">
-    <summary>关于</summary>
-    <p>正文不载旧注。今注为 AI 生成，页内可开可关，以原文为准。繁体为正本，简体由繁体以 OpenCC 转出。</p>
-    <p>书影：宋刻《十一家注孙子》卷首叶（1190–1193，中国国家图书馆藏，WDL / Wikimedia，公有领域）；嘉庆秦恩复刻本《鬼谷子》原书封面（本站所据底本扫描件）。</p>
-  </details>
-</footer>
 
 </body>
 </html>
