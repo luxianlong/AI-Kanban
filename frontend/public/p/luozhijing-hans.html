@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>罗织经 · 简体版</title>
+<meta name="description" content="《罗织经》全本简体：阅人、事上、治下、控权、制敌、固荣、保身、察奸、谋划、问罪、刑罚、瓜蔓十二卷。旧题唐来俊臣撰，实为今人托名之作，卷首已出其考。注释可开关。">
+<style>
+
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Serif CJK SC","Source Han Serif SC","Songti SC","STSong",
+    "SimSun","Noto Serif CJK TC",serif;
+  line-height:2.05; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(38px,7vw,64px); letter-spacing:.32em;
+  text-indent:.32em; font-weight:600; line-height:1.3;
+}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.12em; text-align:center; text-indent:0}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.78rem; letter-spacing:.1em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.bar .tag{font-size:.6em; letter-spacing:.06em; opacity:.7; margin-left:.4em;
+  align-self:flex-start; margin-top:.5em}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:232px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.8rem; line-height:1.85;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:1px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.08em}
+  nav.toc a.l3{padding-left:20px}
+  nav.toc a.l4{padding-left:32px; font-size:.94em; opacity:.85}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.2em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px} details.toc-m a.l4{padding-left:30px}
+
+main{padding:34px 0 100px; max-width:42em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.52rem; font-weight:600;
+  letter-spacing:.26em; text-indent:.26em; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:56px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.2em; text-indent:.2em; scroll-margin-top:24px;
+}
+p{margin:1.05em 0; text-align:justify; text-justify:inter-ideograph}
+main > p{text-indent:2em}
+
+/* 现代文注释（AI 生成）— hidden by default */
+.ai{display:none}
+body.ai-on .ai{
+  display:block; margin:.85em 0 1.5em; padding:.75em 2px .75em 16px;
+  text-indent:0; color:var(--ink-soft); font-size:.84em; line-height:1.95;
+  border-left:3px solid var(--accent); border-radius:0 7px 7px 0;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--accent) 9%,transparent), transparent 78%);
+  font-family:"Noto Sans CJK SC","Source Han Sans SC","PingFang SC",
+    "Microsoft YaHei","Noto Sans CJK TC",system-ui,sans-serif;
+}
+body.ai-on .ai-head::before{
+  float:left; margin:.22em .7em .1em 0;
+  color:var(--accent); border:1px solid var(--accent); border-radius:3px;
+  padding:0 5px; font-size:.78em; letter-spacing:.16em; text-indent:.16em;
+  opacity:.9; white-space:nowrap;
+}
+body.ai-on .ai-head{
+  margin:1.1em 0 1.6em;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--accent) 14%,transparent), transparent 85%);
+}
+body.ai-on .ai-head::before{content:"篇旨"}
+/* 注释 toggle. The hover tint paints the label green, so it must never apply
+   while the button is ON — green-on-green fill made 注释 and the AI tag
+   vanish into a solid green pill. Keep an explicit readable colour in both. */
+.bar button#ai[aria-pressed="true"]{
+  background:var(--accent); border-color:var(--accent); color:var(--paper-2)}
+.bar button#ai:not([aria-pressed="true"]):hover{
+  border-color:var(--accent); color:var(--accent)}
+.bar button#ai[aria-pressed="true"]:hover{
+  background:var(--accent); border-color:var(--accent); color:var(--paper-2);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper-2) 55%,transparent)}
+
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.78rem; letter-spacing:.24em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+.colo{margin:96px 0 0; padding:22px 0 0; border-top:1px solid var(--rule);
+  font-size:.86rem; line-height:1.9; color:var(--ink-soft);
+  font-family:"Noto Sans CJK SC","Source Han Sans SC","PingFang SC",
+    "Microsoft YaHei","Noto Sans CJK TC",system-ui,sans-serif}
+.colo h2.colo-h{margin:0 0 10px; font-size:1.02rem; letter-spacing:.2em;
+  text-indent:.2em; border-bottom:none; padding-bottom:0; color:var(--ink)}
+.colo p{margin:.6em 0; text-indent:0 !important; text-align:justify}
+.colo b{color:var(--ink); font-weight:600}
+.colo .colo-ai{margin-top:1.1em; padding-top:.7em; border-top:1px dashed var(--rule)}
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>罗织经</h1>
+  <p class="sub">唐　旧题 来俊臣　撰　·　十二卷</p>
+</header>
+
+<div class="bar">
+  <div class="grp">
+    <button id="ai" aria-pressed="false" title="现代文注释（AI 生成），预设隐藏">注释 <span class="tag">AI</span></button>
+  </div>
+  <div class="grp langs">
+    <span class="btn cur" aria-current="page">简体</span>
+    <a class="btn" href="/p/luozhijing.html">繁體</a>
+    <a class="btn" href="/p/luozhijing-en.html">EN</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#j1">阅人卷第一</a>
+<a class="l3" href="#s1a">人之本然</a>
+<a class="l3" href="#s1b">不察与不忍</a>
+<a class="l2" href="#j2">事上卷第二</a>
+<a class="l3" href="#s2a">去上之疑</a>
+<a class="l3" href="#s2b">臣强则死</a>
+<a class="l2" href="#j3">治下卷第三</a>
+<a class="l3" href="#s3a">威成于礼</a>
+<a class="l3" href="#s3b">好与惧</a>
+<a class="l2" href="#j4">控权卷第四</a>
+<a class="l3" href="#s4a">假天用事</a>
+<a class="l3" href="#s4b">名可易，实必取</a>
+<a class="l2" href="#j5">制敌卷第五</a>
+<a class="l3" href="#s5a">谁是敌</a>
+<a class="l3" href="#s5b">惑、制、构、害</a>
+<a class="l2" href="#j6">固荣卷第六</a>
+<a class="l3" href="#s6a">荣宠有初</a>
+<a class="l3" href="#s6b">固之之法</a>
+<a class="l2" href="#j7">保身卷第七</a>
+<a class="l3" href="#s7a">世之道与人之道</a>
+<a class="l3" href="#s7b">弱与强，罪己与责人</a>
+<a class="l2" href="#j8">察奸卷第八</a>
+<a class="l3" href="#s8a">奸不自招</a>
+<a class="l3" href="#s8b">忠奸堪易</a>
+<a class="l3" href="#s8c">世之表与世之实</a>
+<a class="l2" href="#j9">谋划卷第九</a>
+<a class="l3" href="#s9a">官无恒友</a>
+<a class="l3" href="#s9b">势、术、力</a>
+<a class="l2" href="#j10">问罪卷第十</a>
+<a class="l3" href="#s10a">刑之本在明罪</a>
+<a class="l3" href="#s10b">攻心与拒怜</a>
+<a class="l2" href="#j11">刑罚卷第十一</a>
+<a class="l3" href="#s11a">刑与罚</a>
+<a class="l3" href="#s11b">取其不堪</a>
+<a class="l2" href="#j12">瓜蔓卷第十二</a>
+<a class="l3" href="#s12a">案不及众，功之匪显</a>
+<a class="l3" href="#s12b">敌无常，友有时</a>
+<a class="l2" href="#ben">底本与校例</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>目　录</summary>
+<a class="l2" href="#j1">阅人卷第一</a>
+<a class="l3" href="#s1a">人之本然</a>
+<a class="l3" href="#s1b">不察与不忍</a>
+<a class="l2" href="#j2">事上卷第二</a>
+<a class="l3" href="#s2a">去上之疑</a>
+<a class="l3" href="#s2b">臣强则死</a>
+<a class="l2" href="#j3">治下卷第三</a>
+<a class="l3" href="#s3a">威成于礼</a>
+<a class="l3" href="#s3b">好与惧</a>
+<a class="l2" href="#j4">控权卷第四</a>
+<a class="l3" href="#s4a">假天用事</a>
+<a class="l3" href="#s4b">名可易，实必取</a>
+<a class="l2" href="#j5">制敌卷第五</a>
+<a class="l3" href="#s5a">谁是敌</a>
+<a class="l3" href="#s5b">惑、制、构、害</a>
+<a class="l2" href="#j6">固荣卷第六</a>
+<a class="l3" href="#s6a">荣宠有初</a>
+<a class="l3" href="#s6b">固之之法</a>
+<a class="l2" href="#j7">保身卷第七</a>
+<a class="l3" href="#s7a">世之道与人之道</a>
+<a class="l3" href="#s7b">弱与强，罪己与责人</a>
+<a class="l2" href="#j8">察奸卷第八</a>
+<a class="l3" href="#s8a">奸不自招</a>
+<a class="l3" href="#s8b">忠奸堪易</a>
+<a class="l3" href="#s8c">世之表与世之实</a>
+<a class="l2" href="#j9">谋划卷第九</a>
+<a class="l3" href="#s9a">官无恒友</a>
+<a class="l3" href="#s9b">势、术、力</a>
+<a class="l2" href="#j10">问罪卷第十</a>
+<a class="l3" href="#s10a">刑之本在明罪</a>
+<a class="l3" href="#s10b">攻心与拒怜</a>
+<a class="l2" href="#j11">刑罚卷第十一</a>
+<a class="l3" href="#s11a">刑与罚</a>
+<a class="l3" href="#s11b">取其不堪</a>
+<a class="l2" href="#j12">瓜蔓卷第十二</a>
+<a class="l3" href="#s12a">案不及众，功之匪显</a>
+<a class="l3" href="#s12b">敌无常，友有时</a>
+<a class="l2" href="#ben">底本与校例</a>
+    </details>
+
+<h2 id="j1">阅人卷第一</h2>
+<div class="ai ai-head">全书从「人不可信」起头。前半说人的常态：矫饰、自私、成功归己、失败诿人；后半用四桩史事说祸的两个来源——「不察」与「不忍」。先把这部书的出身说清楚。书名确有其事：《旧唐书·酷吏传》记「俊臣与其党朱南山辈造《告密罗织经》一卷，皆有条贯支节，布置事状由绪」；《资治通鉴》卷二〇三，天授二年下记「俊臣与司刑评事洛阳万国俊共撰《罗织经》数千言，教其徒网罗无辜，织成反状，构造布置，皆有支节」。但那一卷早已亡佚，历代书目不见著录，也没有任何古本传世。今天流通的这部十二卷本，最早见于二〇〇三年吉林摄影出版社署「唐·来俊臣著」的一种，译注者自称从一位日本友人手中得到万国俊手抄本一卷——抄本没有影本、没有著录、没有第三方见过。史书所记的那一卷是「数千言」的操作手册，说的是怎么布置罪状、怎么用刑具；今本十二卷二千零一十一字（不计标点），通篇是议论，一处具体办法也没有。本页因此把它当托名之作来读：题署照今本作「唐　旧题 来俊臣　撰」，反证摆在最前面。</div>
+<h3 id="s1a">人之本然</h3>
+<p id="c1-1">人之情多矫，世之俗多伪，岂可信乎？子曰：「巧言、令色、足恭，左丘明耻之，丘亦耻之。」耻其匿怨而友人也。</p>
+<div class="ai" id="ai-c1-1">人的性情多半是装出来的，世上的风气多半是假的，哪里信得过？孔子说：「话说得漂亮、脸色摆得好看、恭敬得过了头，左丘明觉得可耻，我也觉得可耻。」可耻的是把怨恨藏起来，还跟人做朋友。（「矫」是矫饰、作伪。所引见《论语·公冶长》，原文「巧言、令色、足恭，左丘明耻之，丘亦耻之；匿怨而友其人，左丘明耻之，丘亦耻之」，此处并两句为一句。）</div>
+<p id="c1-2">人者多欲，其性尚私。成事享其功，败事委其过，且圣人弗能逾者，盖人之本然也。</p>
+<div class="ai" id="ai-c1-2">人欲望多，本性偏向自私。事情办成了就把功劳受下，办砸了就把过错推出去；连圣人也跳不出这一条，因为这本来就是人的样子。（「委」是推卸。「盖」是发语词，表示所以如此。古文之家录文作「概人之本然也」，形近而讹，今从维基文库录文。）</div>
+<h3 id="s1b">不察与不忍</h3>
+<p id="c1-3">多欲则贪，尚私则枉，其罪遂生。民之畏惩，吏之惧祸，或以敛行；但有机变，孰难料也。</p>
+<div class="ai" id="ai-c1-3">欲望多就贪，偏私就行邪，罪就是这样生出来的。百姓怕受罚、官吏怕惹祸，或许因此把行为收敛一些；可是一旦有机可乘、情势一变，谁又料得准。（「枉」是不直、行邪；「敛行」是收束行为；「机变」指可乘之机与情势之变。）</div>
+<p id="c1-4">为害常因不察，致祸归于不忍。桓公溺臣，身死家哀；夫差存越，终丧其吴。亲无过父子，然广逆恒有；恩莫逾君臣，则莽奸弗绝。是以人心多诈，不可视其表；世事寡情，善者终无功。信人莫若信己，防人勿存幸念。此道不修，夫庸为智者乎？</p>
+<div class="ai" id="ai-c1-4">受害常常因为没有看清，招祸常常因为下不了狠心。齐桓公溺信近臣，死后尸身不殓、一家哀哭；吴王夫差留下越国不灭，最后把吴国丢了。亲莫过于父子，可是像杨广那样逆父的事从来不缺；恩莫过于君臣，可是像王莽那样的奸臣从未断过。所以人心多诈，不能只看表面；世事寡情，做好人的最后未必有功。信别人不如信自己，防人不要存侥幸。这条道理不修，怎么称得上智者。（「桓公溺臣」指齐桓公信用易牙、竖刁、开方，死后五公子争立，尸在床上六十七日不殓，见《史记·齐太公世家》。「夫差存越」指吴王夫差败越而不灭，终为句践所灭。「广」旧注不一，以隋炀帝杨广为近——文帝崩于仁寿宫，旧史疑其弑父；与下句的「莽」（王莽篡汉）相对，一为子逆父，一为臣篡君。「幸念」是侥幸之心。古文之家录文作「身死实哀」「防人毋存幸念」。）</div>
+<h2 id="j2">事上卷第二</h2>
+<div class="ai ai-head">讲做下属。一条总则：上下之间一旦离心，祸事必起；所以事上的全部功夫是消掉上头的疑。办法是顺与忠，顺到不避谄媚，忠到不忌委曲。后半转到反面——不可为强臣，不可有妄念，功归上、罪归己，连「智勇」都要收起来不显。</div>
+<h3 id="s2a">去上之疑</h3>
+<p id="c2-1">为上者疑，为下者惧。上下离心，祸必兴焉。</p>
+<div class="ai" id="ai-c2-1">上头一起疑，下头就害怕；上下一离心，祸事一定起来。（古文之家录文作「上下背德」，今从维基文库录文作「离心」——「离心」与上句的「疑」「惧」相承。）</div>
+<p id="c2-2">上者骄，安其心以顺。上者忧，去其患以忠。顺不避媚，忠不忌曲，虽为人诟亦不可少为也。上所予，自可取，生死于人，安可逆乎？是以智者善窥上意，愚者固持己见，福祸相异，咸于此耳。</p>
+<div class="ai" id="ai-c2-2">上头骄，就顺着他，让他安心；上头忧，就替他把麻烦去掉，这叫忠。顺不必避开谄媚，忠不必忌讳委曲；就算被人骂，也不能少做。上头给的，自然可以拿；生死都在人家手里，怎么违拗得了？所以明白人善于揣摩上意，糊涂人死抱自己的主张；一个得福一个招祸，分别全在这里。（「诟」是辱骂。「咸」是都。古文之家录文作「上者懮」，「懮」为「忧」之误；又作「安能逆乎」。）</div>
+<h3 id="s2b">臣强则死</h3>
+<p id="c2-3">人主莫喜强臣，臣下戒怀妄念。臣强则死，念妄则亡。周公尚畏焉，况他人乎？</p>
+<div class="ai" id="ai-c2-3">没有哪个君主喜欢强臣，做臣子的要戒掉非分之想。臣子一强就死，念头一妄就亡。连周公都怕这个，何况旁人。（「周公尚畏焉」用《诗·豳风·鸱鸮》与周公居东之事：周公摄政，管叔、蔡叔流言其将不利于成王，周公避居东都，见《尚书·金縢》。）</div>
+<p id="c2-4">上无不智，臣无至贤。功归上，罪归己。戒惕弗弃，智勇勿显。虽至亲亦忍绝，纵为恶亦不让。诚如是也，非徒上宠，而又宠无衰矣。</p>
+<div class="ai" id="ai-c2-4">上头没有不聪明的，臣子没有顶贤的。功劳归上头，罪过归自己。戒惧不可丢掉，智谋和胆量不要显出来。就是最亲的人也狠得下心断绝，就是做坏事也不推让。真做到这样，不但能得宠，而且宠不会衰。（「戒惕」是戒惧警觉；「让」是推辞。古文之家录文作「智勇弗显」。）</div>
+<h2 id="j3">治下卷第三</h2>
+<div class="ai ai-head">把第二卷翻过来，讲做上司。前提是没有人甘心居下，所以驭下一失手，不是冒犯就是篡夺。立威的办法：威从礼来，用刑撑着，松手就散；不许结私党，不让一人专宠；心思要藏，交往要疏。后半讲具体手段——投其所好、迫其所惧、赏以坠志、罚以警心。</div>
+<h3 id="s3a">威成于礼</h3>
+<p id="c3-1">甘居人下者鲜，御之失谋，非犯，则篡耳。</p>
+<div class="ai" id="ai-c3-1">甘心待在人底下的很少；驾驭他们一失了方略，不是冒犯，就是篡夺。（「御」是驾驭、统驭。）</div>
+<p id="c3-2">上无威，下生乱。威成于礼，恃以刑，失之纵。私勿与人，谋必辟。幸非一人，专固害。机心信隐，交接靡密，庶下者知威而畏也。</p>
+<div class="ai" id="ai-c3-2">上头没有威，底下就生乱。威是从礼制立起来的，靠刑罚撑住，一松手就丢。私情不要给人，谋划一定要避开旁人；受宠的不能只有一个，一人独专必定成害。心思要藏得住，往来不要太密——这样底下的人才知道有威而怕。（「辟」通「避」，避人；一说读为「僻」，隐密。「幸」是受宠幸的人；「专」是独专其宠。「靡密」是细密、过密。）</div>
+<h3 id="s3b">好与惧</h3>
+<p id="c3-3">下附上以成志，上恃下以成名。下有所求，其心必进，迁之宜缓，速则满矣。上有所欲，其神若亲，礼下勿辞，拒者无助矣。</p>
+<div class="ai" id="ai-c3-3">下属依附上司是为了遂自己的志，上司靠着下属是为了成自己的名。下属有所求，心思一定往前凑；给他升迁要慢，快了他就满足了。上司有所要，脸色就像对亲人一样；对下属以礼相待不必推辞，推拒的人得不到帮手。（「迁」是升迁；「满」是满足、自满。）</div>
+<p id="c3-4">人有所好，以好诱之无不取；人有所惧，以惧迫之无不纳。才可用者，非大害而隐忍。其不可制，果大材而亦诛。赏勿吝，以坠其志。罚适时，以警其心。恩威同施，才德相较，苟无功，得无天耶？</p>
+<div class="ai" id="ai-c3-4">人有喜欢的东西，拿他喜欢的引他，没有不上钩的；人有害怕的东西，拿他害怕的逼他，没有不接受的。有才而可用的，只要不是大害就忍着；管不住的，纵然是大材也杀。赏不要吝惜，用赏来坠掉他的志气；罚要赶上时候，用罚来警动他的心。恩和威一起下，才和德放在一起比——这样还办不成，那就是天意了。（「取」是取得、钩住；「纳」是接受、就范。「坠其志」是使其志气堕下，安于现状。末句是反问：如此而无功，岂非天命。）</div>
+<h2 id="j4">控权卷第四</h2>
+<div class="ai ai-head">讲权。开头一句是全卷的前提：权是人离不开的东西，取难、守更难，而且是生死之事。接下去讲怎么替权找名分——「假天用事」，把自己的事说成天的事，把对手说成自绝于天。后半讲取权与守权：乱世用能人、盛世用忠人；名可以让，实一定要拿；用利禄当缰绳，用虚名收人心。</div>
+<h3 id="s4a">假天用事</h3>
+<p id="c4-1">权者，人莫离也。取之非易，守之尤艰；智不足弗得，谋有失竟患，死生事也。</p>
+<div class="ai" id="ai-c4-1">权这样东西，没有人离得开。拿到手不容易，守住更难；智力不够就拿不到，谋划一有失就落下祸患——这是生死之事。（「竟」是终、终究。）</div>
+<p id="c4-2">假天用事，名之顺也。自绝于天，敌之罪也。民有其愚，权有其智。德之不昭，人所难附焉。</p>
+<div class="ai" id="ai-c4-2">借着天的名义办事，名分就顺了；说对方自己断绝于天，那就是敌人的罪。百姓有百姓的愚，权力有权力的智。德行不彰明，人就难以归附。（「假」是借。「昭」是明、显。）</div>
+<h3 id="s4b">名可易，实必取</h3>
+<p id="c4-3">乱世用能，平则去患。盛世惟忠，庸则自从。名可易，实必取；名实悖之，权之丧矣。嗜权逾命者，莫敢不为；权之弗让也，其求必极。机为要，无机自毁；事可绝，人伦亦灭。利禄为羁，去其实害；赏以虚名，收其本心。若此为之，权无不得，亦无失也。</p>
+<div class="ai" id="ai-c4-3">乱世用有本事的人，天下平了就把他除掉；盛世只用忠的人，平庸也就自然顺服。名分可以让出去，实权一定要拿到手；名和实对不上，权就丢了。把权看得比命还重的人，什么都敢做；权不肯让，所求必到极处。时机最要紧，没有时机就自己毁了；事情做得出绝的，连人伦也灭得掉。拿利禄当缰绳，去掉他的实害；拿虚名去赏，收住他的本心。照这样办，权没有得不到的，也不会丢。（「羁」是马络头，引申为牵制。「去其实害」指削去其实权，留其名位。古文之家录文作「盛事惟忠」「实必争」「其求乃极」；今从维基文库录文——「盛世」与上句「乱世」相对。）</div>
+<h2 id="j5">制敌卷第五</h2>
+<div class="ai ai-head">先给「敌」下定义：利害相冲、死生不能相容的，才叫敌；没认清就分不出谁是友，没制住就成不了事。接着把「敌」从利害上剥开——君子与小人的分别不在名，在利；再把敌的归属交给上头：众人的敌未必是我的敌，上头的敌纵是我的友也是敌。最后四句是办法：惑、制、构、害。</div>
+<h3 id="s5a">谁是敌</h3>
+<p id="c5-1">人皆有其敌也。敌者，利害相冲，死生弗容；未察之无以辨友，非制之无以成业。此大害也，必绝之。</p>
+<div class="ai" id="ai-c5-1">人人都有敌人。所谓敌，是利害相冲、生死不能相容的；没有看清他就分不出谁是友，没有制住他就成不了事。这是大害，一定要断绝。（古文之家录文作「人皆有敌也」，无「其」字。）</div>
+<p id="c5-2">君子敌小人，亦小人也。小人友君子，亦君子也。名为虚，智者不计毁誉；利为上，愚者惟求良善。</p>
+<div class="ai" id="ai-c5-2">君子跟小人为敌，也就成了小人；小人跟君子做朋友，也就成了君子。名是空的，明白人不计较别人骂他还是夸他；利才是头一等的，糊涂人却只求一个好名声。（「毁誉」是诋毁与称誉。）</div>
+<h3 id="s5b">惑、制、构、害</h3>
+<p id="c5-3">众之敌，未可谓吾敌；上之敌，虽吾友亦敌也。亲之故，不可道吾亲；刑之故，向吾亲亦弃也。惑敌于不觉，待时也。制敌于未动，先机也。构敌于为乱，不赦也。害敌以淫邪，不耻也。敌之大，无过不知；祸之烈，友敌为甚。使视人若寇，待亲如疏，接友逾仇，纵人之恶余，而避其害，何损焉？</p>
+<div class="ai" id="ai-c5-3">众人的敌人，未必就是我的敌人；上头的敌人，即使是我的朋友也是敌人。因为是亲戚的缘故，就不可以说他是我的亲戚；因为要问他的罪，本来向着我的亲戚也要丢开。在他不觉得的时候把他弄糊涂，这是等时机；在他还没动的时候把他制住，这是抢先手；把他构陷成作乱，那就不赦；拿淫邪的事去害他，这不必觉得羞耻。敌人最大的，莫过于你不知道有这个敌人；祸最烈的，莫过于把敌人当朋友。所以看人像看贼，待亲人像待疏远的人，接待朋友比接待仇人还要提防；纵然叫人恨我，只要避开了害，又损失了什么？（「构」是构陷、罗织；「余」是我。古文之家录文作「害敌于淫邪」。）</div>
+<h2 id="j6">固荣卷第六</h2>
+<div class="ai ai-head">讲已经得了荣宠的人怎么守住。前提是荣宠有头无尾、吉凶没有常数。守法是六条：君命不违，后继有人，官没有定主所以要百变以悦其君，君的幸臣没有由头也要结交，定人罪要先查他的宗族，用人不要用超过自己的。末段是减怨：对上示足，对下示惠，喜怒不露。</div>
+<h3 id="s6a">荣宠有初</h3>
+<p id="c6-1">荣宠有初，鲜有终者；吉凶无常，智者少祸。荣宠非命，谋之而后善；吉凶择人，慎之方消愆。</p>
+<div class="ai" id="ai-c6-1">荣宠都有个开头，很少有善终的；吉凶没有定准，明白人祸事少些。荣宠不是命里带来的，得谋划了才有好结果；吉凶挑人，谨慎才能把过失消掉。（末字维基文库录文作「消衍」，「衍」于此无义；古文之家录文作「消愆」，「愆」是过失，今从之。）</div>
+<h3 id="s6b">固之之法</h3>
+<p id="c6-2">君命无违，荣之本也，智者舍身亦存续。后不乏人，荣之方久，贤者自苦亦惠嗣。官无定主，百变以悦其君。君有幸臣，无由亦须结纳。人孰无亲，罪人慎察其宗。人有贤愚，任人勿求过己。</p>
+<div class="ai" id="ai-c6-2">不违君命，这是荣宠的根本；明白人拼上性命也要把它保住。身后不缺接手的人，荣宠才长久；贤人宁可自己吃苦，也要给子孙留下好处。官位没有固定的主子，所以要千变万化去讨现在这个主子的欢喜。君主身边有受宠的人，没有由头也得去结交。谁没有亲族？要定一个人的罪，先仔细查他的宗族。人有贤有愚，用人不要用胜过自己的。（「幸臣」是受宠幸之臣；「结纳」是结交延揽；「嗣」是子孙。）</div>
+<p id="c6-3">荣所众羡，亦引众怨。示上以足，示下以惠，怨自削减。大仇必去，小人勿轻，祸不可伏。喜怒无踪，慎思及远，人所难图焉。</p>
+<div class="ai" id="ai-c6-3">荣宠是众人羡慕的，也就招来众人的怨。对上头显出自己已经满足，对下面显出恩惠，怨就自己减下去。大仇一定要除掉，小人不可轻看，祸患不能让它埋着。喜怒不露痕迹，想得细、想得远——这样别人就难以算计你。（「伏」是潜伏、埋伏；「图」是图谋、算计。）</div>
+<h2 id="j7">保身卷第七</h2>
+<div class="ai ai-head">两句对仗开头：世道是人不自害而别人害他，人道是人不宽恕自己而只宽恕自己——一句讲外面，一句讲里面。中段讲名与身：名德不昭，毁谤就伤不到你；仁义没有名声，奸邪也不把你当回事。后半是三对办法：弱则保命、强则敛翼；罪己宜苛、责人勿厉；善恶都没有定评，所以不必去当那个显眼的。</div>
+<h3 id="s7a">世之道与人之道</h3>
+<p id="c7-1">世之道，人不自害而人害也；人之道，人不恕己而自恕也。</p>
+<div class="ai" id="ai-c7-1">世上的道理是：人不会害自己，害他的是别人；人本身的道理是：人不会宽恕别人，只宽恕自己。（「恕」是推己及人、宽待；此处两句对举，「不恕己」即不以恕待人。）</div>
+<p id="c7-2">君子惜名，小人爱身。好名羁行，重利无亏。名德不昭，毁谤无损其身；义仁莫名，奸邪不以为患。阳以赞人，置其难堪而不觉；阴以行私，攻其讳处而自存。</p>
+<div class="ai" id="ai-c7-2">君子爱惜名声，小人爱惜身家。好名声会捆住手脚，重实利就不吃亏。没有德行的名声在外，毁谤就伤不到你；不落一个仁义的名，奸邪的人也不把你当祸患。表面上称赞他，把他架到下不来台的地方而他还不觉得；暗地里行自己的私，攻他忌讳的地方而自己保全。（「羁」是绊住；「讳处」是忌讳、不愿人知之处。）</div>
+<h3 id="s7b">弱与强，罪己与责人</h3>
+<p id="c7-3">庶人莫与官争，贵人不结人怨。弱则保命，不可作强；强则敛翼，休求尽善。罪己宜苛，人怜不致大害。责人勿厉，小惠或有大得。</p>
+<div class="ai" id="ai-c7-3">平民不要跟官争，贵人不要结下怨。弱的时候先保住命，不可装强；强的时候把翅膀收起来，不要求事事都做到顶好。责备自己要狠一些，别人可怜你，就不至于招大害；责备别人不要严厉，一点小恩惠或许换来大收获。（「敛翼」是收敛羽翼，指不张扬。）</div>
+<p id="c7-4">恶无定议，莫以恶为恶者显；善无定评，勿以善为善者安。自怜人怜，自弃人弃。心无滞碍，害不侵矣。</p>
+<div class="ai" id="ai-c7-4">什么算恶，并没有定下来的说法，所以不要去做那个把恶当恶、因而显眼的人；什么算善，也没有定下来的评价，所以不要以为做善事的人就安稳。自己怜惜自己，别人才怜惜你；自己丢开自己，别人也丢开你。心里没有窒碍，害就侵不进来。（「滞碍」是停滞窒碍。）</div>
+<h2 id="j8">察奸卷第八</h2>
+<div class="ai ai-head">全书最露骨的一卷。它先说奸与忠都不自己开口，再说奸必有智、必无善；然后把判断权完全交给上头——上头用的人，奸也是忠；上头丢的人，忠也是奸。再往后是时与势：势一变、时一迁，奸的名目就换了，名靠不住，只有上头靠得住。末尾一句是全卷的收束：只看上头、只看自己，去掉表面求实在，奸就自己显出来了。</div>
+<h3 id="s8a">奸不自招</h3>
+<p id="c8-1">奸不自招，忠不自辩；奸者祸国，忠者祸身。</p>
+<div class="ai" id="ai-c8-1">奸邪的人不会自己招认，忠直的人不会自己辩白；奸邪的祸害国家，忠直的祸害自身。</div>
+<p id="c8-2">无智无以成奸，其智阴也。有善无以为奸，其知存也。</p>
+<div class="ai" id="ai-c8-2">没有智计就做不成奸，那种智是阴的。心里还有善就做不了奸，因为良知还在。（「知」通「智」，一说即「良知」；两句对举，一说智之阴，一说知之存。）</div>
+<h3 id="s8b">忠奸堪易</h3>
+<p id="c8-3">智不逾奸，伐之莫胜；知不至大，奸者难拒。忠奸堪易也。上所用者，奸亦为忠；上所弃者，忠亦为奸。</p>
+<div class="ai" id="ai-c8-3">智计比不上奸人，去打他就打不赢；见识不够大，奸人就拒不住。忠和奸是可以掉换的：上头用的人，奸也算忠；上头丢开的人，忠也算奸。（「堪易」是可以互换。）</div>
+<p id="c8-4">势变而人非，时迁而奸异，其名难恃，惟上堪恃也。好恶生奸也。人之敌，非奸亦奸；人之友，其奸亦忠。</p>
+<div class="ai" id="ai-c8-4">情势一变，人就不是原来那个人了；时候一过，谁算奸也换了样。这个名目靠不住，只有上头靠得住。奸是从好恶里长出来的：是你敌人的，不奸也是奸；是你朋友的，奸也是忠。（古文之家录文末作「惟上堪恃耳」。）</div>
+<h3 id="s8c">世之表与世之实</h3>
+<p id="c8-5">道同方获其利，道异惟受其害。奸有益，人皆可为奸；忠致祸，人难为忠。奸众而忠寡，世之实也；言忠而恶奸，世之表也。</p>
+<div class="ai" id="ai-c8-5">路子相同才拿得到好处，路子不同只会受害。做奸有好处，人人都做得出奸；做忠招祸，人就难做得成忠。奸的多、忠的少，这是世道的实情；嘴上讲忠、口头恨奸，这是世道的表面。</div>
+<p id="c8-6">惟上惟己，去表求实，奸者自见矣。</p>
+<div class="ai" id="ai-c8-6">只看上头、只看自己，去掉表面、求那个实情，奸人自己就露出来了。（「见」读「现」，显露。）</div>
+<h2 id="j9">谋划卷第九</h2>
+<div class="ai ai-head">把官场说成一张互相谋算的网：上不谋臣则下不治，下不谋上则升不上去，臣不谋同僚则敌去不掉。中间插一句法律：欺君是大罪，加什么罪名都逃不掉；枉法虽然不容，却要等他闯出祸来才办。末段是三层阶梯——上用势、势不济用术；下用术、术穷用力；平级用智、智不及用害。收尾四句讲密、速，以及怎么把人的功说成罪、把人的话说成谬。</div>
+<h3 id="s9a">官无恒友</h3>
+<p id="c9-1">上不谋臣，下或不治；下不谋上，其身难晋；臣不谋僚，敌者勿去。官无恒友，祸存斯须，势之所然，智者弗怠焉。料敌于远，须谋于今；去贼以尽，其谋无忌。</p>
+<div class="ai" id="ai-c9-1">上头不算计臣子，底下就可能治不住；底下不算计上头，自己就难升上去；臣子不算计同僚，对头就去不掉。做官没有长久的朋友，祸就在转眼之间——这是情势使然，明白人不敢松懈。要料到远处的敌，就得从今天谋起；要把贼除干净，谋划就不必有什么顾忌。（「晋」是进、升迁；「斯须」是片刻。古文之家录文作「祸存斯虚」，「虚」为「须」之误；又作「料敌以远」。）</div>
+<p id="c9-2">欺君为大，加诸罪无可免；枉法不容，纵其为祸方惩。</p>
+<div class="ai" id="ai-c9-2">欺君是最大的罪，把这条加在谁身上，谁也逃不掉；枉法虽然不能容，却要放着他闯出祸来，才动手惩办。（「加诸罪」是把罪加在他身上；「纵」是放任。）</div>
+<h3 id="s9b">势、术、力</h3>
+<p id="c9-3">上谋臣以势，势不济者以术。下谋上以术，术有穷者以力。臣谋以智，智无及者以害。事贵密焉，不密祸己；行贵速焉，缓则人先。其功反罪，弥消其根；其言设谬，益增人厌。行之不辍，不亦无敌乎？</p>
+<div class="ai" id="ai-c9-3">上头算计臣子用权势，权势不够就用手段。下头算计上头用手段，手段用尽了就用力。同僚之间用智，智谋够不着就用加害。事情贵在密，不密就祸到自己身上；行动贵在快，慢了别人就抢在前头。把他的功说成罪，一步步消掉他的根；把他的话摆成荒谬的样子，让人越发厌恶他。这样做个不停，不就无敌了吗？（「济」是成、够；「弥消」是渐渐消除；「设谬」是把话布置成谬误。古文之家录文作「其言设缪」，「缪」为「谬」之借。）</div>
+<h2 id="j10">问罪卷第十</h2>
+<div class="ai ai-head">全书最像一份办案指引的一卷，但仍然没有一条具体技术。它从一句法理起头——刑的根本不在罚罪，在「明罪」，即先把罪确定下来；接着是一串程序：举、待、逮、审、供。「人皆可罪」四字是它的前提，「善修之毋违其真」六字是它的收笔：供状要修得不缺，又要修得像真的。末两段讲攻心——挑弱的打，用他最怕的刑他；不许存怜悯，援救朋友的要重惩。</div>
+<h3 id="s10a">刑之本在明罪</h3>
+<p id="c10-1">法之善恶，莫以文也，乃其行焉；刑之本哉，非罚罪也，乃明罪焉。</p>
+<div class="ai" id="ai-c10-1">法的好坏，不看条文，看它怎么执行；刑的根本，不在处罚罪行，而在把罪确定下来。（「明罪」是使罪名成立、明白无疑，与下文「罪可成矣」相承。）</div>
+<p id="c10-2">人皆可罪，罪人须定其人。罪不自招，密而举之则显。上不容罪，无谕则待，有谕则逮。人辩乃常，审之勿悯，刑之非轻，无不招也。或以拒死，畏罪释耳。人无不党，罪一人可举其众；供必无缺，善修之毋违其真。事至此也，罪可成矣。</p>
+<div class="ai" id="ai-c10-2">人人都可以定罪，要治谁的罪，先把这个人定下来。罪不会自己显出来，暗地里把它举发出来就显了。上头不容这条罪，没有批示就等着，有了批示就抓。人被审总要辩，审他不要动怜悯，用刑不要轻，没有不招的。有的人宁死不招，那是怕招了更重的罪罢了。人没有不结党的，治一个人的罪，可以顺手举发他一伙人。供状一定不能有缺口，好好修饰它，但不要失了像真的样子。事情到了这一步，罪就做成了。（「谕」是上头的批示；「党」是朋党。维基文库录文作「罪不自昭」「刑之勿轻」，古文之家录文与晨星版马树全译注本并作「不自招」「非轻」，二本相同，今从之。）</div>
+<h3 id="s10b">攻心与拒怜</h3>
+<p id="c10-3">人异而心异，择其弱者以攻之，其神必溃。</p>
+<div class="ai" id="ai-c10-3">人各不同，心思也各不同；挑他软的地方去攻，他的精神一定垮。（「神」是精神；「溃」是崩溃。）</div>
+<p id="c10-4">身同而惧同，以其至畏而刑之，其人固屈。怜不可存，怜人者无证其忠。友宜重惩，援友者惟其害。</p>
+<div class="ai" id="ai-c10-4">身体一样，怕的东西也一样；拿他最怕的那一样去刑他，这个人一定屈服。怜悯不能存，怜悯别人的人没法证明自己是忠的。对朋友要重惩，替朋友出头的只会给自己带来害处。（「固」是必、一定。）</div>
+<p id="c10-5">罪人或免人罪，难为亦为也。</p>
+<div class="ai" id="ai-c10-5">给人定罪，有时候反而是替人免罪；这事难做，也还是要做。（一说「罪人」以自保，故能「免人罪」于己身；一说先加小罪，以免其大罪。原文两解并通。）</div>
+<h2 id="j11">刑罚卷第十一</h2>
+<div class="ai ai-head">接上一卷。开头一句把全书的名目点破：要置人于死，没有比构他谋反更快的。接着分「刑」与「罚」：刑对身体，罚对处境；智者怕祸，愚者怕刑，所以对智者用言语诛他，对顽者用情势压他。中段是三条取法——刑人取其不堪，罚人伐其不甘，证据拿不到就造得像真的。末段翻成一句人与非人的话：被刑的不当人待，动刑的也不叫罚。</div>
+<h3 id="s11a">刑与罚</h3>
+<p id="c11-1">致人于死，莫逾构其反也；诱人以服，非刑之无得焉。刑有术，罚尚变，无所不施，人皆授首矣。</p>
+<div class="ai" id="ai-c11-1">要把人弄死，没有比构陷他谋反更管用的；要诱人认罪，不动刑就得不到。刑有刑的手法，罚贵在会变；什么都用得上，人就都伏法了。（「构其反」是罗织他谋反的罪状；「授首」是低头就戮。）</div>
+<p id="c11-2">智者畏祸，愚者惧刑；言以诛人，刑之极也。明者识时，顽者辩理；势以待人，罚之肇也。</p>
+<div class="ai" id="ai-c11-2">明白人怕的是祸，糊涂人怕的是刑；用一句话就杀掉一个人，这是刑的极致。通达的人认得清时势，顽固的人只讲道理；拿情势去对付人，这是罚的开端。（「肇」是起始、开端。）</div>
+<h3 id="s11b">取其不堪</h3>
+<p id="c11-3">死之能受，痛之难忍，刑人取其不堪。士不耐辱，人患株亲，罚人伐其不甘。人不言罪，加其罪逾彼；证不可得，伪其证率真。刑有不及，陷无不至；不患罪无名，患上不疑也。</p>
+<div class="ai" id="ai-c11-3">死还受得住，痛却难忍，所以动刑要挑他受不住的地方。读书人受不了辱，人人怕连累亲族，所以罚人要打他不甘心的地方。人不肯认罪，就加一条比原来更重的罪；证据拿不到，就把假的做得像真的。刑有够不着的地方，诬陷却没有到不了的地方；不怕罪名安不上，只怕上头不起疑。（「株亲」是株连亲属；「率真」是大致像真。）</div>
+<p id="c11-4">人刑者非人也，罚人者非罚也。非人乃贱，非罚乃贵。贱则鱼肉，贵则生死。人之取舍，无乃得此乎？</p>
+<div class="ai" id="ai-c11-4">受人刑的已经不被当人看，罚人的那一个自己不受罚。不被当人看就低贱，不受罚就尊贵；低贱的任人宰割，尊贵的掌人生死。人的取舍，大概就是从这里来的吧。（「鱼肉」用《史记·项羽本纪》「人为刀俎，我为鱼肉」；「无乃……乎」是「恐怕……吧」。）</div>
+<h2 id="j12">瓜蔓卷第十二</h2>
+<div class="ai ai-head">卷名是个比喻：顺着瓜藤一路牵出去，一案牵一族、一族牵一乡——后世称这种株连为「瓜蔓抄」，明成祖诛方孝孺、景清诸案即以此著称。全卷的道理只有两句：案子不牵连众人，功劳就显不出来；牵连出来的冤枉，本来就免不了。后半把敌和友都拆成暂时的东西——官的朋友是民的敌人，显达时的朋友是败落时的敌人；既然敌友无常，那就权不可废、情不可滥、人不可密、心不可托。末句「饵之以逮」是全书的收尾。</div>
+<h3 id="s12a">案不及众，功之匪显</h3>
+<p id="c12-1">事不至大，无以惊人；案不及众，功之匪显。上以求安，下以邀宠，其冤固有，未可免也。</p>
+<div class="ai" id="ai-c12-1">事情不够大，就惊动不了人；案子牵连的人不够多，功劳就显不出来。上头拿它来求安稳，下头拿它来讨赏，冤枉本来就有，免不了。（「匪」通「非」；「邀宠」是求取恩宠。）</div>
+<p id="c12-2">荣以荣人者荣，祸以祸人者祸。荣非己莫恃，祸惟他勿纵。罪无实者，他罪可代；恶无彰者，人恶以附。心之患者，置敌一党；情之怨者，陷其奸邪。</p>
+<div class="ai" id="ai-c12-2">拿荣显去荣显别人的，自己才真荣显；拿祸去祸害别人的，祸也就到了自己头上。不是自己挣来的荣显不要倚仗，只要是落在别人身上的祸就不要放过。罪名没有实据的，用别的罪名顶上；恶行没有显露的，把别人的恶加到他身上。心腹之患，就把他摆进敌人的一党里；情分上结怨的，就陷他一个奸邪。（「彰」是显露；「附」是加附、挂上。）</div>
+<h3 id="s12b">敌无常，友有时</h3>
+<p id="c12-3">官之友，民之敌；亲之友，仇之敌，敌者无常也。荣之友，败之敌；贱之友，贵之敌，友者有时也。是以权不可废，废则失本，情不可滥，滥则人忌；人不可密，密则疑生；心不可托，托则祸伏。智者不招己害，能者寻隙求功。饵之以逮，事无悖矣。</p>
+<div class="ai" id="ai-c12-3">官的朋友，在百姓眼里是敌人；亲人的朋友，在仇家眼里是敌人——可见敌人不是固定的。显达时的朋友，败落时成了敌人；贫贱时的朋友，富贵后成了敌人——可见朋友只是一时的。所以权不能丢，丢了就失掉根本；同情不能滥给，滥了招人忌；人不可过分亲密，太密就生疑；心里话不能托付，托付了祸就埋下了。明白人不给自己招害，能干的人专找缝隙去立功。拿饵引他上钩再抓他，事情就不会出岔子。（「隙」是缝隙、可乘之机；「饵」是用饵引诱。「事无悖矣」是说在事理上挑不出毛病。）</div>
+
+<div class="colo">
+  <h2 id="ben" class="colo-h">底本与校例</h2>
+  <p><b>这部书没有古本。</b>书名见于正史：《旧唐书·酷吏传上·来俊臣》「俊臣与其党朱南山辈造《告密罗织经》一卷，皆有条贯支节，布置事状由绪」；《资治通鉴》卷二〇三，天授二年「俊臣与司刑评事洛阳万国俊共撰《罗织经》数千言，教其徒网罗无辜，织成反状，构造布置，皆有支节」。那一卷早已亡佚，《隋书》以下历代书目均无著录，也没有任何写本、刻本传世。本页封面用的是明嘉靖十七年（1538）闻人诠吴郡刊本《旧唐书》卷一百八十六上《酷吏上》的卷端叶（台湾国家图书馆藏，善本书号 201.242 01537，十四行行二十六字，左右双栏，版匡二一·二×一四·七公分）——不是这部书的封面，而是记下这个书名的那一卷书的首叶；「造《告密罗织经》一卷」一句在同一卷里，离卷端不过数叶，已在原扫描件上逐字核对。</p>
+  <p><b>正文底本</b>用维基文库录文《罗织经》十二卷（该站自标 Textquality 100%），全书十二卷，正文二千零一十一字（本页所加的标点不计在内）。这是一部今人托名之作，最早见于二〇〇三年吉林摄影出版社署「唐·来俊臣著」的一种，译注者马树全自称从一位日本友人手中得万国俊手抄本一卷；抄本无影本、无著录、无第三方目验。</p>
+  <p><b>通校</b>古文之家录文，逐字机器比对，全书得异文十九处，每一处都在该段注释里出校。<b>卷十</b>另以晨星版《罗织经》（来俊臣原著、马树全译注）试读本所收原文三核，该卷两处异文二本相同而与底本异，从二本。</p>
+  <p><b>凡例</b>：一、底本用旧字形（为、绝、真、呉、伪之类），本页一律改从通行繁体，不逐一出校。二、凡底本独异而通校本可通者，仍从底本，出校；凡底本不可通而通校本可通者，从通校本，出校——全书这样的改字共三处（卷六「消愆」、卷十「不自招」「非轻」）。三、卷、段与标点为本页所加；底本无句读。四、卷五「纵人之恶余」的「余」是第一人称，不是「馀」字的简省，不改。</p>
+  <p class="colo-ai">篇旨与注释为 AI 所撰，可用工具栏第一颗按钮开关。</p>
+</div>
+
+    <a class="top" href="#">— 回顶 —</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var b=document.body, d=document;
+
+  var ai=d.getElementById('ai');
+  function setAi(on){
+    b.classList.toggle('ai-on', on);
+    ai.setAttribute('aria-pressed', on?'true':'false');
+    try{ localStorage.setItem('lzj-ai', on?'on':'off'); }catch(e){}
+  }
+  var savedAi='off';
+  try{ savedAi=localStorage.getItem('lzj-ai')||'off'; }catch(e){}
+  setAi(savedAi==='on');
+  ai.onclick=function(){ setAi(ai.getAttribute('aria-pressed')!=='true'); };
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>

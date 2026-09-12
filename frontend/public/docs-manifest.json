@@ -1,32 +1,62 @@
 [
   {
-    "id": "upload-shangjunshu",
-    "title": "商君書 · 繁體版",
-    "href": "/p/shangjunshu.html",
+    "id": "upload-luozhijing-en",
+    "title": "The Classic of Netting — Luo Zhi Jing (English)",
+    "href": "/p/luozhijing-en.html",
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:14:07.272Z",
+    "updatedAt": "2026-09-12T14:41:23.235Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/shangjunshu.html",
-      "frontend/public/p/shangjunshu.meta.json"
+      "frontend/public/p/luozhijing-en.html",
+      "frontend/public/p/luozhijing-en.meta.json"
     ]
   },
   {
-    "id": "upload-shangjunshu-hans",
-    "title": "商君书 · 简体版",
-    "href": "/p/shangjunshu-hans.html",
+    "id": "upload-luozhijing-hans",
+    "title": "罗织经 · 简体版",
+    "href": "/p/luozhijing-hans.html",
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:14:07.271Z",
+    "updatedAt": "2026-09-12T14:41:23.235Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/shangjunshu-hans.html",
-      "frontend/public/p/shangjunshu-hans.meta.json"
+      "frontend/public/p/luozhijing-hans.html",
+      "frontend/public/p/luozhijing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-luozhijing",
+    "title": "羅織經 · 繁體版",
+    "href": "/p/luozhijing.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T14:41:23.235Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/luozhijing.html",
+      "frontend/public/p/luozhijing.meta.json"
+    ]
+  },
+  {
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经",
+    "href": "/p/dianji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T14:35:36.214Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
     ]
   },
   {
@@ -36,7 +66,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:14:07.271Z",
+    "updatedAt": "2026-09-12T14:14:03.273Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -45,18 +75,33 @@
     ]
   },
   {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书",
-    "href": "/p/dianji.html",
+    "id": "upload-shangjunshu-hans",
+    "title": "商君书 · 简体版",
+    "href": "/p/shangjunshu-hans.html",
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:10:44.349Z",
+    "updatedAt": "2026-09-12T14:14:03.272Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
+      "frontend/public/p/shangjunshu-hans.html",
+      "frontend/public/p/shangjunshu-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-shangjunshu",
+    "title": "商君書 · 繁體版",
+    "href": "/p/shangjunshu.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T14:14:03.270Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/shangjunshu.html",
+      "frontend/public/p/shangjunshu.meta.json"
     ]
   },
   {
