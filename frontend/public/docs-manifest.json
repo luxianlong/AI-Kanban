@@ -1,7 +1,7 @@
 [
   {
     "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计",
     "href": "/p/dianji.html",
     "zone": "classic",
     "deletable": true,
@@ -102,6 +102,51 @@
     "paths": [
       "frontend/public/p/sunzi-en.html",
       "frontend/public/p/sunzi-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanshiliuji-hans",
+    "title": "三十六计 · 简体版",
+    "href": "/p/sanshiliuji-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T10:17:24.984Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanshiliuji-hans.html",
+      "frontend/public/p/sanshiliuji-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanshiliuji",
+    "title": "三十六計 · 繁體版",
+    "href": "/p/sanshiliuji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T10:17:24.984Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanshiliuji.html",
+      "frontend/public/p/sanshiliuji.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanshiliuji-en",
+    "title": "The Thirty-Six Stratagems (English)",
+    "href": "/p/sanshiliuji-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T10:17:24.984Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanshiliuji-en.html",
+      "frontend/public/p/sanshiliuji-en.meta.json"
     ]
   },
   {

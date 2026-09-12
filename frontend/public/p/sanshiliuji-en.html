@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Thirty-Six Stratagems (English)</title>
+<meta name="description" content="A complete English translation of the Thirty-Six Stratagems: the general discussion and all thirty-six, each with its verse and the commentary that follows it.">
+<style>
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif;
+  line-height:1.75; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(32px,6vw,54px); letter-spacing:.02em;
+  text-indent:0; font-weight:600; line-height:1.3;
+}
+.mast h1 .hz{display:block; font-size:.4em; letter-spacing:.34em; text-indent:.34em;
+  color:var(--ink-soft); font-weight:400; margin-top:14px}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.06em; text-align:center; text-indent:0}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.78rem; letter-spacing:.1em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.bar .tag{font-size:.6em; letter-spacing:.06em; opacity:.7; margin-left:.4em;
+  align-self:flex-start; margin-top:.5em}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:256px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.8rem; line-height:1.85;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:1px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.04em}
+  nav.toc a.l3{padding-left:20px}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.16em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px}
+
+main{padding:34px 0 100px; max-width:36em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.5rem; font-weight:600;
+  letter-spacing:.04em; text-indent:0; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:60px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.03em; text-indent:0; scroll-margin-top:24px;
+}
+h2 .hz,h3 .hz{font-weight:400; color:var(--ink-soft); letter-spacing:.16em;
+  font-size:.78em; margin-left:.5em}
+p{margin:1.05em 0}
+main > p{text-indent:0}
+
+/* 按語 — the commentary paragraph that follows each verse. The 底本 prints it as
+   one block opening with the character 按, so the marker is drawn by CSS rather
+   than carried in the text: it must not end up in a copied selection. */
+p.an::before{
+  content:"Note. "; color:var(--seal); font-weight:600;
+  letter-spacing:.02em;
+}
+
+.var{border-bottom:1px dotted var(--seal); cursor:help}
+.yin{font-size:.82em; color:var(--ink-soft); letter-spacing:0}
+.lead{color:var(--ink-soft); font-size:.9rem; border-left:2px solid var(--rule);
+  padding-left:14px; margin:.9em 0 1.6em}
+
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.76rem; letter-spacing:.2em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>The Thirty-Six Stratagems<span class="hz">三十六計</span></h1>
+  <p class="sub">Anonymous, Ming&ndash;Qing　·　six sets of six</p>
+</header>
+
+<div class="bar">
+  <div class="grp langs">
+    <a class="btn" href="/p/sanshiliuji-hans.html">简体</a>
+    <a class="btn" href="/p/sanshiliuji.html">繁體</a>
+    <span class="btn cur" aria-current="page">EN</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#zongshuo">General Discussion</a>
+<a class="l2" href="#set1">1. Stratagems When in Command</a>
+<a class="l3" href="#ji1">1. Cross the Sea by Deceiving Heaven</a>
+<a class="l3" href="#ji2">2. Besiege Wei to Rescue Zhao</a>
+<a class="l3" href="#ji3">3. Kill with a Borrowed Knife</a>
+<a class="l3" href="#ji4">4. Wait at Ease for the Weary Enemy</a>
+<a class="l3" href="#ji5">5. Loot a Burning House</a>
+<a class="l3" href="#ji6">6. Make a Sound in the East, Strike in the West</a>
+<a class="l2" href="#set2">2. Stratagems Against an Equal</a>
+<a class="l3" href="#ji7">7. Create Something from Nothing</a>
+<a class="l3" href="#ji8">8. Cross at Chencang by the Hidden Road</a>
+<a class="l3" href="#ji9">9. Watch the Fire from the Far Bank</a>
+<a class="l3" href="#ji10">10. Hide a Knife Behind a Smile</a>
+<a class="l3" href="#ji11">11. Let the Plum Tree Wither in Place of the Peach</a>
+<a class="l3" href="#ji12">12. Lead Away the Sheep in Passing</a>
+<a class="l2" href="#set3">3. Stratagems of Attack</a>
+<a class="l3" href="#ji13">13. Beat the Grass to Start the Snake</a>
+<a class="l3" href="#ji14">14. Borrow a Corpse to Bring Back a Soul</a>
+<a class="l3" href="#ji15">15. Lure the Tiger Down from the Mountain</a>
+<a class="l3" href="#ji16">16. To Catch, Let Loose</a>
+<a class="l3" href="#ji17">17. Throw a Brick to Draw out the Jade</a>
+<a class="l3" href="#ji18">18. To Catch the Bandits, Catch the Chief</a>
+<a class="l2" href="#set4">4. Stratagems for the Mêlée</a>
+<a class="l3" href="#ji19">19. Draw the Firewood from Under the Cauldron</a>
+<a class="l3" href="#ji20">20. Fish in Troubled Waters</a>
+<a class="l3" href="#ji21">21. The Cicada Sheds Its Shell</a>
+<a class="l3" href="#ji22">22. Shut the Door to Catch the Thief</a>
+<a class="l3" href="#ji23">23. Befriend the Distant, Attack the Near</a>
+<a class="l3" href="#ji24">24. Borrow the Road to Strike at Guo</a>
+<a class="l2" href="#set5">5. Stratagems Among Allies</a>
+<a class="l3" href="#ji25">25. Steal the Beams and Change the Pillars</a>
+<a class="l3" href="#ji26">26. Point at the Mulberry and Curse the Locust</a>
+<a class="l3" href="#ji27">27. Feign Stupidity Without Going Mad</a>
+<a class="l3" href="#ji28">28. Take Away the Ladder from the Roof</a>
+<a class="l3" href="#ji29">29. Make Flowers Bloom on a Barren Tree</a>
+<a class="l3" href="#ji30">30. Turn the Guest into the Host</a>
+<a class="l2" href="#set6">6. Stratagems in Defeat</a>
+<a class="l3" href="#ji31">31. The Beauty Trap</a>
+<a class="l3" href="#ji32">32. The Empty City</a>
+<a class="l3" href="#ji33">33. Turn the Enemy's Spy</a>
+<a class="l3" href="#ji34">34. The Stratagem of Self-Injury</a>
+<a class="l3" href="#ji35">35. Stratagems in Chain</a>
+<a class="l3" href="#ji36">36. Running Away Is Best</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>Contents</summary>
+<a class="l2" href="#zongshuo">General Discussion</a>
+<a class="l2" href="#set1">1. Stratagems When in Command</a>
+<a class="l3" href="#ji1">1. Cross the Sea by Deceiving Heaven</a>
+<a class="l3" href="#ji2">2. Besiege Wei to Rescue Zhao</a>
+<a class="l3" href="#ji3">3. Kill with a Borrowed Knife</a>
+<a class="l3" href="#ji4">4. Wait at Ease for the Weary Enemy</a>
+<a class="l3" href="#ji5">5. Loot a Burning House</a>
+<a class="l3" href="#ji6">6. Make a Sound in the East, Strike in the West</a>
+<a class="l2" href="#set2">2. Stratagems Against an Equal</a>
+<a class="l3" href="#ji7">7. Create Something from Nothing</a>
+<a class="l3" href="#ji8">8. Cross at Chencang by the Hidden Road</a>
+<a class="l3" href="#ji9">9. Watch the Fire from the Far Bank</a>
+<a class="l3" href="#ji10">10. Hide a Knife Behind a Smile</a>
+<a class="l3" href="#ji11">11. Let the Plum Tree Wither in Place of the Peach</a>
+<a class="l3" href="#ji12">12. Lead Away the Sheep in Passing</a>
+<a class="l2" href="#set3">3. Stratagems of Attack</a>
+<a class="l3" href="#ji13">13. Beat the Grass to Start the Snake</a>
+<a class="l3" href="#ji14">14. Borrow a Corpse to Bring Back a Soul</a>
+<a class="l3" href="#ji15">15. Lure the Tiger Down from the Mountain</a>
+<a class="l3" href="#ji16">16. To Catch, Let Loose</a>
+<a class="l3" href="#ji17">17. Throw a Brick to Draw out the Jade</a>
+<a class="l3" href="#ji18">18. To Catch the Bandits, Catch the Chief</a>
+<a class="l2" href="#set4">4. Stratagems for the Mêlée</a>
+<a class="l3" href="#ji19">19. Draw the Firewood from Under the Cauldron</a>
+<a class="l3" href="#ji20">20. Fish in Troubled Waters</a>
+<a class="l3" href="#ji21">21. The Cicada Sheds Its Shell</a>
+<a class="l3" href="#ji22">22. Shut the Door to Catch the Thief</a>
+<a class="l3" href="#ji23">23. Befriend the Distant, Attack the Near</a>
+<a class="l3" href="#ji24">24. Borrow the Road to Strike at Guo</a>
+<a class="l2" href="#set5">5. Stratagems Among Allies</a>
+<a class="l3" href="#ji25">25. Steal the Beams and Change the Pillars</a>
+<a class="l3" href="#ji26">26. Point at the Mulberry and Curse the Locust</a>
+<a class="l3" href="#ji27">27. Feign Stupidity Without Going Mad</a>
+<a class="l3" href="#ji28">28. Take Away the Ladder from the Roof</a>
+<a class="l3" href="#ji29">29. Make Flowers Bloom on a Barren Tree</a>
+<a class="l3" href="#ji30">30. Turn the Guest into the Host</a>
+<a class="l2" href="#set6">6. Stratagems in Defeat</a>
+<a class="l3" href="#ji31">31. The Beauty Trap</a>
+<a class="l3" href="#ji32">32. The Empty City</a>
+<a class="l3" href="#ji33">33. Turn the Enemy's Spy</a>
+<a class="l3" href="#ji34">34. The Stratagem of Self-Injury</a>
+<a class="l3" href="#ji35">35. Stratagems in Chain</a>
+<a class="l3" href="#ji36">36. Running Away Is Best</a>
+    </details>
+
+<h2 id="zongshuo">General Discussion<span class="hz">總說</span></h2>
+<p class="lead">The opening statement. "Six sixes are thirty-six" is not arithmetic for its own sake: in classical usage thirty-six is a conventional figure for "more than one can count," and the claim is that stratagems are inexhaustible. The real argument is in the second clause — there is number in method and method in number. Number here means the objective conditions of a situation and the way they are trending; method means what a person does about them. Practise the methods without reading the conditions and the methods will mostly miss. The last two lines are the limit the book sets on itself: the opening lies in the empty place, and it is waited for and seen, not manufactured; contrive one and you will not strike home.</p>
+<p>Six sixes are thirty-six. Within number there is method, and within method there is number. Yin and yang temper one another, and the pivot lies in the emptiness; but the pivot cannot be contrived, and if contrived it does not strike home.</p>
+<p class="an">The verses set more store by number than by principle, for the principle is plain from the terms themselves, whereas the number lies outside the words. If a man knows only that a method is a method, and does not know that within method there is number, then his methods will often fail to answer. Besides, cunning and manoeuvre grow inside the ordinary logic of affairs and of human feeling; once a thing is done outside all precedent the oddity shows at once, the world stares, and the scheme is out. Some say: of the thirty-six stratagems every six make a set — the first set for winning, the second for confronting an equal, the third for attack, the fourth for the mêlée, the fifth for fighting alongside another, the sixth for defeat.</p>
+<h2 id="set1">Stratagems When in Command<span class="hz">第一套　勝戰計</span></h2>
+<p class="lead">Six stratagems for when you are the stronger party and hold the initiative. None of them involves meeting force with force: cross the sea by hiding the extraordinary inside the routine; relieve Zhao by striking Wei where it is empty; kill with a borrowed knife by making a third party strike; wait at ease while the enemy tires himself; loot the house that is already burning; make a noise in the east and strike in the west. The characteristic error of the stronger side is to hurry into a decisive battle, and this set is about converting an advantage into a result without paying for it.</p>
+<h3 id="ji1">1. Cross the Sea by Deceiving Heaven<span class="hz">瞞天過海</span></h3>
+<p>Thorough preparation breeds slackness of mind; what is seen every day rouses no suspicion. The hidden lies inside the open, not opposite it. Utmost yang, utmost yin.</p>
+<p class="an">A covert act is not to be carried out by withdrawing into some secret place. Theft at midnight, murder in a back lane — these are the ways of fools, not what a strategist does.</p>
+<h3 id="ji2">2. Besiege Wei to Rescue Zhao<span class="hz">圍魏救趙</span></h3>
+<p>Better to divide the enemy than to face him massed; better to strike where he is empty than where he is full.</p>
+<p class="an">Handling troops is like handling water: where he is sharp, avoid his edge, as one leads a flood away; where he is weak, stop up the gap, as one throws up a dyke. So when Qi went to the relief of Zhao, Sun Bin said to Tian Ji: "He who would untangle a snarl does not pull at it with a clenched fist; he who would part a fight does not join in the blows. Grip the throat, strike at the void — let the shape be blocked and the momentum forbidden, and the thing unties itself."</p>
+<h3 id="ji3">3. Kill with a Borrowed Knife<span class="hz">借刀殺人</span></h3>
+<p>The enemy is clear, the ally not yet committed: draw the ally into killing the enemy and spend none of your own strength. This is worked out from the hexagram Decrease.</p>
+<p class="an">When the enemy has shown his hand and a second power is rising and about to act, borrow that power to destroy him. Thus Duke Huan of Zheng, meaning to fall upon Kuai, first wrote out the names of every man of standing in Kuai — the good ministers, the eloquent, the bold — chose the best fields of Kuai to promise them, wrote in the ranks and titles they were to receive, then built an altar outside the city gate and buried the document there, smearing it with the blood of a cock and a boar as though a covenant had been sworn. The lord of Kuai took it for treason within, and put all his good ministers to death; Huan fell upon Kuai and took it. So too Zhuge Liang made peace with Wu to resist Wei; and when Guan Yu was besieging Fan and Xiang and Cao Cao thought of moving his capital, Sima Yi and Jiang Ji said to him: "Liu Bei and Sun Quan are close in appearance and distant in fact. If Guan Yu has his way, Sun Quan will not be pleased. Send a man to come in behind him and promise to cut off the lands south of the river as Sun Quan's fief, and the siege of Fan will lift of itself." Cao Cao did so, and Guan Yu was taken.</p>
+<h3 id="ji4">4. Wait at Ease for the Weary Enemy<span class="hz">以逸待勞</span></h3>
+<p>To exhaust the enemy's momentum, one need not give battle: decrease the hard, increase the yielding.</p>
+<p class="an">This is the art of drawing the enemy. The military classic says: "Whoever occupies the ground of battle first and waits is at ease; whoever comes late and hurries into the fight is weary. Therefore the skilled commander draws the enemy and is not drawn by him." The classic speaks of the enemy; this speaks of momentum. The point is therefore not to choose a place and wait, but to govern the complicated by the simple, to answer change by not changing, to answer great change by small change, to answer movement by stillness, great movement by small movement — as the hinge answers the swinging ring. Guan Zhong hid his military orders inside the civil administration and made himself solid and ready; Sun Bin ambushed Pang Juan on the Maling road; Li Mu held Yanmen and for a long time would not fight, while quietly making all ready, and when he did fight he broke the Xiongnu utterly.</p>
+<h3 id="ji5">5. Loot a Burning House<span class="hz">趁火打劫</span></h3>
+<p>When the enemy's troubles are grave, take your profit from the situation. The hard settles the yielding.</p>
+<p class="an">If his trouble is within, take his land; if it is without, take his people; if within and without together, take his state. Thus the king of Yue laid his plans against Wu in the year when the crabs left not a seed of rice standing; and in the end, while the king of Wu was north at Huangchi in conference with the lords and the country stood empty behind him, Yue struck in and won all.</p>
+<h3 id="ji6">6. Make a Sound in the East, Strike in the West<span class="hz">聲東擊西</span></h3>
+<p>When the enemy's will is scattered and cannot gather, and he foresees nothing — the image of Gathering, Earth below and Lake above — profit by his not being master of himself, and take him.</p>
+<p class="an">In the Western Han, when the seven kingdoms rebelled, Zhou Yafu held his walls and would not fight. The Wu troops threw themselves at the south-east corner of the rampart; Yafu strengthened the north-west; and presently the king of Wu's picked men did indeed attack the north-west, and could not get in. Here the enemy's will was unshaken and he was still master of himself. At the end of the Han, Zhu Jun besieged the Yellow Turbans in Wan: he drew his lines, threw up ramparts, raised an earthen mound to overlook the town, and beat his drums against the south-west, so that the Turbans went there in a body; then he led five thousand picked men himself against the north-east and entered on the void. Here the enemy's will was scattered and he foresaw nothing. So this stratagem must be decided by whether the enemy's will is in disorder: if it is, you win; if it is not, you are courting ruin. It is a dangerous stratagem.</p>
+<h2 id="set2">Stratagems Against an Equal<span class="hz">第二套　敵戰計</span></h2>
+<p class="lead">Six stratagems for when the two sides are evenly matched. Since neither can swallow the other by force, the contest moves to information: make something out of nothing; cross at Chencang while the world watches the plank road; watch the fire from the far bank instead of attacking; hide a knife behind a smile; let the plum tree die for the peach; and walk off with whatever the enemy has left lying about. The set is about manufacturing an asymmetry inside a symmetrical situation.</p>
+<h3 id="ji7">7. Create Something from Nothing<span class="hz">無中生有</span></h3>
+<p>It is a deception, and it is not a deception: what was feigned is then made real. Lesser yin, utmost yin, utmost yang.</p>
+<p class="an">To show something where there is nothing is deception. Deception cannot last and is easily seen through, so the nothing must not stay nothing. To create something from nothing is to pass from the false to the true, from the empty to the full: nothing alone will not beat the enemy, but nothing turned into something will. Thus when Linghu Chao besieged Yongqiu, Zhang Xun bound up more than a thousand straw men, dressed them in black, and let them down from the wall at night; Chao's soldiers shot at them and Zhang Xun gathered several hundred thousand arrows. A few nights later he let real men down, and Chao's soldiers laughed and did not stand to arms — whereupon five hundred picked men cut into Chao's camp, burned his tents, and chased him ten li and more.</p>
+<h3 id="ji8">8. Cross at Chencang by the Hidden Road<span class="hz">暗渡陳倉</span></h3>
+<p>Show him movement, and profit by his sitting still in the belief that he is master of the matter. "Increase moves, and moves with deference."</p>
+<p class="an">The unorthodox comes out of the orthodox, and without the orthodox there is no unorthodox. Unless the plank road is openly repaired, Chencang cannot be crossed in secret. Long ago Deng Ai camped north of the Baishui; Jiang Wei sent Liao Hua to camp on the south bank. Deng Ai said to his officers: "Jiang Wei means to keep us from getting back. Our force is small; by rights he should cross and attack, yet he builds no bridge. This is Jiang Wei using Liao Hua to hold me here — he will certainly go east and take Taocheng." That very night Deng Ai moved his men secretly straight to Taocheng. Jiang Wei did come across, but Deng Ai was there first and held the town, and so it was not lost. Here Jiang Wei used the hidden crossing badly, and Deng Ai saw through the feint.</p>
+<h3 id="ji9">9. Watch the Fire from the Far Bank<span class="hz">隔岸觀火</span></h3>
+<p>When his disorder is already out in the open, wait in the dark for it to turn on itself. The violent and unbridled will destroy themselves by their own momentum. "Move with the grain, as in Contentment; Contentment moves with the grain."</p>
+<p class="an">When bad blood is running high, press them and they close ranks; draw off and leave them alone, and the trouble starts by itself. Long ago Yuan Shang and Yuan Xi fled to Liaodong with some thousands of horse still at their back. The governor of Liaodong, Gongsun Kang, trusting to his distance, had never submitted. When Cao Cao had broken the Wuhuan, someone urged him to go on and take Liaodong, saying the Yuan brothers could be caught there. Cao Cao said: "I am about to have him cut off their heads and send them to me. There is no need to trouble the army." In the ninth month Cao Cao led his troops back from Liucheng, and Gongsun Kang at once beheaded Yuan Shang and Yuan Xi and forwarded the heads. When his officers asked why, Cao Cao said: "Gongsun Kang has always feared the Yuans. Press them and they combine; ease off and they plot against each other. That is simply how the situation stands." Some say this is the doctrine of the chapter on attack by fire: the first half of that chapter treats of the method of firing, the second of caution in acting, and the sense agrees with watching the fire from the far bank.</p>
+<h3 id="ji10">10. Hide a Knife Behind a Smile<span class="hz">笑裏藏刀</span></h3>
+<p>Win his trust and set him at ease; plot against him in the dark; be ready before you move, and let nothing change midway. Hard within, soft without.</p>
+<p class="an">The military classic says: "Humble words and increased preparation mean he is about to advance; … a suit for peace without terms means he is scheming." So whenever an enemy turns fair-spoken and pleasant-faced, the killing intent has shown itself. In the Song, Cao Wei governed Weizhou; his orders were clear and strict, and the Xia went in fear of him. One day, as he sat at chess with a guest, several thousand mutinous soldiers deserted across the Xia frontier. When the scout came in with the news, his officers looked at one another and changed colour; Cao Wei went on talking and laughing as before, and said quietly to the scout: "They went at my order. Say nothing of it." The Xia heard this, took the deserters for men sent to attack them, and killed them all. That is the use of the stratagem on the spur of the moment. Gou Jian's years of service to Fuchai, on the other hand, were meant to set the man at ease over a long time.</p>
+<h3 id="ji11">11. Let the Plum Tree Wither in Place of the Peach<span class="hz">李代桃僵</span></h3>
+<p>When loss is certain, let the lesser part be lost so that the greater may gain.</p>
+<p class="an">Our side and the enemy's each have their strong points and their weak ones. In war a complete victory is rare, and the secret of winning lies in how the strong and weak are matched against each other — which is how a weaker piece can be made to beat a stronger. So with the horse-races of Tian Ji: set your worst horse against his best, your best against his middling, your middling against his worst. This is a trick peculiar to the strategists, and not to be arrived at by ordinary reasoning.</p>
+<h3 id="ji12">12. Lead Away the Sheep in Passing<span class="hz">順手牽羊</span></h3>
+<p>No gap is too small to be entered; no gain too small to be taken. A little yin, a little yang.</p>
+<p class="an">Where a great army moves there are gaps in plenty. Take your profit from them; you need not wait for a victory to do it. It serves as well in defeat as in success.</p>
+<h2 id="set3">Stratagems of Attack<span class="hz">第三套　攻戰計</span></h2>
+<p class="lead">Six stratagems for when you take the offensive. The difficulty of attacking is not whether you can move, but whether you can see before you move and stop after you have moved: beat the grass to start the snake; borrow a corpse to bring back a soul; lure the tiger down from the mountain instead of storming it; loosen your grip so the enemy falls apart of himself; throw a brick that is of the same kind as the jade you want; and spend everything on the enemy's hinge rather than his edges.</p>
+<h3 id="ji13">13. Beat the Grass to Start the Snake<span class="hz">打草驚蛇</span></h3>
+<p>Where there is doubt, knock and find the truth of it; observe, and then move. Repeated probing is the go-between that brings out what is hidden.</p>
+<p class="an">When the enemy does not show his strength and his designs are deeply laid, do not advance lightly: probe everywhere along his edge. The military classic says: "Where there are defiles, ponds, reeds, woods or thick cover beside the army, search them again and again with care — that is where ambushes and spies lie hidden."</p>
+<h3 id="ji14">14. Borrow a Corpse to Bring Back a Soul<span class="hz">借屍還魂</span></h3>
+<p>What is still of use cannot be borrowed; what can no longer be used is there for the asking. Borrow the useless and put it to use — "it is not I who seek the young fool; the young fool seeks me."</p>
+<p class="an">At the turn of a dynasty, when men set up the heirs of fallen houses one after another, that is the sense of borrowing a corpse to bring back a soul. Every case of lodging military command in another man's name while doing his attacking and defending for him belongs here.</p>
+<h3 id="ji15">15. Lure the Tiger Down from the Mountain<span class="hz">調虎離山</span></h3>
+<p>Wait upon heaven to hem him in; use men to draw him out. "Going is hard; coming brings union."</p>
+<p class="an">The military classic says that attacking cities is the worst policy; to storm a strong place is to court destruction. Since the enemy holds the ground, do not contest the ground. Moreover he has a head and his force is great: having a head, he will not stir except for gain; his force being great, nothing but heaven and men used together will beat him. At the end of the Han, several thousand Qiang barred Yu Xu's way in the Yao gorge near Chencang. Yu Xu halted his column and gave it out that he had written for reinforcements and would not move until they came. Hearing this, the Qiang split up to raid the neighbouring counties. Yu Xu, finding their force dispersed, marched day and night, covering over a hundred li a day, and ordered each soldier to build two cooking fires, doubling the number every day. The Qiang dared not close with him, and he broke them utterly. Waiting for reinforcements was the bait; marching day and night was the use of the season to hem them in; doubling the fires was the human contrivance that confused them.</p>
+<h3 id="ji16">16. To Catch, Let Loose<span class="hz">欲擒故縱</span></h3>
+<p>Press him and he turns and fights; let him go and his momentum drains away. Follow close but do not press. Wear down his strength, wear away his will; take him after he has fallen apart, and the blade need not be bloodied. "Waiting: there is confidence; there is light."</p>
+<p class="an">"Letting loose" does not mean letting go. It means following, and easing the grip a little. "Do not pursue a cornered enemy" is the same thought: not to pursue is not to stop following — it is only not to press. Zhuge Liang taking Meng Huo seven times and seven times releasing him was letting loose and following after, and so the advance went on winding forward into barren country. But Zhuge Liang's seven releases were meant to extend the territory and to use Meng Huo to bring the tribes over; that is not the art of war. Considered as fighting, what has been caught must not be let go again.</p>
+<h3 id="ji17">17. Throw a Brick to Draw out the Jade<span class="hz">拋磚引玉</span></h3>
+<p>Lure him with something of the same kind; strike at what he cannot see.</p>
+<p class="an">There are many ways of luring an enemy; the best does not lie in resemblance but in sameness of kind, which hardens his mistake. To lure with banners, gongs and drums is resemblance; to lure with old and weak soldiers, or with grain and baggage, is sameness of kind. Thus when Chu attacked Jiao and camped before its south gate, Qu Xia said: "Jiao is small and rash; being rash it has few plans. Let us not guard our woodcutters, and so draw them out." It was done, and the men of Jiao took their prize. The next day they came pouring out and drove the Chu labourers into the hills; but Chu held the north gate and had laid an ambush below the hills, and routed them, so that Jiao swore a treaty under its own walls. So too Sun Bin reduced his cooking fires day by day and drew Pang Juan to his death.</p>
+<h3 id="ji18">18. To Catch the Bandits, Catch the Chief<span class="hz">擒賊擒王</span></h3>
+<p>Break what is hard in him, take his head man, and the body falls apart. "The dragon fights in the open field: his way is at an end."</p>
+<p class="an">When the attack succeeds the spoils are past counting; but to take the small and lose the great — that profits the rank and file, burdens the officers, harms the commander and spoils the whole attack. To hold a winning position and not break the hard core and take the chief is to let the tiger back into the hills. The way to take the chief is not to look for his banners but to watch which man in the ranks the whole array moves with. Long ago, in the fighting with Yin Ziqi, Zhang Xun charged straight into the enemy camp and reached Ziqi's own standard; the camp fell into confusion and more than fifty of their officers and five thousand men were killed. Zhang Xun wanted to shoot Ziqi but could not tell which man he was, so he shot arrows whittled from artemisia stalks. The man who was hit, delighted, took it that Zhang Xun's arrows were spent, and ran to tell Ziqi — and so Ziqi was identified. Zhang Xun had Nan Jiyun shoot him; the arrow took him in the left eye, and he was nearly captured, so that he drew off his army and withdrew.</p>
+<h2 id="set4">Stratagems for the Mêlée<span class="hz">第四套　混戰計</span></h2>
+<p class="lead">Six stratagems for a confused field with no clean line between friend and enemy. In such a field the valuable thing is not to win but not to be pinned: draw the firewood from under the cauldron rather than fight the boiling water; fish in troubled waters and pick off the weak; slip out of the shell and leave the shape standing; shut the door to catch the thief — not because he might escape but because someone else might pick him up; make friends at a distance and attack near at hand; borrow a road and then swallow the lender too. The theme is that in a mêlée position matters more than strength.</p>
+<h3 id="ji19">19. Draw the Firewood from Under the Cauldron<span class="hz">釜底抽薪</span></h3>
+<p>Do not meet his force; drain away his momentum. The image of Lake below and Heaven above.</p>
+<p class="an">Boiling water is force — the force of fire, the yang within yang, and not to be withstood. Firewood is the soul of the fire, that is, the source of the force: yin within yin, and one may go near it without harm. So the force cannot be met, but the momentum can still be drained. The Weiliaozi says: "When spirit is full men fight; when spirit is taken away they run." And the way to take away spirit is to attack the mind. Long ago, when Wu Han was Grand Marshal, raiders attacked his camp by night and the army was thrown into alarm; Wu Han lay still and did not stir, and when the army heard that he had not stirred, after a while it settled. He then picked out his best troops, counter-attacked, and broke the enemy — not meeting the force head-on, but putting out the momentum. In the Song, Xue Changru was administrator of the three prefectures of Han, Hu and Hua, and resided at Hanzhou. Several hundred of the garrison mutinied, threw open the camp gate and planned to kill the prefect and the military inspector and fire the camp. When word came, neither prefect nor inspector dared go out. Xue Changru went alone and on foot, climbed in through a broken wall, and spoke to the mutineers of what they stood to gain and lose: "Every one of you has parents, a wife, children. Why do this? Let those who rebel stand on the left, those who were forced along stand on the right." Several hundred who had not been in the plot stood on the right; only the thirteen ringleaders burst out of the gate and scattered into the villages, and were soon taken. People said at the time that but for Xue Changru the whole city would have been laid waste. That is the use of attacking the mind to take away spirit. Some say: when two enemies face each other, to strike at the void of the stronger and spoil the success he is about to win is also this stratagem.</p>
+<h3 id="ji20">20. Fish in Troubled Waters<span class="hz">混水摸魚</span></h3>
+<p>Profit by the hidden disorder among them; profit by those who are weak and have no head. "Following: at nightfall go in and rest."</p>
+<p class="an">In a time of upheaval, when several forces are colliding, the weak waver with no one to follow, scattered and blind to what is happening, and we take them as the current carries them. The Six Secret Teachings says: "When the army is repeatedly alarmed; when the soldiers are not of one mind; when they frighten one another with the enemy's strength and tell one another that things go badly; when heads are together and rumour does not stop, and every mouth confuses the rest; when they do not fear the law and make little of their commander — these are the signs of weakness." Those are the fish: in the confusion of a general fight, pick these out and take them. So Liu Bei got Jingzhou, and so he took the western provinces.</p>
+<h3 id="ji21">21. The Cicada Sheds Its Shell<span class="hz">金蟬脫殼</span></h3>
+<p>Keep the shape, keep the posture whole: the ally does not doubt, the enemy does not move. "Deferring and then halting" — the hexagram Work on What Has Been Spoiled.</p>
+<p class="an">You are fighting an enemy alongside an ally and watching how things go; if there is a second enemy elsewhere, you must leave and yet leave the posture standing. Shedding the shell, then, is not simply running away; it is a way of being in two places. The main body moves off while the banners, gongs and drums stand as in the original array, so the enemy dares not stir and the ally suspects nothing; and by the time you have broken the other enemy and come back, ally and enemy learn of it — or do not learn of it at all. So the shedding of the shell is the drawing off of picked troops, in the very face of one enemy, to fall upon another position. Thus when Zhuge Liang died with the army and Sima Yi came after them, Jiang Wei had Yang Yi turn the banners about and beat the drums as though to go at Sima Yi; Sima Yi withdrew, and Yang Yi formed up and marched away. And when Tan Daoji was surrounded, he ordered every soldier into armour while he himself, in white, rode slowly out beyond the lines; the Wei troops, fearing an ambush, dared not close, and he went home.</p>
+<h3 id="ji22">22. Shut the Door to Catch the Thief<span class="hz">關門捉賊</span></h3>
+<p>A small enemy is to be hemmed in. "Splitting Apart: it does not further one to go anywhere."</p>
+<p class="an">One shuts the door to catch the thief not for fear that he will get away, but for fear that if he gets away someone else will have him; besides, one who has got away must not be pursued, for the flight may be a lure. The "thief" is an irregular, a rover, whose whole purpose is to wear us out. Master Wu says: "Set one desperate bandit in an open field and let a thousand men hunt him: not one of them but peers about like an owl and looks back like a wolf. Why? For fear he should spring up and do them harm. Thus one man who has thrown his life away is enough to frighten a thousand." While he is being chased the thief still has his chance of escape, and will certainly fight to the death; cut off his line of retreat and he is taken. So a small enemy must be hemmed in; and if you cannot hem him in, you may as well let him go.</p>
+<h3 id="ji23">23. Befriend the Distant, Attack the Near<span class="hz">遠交近攻</span></h3>
+<p>When the ground confines you and the situation is blocked, take your gain from what is near and keep what harms you at a distance. Fire above, lake below.</p>
+<p class="an">In a general mêlée, amid all the alliances made and broken, each takes what profit he can. What is distant cannot be attacked, but can be bound to you by interest; what is near, if you make a friend of it, will breed trouble at your very elbow. Fan Ju's advice was a rule fixed by geography, and the reason of it is plain.</p>
+<h3 id="ji24">24. Borrow the Road to Strike at Guo<span class="hz">假道伐虢</span></h3>
+<p>For the small state between two great ones: when the enemy coerces it into submission, we lend it a posture to lean on. "Oppression: words are not believed."</p>
+<p class="an">Borrowing a road for one's troops is not a thing to be got by fair words. It must be that the small state's position is such that if it does not submit to the one side it will be crushed between both. In that case the enemy will press it with threats, while we soothe it with promises of no harm; profiting by its hope of coming through, we gain the whole position at a stroke, and since it cannot hold a line of its own we destroy it without a battle. Thus the marquis of Jin borrowed a road through Yu in order to attack Guo; Jin destroyed Guo and the duke of Guo fled to the capital — and on the way home the army fell upon Yu and destroyed that too.</p>
+<h2 id="set5">Stratagems Among Allies<span class="hz">第五套　並戰計</span></h2>
+<p class="lead">Six stratagems for fighting beside an ally while intending to absorb him. Nowhere is the temper of this book plainer: the opponent here is nominally one's own side. Steal the beams and pillars out of the ally's array; curse the locust tree while pointing at the mulberry, to warn subordinates who have not yet submitted; feign stupidity while the moment is not ripe; put up the ladder and then take it away; make flowers bloom on a tree that has none, borrowing another's situation to give weight to your own; and turn from guest into host in five deliberate steps.</p>
+<h3 id="ji25">25. Steal the Beams and Change the Pillars<span class="hz">偷樑換柱</span></h3>
+<p>Make him change his array again and again, draw off his best troops, wait for him to fall of himself, and then come in upon him. "Dragging the wheel."</p>
+<p class="an">An array has its cross-line and its long axis: the cross-line is the beam, the axis is the pillar, and beam and pillar are made of picked troops — so that by looking at a man's array you know where his best men are. While fighting a third enemy beside him, make him change his array repeatedly, quietly draw off and replace his picked troops, or even become his beam and pillar yourself; and when the thing is ripe and his array collapses, take his soldiers into your own. This is the first of the stratagems for using one enemy to strike another.</p>
+<h3 id="ji26">26. Point at the Mulberry and Curse the Locust<span class="hz">指桑罵槐</span></h3>
+<p>When the great would hold down the small, guide them by warning. Firmness in the centre and an answering response; it goes by a dangerous road and yet goes smoothly.</p>
+<p class="an">If you lead against the enemy men who have not yet submitted, and orders do not move them, while inducements only raise their suspicions — then make a show of finding fault, blame another man's failing, and so warn them without saying so. To warn is a way of leading: this is driving men by firmness along a dangerous road. Some say: this is the art of handling one's officers.</p>
+<h3 id="ji27">27. Feign Stupidity Without Going Mad<span class="hz">假痴不顛</span></h3>
+<p>Better to feign not knowing and not acting than to feign knowing and act rashly. Be still and let no spring of action show — the thunder within the cloud, as in Difficulty at the Beginning.</p>
+<p class="an">To feign not knowing while in fact knowing; to feign not acting while in fact one cannot yet act, or is about to. Sima Yi feigned illness and dotage and destroyed Cao Shuang; he accepted the woman's headdress and made a show of asking leave to fight, and so wore out the army of Shu — and he succeeded. Jiang Wei invaded the central plain nine times, knowing it could not be done and doing it anyway: that is real foolishness, and he was destroyed. The military classic says: "The victories of the skilled commander bring him no name for wisdom and no credit for courage." While the moment has not come, to sit still looks like stupidity; but to play the madman not only shows the spring of action, it sets one moving wildly and makes everyone suspicious. So the man who feigns stupidity wins and the man who feigns madness loses. Some say: feigned stupidity serves against the enemy and also in the handling of troops. In the Song the southern country was given to spirits. When Di Qing marched against Nong Zhigao and the army had just passed south of Guilin, he made a show of praying: "There is nothing to go on as to victory or defeat." Then he took a hundred coins in his hand and made a compact with the god: if there was to be a great victory, these coins thrown down would fall all face up. His staff begged him not to, since a bad cast would dishearten the army; Di Qing would not listen. With ten thousand men staring up, he swung his hand and threw — and all hundred came down face up. The army broke into a shout that shook the woods, and Di Qing too was delighted. He turned and sent for a hundred nails, pinned each coin to the ground where it lay, covered them with a blue gauze, sealed it with his own hand and said: "When we return in triumph I shall thank the god and take up the coins." Afterwards, having pacified Yongzhou, he came back and took them up as he had said, and the gentlemen of his staff crowded round to look: the coins had a face on both sides.</p>
+<h3 id="ji28">28. Take Away the Ladder from the Roof<span class="hz">上屋抽梯</span></h3>
+<p>Lend him the means, egg him forward, cut off his support, and strand him in dead ground. "He meets poison: his position is not the right one."</p>
+<p class="an">To egg a man on is to drive him with an inducement. But an inducement without the means may still not move him. So in setting up this stratagem the ladder must first be put in place, or at least shown to him. Thus Murong Chui, Yao Chang and the rest urged Fu Jian to invade Jin, so that they might take the chance to rise on their own account.</p>
+<h3 id="ji29">29. Make Flowers Bloom on a Barren Tree<span class="hz">樹上開花</span></h3>
+<p>Borrow a situation to set out your posture: small force, large appearance. "The wild goose draws near the high ground; its feathers can be used for the ceremonial dance."</p>
+<p class="an">This tree has no flowers of its own, but a tree may have flowers: cut them out of coloured silk and fasten them on, and one who does not look closely will hardly notice; let flower and tree set each other off, and the whole makes a finished picture. What this really means is placing one's own picked troops within an ally's array, completing the look of it, and so overawing the enemy.</p>
+<h3 id="ji30">30. Turn the Guest into the Host<span class="hz">反客為主</span></h3>
+<p>Put a foot in at the gap and grip the joint on which his authority turns. Advance as in the hexagram Gradual Progress.</p>
+<p class="an">He whom others drive is a slave; he whom others treat with respect is a guest. A guest who cannot get a footing is a passing guest; one who can is a settled guest; a settled guest who still has no say in affairs is a mean guest; but once he has a say he can gradually take hold of what matters and become the host. So there are five steps: first, win the guest's place; second, wait for the gap; third, put in your foot; fourth, take hold of the hinge; fifth, and only then, succeed. Once host, you have absorbed the other man's army: this is a slow, patient scheme. Thus Li Yuan wrote deferring to Li Mi, and Li Mi came to ruin by it; and the founder of the Han, seeing that he was not yet a match for Xiang Yu, served him humbly and won his trust while eating away at his strength, until at Gaixia he finished him at a stroke.</p>
+<h2 id="set6">Stratagems in Defeat<span class="hz">第六套　敗戰計</span></h2>
+<p class="lead">Six stratagems for when you are the weaker party and already going down. At that point the only thing left to work on is the enemy's judgement: attack his general rather than his soldiers; when the city really is empty, show it empty; turn his own eyes and ears into yours; spend your own flesh to buy one sentence he will believe; make his very size drag on him; and, last, admit that this battle cannot be fought. The final stratagem closes the book: "to run is not yet to be beaten, and not to be beaten is where a victory may still turn."</p>
+<h3 id="ji31">31. The Beauty Trap<span class="hz">美人計</span></h3>
+<p>If his soldiers are strong, attack his general; if his general is clever, work on his feelings. Let the general weaken and the troops sag, and the whole momentum withers of itself. "It furthers one to resist the robber: by going with the grain one keeps oneself safe."</p>
+<p class="an">When his soldiers are strong and his general clever, he cannot be met, and one must for the time being serve him. To serve him with territory increases his power, as the six states served Qin: the worst policy of all. To serve him with silk and money increases his wealth, as the Song served the Liao and the Jin: a poor policy. Only serving him with beauty will idle his purpose, weaken his body, and breed resentment among those below him. So Gou Jian pleased Fuchai with Xi Shi and with treasure, and was able to turn defeat into victory.</p>
+<h3 id="ji32">32. The Empty City<span class="hz">空城計</span></h3>
+<p>When you are empty, show yourself empty: doubt breeds doubt. At the joint between hard and soft, be unorthodox and then unorthodox again.</p>
+<p class="an">Empty and full by turns — war has no fixed form. Showing emptiness when one is in fact empty did not end with Zhuge Liang. When the Tibetans took Guazhou and Wang Junhuan fell, the whole Hexi corridor was in terror. Zhang Shougui was made prefect of Guazhou and set about rebuilding the city wall with what men were left. The ramming-frames were barely up when the enemy came on again; there was almost nothing to defend with; the men in the town looked at one another and had no heart to fight. Zhang Shougui said: "They are many and we are few, and we are fresh from a mauling. We cannot stand against them with arrows and stones; we must manage them by a turn of wit." So he set out wine and music on the wall and gathered his officers there. The enemy suspected the town was ready for them, dared not attack, and withdrew. So too Zu Ting, prefect of Northern Xuzhou, arriving at his post just as raiders from Chen came in and many of the people rose. He left the gates open, ordered every man off the battlements to sit quietly in the lanes, and forbade all traffic, even the noise of fowls and dogs. The raiders could see and hear nothing and could not make it out; some suspected the people had fled and the town stood empty, and they set no watch. Then Zu Ting had his men raise a great shout and beat their drums till the sky rang, and the raiders in their fright scattered on the spot.</p>
+<h3 id="ji33">33. Turn the Enemy's Spy<span class="hz">反間計</span></h3>
+<p>Doubt within doubt. "He joins with those within: he does not lose himself."</p>
+<p class="an">To "put a wedge in" is to set the enemy suspecting one another; to turn the wedge is to use the enemy's own agent to do it. When King Zhao of Yan died, King Hui — who had been at odds with Yue Yi since he was crown prince — came to the throne. Tian Dan let the rumour out: "Yue Yi has fallen out with the king of Yan and fears execution; he means to join forces with the men of Qi and make himself king here, but they have not yet come over to him, and that is why he presses the siege of Jimo so gently — he is waiting on that. What the men of Qi dread is that another general should come; then Jimo is finished." King Hui heard it and at once sent Qi Jie to take over the command, and Yue Yi fled to Zhao. So too Zhou Yu used Cao Cao's own agents to set Cao Cao against his admirals; and Chen Ping spent gold to spread rumours in the Chu army against Fan Zeng, so that the king of Chu suspected him and put him away. These too are doubt within doubt.</p>
+<h3 id="ji34">34. The Stratagem of Self-Injury<span class="hz">苦肉計</span></h3>
+<p>No man harms himself, so harm received must be genuine. Make the false true and the true look false, and the wedge goes in. "The good fortune of the young fool lies in deferring and yielding."</p>
+<p class="an">To put in a wedge is to make the enemy suspect one another; to turn a wedge is to take the suspicion the enemy already has and make it solid; the stratagem of self-injury is to feign being wedged out by one's own side in order to wedge another. Every case of sending a man who has a grievance against you to draw the enemy on — arranging a signal, or a joint effort — belongs to this class. Thus Duke Wu of Zheng, meaning to attack Hu, first married his daughter to its ruler and then put Guan Qisi to death for proposing the attack; and Han Xin fell upon Qi, so that Li Yiji, who had already talked Qi into surrender, was boiled alive.</p>
+<h3 id="ji35">35. Stratagems in Chain<span class="hz">連環計</span></h3>
+<p>When his officers are many and his troops numerous and he cannot be met head-on, make him encumber himself, and so kill his momentum. "To be in the midst of the army brings good fortune: he is upheld by heaven's favour."</p>
+<p class="an">Pang Tong got Cao Cao to chain his warships together, and then they were set alight and could not get away. So the knot of the chained stratagem is to make the enemy encumber himself and then to work against him: one stratagem to encumber him, another to attack him, the two hooked together to break a superior force. Thus Bi Zaiyu of the Song drew the enemy into a fight and went forward and back three or four times over; and when he saw that the day was late, he boiled black beans with spices and scattered them on the ground, then came forward to fight again and made a show of being beaten. The enemy pursued in triumph; but their horses were hungry, and smelling the beans put their heads down to eat and would not go on for any whipping. Bi Zaiyu turned his army about, counter-attacked, and won a great victory. All these are stratagems in chain.</p>
+<h3 id="ji36">36. Running Away Is Best<span class="hz">走為上</span></h3>
+<p>Save the army whole and avoid the enemy. "To camp off to the left is without blame: it does not depart from the ordinary."</p>
+<p class="an">When the enemy has every advantage and we cannot fight, there remain only surrender, terms, or flight. Surrender is total defeat, terms are half a defeat, flight is not yet defeat — and not being defeated is where a victory may still turn. Thus Bi Zaiyu of the Song, facing the Jin and reckoning that their numbers grew daily and that he could not contest the field, struck camp one night and went. He left the banners standing, hung live goats up by the heels with their forefeet resting on the drums; and the goats, unable to bear the hanging, kicked the drums so that they sounded. The Jin never noticed that the camp was empty, and stood facing it for several days before they saw; and when they wanted to pursue, he was long gone. A man who knew how to run away.</p>
+
+    <a class="top" href="#">&mdash; top &mdash;</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var d=document;
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>
