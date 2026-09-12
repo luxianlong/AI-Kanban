@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-sunzi-hans",
+    "title": "孙子兵法（白文·十三篇）· 简体版",
+    "href": "/p/sunzi-hans.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T07:31:18.984Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi-hans.html",
+      "frontend/public/p/sunzi-hans.meta.json"
+    ]
+  },
+  {
     "id": "upload-sunzi",
     "title": "孫子兵法（白文·十三篇）",
     "href": "/p/sunzi.html",
