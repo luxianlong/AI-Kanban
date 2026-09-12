@@ -195,6 +195,51 @@
     ]
   },
   {
+    "id": "upload-daodejing-hans",
+    "title": "道德经 · 简体版",
+    "href": "/p/daodejing-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T13:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daodejing-hans.html",
+      "frontend/public/p/daodejing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-daodejing",
+    "title": "道德經 · 繁體版",
+    "href": "/p/daodejing.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T13:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daodejing.html",
+      "frontend/public/p/daodejing.meta.json"
+    ]
+  },
+  {
+    "id": "upload-daodejing-en",
+    "title": "The Daodejing (English)",
+    "href": "/p/daodejing-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T13:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daodejing-en.html",
+      "frontend/public/p/daodejing-en.meta.json"
+    ]
+  },
+  {
     "id": "upload-page-89f133c0",
     "title": "苹果发布会（配图版）",
     "href": "/p/page-89f133c0.html",

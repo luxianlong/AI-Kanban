@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Daodejing (English)</title>
+<meta name="description" content="A complete English translation of Laozi&#39;s Daodejing — all eighty-one chapters, Book One on the Way and Book Two on Power — made from the Shanghai Wenruilou reprint of the Hua-ting Zhang text with Wang Bi&#39;s commentary.">
+<style>
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif;
+  line-height:1.75; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(32px,6vw,54px); letter-spacing:.02em;
+  text-indent:0; font-weight:600; line-height:1.3;
+}
+.mast h1 .hz{display:block; font-size:.4em; letter-spacing:.34em; text-indent:.34em;
+  color:var(--ink-soft); font-weight:400; margin-top:14px}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.06em; text-align:center; text-indent:0}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.78rem; letter-spacing:.1em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.bar .tag{font-size:.6em; letter-spacing:.06em; opacity:.7; margin-left:.4em;
+  align-self:flex-start; margin-top:.5em}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:256px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.8rem; line-height:1.85;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:1px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.04em}
+  nav.toc a.l3{padding-left:20px}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.16em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px}
+
+main{padding:34px 0 100px; max-width:36em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.5rem; font-weight:600;
+  letter-spacing:.04em; text-indent:0; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:60px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.03em; text-indent:0; scroll-margin-top:24px;
+}
+h2 .hz,h3 .hz{font-weight:400; color:var(--ink-soft); letter-spacing:.16em;
+  font-size:.78em; margin-left:.5em}
+p{margin:1.05em 0}
+main > p{text-indent:0}
+
+/* 按語 — the commentary paragraph that follows each verse. The 底本 prints it as
+   one block opening with the character 按, so the marker is drawn by CSS rather
+   than carried in the text: it must not end up in a copied selection. */
+p.an::before{
+  content:"Note. "; color:var(--seal); font-weight:600;
+  letter-spacing:.02em;
+}
+
+.var{border-bottom:1px dotted var(--seal); cursor:help}
+.yin{font-size:.82em; color:var(--ink-soft); letter-spacing:0}
+.lead{color:var(--ink-soft); font-size:.9rem; border-left:2px solid var(--rule);
+  padding-left:14px; margin:.9em 0 1.6em}
+
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.76rem; letter-spacing:.2em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>The Daodejing<span class="hz">道德經</span></h1>
+  <p class="sub">Laozi, Spring&nbsp;and&nbsp;Autumn&nbsp;period　·　eighty-one chapters</p>
+</header>
+
+<div class="bar">
+  <div class="grp langs">
+    <a class="btn" href="/p/daodejing-hans.html">简体</a>
+    <a class="btn" href="/p/daodejing.html">繁體</a>
+    <span class="btn cur" aria-current="page">EN</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#dao">Book One — The Way</a>
+<a class="l3" href="#ch1">1. The way that can be told</a>
+<a class="l3" href="#ch2">2. Beauty known as beauty</a>
+<a class="l3" href="#ch3">3. Do not exalt the able</a>
+<a class="l3" href="#ch4">4. The Way is empty</a>
+<a class="l3" href="#ch5">5. Heaven and earth are not kind</a>
+<a class="l3" href="#ch6">6. The valley spirit</a>
+<a class="l3" href="#ch7">7. Heaven is lasting</a>
+<a class="l3" href="#ch8">8. The highest good is like water</a>
+<a class="l3" href="#ch9">9. Filling what is already full</a>
+<a class="l3" href="#ch10">10. Holding the one</a>
+<a class="l3" href="#ch11">11. Thirty spokes</a>
+<a class="l3" href="#ch12">12. The five colours</a>
+<a class="l3" href="#ch13">13. Favour and disgrace</a>
+<a class="l3" href="#ch14">14. Look and it cannot be seen</a>
+<a class="l3" href="#ch15">15. The ancient masters</a>
+<a class="l3" href="#ch16">16. Reaching the utmost emptiness</a>
+<a class="l3" href="#ch17">17. The best of rulers</a>
+<a class="l3" href="#ch18">18. When the great Way is abandoned</a>
+<a class="l3" href="#ch19">19. Cut off sageliness</a>
+<a class="l3" href="#ch20">20. Cut off learning</a>
+<a class="l3" href="#ch21">21. The shape of great power</a>
+<a class="l3" href="#ch22">22. Bent, and therefore whole</a>
+<a class="l3" href="#ch23">23. Few words are natural</a>
+<a class="l3" href="#ch24">24. On tiptoe you cannot stand</a>
+<a class="l3" href="#ch25">25. Something formed out of the blur</a>
+<a class="l3" href="#ch26">26. Heavy is the root of light</a>
+<a class="l3" href="#ch27">27. Good travelling leaves no track</a>
+<a class="l3" href="#ch28">28. Know the male</a>
+<a class="l3" href="#ch29">29. Wanting to take the world</a>
+<a class="l3" href="#ch30">30. Helping a ruler with the Way</a>
+<a class="l3" href="#ch31">31. Fine weapons</a>
+<a class="l3" href="#ch32">32. The Way is always nameless</a>
+<a class="l3" href="#ch33">33. Knowing others</a>
+<a class="l3" href="#ch34">34. The great Way floods</a>
+<a class="l3" href="#ch35">35. Hold the great image</a>
+<a class="l3" href="#ch36">36. To draw in, first stretch out</a>
+<a class="l3" href="#ch37">37. The Way does not contrive</a>
+<a class="l2" href="#de">Book Two — Power</a>
+<a class="l3" href="#ch38">38. High power does not act as power</a>
+<a class="l3" href="#ch39">39. Those that got the one</a>
+<a class="l3" href="#ch40">40. Turning back</a>
+<a class="l3" href="#ch41">41. The best student hears the Way</a>
+<a class="l3" href="#ch42">42. The Way gives birth to one</a>
+<a class="l3" href="#ch43">43. The softest thing</a>
+<a class="l3" href="#ch44">44. Name or self</a>
+<a class="l3" href="#ch45">45. Great completion looks broken</a>
+<a class="l3" href="#ch46">46. When the world has the Way</a>
+<a class="l3" href="#ch47">47. Without going out of the door</a>
+<a class="l3" href="#ch48">48. Learning adds</a>
+<a class="l3" href="#ch49">49. The sage has no fixed heart</a>
+<a class="l3" href="#ch50">50. Out into life, back into death</a>
+<a class="l3" href="#ch51">51. The Way gives them life</a>
+<a class="l3" href="#ch52">52. The world had a beginning</a>
+<a class="l3" href="#ch53">53. If I had a little knowledge</a>
+<a class="l3" href="#ch54">54. What is well planted</a>
+<a class="l3" href="#ch55">55. One full of power</a>
+<a class="l3" href="#ch56">56. Those who know do not talk</a>
+<a class="l3" href="#ch57">57. Govern a state by the straight</a>
+<a class="l3" href="#ch58">58. A dull government</a>
+<a class="l3" href="#ch59">59. Nothing better than sparing</a>
+<a class="l3" href="#ch60">60. Govern a great state as you cook a small fish</a>
+<a class="l3" href="#ch61">61. A great state is a low-lying place</a>
+<a class="l3" href="#ch62">62. The Way is the innermost of things</a>
+<a class="l3" href="#ch63">63. Act without contriving</a>
+<a class="l3" href="#ch64">64. What is still is easy to hold</a>
+<a class="l3" href="#ch65">65. The ancients who were good at the Way</a>
+<a class="l3" href="#ch66">66. The rivers and the sea</a>
+<a class="l3" href="#ch67">67. They say my Way is great</a>
+<a class="l3" href="#ch68">68. A good commander is not warlike</a>
+<a class="l3" href="#ch69">69. There is a saying among soldiers</a>
+<a class="l3" href="#ch70">70. My words are easy to understand</a>
+<a class="l3" href="#ch71">71. To know that you do not know</a>
+<a class="l3" href="#ch72">72. When the people do not fear</a>
+<a class="l3" href="#ch73">73. Bold in daring</a>
+<a class="l3" href="#ch74">74. If the people do not fear death</a>
+<a class="l3" href="#ch75">75. The people are hungry</a>
+<a class="l3" href="#ch76">76. Alive, a man is soft</a>
+<a class="l3" href="#ch77">77. Is the way of heaven not like bending a bow</a>
+<a class="l3" href="#ch78">78. Nothing softer than water</a>
+<a class="l3" href="#ch79">79. Patching up a great grudge</a>
+<a class="l3" href="#ch80">80. A small state with few people</a>
+<a class="l3" href="#ch81">81. True words are not fine</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>Contents</summary>
+<a class="l2" href="#dao">Book One — The Way</a>
+<a class="l3" href="#ch1">1. The way that can be told</a>
+<a class="l3" href="#ch2">2. Beauty known as beauty</a>
+<a class="l3" href="#ch3">3. Do not exalt the able</a>
+<a class="l3" href="#ch4">4. The Way is empty</a>
+<a class="l3" href="#ch5">5. Heaven and earth are not kind</a>
+<a class="l3" href="#ch6">6. The valley spirit</a>
+<a class="l3" href="#ch7">7. Heaven is lasting</a>
+<a class="l3" href="#ch8">8. The highest good is like water</a>
+<a class="l3" href="#ch9">9. Filling what is already full</a>
+<a class="l3" href="#ch10">10. Holding the one</a>
+<a class="l3" href="#ch11">11. Thirty spokes</a>
+<a class="l3" href="#ch12">12. The five colours</a>
+<a class="l3" href="#ch13">13. Favour and disgrace</a>
+<a class="l3" href="#ch14">14. Look and it cannot be seen</a>
+<a class="l3" href="#ch15">15. The ancient masters</a>
+<a class="l3" href="#ch16">16. Reaching the utmost emptiness</a>
+<a class="l3" href="#ch17">17. The best of rulers</a>
+<a class="l3" href="#ch18">18. When the great Way is abandoned</a>
+<a class="l3" href="#ch19">19. Cut off sageliness</a>
+<a class="l3" href="#ch20">20. Cut off learning</a>
+<a class="l3" href="#ch21">21. The shape of great power</a>
+<a class="l3" href="#ch22">22. Bent, and therefore whole</a>
+<a class="l3" href="#ch23">23. Few words are natural</a>
+<a class="l3" href="#ch24">24. On tiptoe you cannot stand</a>
+<a class="l3" href="#ch25">25. Something formed out of the blur</a>
+<a class="l3" href="#ch26">26. Heavy is the root of light</a>
+<a class="l3" href="#ch27">27. Good travelling leaves no track</a>
+<a class="l3" href="#ch28">28. Know the male</a>
+<a class="l3" href="#ch29">29. Wanting to take the world</a>
+<a class="l3" href="#ch30">30. Helping a ruler with the Way</a>
+<a class="l3" href="#ch31">31. Fine weapons</a>
+<a class="l3" href="#ch32">32. The Way is always nameless</a>
+<a class="l3" href="#ch33">33. Knowing others</a>
+<a class="l3" href="#ch34">34. The great Way floods</a>
+<a class="l3" href="#ch35">35. Hold the great image</a>
+<a class="l3" href="#ch36">36. To draw in, first stretch out</a>
+<a class="l3" href="#ch37">37. The Way does not contrive</a>
+<a class="l2" href="#de">Book Two — Power</a>
+<a class="l3" href="#ch38">38. High power does not act as power</a>
+<a class="l3" href="#ch39">39. Those that got the one</a>
+<a class="l3" href="#ch40">40. Turning back</a>
+<a class="l3" href="#ch41">41. The best student hears the Way</a>
+<a class="l3" href="#ch42">42. The Way gives birth to one</a>
+<a class="l3" href="#ch43">43. The softest thing</a>
+<a class="l3" href="#ch44">44. Name or self</a>
+<a class="l3" href="#ch45">45. Great completion looks broken</a>
+<a class="l3" href="#ch46">46. When the world has the Way</a>
+<a class="l3" href="#ch47">47. Without going out of the door</a>
+<a class="l3" href="#ch48">48. Learning adds</a>
+<a class="l3" href="#ch49">49. The sage has no fixed heart</a>
+<a class="l3" href="#ch50">50. Out into life, back into death</a>
+<a class="l3" href="#ch51">51. The Way gives them life</a>
+<a class="l3" href="#ch52">52. The world had a beginning</a>
+<a class="l3" href="#ch53">53. If I had a little knowledge</a>
+<a class="l3" href="#ch54">54. What is well planted</a>
+<a class="l3" href="#ch55">55. One full of power</a>
+<a class="l3" href="#ch56">56. Those who know do not talk</a>
+<a class="l3" href="#ch57">57. Govern a state by the straight</a>
+<a class="l3" href="#ch58">58. A dull government</a>
+<a class="l3" href="#ch59">59. Nothing better than sparing</a>
+<a class="l3" href="#ch60">60. Govern a great state as you cook a small fish</a>
+<a class="l3" href="#ch61">61. A great state is a low-lying place</a>
+<a class="l3" href="#ch62">62. The Way is the innermost of things</a>
+<a class="l3" href="#ch63">63. Act without contriving</a>
+<a class="l3" href="#ch64">64. What is still is easy to hold</a>
+<a class="l3" href="#ch65">65. The ancients who were good at the Way</a>
+<a class="l3" href="#ch66">66. The rivers and the sea</a>
+<a class="l3" href="#ch67">67. They say my Way is great</a>
+<a class="l3" href="#ch68">68. A good commander is not warlike</a>
+<a class="l3" href="#ch69">69. There is a saying among soldiers</a>
+<a class="l3" href="#ch70">70. My words are easy to understand</a>
+<a class="l3" href="#ch71">71. To know that you do not know</a>
+<a class="l3" href="#ch72">72. When the people do not fear</a>
+<a class="l3" href="#ch73">73. Bold in daring</a>
+<a class="l3" href="#ch74">74. If the people do not fear death</a>
+<a class="l3" href="#ch75">75. The people are hungry</a>
+<a class="l3" href="#ch76">76. Alive, a man is soft</a>
+<a class="l3" href="#ch77">77. Is the way of heaven not like bending a bow</a>
+<a class="l3" href="#ch78">78. Nothing softer than water</a>
+<a class="l3" href="#ch79">79. Patching up a great grudge</a>
+<a class="l3" href="#ch80">80. A small state with few people</a>
+<a class="l3" href="#ch81">81. True words are not fine</a>
+    </details>
+
+<h2 id="dao">Book One — The Way<span class="hz">上篇 道經</span></h2>
+<p class="lead">The thirty-seven chapters of Book One are about the Way: that it cannot be said or named, and then, step by step, what follows from that for dealing with people and governing a state. The hinge of the whole book is nothing — the hole in the hub, the space in the room, the part of a sentence left unsaid. That is where the work gets done. It closes on “not wanting, and still — and the world settles of itself,” which gathers every earlier “not” into one word.</p>
+<h3 id="ch1">1. The way that can be told<span class="hz">道可道</span></h3>
+<p id="t1">A way that can be told is not the constant Way. A name that can be named is not the constant Name. Nameless, it is the beginning of heaven and earth; named, it is the mother of the ten thousand things. So: hold always to nothing, and you will see what is hidden in it; hold always to something, and you will see where it ends. These two come out together and are named apart; together call them the dark. Dark, and dark again — the gate of everything hidden.</p>
+<h3 id="ch2">2. Beauty known as beauty<span class="hz">天下皆知美之為美</span></h3>
+<p id="t2">When all under heaven know beauty as beauty, ugliness is already there. When all know good as good, the not-good is already there. Being and nothing give birth to each other; hard and easy complete each other; long and short measure each other; high and low lean on each other; note and voice sound with each other; before and after follow each other. And so the sage keeps to work without contriving and teaching without words. The ten thousand things arise and he does not turn them away; he gives them life without owning them, acts without leaning on what he has done, and when the work is finished does not stand in it. Because he does not stand there, it is never taken from him.</p>
+<h3 id="ch3">3. Do not exalt the able<span class="hz">不尚賢</span></h3>
+<p id="t3">Do not exalt the able, and the people will not contend. Do not prize goods that are hard to get, and the people will not steal. Do not display what can be desired, and their hearts will not be disturbed. And so the sage governs by emptying their cleverness and filling their bellies, by weakening their calculation and strengthening their bones. He keeps the people free of contrived knowledge and of wanting, so that the clever ones do not dare to act. Do what is not contrived, and nothing is left ungoverned. (The base text reads “weakening their calculation” (弱其智); the common text has “their will” (弱其志). Read with the line above, the pairing is inner against outer: empty the mind, fill the belly; weaken the wits, strengthen the bone.)</p>
+<h3 id="ch4">4. The Way is empty<span class="hz">道沖</span></h3>
+<p id="t4">The Way is empty, and using it never fills it. Deep — it is like the ancestor of the ten thousand things. Blunt its edge, untie its tangle, soften its glare, be one with its dust. Still and clear — it is as though something were there. I do not know whose child it is. It seems to come before the Lord of Heaven.</p>
+<h3 id="ch5">5. Heaven and earth are not kind<span class="hz">天地不仁</span></h3>
+<p id="t5">Heaven and earth are not kind: they treat the ten thousand things as straw dogs. The sage is not kind: he treats the hundred families as straw dogs. Between heaven and earth — is it not like a bellows? Empty, yet it does not collapse; work it, and more comes out. Much talking runs dry fast. Better to keep to the centre. (Straw dogs were made for a sacrifice, honoured while in use and thrown away after — not contempt, but the absence of private favour.)</p>
+<h3 id="ch6">6. The valley spirit<span class="hz">谷神不死</span></h3>
+<p id="t6">The spirit of the valley does not die: call it the dark female. The gate of the dark female — call it the root of heaven and earth. Thread after thread, it seems to be there; use it, and it never tires.</p>
+<h3 id="ch7">7. Heaven is lasting<span class="hz">天長地久</span></h3>
+<p id="t7">Heaven is lasting, earth endures. They last and endure because they do not live for themselves — and so they can live long. And so the sage puts himself last and ends up first; puts himself outside and remains. Is it not because he has nothing of his own? That is how what is his own is completed.</p>
+<h3 id="ch8">8. The highest good is like water<span class="hz">上善若水</span></h3>
+<p id="t8">The highest good is like water. Water is good at benefiting the ten thousand things and does not contend with them; it settles in the places people despise, and so comes near to the Way. In dwelling, the ground; in the heart, depth; in giving, kindness; in speech, good faith; in governing, order; in affairs, competence; in movement, the right moment. Just because it does not contend, it is never at fault.</p>
+<h3 id="ch9">9. Filling what is already full<span class="hz">持而盈之</span></h3>
+<p id="t9">Keep filling a bowl that is already full, and you had better have stopped. Grind an edge to a point and it will not stay sharp for long. A hall full of gold and jade — no one can guard it. Wealth and rank with arrogance on top invite their own ruin. Withdraw when the work is done: that is the way of heaven. (The base text reads “grind it sharp” (銳); the common text has 梲. The old commentary in this very printing glosses it “drawn to a point and then sharpened” — which fits 銳.)</p>
+<h3 id="ch10">10. Holding the one<span class="hz">載營魄抱一</span></h3>
+<p id="t10">Can you hold soul and body to the one and not let them part? Can you gather your breath to its softest and be as an infant? Can you wash the dark mirror clean and leave no flaw? Can you love the people and govern the state without cleverness? Can the gate of heaven open and shut while you keep to the female? Can you see clearly in all four directions and refrain from arranging things? To give them life and to rear them; to give life without owning, to act without leaning on it, to raise without ruling — call this the dark power.</p>
+<h3 id="ch11">11. Thirty spokes<span class="hz">三十輻共一轂</span></h3>
+<p id="t11">Thirty spokes share one hub: it is the hole at the centre that makes the cart useful. Knead clay into a vessel: it is the space inside that makes the vessel useful. Cut doors and windows for a room: it is the emptiness that makes the room useful. What is there gives the advantage; what is not there is what is used.</p>
+<h3 id="ch12">12. The five colours<span class="hz">五色令人目盲</span></h3>
+<p id="t12">The five colours blind the eye. The five notes deafen the ear. The five flavours dull the tongue. Racing and hunting drive the heart wild. Goods hard to come by throw a man off his course. And so the sage attends to the belly, not to the eye: he lets that go and takes this.</p>
+<h3 id="ch13">13. Favour and disgrace<span class="hz">寵辱若驚</span></h3>
+<p id="t13">Favour and disgrace both come as a shock; take great trouble as seriously as you take your own body. Why say favour and disgrace come as a shock? Favour is the lower position: getting it is a shock, losing it is a shock. That is what it means. Why say take great trouble as seriously as your own body? I have great trouble because I have a body. If I had no body, what trouble could I have? So a man who treats the world as he treats his own body can be given the world; a man who loves the world as he loves his own body can be trusted with it.</p>
+<h3 id="ch14">14. Look and it cannot be seen<span class="hz">視之不見名曰夷</span></h3>
+<p id="t14">Look and it cannot be seen: call it level. Listen and it cannot be heard: call it faint. Reach and it cannot be held: call it slight. These three cannot be pressed further; they blur into one. Above it is not bright, below it is not dark. Thread on thread, it cannot be named, and it turns back to where there is nothing. Call it the shape of no shape, the image of nothing, the blurred and the dim. Meet it and you do not see its head; follow it and you do not see its back. Hold to the ancient Way in order to steer what is here today. To know the ancient beginning — that is the thread of the Way.</p>
+<h3 id="ch15">15. The ancient masters<span class="hz">古之善為士者</span></h3>
+<p id="t15">The old masters of the Way were subtle, mysterious, penetrating, too deep to be known. Because they cannot be known, one can only describe them with effort: careful, as a man crossing a river in winter; wary, as one who fears his neighbours on all four sides; formal, as a guest; loosening, as ice about to melt; plain, as uncut wood; open, as a valley; muddy, as a pool. Who can still the muddy water and let it slowly clear? Who can stir the settled and let life slowly come? One who holds this Way does not want to be full; and just because he is not full he can wear out and need no new making.</p>
+<h3 id="ch16">16. Reaching the utmost emptiness<span class="hz">致虛極</span></h3>
+<p id="t16">Reach the utmost emptiness; hold to stillness with all your weight. The ten thousand things rise together and I watch them turn back. Thing after thing in their crowds — each returns to its root. To return to the root is called stillness; stillness is called turning back to what was given; turning back to what was given is called the constant; to know the constant is called clear sight. Not to know the constant and to act blindly brings disaster. Know the constant and you can hold everything; hold everything and you are impartial; impartial and you are king; king and you match heaven; match heaven and you are the Way; be the Way and you last, and to the end of your life nothing endangers you. (The base text reads “impartial and you are king; king and you match heaven”; the common text has “whole” for “king”.)</p>
+<h3 id="ch17">17. The best of rulers<span class="hz">太上下知有之</span></h3>
+<p id="t17">Of the best ruler, those below only know that he is there. Next comes the one they love and praise; next the one they fear; last the one they hold in contempt. Where trust runs short, there is no trust in return. Unhurried, he weighs his words. The work is done, the thing goes through — and the people say: we did it ourselves.</p>
+<h3 id="ch18">18. When the great Way is abandoned<span class="hz">大道廢</span></h3>
+<p id="t18">When the great Way is abandoned, there is kindness and duty. When cleverness appears, there is great pretence. When the six relations fall out of accord, there are dutiful sons. When the state is dark and disordered, there are loyal ministers.</p>
+<h3 id="ch19">19. Cut off sageliness<span class="hz">絕聖棄智</span></h3>
+<p id="t19">Cut off sageliness, throw away cleverness, and the people gain a hundredfold. Cut off kindness, throw away duty, and the people return to being sons and fathers. Cut off ingenuity, throw away profit, and there are no thieves. These three, set down as rules, are not enough; so let there be something to belong to: look at the undyed silk and hold the uncut wood, have little of your own and want little.</p>
+<h3 id="ch20">20. Cut off learning<span class="hz">絕學無憂</span></h3>
+<p id="t20">Cut off learning and there is no more grief. Between “yes” and “yes, sir” — how much is there? Between good and ugly — how far apart? What others fear cannot be left unfeared. Waste and wilderness, with no end to it! The crowd is merry, as at a great sacrifice, as at a terrace in spring. I alone am quiet, showing no sign, like an infant that has not yet smiled; listless, as though I had nowhere to go home to. The crowd all have more than enough; I alone seem to have lost something. Mine is the heart of a fool indeed — muddled, muddled. Ordinary men are bright; I alone am dim. Ordinary men are sharp; I alone am dull. Calm as the sea; blown about with nothing to stop me. The crowd all have their uses; I alone am stubborn and coarse. I alone differ from other men — what I value is the mother that feeds me.</p>
+<h3 id="ch21">21. The shape of great power<span class="hz">孔德之容</span></h3>
+<p id="t21">The shape of great power follows the Way and nothing else. The Way as a thing is blurred, is dim. Dim and blurred — inside it there are images. Blurred and dim — inside it there are things. Shadowed and dark — inside it there is an essence, and that essence is real, and in it there is something to trust. From ancient times to now its name has not been lost, and by it we can see how all things began. How do I know that all things began so? By this.</p>
+<h3 id="ch22">22. Bent, and therefore whole<span class="hz">曲則全</span></h3>
+<p id="t22">Bent, and therefore whole; crooked, and therefore straight; hollow, and therefore filled; worn, and therefore new; wanting little, and therefore getting; wanting much, and therefore confused. And so the sage holds to the one and is a measure for the world. He does not show himself, and so is clear; does not insist he is right, and so stands out; does not boast, and so has merit; is not proud, and so lasts. Just because he does not contend, no one under heaven can contend with him. The old saying “bent, and therefore whole” — is it empty talk? Wholeness is real, and returns to him.</p>
+<h3 id="ch23">23. Few words are natural<span class="hz">希言自然</span></h3>
+<p id="t23">Few words: that is what is natural. A whirlwind does not last a morning, a cloudburst does not last a day. Who makes them? Heaven and earth. If even heaven and earth cannot keep it up, how much less a man. So a man who works at the Way: the one who is of the Way, the Way is glad to have; the one who is of power, power is glad to have; the one who is of loss, loss is glad to have. Where trust runs short, there is no trust in return.</p>
+<h3 id="ch24">24. On tiptoe you cannot stand<span class="hz">企者不立</span></h3>
+<p id="t24">On tiptoe you cannot stand; straddling you cannot walk. Show yourself and you are not clear; insist you are right and you do not stand out; boast and you have no merit; be proud and you do not last. On the road, such things are called leftover food and a growth on the body. Even things dislike them, and a man with the Way does not stay where they are.</p>
+<h3 id="ch25">25. Something formed out of the blur<span class="hz">有物混成</span></h3>
+<p id="t25">There is a thing formed out of the blur, born before heaven and earth. Silent, empty, standing alone and unchanging, going round and never tiring, it can be the mother of the world. I do not know its name; I style it the Way, and if pressed for a name I call it great. Great, it goes; going, it goes far; far, it comes back. So the Way is great, heaven is great, earth is great, and the king too is great. In the realm there are four great things, and the king is one of them. Man takes his law from earth, earth from heaven, heaven from the Way, and the Way from the way it is of itself.</p>
+<h3 id="ch26">26. Heavy is the root of light<span class="hz">重為輕根</span></h3>
+<p id="t26">The heavy is the root of the light; the still is the lord of the restless. And so the sage travels all day and does not leave the baggage cart. Though there are fine sights to look at, he stays where he is, above them. How is it that the lord of ten thousand chariots treats his own person more lightly than the world? Be light and you lose the root; be restless and you lose the lord.</p>
+<h3 id="ch27">27. Good travelling leaves no track<span class="hz">善行無轍迹</span></h3>
+<p id="t27">Good travelling leaves no ruts. Good speech leaves nothing to catch hold of. Good reckoning uses no counters. A good door has no bolt and cannot be opened; a good knot has no cord and cannot be untied. And so the sage is always good at saving men, and no man is discarded; always good at saving things, and nothing is discarded. Call this: carrying the light hidden. The good man is the teacher of the man who is not good; the man who is not good is the stock the good man works with. Not to value your teacher, not to care for your stock — however clever, you are badly lost. Call this the essential secret.</p>
+<h3 id="ch28">28. Know the male<span class="hz">知其雄</span></h3>
+<p id="t28">Know the male, hold to the female, and be the ravine of the world. Be the ravine of the world and the constant power will not leave you; you return to being an infant. Know the white, hold to the black, and be a measure for the world. Be a measure for the world and the constant power will not err; you return to the boundless. Know the glory, hold to the disgrace, and be the valley of the world. Be the valley of the world and the constant power is enough; you return to the uncut wood. Uncut wood, broken up, makes vessels. The sage uses it and becomes chief of the officers. Great cutting does not cut.</p>
+<h3 id="ch29">29. Wanting to take the world<span class="hz">將欲取天下</span></h3>
+<p id="t29">Whoever wants to take the world and work on it — I see he will not manage. The world is a sacred vessel and cannot be worked on. Work on it and you spoil it; grip it and you lose it. Some things go in front and some follow; some breathe warm and some blow cold; some are strong and some are weak; some are broken and some are wrecked. And so the sage puts away excess, puts away extravagance, puts away too much.</p>
+<h3 id="ch30">30. Helping a ruler with the Way<span class="hz">以道佐人主</span></h3>
+<p id="t30">A man who helps a ruler by the Way does not force the world with arms. Such business comes back on you: where armies camp, thorns grow; after a great war, a year of famine. A good soldier gets the result and stops there; he does not go on to force the issue. Get the result and do not be proud of it, do not boast of it, do not swagger; get it because you had no choice, and do not force it. What has grown strong grows old. Call it against the Way, and what is against the Way ends early.</p>
+<h3 id="ch31">31. Fine weapons<span class="hz">夫佳兵者</span></h3>
+<p id="t31">Fine weapons are instruments of ill omen; even things dislike them, and a man with the Way does not stay where they are. In peace a gentleman honours the left; using arms, he honours the right. Weapons are instruments of ill omen, not a gentleman's instruments; he uses them when he has no choice, and then calmly and without relish. To win is not a fine thing; to find it fine is to delight in killing men, and a man who delights in killing men will never have his way in the world. Good occasions honour the left, ill occasions honour the right: the second general stands on the left, the commanding general on the right — which is to say, they are placed by the rites of mourning. Where many have been killed, weep for them in grief; a victory is conducted as a funeral.</p>
+<h3 id="ch32">32. The Way is always nameless<span class="hz">道常無名</span></h3>
+<p id="t32">The Way is always nameless. The uncut wood, small as it is, no one under heaven can make a servant of it. If lords and kings could hold to it, the ten thousand things would come of themselves. Heaven and earth would meet and let the sweet dew fall, and with no one giving orders the people would settle evenly of themselves. Once things are cut and named, names exist; and once they exist, one should know where to stop. Knowing where to stop, one can be out of danger. The Way is to the world as rivers and seas are to the valley streams.</p>
+<h3 id="ch33">33. Knowing others<span class="hz">知人者智</span></h3>
+<p id="t33">To know others is wisdom; to know yourself is clear sight. To beat others takes force; to beat yourself takes strength. To know you have enough is to be rich. To keep at it is to have will. Not to lose your place is to last. To die and not be forgotten is long life.</p>
+<h3 id="ch34">34. The great Way floods<span class="hz">大道氾兮</span></h3>
+<p id="t34">The great Way floods over, to the left and to the right. The ten thousand things rely on it to live and it does not turn them away; the work is done and it does not take the name. It clothes and feeds them and does not rule them: having no wants of its own, it can be called small. They all return to it and it does not rule them: so it can be called great. Because it never thinks itself great, it can be great.</p>
+<h3 id="ch35">35. Hold the great image<span class="hz">執大象</span></h3>
+<p id="t35">Hold the great image and the world comes to you. It comes and is not harmed, and there is peace and calm. Music and good food will stop a traveller in his tracks; but the Way, spoken, is so plain it has no taste. Look at it and there is not enough to see; listen and there is not enough to hear; use it and it is never used up.</p>
+<h3 id="ch36">36. To draw in, first stretch out<span class="hz">將欲歙之</span></h3>
+<p id="t36">To draw a thing in, you must first let it stretch out. To weaken a thing, you must first let it grow strong. To do away with a thing, you must first let it flourish. To take from a thing, you must first give to it. Call this the faint light. The soft and weak overcome the hard and strong. Fish cannot leave the deep water; the sharp instruments of a state must not be shown to anyone.</p>
+<h3 id="ch37">37. The Way does not contrive<span class="hz">道常無為</span></h3>
+<p id="t37">The Way never contrives, and nothing is left undone. If lords and kings could hold to it, the ten thousand things would change of themselves. If in the changing desire should stir, I would weigh it down with the nameless uncut wood. The nameless uncut wood is itself without desire. Not wanting, it is still; and the world settles of itself.</p>
+<h2 id="de">Book Two — Power<span class="hz">下篇 德經</span></h2>
+<p class="lead">The forty-four chapters of Book Two are about power — the kind a thing has by being what it is. It opens by ranking kindness, duty and ritual as a slope running downhill from the Way, and then turns to war, government and staying alive. The further it goes the less it reads like philosophy and the more like advice to whoever is in charge: be soft, stay low, do not be first. The last line of the book is “the way of the sage acts and does not contend.”</p>
+<h3 id="ch38">38. High power does not act as power<span class="hz">上德不德</span></h3>
+<p id="t38">A man of high power does not make a show of power, and so has power. A man of low power never lets go of power, and so has none. High power does not contrive and has nothing it is after. Low power contrives and has something it is after. High kindness contrives and has nothing it is after. High duty contrives and has something it is after. High ritual contrives, and when no one answers it rolls up its sleeves and drags them in. So: lose the Way and power comes next; lose power and kindness comes next; lose kindness and duty comes next; lose duty and ritual comes next. Ritual is the thinning of loyalty and good faith, and the beginning of disorder. Foresight is the flower of the Way and the beginning of folly. And so the full-grown man dwells in the thick and not in the thin, in the fruit and not in the flower. He lets that go and takes this.</p>
+<h3 id="ch39">39. Those that got the one<span class="hz">昔之得一者</span></h3>
+<p id="t39">These of old got the one: heaven got it and was clear; earth got it and was settled; the spirits got it and had power; the valley got it and was full; the ten thousand things got it and lived; lords and kings got it and became the measure of the world. Push it to the end: if heaven had nothing to keep it clear it would split; if earth had nothing to settle it, it would give way; if the spirits had nothing to quicken them they would cease; if the valley had nothing to fill it, it would run dry; if the things had nothing to live by they would die out; if lords and kings had nothing to hold their height they would topple. So the noble takes the base as its root, and the high takes the low as its ground. That is why lords and kings call themselves orphaned, widowed, unworthy. Is that not taking the base as the root? Is it not? Count a carriage part by part and there is no carriage. Do not want to be rare as jade; be common as stone.</p>
+<h3 id="ch40">40. Turning back<span class="hz">反者道之動</span></h3>
+<p id="t40">Turning back is how the Way moves. Weakness is how the Way works. The ten thousand things under heaven are born of what is there, and what is there is born of what is not.</p>
+<h3 id="ch41">41. The best student hears the Way<span class="hz">上士聞道</span></h3>
+<p id="t41">The best student hears of the Way and works at it. The middling student hears of it and half keeps it. The poorest student hears of it and laughs out loud — if he did not laugh it would not be the Way. So there is an old saying: the bright road looks dark, the road forward looks like going back, the level road looks rough; the highest power looks like a valley, the whitest looks stained, the broadest power looks not enough, the firmest looks slack, the plainest truth looks as if it would change. The great square has no corners, the great vessel is finished late, the great note cannot be heard, the great image has no shape. The Way is hidden and nameless; and only the Way is good at giving and at bringing things through.</p>
+<h3 id="ch42">42. The Way gives birth to one<span class="hz">道生一</span></h3>
+<p id="t42">The Way gives birth to one; one gives birth to two; two gives birth to three; three gives birth to the ten thousand things. The ten thousand things carry the shade on their backs and hold the sun in their arms, and the empty breath between them makes them agree. What men most hate is to be orphaned, widowed, unworthy — and that is what kings and dukes call themselves. So things are sometimes added to by taking away and taken from by adding. What others have taught me I teach in turn: the violent man does not die his own death. I take that for the father of my teaching.</p>
+<h3 id="ch43">43. The softest thing<span class="hz">天下之至柔</span></h3>
+<p id="t43">The softest thing under heaven rides through the hardest. What has no substance enters where there is no crack. By this I know the good of not contriving. Teaching without words, and the good of not contriving — few under heaven get that far.</p>
+<h3 id="ch44">44. Name or self<span class="hz">名與身孰親</span></h3>
+<p id="t44">Your name or yourself — which is nearer? Yourself or your goods — which counts for more? Getting or losing — which is the sickness? So: love too much and you will spend much; hoard much and you will lose heavily. Know you have enough and you take no shame; know where to stop and you run no risk; and so you last.</p>
+<h3 id="ch45">45. Great completion looks broken<span class="hz">大成若缺</span></h3>
+<p id="t45">Great completion looks defective, but using it does not wear it out. Great fullness looks empty, but using it does not exhaust it. Great straightness looks bent; great skill looks clumsy; great eloquence sounds tongue-tied. Moving beats the cold; stillness beats the heat; and stillness and clarity set the world right. (The base text has the three short lines only; the common text adds a clause of “its use…” to each.)</p>
+<h3 id="ch46">46. When the world has the Way<span class="hz">天下有道</span></h3>
+<p id="t46">When the world has the Way, war horses are sent back to haul dung. When the world lacks the Way, cavalry mares foal on the frontier. No calamity is greater than not knowing when you have enough; no fault is greater than wanting to get. So the sufficiency of knowing you have enough is enough for good.</p>
+<h3 id="ch47">47. Without going out of the door<span class="hz">不出戶知天下</span></h3>
+<p id="t47">Without going out of the door you can know the world; without looking out of the window you can see the way of heaven. The further you go, the less you know. And so the sage knows without travelling, names without looking, and completes without contriving.</p>
+<h3 id="ch48">48. Learning adds<span class="hz">為學日益</span></h3>
+<p id="t48">In learning, every day something is added; in the Way, every day something is dropped. Dropped and dropped again, until you arrive at not contriving. Do not contrive, and nothing is left undone. The world is always won by leaving it alone; once you have business with it, you are no longer fit to win it.</p>
+<h3 id="ch49">49. The sage has no fixed heart<span class="hz">聖人無常心</span></h3>
+<p id="t49">The sage has no heart of his own; he takes the heart of the people for his heart. To the good I am good; to those who are not good I am also good — and so goodness is had. To the truthful I am true; to those who are not truthful I am also true — and so truth is had. The sage in the world draws himself in and blurs his mind for the world's sake; and he treats them all as his children. (The base text lacks the line “the people all fix their eyes and ears on him,” which the common text has.)</p>
+<h3 id="ch50">50. Out into life, back into death<span class="hz">出生入死</span></h3>
+<p id="t50">Out is life, back is death. Three in ten belong to life; three in ten belong to death; and three in ten are men who live and then move themselves onto the ground of death. Why? Because they live life too thickly. I have heard that a man who is good at holding onto life walks on land without meeting rhinoceros or tiger and goes among soldiers without armour. The rhinoceros finds nowhere to put its horn, the tiger nowhere to put its claw, the weapon nowhere to put its edge. Why? Because in him there is no ground of death.</p>
+<h3 id="ch51">51. The Way gives them life<span class="hz">道生之</span></h3>
+<p id="t51">The Way gives them life, its power rears them, things give them shape, circumstance finishes them. And so among the ten thousand things there is none that does not honour the Way and value its power. That the Way is honoured and its power valued is because no one commands it — it is so of itself. So the Way gives them life and its power rears them: makes them grow, brings them up, settles them, ripens them, feeds them, shelters them. To give life without owning, to act without leaning on it, to raise without ruling: call this the dark power.</p>
+<h3 id="ch52">52. The world had a beginning<span class="hz">天下有始</span></h3>
+<p id="t52">The world had a beginning, and that beginning can be the mother of the world. Once you have the mother you know the child; once you know the child, go back and hold the mother, and to the end of your life you run no risk. Stop up the opening, shut the gate, and to the end of your life you will not be worn out. Open the opening, bustle about your business, and to the end of your life you cannot be saved. To see the small is called clear sight; to hold to the soft is called strength. Use the light and come back to its brightness, and leave yourself no calamity: call this following the constant.</p>
+<h3 id="ch53">53. If I had a little knowledge<span class="hz">使我介然有知</span></h3>
+<p id="t53">If I had even a little knowledge and were walking on the great road, the one thing I would fear is turning off it. The great road is very level, but people love the side path. The court is swept clean while the fields are choked with weeds and the granaries are empty; and there are embroidered clothes, sharp swords, food and drink to satiety, and goods to spare. Call that the swagger of a robber chief. It is certainly not the Way!</p>
+<h3 id="ch54">54. What is well planted<span class="hz">善建者不拔</span></h3>
+<p id="t54">What is well planted is not pulled up; what is well held is not let go; and the sacrifices of sons and grandsons do not stop. Cultivate it in yourself and the power is real; in the family and the power is more than enough; in the village and the power lasts; in the state and the power is abundant; in the world and the power is everywhere. So look at a person through a person, at a family through a family, at a village through a village, at a state through a state, at the world through the world. How do I know the world is so? By this.</p>
+<h3 id="ch55">55. One full of power<span class="hz">含德之厚</span></h3>
+<p id="t55">A man in whom power is thick is like a newborn child. Poisonous insects do not sting him, wild beasts do not seize him, birds of prey do not strike him. His bones are soft, his sinews are pliant, and his grip is firm. He knows nothing of the joining of male and female, yet he stands up whole — such is the fullness of his essence. He cries all day and does not grow hoarse — such is the fullness of his harmony. To know harmony is called the constant; to know the constant is called clear sight. To force life along is called ill luck; to drive the breath with the mind is called forcing. What has grown strong grows old. Call it against the Way, and what is against the Way ends early.</p>
+<h3 id="ch56">56. Those who know do not talk<span class="hz">知者不言</span></h3>
+<p id="t56">Those who know do not talk; those who talk do not know. Stop up the opening, shut the gate, blunt the edge, untie the tangle, soften the glare, be one with the dust: call this the dark sameness. So he cannot be got at by closeness or by distance, by profit or by harm, by honour or by contempt — and so he is the most valued thing under heaven.</p>
+<h3 id="ch57">57. Govern a state by the straight<span class="hz">以正治國</span></h3>
+<p id="t57">Govern a state by what is straight; use arms by what is odd; win the world by having no business with it. How do I know it is so? By this: the more prohibitions in the world, the poorer the people; the more sharp tools among the people, the darker the state; the more skills men have, the more strange things appear; the more laws are published, the more thieves there are. So the sage says: I do not contrive, and the people transform themselves; I love stillness, and the people right themselves; I have no business, and the people grow rich of themselves; I have no wants, and the people become plain of themselves.</p>
+<h3 id="ch58">58. A dull government<span class="hz">其政悶悶</span></h3>
+<p id="t58">Where the government is dull and drowsy, the people are thick and honest; where the government is sharp and prying, the people are broken and wanting. Calamity is what fortune leans on; fortune is where calamity lies hidden. Who knows where it ends? There is nothing fixed. The straight turns into the odd; the good turns into the monstrous. Men have been lost in this a long, long time. And so the sage is square without cutting, edged without wounding, straight without going too far, bright without dazzling.</p>
+<h3 id="ch59">59. Nothing better than sparing<span class="hz">治人事天莫若嗇</span></h3>
+<p id="t59">In governing men and serving heaven, nothing is better than sparing. Only by sparing does one submit early; submitting early is called piling up power; pile up power and there is nothing you cannot overcome; and if there is nothing you cannot overcome, no one knows your limit; and if no one knows your limit, you can hold a state; and having the mother of the state, you can last. Call this deep roots and a firm base, the Way of long life and long sight.</p>
+<h3 id="ch60">60. Govern a great state as you cook a small fish<span class="hz">治大國若烹小鮮</span></h3>
+<p id="t60">Govern a great state as you cook a small fish — turn it too often and it falls apart. Approach the world with the Way and its ghosts lose their power. It is not that they lose their power, but that their power does not harm men. It is not only that their power does not harm men: the sage does not harm them either. And since neither harms the other, power flows back and gathers here.</p>
+<h3 id="ch61">61. A great state is a low-lying place<span class="hz">大國者下流</span></h3>
+<p id="t61">A great state should be the lower reach of a river, the meeting place of the world, the female of the world. The female always beats the male by stillness, and stillness lies low. So a great state that goes low to a small state wins the small state; a small state that goes low to a great state wins the great state. One goes low and so takes; one goes low and so is taken. A great state wants no more than to gather men in; a small state wants no more than to come in and serve. Both get what they want — and the greater of them had better be the one that goes low.</p>
+<h3 id="ch62">62. The Way is the innermost of things<span class="hz">道者萬物之奧</span></h3>
+<p id="t62">The Way is the inner recess of the ten thousand things: the treasure of good men, and what men who are not good are kept by. Fine words can be sold; fine conduct can be added to a man; and if a man is not good, why should he be thrown out? So when the Son of Heaven is enthroned and the three ministers installed, better than presenting great jade discs ahead of a team of four horses is to sit still and offer this Way. Why did the ancients prize it? Did they not say: seek and you will get, and if you are guilty you will be spared? That is why it is the most valued thing under heaven.</p>
+<h3 id="ch63">63. Act without contriving<span class="hz">為無為</span></h3>
+<p id="t63">Act without contriving, work without making business, taste what has no taste. Whether great or small, many or few, repay a grudge with power. Plan the hard while it is easy; do the great while it is small. The hard things of the world begin easy; the great things of the world begin small. And so the sage never does anything great, and so can complete what is great. A light promise is short of trust, and taking things easily runs into difficulty. And so the sage treats things as hard, and to the end nothing is hard for him.</p>
+<h3 id="ch64">64. What is still is easy to hold<span class="hz">其安易持</span></h3>
+<p id="t64">What is still is easy to hold; what has not shown itself is easy to plan for; what is brittle is easy to break; what is small is easy to scatter. Act on it before it is there; put it in order before it is in disorder. A tree you can barely reach around grew from a shoot; a nine-storey terrace rose from a basket of earth; a journey of a thousand miles began underfoot. Work on it and you spoil it; grip it and you lose it. And so the sage does not work on it and does not spoil it, does not grip it and does not lose it. People ruin things when they are all but finished. Be as careful at the end as at the beginning and nothing will be ruined. And so the sage wants what others do not want and does not prize goods hard to get; he learns what others do not learn and brings back what the crowd has overshot. He helps the ten thousand things be as they are, and does not dare to act.</p>
+<h3 id="ch65">65. The ancients who were good at the Way<span class="hz">古之善為道者</span></h3>
+<p id="t65">The ancients who were good at the Way did not use it to make the people bright, but to keep them plain. The people are hard to govern because they know too much. So to govern a state by cleverness is to rob it; not to govern a state by cleverness is its good fortune. To know these two is to have a rule; and always to know the rule is called the dark power. The dark power is deep and far; it turns back along with things, and then comes to the great accord.</p>
+<h3 id="ch66">66. The rivers and the sea<span class="hz">江海為百谷王</span></h3>
+<p id="t66">The rivers and the sea are king over a hundred valleys because they are good at lying below them. And so, wanting to be above the people, put yourself below them in what you say; wanting to lead them, put yourself behind them. And so the sage is above and the people do not feel the weight; he is in front and the people are not blocked by him. So the world is glad to push him forward and does not tire of him. Just because he does not contend, no one under heaven can contend with him.</p>
+<h3 id="ch67">67. They say my Way is great<span class="hz">天下皆謂我道大</span></h3>
+<p id="t67">Everyone under heaven says my Way is great, and that it resembles nothing. It is because it is great that it resembles nothing; had it resembled anything it would long since have become small. I have three treasures which I hold and keep. The first is mercy; the second is frugality; the third is not daring to be first in the world. Merciful, one can be brave; frugal, one can be generous; not daring to be first, one can be the head of the vessels. But to drop mercy and keep bravery, drop frugality and keep generosity, drop the rear and take the front — that is death. Mercy in battle brings victory and in defence holds firm. When heaven would save a man, it guards him with mercy.</p>
+<h3 id="ch68">68. A good commander is not warlike<span class="hz">善為士者不武</span></h3>
+<p id="t68">A good commander is not warlike. A good fighter does not lose his temper. A good winner does not engage. A good user of men puts himself below them. Call this the power of not contending; call this the use of other men's strength; call this matching heaven, the ancient limit.</p>
+<h3 id="ch69">69. There is a saying among soldiers<span class="hz">用兵有言</span></h3>
+<p id="t69">There is a saying among soldiers: I dare not be host, I would rather be guest; I dare not advance an inch, I would rather fall back a foot. Call it marching where there is no line to march, rolling up a sleeve where there is no arm, meeting an enemy where there is no enemy, taking up arms where there are no arms. No calamity is greater than to take an enemy lightly; to take him lightly all but loses me my treasures. So when two armies are matched, the one that grieves will win.</p>
+<h3 id="ch70">70. My words are easy to understand<span class="hz">吾言甚易知</span></h3>
+<p id="t70">My words are very easy to understand and very easy to put into practice, and no one under heaven understands them or puts them into practice. Words have an ancestor; affairs have a lord. It is because men do not know this that they do not know me. Those who know me are few, and those who take me as a model are worth the more. And so the sage wears coarse cloth, and carries jade in his breast.</p>
+<h3 id="ch71">71. To know that you do not know<span class="hz">知不知上</span></h3>
+<p id="t71">To know that you do not know is best. Not to know and to think you know is the sickness. It is only by treating the sickness as a sickness that one is free of it. The sage is not sick, because he treats the sickness as a sickness; and so he is not sick.</p>
+<h3 id="ch72">72. When the people do not fear<span class="hz">民不畏威</span></h3>
+<p id="t72">When the people do not fear your power, a greater power is on its way. Do not crowd them in the place where they live; do not press down on what they live by. It is only by not pressing them that you are not thrown off. And so the sage knows himself and does not display himself, cares for himself and does not raise his own price. He lets that go and takes this.</p>
+<h3 id="ch73">73. Bold in daring<span class="hz">勇於敢則殺</span></h3>
+<p id="t73">Be bold in daring and you will be killed; be bold in not daring and you will live. Of these two, one profits and one harms. What heaven hates — who knows the reason? Even the sage finds it hard. The way of heaven: it does not contend and is good at winning; does not speak and is good at answering; does not summon and things come of themselves; is unhurried and good at planning. Heaven's net is vast; the mesh is wide, and nothing slips through.</p>
+<h3 id="ch74">74. If the people do not fear death<span class="hz">民不畏死</span></h3>
+<p id="t74">If the people do not fear death, what is the use of frightening them with death? Suppose the people did fear death, and I could seize the troublemaker and kill him — who would dare? But there is always the one whose office is to kill, and who kills. To kill in place of the one whose office it is, is to hew wood in place of the master carpenter. Few who hew in place of the master carpenter get away without cutting their hands.</p>
+<h3 id="ch75">75. The people are hungry<span class="hz">民之饑</span></h3>
+<p id="t75">The people are hungry because those above eat too much in taxes; that is why they are hungry. The people are hard to govern because those above act too much; that is why they are hard to govern. The people take death lightly because those above live too thickly; that is why they take death lightly. It is only the man who does not make a business of living who is wiser than the man who prizes life.</p>
+<h3 id="ch76">76. Alive, a man is soft<span class="hz">人之生也柔弱</span></h3>
+<p id="t76">Alive, a man is soft and yielding; dead, he is stiff and hard. Alive, the grass and trees are soft and tender; dead, they are dry and brittle. So the stiff and hard belong to death, and the soft and yielding belong to life. An army that is strong does not win; a tree that is strong is felled. The big and strong lie below; the soft and weak are above.</p>
+<h3 id="ch77">77. Is the way of heaven not like bending a bow<span class="hz">天之道其猶張弓</span></h3>
+<p id="t77">Is the way of heaven not like the bending of a bow? What is high is pressed down; what is low is raised up; what has too much is reduced; what has not enough is added to. The way of heaven takes from what has too much and adds to what has not enough. The way of men is not like that: it takes from those who have not enough to serve those who have too much. Who can have more than enough and give it to the world? Only the man of the Way. And so the sage acts and does not lean on it, finishes the work and does not stay in it: he has no wish to display his worth.</p>
+<h3 id="ch78">78. Nothing softer than water<span class="hz">天下莫柔弱於水</span></h3>
+<p id="t78">Nothing under heaven is softer or weaker than water, and yet for attacking what is hard and strong nothing beats it, for nothing can take its place. That the weak beats the strong and the soft beats the hard, everyone under heaven knows, and no one can do it. And so the sage says: he who takes on himself the filth of the state is lord of its altars; he who takes on himself the ill fortune of the state is king of the world. True words sound like their opposite.</p>
+<h3 id="ch79">79. Patching up a great grudge<span class="hz">和大怨</span></h3>
+<p id="t79">Patch up a great grudge and some grudge is sure to be left; how can that be called good? And so the sage holds the left half of the tally and makes no claim on anyone. A man of power keeps the tally; a man without power collects the tax. The way of heaven has no favourites; it is always on the side of good men.</p>
+<h3 id="ch80">80. A small state with few people<span class="hz">小國寡民</span></h3>
+<p id="t80">A small state with few people. Let there be tools worth ten or a hundred men, and no use for them. Let the people take death seriously and not move far away. Though there are boats and carts, let no one ride in them; though there are armour and weapons, let no one draw them up. Let the people go back to knotting cords. Let their food be sweet, their clothes fine, their homes at peace, their customs a pleasure. Neighbouring states are in sight of one another, and the cocks and dogs are heard across; and the people grow old and die without ever having gone back and forth.</p>
+<h3 id="ch81">81. True words are not fine<span class="hz">信言不美</span></h3>
+<p id="t81">True words are not fine; fine words are not true. The good man does not argue; the man who argues is not good. The man who knows is not learned; the learned man does not know. The sage does not hoard: the more he does for others, the more he has; the more he gives to others, the more he holds. The way of heaven benefits and does not harm; the way of the sage acts and does not contend.</p>
+
+    <a class="top" href="#">— top —</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var d=document;
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>
