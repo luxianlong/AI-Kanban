@@ -159,7 +159,15 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
   background:var(--paper-2); padding:26px 28px; font-size:.85rem;
   line-height:1.95; box-shadow:var(--shadow);
 }
-.about h2{margin:0 0 14px; font-size:1.05rem; border:0; padding:0; letter-spacing:.2em}
+.about > summary{
+  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.2em;
+  color:var(--ink-soft);
+}
+.about > summary::-webkit-details-marker{display:none}
+.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
+.about[open] > summary{margin:0 0 14px}
+.about[open] > summary::after{content:"−"}
+.about:not([open]){padding:15px 28px}
 .about p{text-indent:0; margin:.6em 0}
 .about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
 .about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.1em}
@@ -173,8 +181,7 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
 
 <header class="mast">
   <h1>鬼谷子</h1>
-  <p class="sub">战国纵横家言　·　<b>白文</b>（不载旧注）　·　清嘉庆十年江都 <b>秦恩复</b> 校刻本</p>
-  <p class="sub">三卷二十一篇，附《篇目考》《附录》及周广业、卢文弨、阮元三跋</p>
+  <p class="sub">战国纵横家言　·　<b>白文</b>三卷二十一篇</p>
 </header>
 
 <div class="bar">
@@ -512,8 +519,8 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
 <div class="ai" id="ai-g120">陶弘景注《鬼谷子》，本是《道藏》旧本。我同乡秦编修敦夫博览好古、精于校勘，因而广辑群书、考订讹谬，把它刻印出来，经过大略见于他的自序。我读《鬼谷子》，发现书中多有韵语；又《抵巇篇》说「巇者，罅也」，把「巇」读如「呼」，合于古人声训的通例，不是后人所能伪托。它的篇名有《飞箝》：按《周礼·春官·典同》「微声韽」，郑玄读作「飞钻涅韽」的「韽」，</div><p id="g121">箝、钻同字。贾疏即引《鬼谷子》证之，又《揣》、《摩》二篇，似放《苏秦传》「简练以为揣摩」之语为之。然《史记‧虞卿传》称《虞氏春秋》亦有《揣摩篇》，则亦游说者之通语也。窃谓书苟为《隋》、《唐志》所著录，而今仅存者，无不当精校传世，况是编为纵横家独存之子书？陶氏注又世所久佚，诚罔罗古籍者所乐睹也。乾隆戊申冬月，仪真阮元跋尾。</p>
 <div class="ai" id="ai-g121">而「箝」与「钻」是同一个字，贾公彦疏正引《鬼谷子》来作证。又《揣》《摩》二篇，似乎是仿《史记·苏秦传》「简练以为揣摩」一语而立；但《史记·虞卿传》说《虞氏春秋》也有《揣摩篇》，可见这本是游说之士的通用语（并非苏秦专有，所以不能据此断定此书即苏秦所作）。我以为凡是《隋志》《唐志》著录而今天仅存的书，都应当精校传世，何况这部是纵横家唯一留存的子书？陶氏的注又久已散佚，实在是搜罗古籍的人乐于见到的。乾隆戊申（1788）冬月，仪真阮元跋尾。</div>
 
-    <section class="about">
-      <h2>关于此本（简体版）</h2>
+    <details class="about">
+      <summary>关于此本（简体版）</summary>
       <p>本页正文为《鬼谷子》<b>原文</b>，标点依底本校录。文字由<a href="/p/guiguzi.html">繁体版</a>机器转换而来，<b>只换字形，不改一字文义</b>。
          底本所附梁陶弘景（一说唐尹知章）旧注已一并删去，本页专存正文。
          另备一层<b>现代文今注</b>（AI 生成，预设隐藏），按上方「今注」可显示。
@@ -529,7 +536,7 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
           依底本原文生成，并参酌《史记》《隋志》《唐志》等书中与本书相关的记载。
           属于<b>机器生成的辅助读物</b>，难免有误，不作为校勘或训诂依据；原文一字未改。</dd>
       </dl>
-    </section>
+    </details>
 
     <a class="top" href="#">— 回顶 —</a>
   </main>

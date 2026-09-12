@@ -124,7 +124,15 @@ p{margin:1.05em 0}
   background:var(--paper-2); padding:26px 28px; font-size:.86rem;
   line-height:1.7; box-shadow:var(--shadow);
 }
-.about h2{margin:0 0 14px; font-size:1.05rem; border:0; padding:0; letter-spacing:.06em}
+.about > summary{
+  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.06em;
+  color:var(--ink-soft);
+}
+.about > summary::-webkit-details-marker{display:none}
+.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
+.about[open] > summary{margin:0 0 14px}
+.about[open] > summary::after{content:"−"}
+.about:not([open]){padding:15px 28px}
 .about p{margin:.6em 0}
 .about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
 .about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.04em}
@@ -139,10 +147,7 @@ p{margin:1.05em 0}
 
 <header class="mast">
   <h1>The Art of War<span class="hz">孫子兵法</span></h1>
-  <p class="sub">Attributed to <b>Sun Wu</b> of the Spring and Autumn period　·　<b>text only</b>,
-     without the eleven old commentaries<br>Thirteen chapters, some six thousand graphs</p>
-  <p class="sub">From <i>Reckonings</i> to <i>The Use of Spies</i>, with seventeen surviving fragments
-     and dialogues with the King of Wu</p>
+  <p class="sub">Attributed to <b>Sun Wu</b>　·　<b>text only</b>, thirteen chapters</p>
 </header>
 
 <div class="bar">
@@ -1088,8 +1093,8 @@ mostly took Sun Wu for their ancestor, and so a <i>Discourse on the Art of War</
 given the name <i>Discourse on the Sunzi bingfa</i>. It is appended here for reference.</span></p>
 
 
-    <section class="about">
-      <h2>About this edition</h2>
+    <details class="about">
+      <summary>About this edition</summary>
       <p>This page is a complete English translation of the <i>Sunzi</i> &mdash; the <i>Art of
          War</i> &mdash; in thirteen chapters, together with the seventeen fragments and dialogues
          with King Hel&uuml; of Wu that the old encyclopaedias preserve outside the received text.
@@ -1136,7 +1141,7 @@ given the name <i>Discourse on the Sunzi bingfa</i>. It is appended here for ref
       <p>The Chinese text is also on this site in
          <a href="/p/sunzi.html">traditional</a> and <a href="/p/sunzi-hans.html">simplified</a>
          characters, each with a layer of modern-Chinese notes.</p>
-    </section>
+    </details>
 
     <a class="top" href="#">&mdash; top &mdash;</a>
   </main>

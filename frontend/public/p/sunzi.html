@@ -160,11 +160,19 @@ body.ai-on .ai-notice::before{content:"說明"; color:var(--seal); border-color:
   background:var(--paper-2); padding:26px 28px; font-size:.85rem;
   line-height:1.95; box-shadow:var(--shadow);
 }
-.about h2{margin:0 0 14px; font-size:1.05rem; border:0; padding:0; letter-spacing:.2em}
 .about p{text-indent:0; margin:.6em 0}
 .about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
 .about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.1em}
 .about dd{margin:0}
+.about > summary{
+  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.2em;
+  color:var(--ink-soft);
+}
+.about > summary::-webkit-details-marker{display:none}
+.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
+.about[open] > summary{margin:0 0 14px}
+.about[open] > summary::after{content:"−"}
+.about:not([open]){padding:15px 28px}
 .top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
   text-decoration:none; font-size:.78rem; letter-spacing:.24em}
 @media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
@@ -174,8 +182,7 @@ body.ai-on .ai-notice::before{content:"說明"; color:var(--seal); border-color:
 
 <header class="mast">
   <h1>孫子兵法</h1>
-  <p class="sub">春秋　舊題 <b>孫武</b> 撰　·　<b>白文</b>（不載十一家舊注）　·　十三篇約六千言</p>
-  <p class="sub">始計至用間十三篇，附歷代類書所引孫子佚文及吳王問對十七則</p>
+  <p class="sub">春秋　舊題 <b>孫武</b> 撰　·　<b>白文</b>十三篇</p>
 </header>
 
 <div class="bar">
@@ -443,8 +450,8 @@ body.ai-on .ai-notice::before{content:"說明"; color:var(--seal); border-color:
 <p id="s91">又按：《北堂書鈔》引《孫子兵法》云：「貴之而無驕，委之而不專，扶之而無隱，危之而不懼。故良將之動心，猶璧玉之不可污也。」《太平御覽》以為出諸葛亮《兵要》。又引《孫子兵法祕要》云：「良將思計如飢，所以戰必勝，攻必克也。」按：《兵法祕要》，孫子無其書。魏武有《兵法接要》一卷，或亦名為《孫子兵法接要》，猶魏武所作《兵法》，亦名為《續孫子兵法》也。《北堂書鈔》又引《孫子兵法論》云：「非文無以平治，非武無以治亂。善用兵者，有三畧焉：上畧伐智，中畧伐義，下畧伐勢。」按：此亦不似孫武語，蓋後世兵多祖孫武，故作《兵法論》，即名為《孫子兵法論》也。附識於此，以備考。</p>
 <div class="ai" id="ai-s91">後人按語，考辨三條題為《孫子》的佚文：一、《北堂書鈔》引「貴之而無驕，委之而不專……猶璧玉之不可污也」，但《太平御覽》認為出自諸葛亮《兵要》；二、所引《孫子兵法祕要》「良將思計如飢」一條，按孫子並無此書，疑即曹操《兵法接要》——曹操所著兵書也曾被稱作《續孫子兵法》；三、《孫子兵法論》「上畧伐智，中畧伐義，下畧伐勢」一條，語氣也不像孫武，大概是後世兵家宗法孫武而作，遂冠以孫子之名。附記於此以備考。</div>
 
-    <section class="about">
-      <h2>關於此本</h2>
+    <details class="about">
+      <summary>關於此本</summary>
       <p>本頁正文為《孫子兵法》<b>白文</b>（原文，不載舊注），標點依校録本。
          曹操、李筌、杜牧以下十一家舊注一概不錄，本頁專存正文。
          另備一層<b>現代文今注</b>（AI 生成，預設隱藏），按上方「今注」可顯示。
@@ -461,7 +468,7 @@ body.ai-on .ai-notice::before{content:"說明"; color:var(--seal); border-color:
         <dt>今注</dt><dd>現代漢語串講 105 則（正文逐段 74 則、佚文逐則 17 則、篇旨 14 則），由 AI（Anthropic Claude）
           依原文生成。屬於<b>機器生成的輔助讀物</b>，難免有誤，不作為校勘或訓詁依據；原文一字未改。</dd>
       </dl>
-    </section>
+    </details>
 
     <a class="top" href="#">— 回頂 —</a>
   </main>

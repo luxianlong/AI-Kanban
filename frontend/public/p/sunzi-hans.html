@@ -160,11 +160,19 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
   background:var(--paper-2); padding:26px 28px; font-size:.85rem;
   line-height:1.95; box-shadow:var(--shadow);
 }
-.about h2{margin:0 0 14px; font-size:1.05rem; border:0; padding:0; letter-spacing:.2em}
 .about p{text-indent:0; margin:.6em 0}
 .about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
 .about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.1em}
 .about dd{margin:0}
+.about > summary{
+  cursor:pointer; list-style:none; font-size:1.05rem; letter-spacing:.2em;
+  color:var(--ink-soft);
+}
+.about > summary::-webkit-details-marker{display:none}
+.about > summary::after{content:"＋"; float:right; opacity:.6; letter-spacing:0}
+.about[open] > summary{margin:0 0 14px}
+.about[open] > summary::after{content:"−"}
+.about:not([open]){padding:15px 28px}
 .top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
   text-decoration:none; font-size:.78rem; letter-spacing:.24em}
 @media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
@@ -174,8 +182,7 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
 
 <header class="mast">
   <h1>孙子兵法</h1>
-  <p class="sub">春秋　旧题 <b>孙武</b> 撰　·　<b>白文</b>（不载十一家旧注）　·　十三篇约六千言</p>
-  <p class="sub">始计至用间十三篇，附历代类书所引孙子佚文及吴王问对十七则</p>
+  <p class="sub">春秋　旧题 <b>孙武</b> 撰　·　<b>白文</b>十三篇</p>
 </header>
 
 <div class="bar">
@@ -443,8 +450,8 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
 <p id="s91">又按：《北堂书钞》引《孙子兵法》云：「贵之而无骄，委之而不专，扶之而无隐，危之而不惧。故良将之动心，犹璧玉之不可污也。」《太平御览》以为出诸葛亮《兵要》。又引《孙子兵法秘要》云：「良将思计如饥，所以战必胜，攻必克也。」按：《兵法秘要》，孙子无其书。魏武有《兵法接要》一卷，或亦名为《孙子兵法接要》，犹魏武所作《兵法》，亦名为《续孙子兵法》也。《北堂书钞》又引《孙子兵法论》云：「非文无以平治，非武无以治乱。善用兵者，有三畧焉：上畧伐智，中畧伐义，下畧伐势。」按：此亦不似孙武语，盖后世兵多祖孙武，故作《兵法论》，即名为《孙子兵法论》也。附识于此，以备考。</p>
 <div class="ai" id="ai-s91">后人按语，考辨三条题为《孙子》的佚文：一、《北堂书钞》引「贵之而无骄，委之而不专……犹璧玉之不可污也」，但《太平御览》认为出自诸葛亮《兵要》；二、所引《孙子兵法秘要》「良将思计如饥」一条，按孙子并无此书，疑即曹操《兵法接要》——曹操所著兵书也曾被称作《续孙子兵法》；三、《孙子兵法论》「上畧伐智，中畧伐义，下畧伐势」一条，语气也不像孙武，大概是后世兵家宗法孙武而作，遂冠以孙子之名。附记于此以备考。</div>
 
-    <section class="about">
-      <h2>关于此本</h2>
+    <details class="about">
+      <summary>关于此本</summary>
       <p>本页正文为《孙子兵法》<b>白文</b>（原文，不载旧注），标点依校录本。
          曹操、李筌、杜牧以下十一家旧注一概不录，本页专存正文。
          另备一层<b>现代文今注</b>（AI 生成，预设隐藏），按上方「今注」可显示。
@@ -461,7 +468,7 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
         <dt>今注</dt><dd>现代汉语串讲 105 则（正文逐段 74 则、佚文逐则 17 则、篇旨 14 则），由 AI（Anthropic Claude）
           依原文生成。属于<b>机器生成的辅助读物</b>，难免有误，不作为校勘或训诂依据；原文一字未改。</dd>
       </dl>
-    </section>
+    </details>
 
     <a class="top" href="#">— 回顶 —</a>
   </main>
