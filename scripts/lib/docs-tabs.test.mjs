@@ -58,6 +58,27 @@ const generator = fs.readFileSync(path.join(ROOT, 'scripts', 'build-docs-site.mj
 
   // A tab is linkable, and follows the fragment when it changes under us.
   assert.match(generator, /window\.addEventListener\('hashchange', fromHash\)/)
+
+  // The article count is baked with every card present, but the gate serves an
+  // anonymous visitor the page with the private cards stripped out. A baked
+  // number would then both overpromise and disclose how many private docs are
+  // being withheld, so the label counts the panel it names — on load, and again
+  // after a delete takes a card out of it.
+  assert.match(
+    generator,
+    /<span class="n" data-count-of="panel-articles">/,
+    'the articles count must be marked as counting a panel, not baked alone',
+  )
+  assert.match(
+    generator,
+    /n\.textContent = panel\.querySelectorAll\('\.card-wrap'\)\.length/,
+    'the tab label must be recounted from the cards actually in the panel',
+  )
+  assert.match(
+    generator,
+    /wrap\.remove\(\);[\s\S]{0,400}?if \(window\.recountTabs\) window\.recountTabs\(\)/,
+    'deleting a card must refresh the tab count',
+  )
 }
 
 // --- and the generated index really carries it --------------------------------
