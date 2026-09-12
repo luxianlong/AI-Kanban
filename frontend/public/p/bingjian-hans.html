@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>冰鉴 · 简体版</title>
+<meta name="description" content="《冰鉴》全本：神骨、刚柔、容貌、情态、须眉、声音、气色七章，附清吴荣光跋；简体、带标点，另备现代文注释（AI 生成）可开关。">
+<style>
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Serif CJK SC","Source Han Serif SC","Songti SC","STSong","SimSun","Noto Serif CJK TC",serif;
+  line-height:2.05; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(38px,7vw,64px); letter-spacing:.32em;
+  text-indent:.32em; font-weight:600; line-height:1.3;
+}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.12em; text-align:center; text-indent:0}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.78rem; letter-spacing:.1em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.bar .tag{font-size:.6em; letter-spacing:.06em; opacity:.7; margin-left:.4em;
+  align-self:flex-start; margin-top:.5em}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:232px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.8rem; line-height:1.85;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:1px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.08em}
+  nav.toc a.l3{padding-left:20px}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.2em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px}
+
+main{padding:34px 0 100px; max-width:42em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.52rem; font-weight:600;
+  letter-spacing:.26em; text-indent:.26em; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:56px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.2em; text-indent:.2em; scroll-margin-top:24px;
+}
+p{margin:1.05em 0; text-align:justify; text-justify:inter-ideograph}
+main > p{text-indent:2em}
+
+/* 按語 — the commentary paragraph that follows each verse. The 底本 prints it as
+   one block opening with the character 按, so the marker is drawn by CSS rather
+   than carried in the text: it must not end up in a copied selection. */
+p.an::before{
+  content:"按　"; color:var(--seal); font-weight:600;
+  letter-spacing:.1em;
+}
+
+.var{border-bottom:1px dotted var(--seal); cursor:help}
+.yin{font-size:.72em; color:var(--ink-soft); letter-spacing:0}
+
+/* 现代文注释（AI 生成）— hidden by default */
+.ai{display:none}
+body.ai-on .ai{
+  display:block; margin:.85em 0 1.5em; padding:.75em 2px .75em 16px;
+  text-indent:0; color:var(--ink-soft); font-size:.84em; line-height:1.95;
+  border-left:3px solid var(--accent); border-radius:0 7px 7px 0;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--accent) 9%,transparent), transparent 78%);
+  font-family:"Noto Sans CJK SC","Source Han Sans SC","PingFang SC",
+    "Microsoft YaHei","Noto Sans CJK TC",system-ui,sans-serif;
+}
+body.ai-on .ai::before{
+  content:"注释"; float:left; margin:.22em .7em .1em 0;
+  color:var(--accent); border:1px solid var(--accent); border-radius:3px;
+  padding:0 5px; font-size:.78em; letter-spacing:.16em; text-indent:.16em;
+  opacity:.9; white-space:nowrap;
+}
+body.ai-on .ai-head{
+  margin:1.1em 0 1.6em;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--accent) 14%,transparent), transparent 85%);
+}
+body.ai-on .ai-head::before{content:"提要"}
+/* 注释 toggle. The hover tint paints the label green, so it must never apply
+   while the button is ON — green-on-green fill made 注释 and the AI tag
+   vanish into a solid green pill. Keep an explicit readable colour in both. */
+.bar button#ai[aria-pressed="true"]{
+  background:var(--accent); border-color:var(--accent); color:var(--paper-2)}
+.bar button#ai:not([aria-pressed="true"]):hover{
+  border-color:var(--accent); color:var(--accent)}
+.bar button#ai[aria-pressed="true"]:hover{
+  background:var(--accent); border-color:var(--accent); color:var(--paper-2);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper-2) 55%,transparent)}
+
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.78rem; letter-spacing:.24em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>冰鉴</h1>
+  <p class="sub">清　佚名　撰　·　七篇</p>
+</header>
+
+<div class="bar">
+  <div class="grp">
+    <button id="ai" aria-pressed="false" title="现代文注释（AI 生成），预设隐藏">注释 <span class="tag">AI</span></button>
+  </div>
+  <div class="grp langs">
+    <span class="btn cur" aria-current="page">简体</span>
+    <a class="btn" href="/p/bingjian.html">繁體</a>
+    <a class="btn" href="/p/bingjian-en.html">EN</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#ch1">神骨章第一</a>
+<a class="l3" href="#ch1p1">神骨为先</a>
+<a class="l3" href="#ch1p2">清浊与邪正</a>
+<a class="l3" href="#ch1p3">断续处难见</a>
+<a class="l3" href="#ch1p4">骨有九起</a>
+<a class="l3" href="#ch1p5">骨之色与质</a>
+<a class="l2" href="#ch2">刚柔章第二</a>
+<a class="l3" href="#ch2p1">五行为外刚柔</a>
+<a class="l3" href="#ch2p2">内刚柔</a>
+<a class="l2" href="#ch3">容貌章第三</a>
+<a class="l3" href="#ch3p1">容貌通论</a>
+<a class="l3" href="#ch3p2">容贵整</a>
+<a class="l3" href="#ch3p3">科名星与阴骘纹</a>
+<a class="l3" href="#ch3p4">贵征与贱征</a>
+<a class="l2" href="#ch4">情态章第四</a>
+<a class="l3" href="#ch4p1">情态总说</a>
+<a class="l3" href="#ch4p2">四种常态</a>
+<a class="l3" href="#ch4p3">三种时态</a>
+<a class="l2" href="#ch5">须眉章第五</a>
+<a class="l3" href="#ch5p1">须眉为男子</a>
+<a class="l3" href="#ch5p2">眉尚彩</a>
+<a class="l3" href="#ch5p3">须取相称</a>
+<a class="l2" href="#ch6">声音章第六</a>
+<a class="l3" href="#ch6p1">声犹天地之气</a>
+<a class="l3" href="#ch6p2">辨声之法</a>
+<a class="l3" href="#ch6p3">音者声之余</a>
+<a class="l2" href="#ch7">气色章第七</a>
+<a class="l3" href="#ch7p1">面如命，色如运</a>
+<a class="l3" href="#ch7p2">四层气色</a>
+<a class="l3" href="#ch7p3">科名以黄为主</a>
+<a class="l3" href="#ch7p4">色忌白与青</a>
+<a class="l2" href="#ba">跋（清·吴荣光）</a>
+<a class="l3" href="#bap1">跋语</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>目　录</summary>
+<a class="l2" href="#ch1">神骨章第一</a>
+<a class="l3" href="#ch1p1">神骨为先</a>
+<a class="l3" href="#ch1p2">清浊与邪正</a>
+<a class="l3" href="#ch1p3">断续处难见</a>
+<a class="l3" href="#ch1p4">骨有九起</a>
+<a class="l3" href="#ch1p5">骨之色与质</a>
+<a class="l2" href="#ch2">刚柔章第二</a>
+<a class="l3" href="#ch2p1">五行为外刚柔</a>
+<a class="l3" href="#ch2p2">内刚柔</a>
+<a class="l2" href="#ch3">容貌章第三</a>
+<a class="l3" href="#ch3p1">容貌通论</a>
+<a class="l3" href="#ch3p2">容贵整</a>
+<a class="l3" href="#ch3p3">科名星与阴骘纹</a>
+<a class="l3" href="#ch3p4">贵征与贱征</a>
+<a class="l2" href="#ch4">情态章第四</a>
+<a class="l3" href="#ch4p1">情态总说</a>
+<a class="l3" href="#ch4p2">四种常态</a>
+<a class="l3" href="#ch4p3">三种时态</a>
+<a class="l2" href="#ch5">须眉章第五</a>
+<a class="l3" href="#ch5p1">须眉为男子</a>
+<a class="l3" href="#ch5p2">眉尚彩</a>
+<a class="l3" href="#ch5p3">须取相称</a>
+<a class="l2" href="#ch6">声音章第六</a>
+<a class="l3" href="#ch6p1">声犹天地之气</a>
+<a class="l3" href="#ch6p2">辨声之法</a>
+<a class="l3" href="#ch6p3">音者声之余</a>
+<a class="l2" href="#ch7">气色章第七</a>
+<a class="l3" href="#ch7p1">面如命，色如运</a>
+<a class="l3" href="#ch7p2">四层气色</a>
+<a class="l3" href="#ch7p3">科名以黄为主</a>
+<a class="l3" href="#ch7p4">色忌白与青</a>
+<a class="l2" href="#ba">跋（清·吴荣光）</a>
+<a class="l3" href="#bap1">跋语</a>
+    </details>
+
+<h2 id="ch1">神骨章第一</h2>
+<div class="ai ai-head">全书的第一刀切在哪里：不看形骸，先看神与骨。神在两眼，骨在面部。这一章立下全书的判别法——先分清浊，再分邪正；而分邪正要看一个人静下来和动起来的两副样子。最要紧的一句在末尾：两种人都能装出「清」，所以「不可不辨」。</div>
+<p id="ch1p1">语云：脱谷为糠，其髓斯存，神之谓也；山骞不崩，惟石为镇，骨之谓也。一身精神，具乎两目；一身骨相，具乎面部。他家兼论形骸，文人先观神骨。开门见山，此为第一。</p>
+<div class="ai" id="ai-ch1p1">古话说：谷子脱去外壳成了糠，可那点精髓还在——这说的就是「神」；山被剥蚀了也不会塌，因为底下有石头镇着——这说的就是「骨」。一个人的精神全在两只眼睛里，骨相全在一张脸上。别家相术连身架子一起看，读书人看人先看神和骨。开门见山，所以摆在第一。（「骞」是亏损、剥蚀。这一段是全书的取舍：舍去看得见的形体，只取看不见的两样。）</div>
+<p id="ch1p2">相家论神，有清浊之辨。清浊易辨，邪正难辨。欲辨邪正，先观动静。静若含珠，动若水发；静若无人，动若赴敌：此为澄清到底。静若萤光，动若流水，尖巧喜淫；静若半睡，动若鹿骇，别才而深思：一为败器，一为隐流。均之托迹二清，不可不辨。</p>
+<div class="ai" id="ai-ch1p2">相术里论神，先分清和浊。清浊好分，邪和正难分。要分邪正，先看他静的时候和动的时候。静下来像含着一颗珠子，动起来像泉水涌出；静下来像屋里没人，动起来像迎面赴敌——这是从头清到底的清。静下来像萤火忽明忽灭，动起来像浮水漂流，这种人尖巧而好淫；静下来像半睡半醒，动起来像受惊的鹿，这种人另有才具却心思太深——前一种是废品，后一种是暗流。两种都借着「清」的外相安身，所以不能不辨。（「败器」指成不了事的人；「隐流」指藏在暗处的一路。全章的难点不在看清浊，而在看穿两种假清。）</div>
+<p id="ch1p3">凡精神抖擞时易见，断续处难见。断者出处断，续者闭处续。道家所谓收拾入门之说：不了处看其脱略，做了处看其针线。小心者，从其做不了处看之，疏节阔目，若不经意，所谓脱略也；大胆者，从其做了处看之，慎重周密，无有苟且，所谓针线也。二者实看向内处，稍移外便落情态矣，情态易见。</p>
+<div class="ai" id="ai-ch1p3">精神抖擞的时候容易看见，断断续续的接缝处才难看。所谓「断」，是露出来的地方断了；所谓「续」，是合起来的地方接上了。这就是道家「收拾入门」的那套说法——看一个人没做完的事，看他疏落到什么程度；看他做完的事，看他针脚细到什么程度。心思细的人，要从他没做完的地方看：粗枝大叶、像是不在意，这叫「脱略」；胆子大的人，要从他做完的地方看：慎重周密、没有一处敷衍，这叫「针线」。这两样看的其实是向内的那一面；稍微往外挪一点，就落到「情态」上去了，而情态是容易看见的。（此段是全书最难的一节：看人不看他用力处，看他松手处。底本作「断续处难见」，今通行本多作「断续时难见」。）</div>
+<p id="ch1p4">骨有九起：天庭骨隆起，枕骨强起，顶骨平起，佐串骨角起，太阳骨线起，眉骨伏犀起，鼻骨芽起，颧骨丰起，颊骨平伏起。在头以天庭骨、枕骨、太阳骨为主；在面以眉骨、颧骨为主。五者备，柱石器也。一则不穷，二则不贱，三动履小胜，四贵矣。</p>
+<div class="ai" id="ai-ch1p4">骨有九处要「起」：额头上部要隆起，后脑枕骨要强起，头顶骨要平起，耳后佐串骨要角起，太阳穴的骨要像一条线那样起，眉骨要像伏着的犀角那样起，鼻骨要像新芽那样起，颧骨要丰起，颧下颊骨要平伏而起。头上以天庭骨、枕骨、太阳骨为主，脸上以眉骨、颧骨为主。这五样都具备，就是能做栋梁柱石的材料。占一样不至于穷，占两样不至于贱，占三样行事小有胜算，占四样就贵了。（「起」指骨的隆突有势，不是高低而已。）</div>
+<p id="ch1p5">骨有色，面以青为主，少年公卿半青面是也。紫次之，白斯下矣。骨有质，头以联者为贵，碎次之。总之，头无恶骨，面佳不如头佳。然大而缺天庭，终是贱品；圆而无串骨，半为孤僧；鼻骨犯眉，堂上不寿；颧与眼争，子嗣不立。此中贵贱，有毫厘千里之辨。</p>
+<div class="ai" id="ai-ch1p5">骨有颜色，面色以青为上——年纪轻轻做到公卿的，一半是青面。紫色次一等，白色就下等了。骨有质地，头骨以连成一片的为贵，零碎的次一等。总之一句：头上不要有恶骨；脸长得好，不如头长得好。但是头虽大而额头缺陷的，终究是下品；头虽圆而没有佐串骨的，多半是孤身的出家人；鼻骨冲犯眉骨的，父母不长寿；颧骨与眼相争的，子嗣立不住。这里头的贵贱，差一丝一毫就隔了一千里。（「堂上」指父母。底本作「头无恶骨」「碎次之」，通行本多作「头少恶骨」「匾者次之，碎为最下」。）</div>
+<h2 id="ch2">刚柔章第二</h2>
+<div class="ai ai-head">刚柔分内外两层。外层是五行相生相克，看的是命；内层是喜怒、伏跳、深浅，看的是脾性。这一章的要害在末句：「观人所忽」——要看的正是他自己不当一回事的那些地方。</div>
+<p id="ch2p1">既识神骨，当辨刚柔。刚柔即五行生克之数，名曰先天种子。不足用补，有余用泄，消息直与命通，此其皎然易见。五行有合法：木合火，水合木，此顺而合；顺者多富，即贵亦在浮沉之间。金与火仇，有时合火，推之水土皆然，此逆而合；逆者其贵非常。然所谓逆合者：金形带火则然，火形带金则三十死矣；水形带土则然，土形带水则孤寒老矣；木形带金则然，金形带木则刀剑随身矣。此外牵合，俱是杂格，不入文人正论。</p>
+<div class="ai" id="ai-ch2p1">认得了神骨，接着要辨刚柔。刚柔就是五行相生相克的那一套数，叫做「先天种子」。不够的用补，多了的用泄，其中的消长直接通到命上去，这一层是明摆着、容易看见的。五行有相合之法：木合火、水合木，是顺着相生而合；顺合的人多半富，就算贵也在浮浮沉沉之间。金和火本是相克的仇家，却有时合得上火，推到水和土也一样，这是逆着相克而合；逆合的人，贵得非同一般。不过所谓逆合是有方向的：金形的人带火可以，火形的人带金，三十岁上就没命了；水形的人带土可以，土形的人带水，孤苦寒素到老；木形的人带金可以，金形的人带木，一辈子刀剑不离身。除此以外硬凑的，都是杂格，不进读书人的正论。（「顺者多富，逆者其贵非常」是这一章的命门：顺的路宽而平，逆的路窄而高。）</div>
+<p id="ch2p2">五行为外刚柔，内刚柔则喜怒、伏跳、深浅者是。喜高怒重，过目辄忘，近粗；伏亦不伉，跳亦不扬，近蠢；初念甚浅，转念甚深，近奸。内奸者，功名可期；粗蠢各半者，胜人以寿；纯奸能豁达者，其人终成；纯粗无周密者，半途必弃。观人所忽，十得八九矣。</p>
+<div class="ai" id="ai-ch2p2">五行讲的是外在的刚柔；内在的刚柔，就是喜怒、伏跳、深浅这几样。喜也喜得高、怒也怒得重，可是过眼就忘，这近于「粗」；沉下去也沉不到底，跳起来也跳不高，这近于「蠢」；头一个念头很浅，转一个念头却很深，这近于「奸」。内里带奸的人，功名可以指望；粗和蠢各占一半的人，靠寿命胜过别人；纯是奸而又能豁达的人，这人终究成得了事；纯是粗而毫无周密的人，半路上一定放弃。——看一个人，就看他自己忽略掉的那些地方，十回能中八九回。（「伉」是高亢。此段三句「近粗、近蠢、近奸」是一组，下面四句把三种底子各配一个结局，读时要对着看。）</div>
+<h2 id="ch3">容貌章第三</h2>
+<div class="ai ai-head">「容」是全身，「貌」是一张脸。这一章给了一个很容易被误读的标准：容贵「整」，而整不是整齐——是各部分互相称得住。后半转到科名星与阴骘纹，两样都是「时隐时见」的东西，要在特定时候才看得到。</div>
+<p id="ch3p1">容以七尺为期，貌合两仪而论。胸腹手足，实接五方；耳目口鼻，全通四气。相顾相称则福生，如背如凑，则林林总总不足论也。</p>
+<div class="ai" id="ai-ch3p1">「容」以七尺之躯为范围，「貌」要合着阴阳两仪来看。胸腹手足，实实在在接着东西南北中五方；耳目口鼻，一应通着四时之气。各部分互相照应、互相称得住，福气就从这里生出来；如果彼此背着、只是硬凑在一起，那就千千万万张脸都不值一论了。（「如背如凑」四字是全章的反面标准：背是相违，凑是勉强拼合。）</div>
+<p id="ch3p2">容贵整，整非整齐之谓。短不豕蹲，长不茅立，肥不熊餐，瘦不鹊寒，所谓整也；背宜圆，腹宜突坦，手宜温软，曲若弯弓，足宜丰满，下宜藏蛋，所谓整也。五短多贵，两大不扬，负重高官，鼠行好利，此为定格。他如手长其身，身过于体，配以佳骨，定主封侯；罗纹满身，胸有秀骨，配以妙神，不拜相即鼎甲。</p>
+<div class="ai" id="ai-ch3p2">「容」以「整」为贵，但整不是整齐划一的意思。个子矮而不像猪那样蹲着，个子高而不像茅草那样直挺挺立着，胖而不像熊在进食，瘦而不像寒天里的鹊——这叫整；背要圆，腹要突而平坦，手要温软、曲起来像张弓，脚要丰满、脚底要能藏得住一颗蛋——这也叫整。身材五短的人多半贵，手足两样过大的不得意，能负重的做高官，走路像老鼠的好利，这几条是定下的格。此外像手长过身、身长过于躯干，再配上一副好骨，一定封侯；周身罗纹、胸前有秀骨，再配上一副妙神，不做宰相也是鼎甲。（「五短」指身、手、足、头、面都短而匀。「鼎甲」是科举前三名。）</div>
+<p id="ch3p3">相貌家有清、古、奇、秀之别，总之不必，须看科名星、阴骘纹为主。科名星，十三岁至三十九岁随时而见；阴骘纹，十九岁至四十六岁随时而见。二见全，大物也；得一亦贵。科名星见于印堂眉彩，时隐时见，或为刚针，或为小丸，尝有光气，酒后及发怒时易见；阴骘纹见于眼角，阴雨便见，如三叉样，假寐时最易见。得科名星蚤发，得阴骘纹迟发。二者全无，前程莫问。阴骘纹见于喉间，又主子贵，杂路不在此格。</p>
+<div class="ai" id="ai-ch3p3">相貌家分什么清、古、奇、秀，说到底都不必；要看，主要看科名星和阴骘纹这两样。科名星，十三岁到三十九岁之间随时可能现出来；阴骘纹，十九岁到四十六岁之间随时可能现出来。两样都见着，是大人物；得着一样也贵。科名星现在印堂和眉尖的光彩上，时隐时现，有时像一根硬针，有时像一粒小丸，常带着一点光气，喝过酒和发怒的时候最容易看见；阴骘纹现在眼角，阴天下雨就出来，形状像个三叉，打盹的时候最容易看见。得科名星的早发，得阴骘纹的晚发。两样都没有，前程不必问了。阴骘纹要是现在喉头，还主儿子贵；不走科举这条路的，不在这个格里。（「阴骘」是暗中积的德。这一段把两个看不见的东西钉在看得见的时刻上：酒后、发怒、阴雨、假寐——都是人卸下防备的时候。）</div>
+<p id="ch3p4">目者面之渊，不深则不清；鼻者面之山，不高则不灵。口阔而方禄千钟，齿多而圆不家食。眼角入鬓，必掌刑名；耳白过面，终身钱谷。此贵征也。舌脱无官，橘面不显；文人不伤左眼，鹰准动便食人。此贱征也。</p>
+<div class="ai" id="ai-ch3p4">眼是脸上的深潭，不深就不清；鼻是脸上的山，不高就不灵。口阔而方的，食禄千钟；牙齿多而圆的，不吃自己家的饭（意即出外为官食禄）。眼角长入鬓角的，必定掌刑名之权；耳朵白过面色的，一辈子管钱粮。这些是贵的征候。舌头松脱无力的做不了官，脸皮像橘皮的显达不了；读书人不可伤了左眼，鼻子像鹰嘴的一动就要吃人。这些是贱的征候。（「千钟」是极言食禄之厚。「鹰准」的「准」指鼻头。底本作「齿多而圆」「文人不伤左眼」，通行本多作「齿多而固」「文人不伤在眼」。）</div>
+<h2 id="ch4">情态章第四</h2>
+<div class="ai ai-head">情态是神的余数，常常替神的不足处补位。这一章给了看人的时间差：久看看精神，乍看看情态。四种常态各配一个成败条件，末段三种「时态」则是三种不必深交的人——注意它自己加的限制：「三者不必定人终身」。</div>
+<p id="ch4p1">容貌者，骨之余，常佐骨之不足；情态者，神之余，常佐神之不足。久注观人精神，乍见观人情态。大家举止，羞涩亦佳；小儿行藏，跳叫愈失。大旨亦辨清浊，细处兼论取舍。</p>
+<div class="ai" id="ai-ch4p1">容貌是骨的余数，常常补骨的不足；情态是神的余数，常常补神的不足。盯久了看的是精神，一眼乍看看的是情态。大户人家出来的人，举止就算带点羞涩也是好的；小孩子的来去，越是又跳又叫越失仪。大方向上还是分清浊，细处才兼论取舍。（「久注」与「乍见」是两种不同的观察，前者看得深，后者看得快。）</div>
+<p id="ch4p2">人有弱态，有狂态，有疏懒态，有周旋态。飞鸟依人，情致婉转，此弱态也；不衫不履，旁若无人，此狂态也；坐立自如，问答随意，此懒态也；饰其中机，不苟言笑，察言观色，趋吉避凶，此周旋态也。皆根其情，不由矫枉。弱而不媚，狂而不哗，疏懒而真诚，周旋而健举，皆能成器；反此，败类也。大概亦得二三矣。</p>
+<div class="ai" id="ai-ch4p2">人有弱态、狂态、疏懒态、周旋态四种。像飞鸟依人那样，情致婉转，这是弱态；衣冠不整、旁若无人，这是狂态；坐也自在站也自在、问什么答什么，这是懒态；把心机藏起来、不随便说笑、察言观色、趋吉避凶，这是周旋态。四种都是从本性上长出来的，不是硬扭出来的。弱而不谄媚，狂而不喧哗，疏懒而真诚，周旋而做事有力——这四种都能成器；反过来就是败类了。大略也能看准十分之二三。（关键不在是哪一态，而在那一态有没有守住自己的边界。底本作「皆根其情」，通行本多作「皆根其性」。）</div>
+<p id="ch4p3">前者恒态，又有时态。方与对谈，神忽他往；众方称言，此独冷笑：深险难近，不足与论情。言不必当，极口称是；未交此人，故意诋毁：卑庸可耻，不足与论事。漫无可否，临事迟回；不甚关情，亦为堕泪：妇人之仁，不足与谈心。三者不必定人终身，反此以求，可以交天下士。</p>
+<div class="ai" id="ai-ch4p3">前面说的是常态，此外还有「时态」——一时一时露出来的那种。正跟你对谈，神忽然跑到别处去了；大家正说一件事，就他一个人冷笑——这种人阴深难亲近，不值得跟他谈情。话说得并不在理，他也满口称是；还没跟这个人打过交道，却故意去诋毁——这种人卑下庸俗可耻，不值得跟他共事。一味不表态、遇事就迟疑退缩；本来不很相干的事，也能掉眼泪——这是妇人之仁，不值得跟他交心。这三样不必就此判定人家一辈子；反过来照这三条去找，就可以交到天下的士了。（末句是全章的用法：三条是排除法，反过来用才是择友法。底本作「妇人之仁」，通行本多作「愚昧之仁」。）</div>
+<h2 id="ch5">须眉章第五</h2>
+<div class="ai ai-head">眉主早年，须主晚运。这一章开头先立一条例，紧接着自己给出两个反例（郭子仪、霍去病），再用「毕竟十之九」把例外收回去——这种立例、破例、复归的走法，是《冰鉴》全书最讲究的一段文章。</div>
+<p id="ch5p1">须眉男子。未有须眉不具，可称男子者。少年两道眉，临老一林须，此言眉主蚤成，须主晚运也。然而紫面无须自贵，暴腮缺须亦荣。郭令公半部不全，霍剽姚一副寡脸。此等间逢，毕竟有须眉者十之九也。</p>
+<div class="ai" id="ai-ch5p1">「须眉」就是男子。没有须眉还能称作男子的，没有。少年看两道眉，临老看一林须——这是说眉主早成，须主晚运。然而紫面而无须的自然贵，腮骨突出而少须的也一样荣显：郭子仪的须眉半部都不全，霍去病更是一张没须的脸。这样的例子偶尔碰得上；毕竟有须眉的还是占十分之九。（「郭令公」即唐郭子仪，「霍剽姚」即汉霍去病，曾为剽姚校尉。底本作「紫面无须自贵」，通行本多作「紫面无眉自贵」。）</div>
+<p id="ch5p2">眉尚彩，彩者，杪处反光也。贵人有三层彩，有一二层彩者，所谓文明气象。宜疏爽不宜凝滞，一望有乘风翔舞之势者，上也；如泼墨者，最下。倒竖者，上也；下垂者，最下。长有起伏，短有神气，浓忌浮光，淡忌枯索。如剑者掌兵权，如帚者赴法场。个中亦有微茫，不可不辨。他如压眼不利，散乱多忧，细而带媚，粗而无文，最是下乘。</p>
+<div class="ai" id="ai-ch5p2">眉毛以「彩」为上。所谓彩，是眉梢处反出来的光。贵人的眉有三层彩，有一两层彩的，就是所谓文明气象。眉宜疏朗爽利，不宜凝结滞重；一眼望去有乘风飞舞之势的是上等，像泼了一摊墨的最下等。眉毛倒竖的是上等，往下垂的最下等。长眉要有起伏，短眉要有神气；浓眉忌浮光，淡眉忌枯索。眉像一把剑的掌兵权，像一把扫帚的上法场。这中间也有极细微难辨的地方，不能不分。此外像眉压着眼的不利，眉毛散乱的多忧，细而带媚气的、粗而没有文理的，都是最下乘。（「杪」是末梢。「彩」不是颜色，是眉尖反出来的那点光。）</div>
+<p id="ch5p3">须有多寡，取其与眉相称。多者宜清、宜疏、宜缩、宜参差不齐；少者宜健、宜光、宜圆、宜有情照顾。卷如螺纹，聪明豁达；长如解索，风流荣显；劲如张戟，位高权重；亮若银条，蚤登廊庙：皆官途大器。紫须剑眉，声音洪壮；蓬然虬乱，尝见耳后；配以神骨清奇，不千里封侯，亦十年拜相。他如辅须先长终不利，人中不见一世穷，鼻毛接须多晦滞，短髭遮口饿终身，此其显可见耳。</p>
+<div class="ai" id="ai-ch5p3">须有多有少，要点是与眉相称。须多的，宜清、宜疏、宜收得住、宜参差不齐；须少的，宜健、宜有光、宜圆、宜彼此有情地照应着。须卷得像螺纹的，聪明豁达；长得像解开的绳索的，风流荣显；劲挺得像张开的戟的，位高权重；亮得像一条银的，早早登上朝堂——这些都是官途上的大材。紫须配剑眉、声音洪亮壮阔，或者蓬松虬结、常常绕到耳后去，再配上一副清奇的神骨，不是封侯千里，也是十年之内拜相。此外像两颊的辅须先长出来的终究不利，人中被须遮得看不见的一辈子穷，鼻毛连着胡须的多半晦滞，短髭盖住嘴的饿一辈子——这些是明显看得出来的。（「廊庙」指朝廷。「辅须」是两腮的须。）</div>
+<h2 id="ch6">声音章第六</h2>
+<div class="ai ai-head">这一章把「声」和「音」拆成两件事：声在发出来的地方听，音在停下来的地方听。一个人说完话之后留下的那点余响，才是这一章真正要你听的东西。</div>
+<p id="ch6p1">人之声音，犹天地之气，轻清上浮，重浊下坠。始于丹田，发于喉，转于舌，辨于齿，出于唇，实与五音相配。取其自成一家，不必一一合调。闻声相思，其人斯在，宁必一见决英雄哉。</p>
+<div class="ai" id="ai-ch6p1">人的声音就像天地间的气：轻而清的往上浮，重而浊的往下沉。声起于丹田，发于喉咙，转于舌头，分辨于牙齿，出于嘴唇，实实在在与宫商角征羽五音相配。只取它自成一家，不必一个个都合上调。听见声音就想起这个人，人就在这声音里了——何必一定要见上一面才能断定英雄呢。（末句是这一章的立足点：声音是可以离开人而独立作证的。底本作「决英雄哉」，通行本多作「决雌雄哉」。）</div>
+<p id="ch6p2">声与音不同。声主张，寻发处见；音主敛，寻歇处见。辨声之法，必辨喜怒哀乐：喜如折竹当风，怒如阴雷起地，哀如石击薄冰，乐如雪舞风前，大概以轻清为上。声雄者，如钟则贵，如锣则贱；声雌者，如雉鸣则贵，如蛙鸣则贱。远听声雄，近听悠扬，起若乘风，止若拍瑟，上上；大言不张唇，细言若无齿，上也。出而不返，荒郊牛鸣；急而不达，深夜鼠嚼；或字句相联，喋喋利口；或齿喉隔断，喈喈混谈：市井之夫，何足比数。</p>
+<div class="ai" id="ai-ch6p2">「声」和「音」不是一回事。声主张扬，要到它发出来的地方去听；音主收敛，要到它停下来的地方去听。辨声的办法，一定要从喜、怒、哀、乐四样上辨：喜的声音像竹子当风折断，怒的声音像闷雷从地下起来，哀的声音像石头砸在薄冰上，乐的声音像雪在风前飞舞——大体上以轻清为上。声音雄壮的，像钟的贵，像锣的贱；声音雌细的，像野鸡叫的贵，像青蛙叫的贱。远处听着雄浑，近处听着悠扬，起来像乘风，停下来像拍瑟——这是上上；大声说话不必张大嘴唇，小声说话像没有牙齿在中间挡着——这是上等。话出去了收不回来，像荒郊里的牛叫；急了却说不明白，像深夜里老鼠啃东西；或者字句黏成一串，喋喋不休逞口舌；或者齿和喉各说各的，含混不清——这些都是市井之人，不值得拿来比数。</div>
+<p id="ch6p3">音者，声之余也，与声相去不远，此则从细处曲中见直。贫贱者有声无音，尖巧者有音无声，所谓禽无声、兽无音是也。凡人说话是声，其散在左右前后是音。开谈若含情，话终多余响，不惟雅人，兼称国士；阔口无溢出，尖舌无窕音，不惟实厚，兼获名高。</p>
+<div class="ai" id="ai-ch6p3">「音」是声的余数，和声离得不远；只是要从细微处、从弯曲里看出直来。贫贱的人有声而无音，尖巧的人有音而无声——就是所谓「禽无声、兽无音」。凡人说话，出口的是声，散在左右前后的是音。一开口就像含着情，话说完了还留着余响——这种人不只是雅人，还称得上国士；嘴阔而声音不溢出来，舌尖而没有轻佻的音——这种人不只是敦厚，还能得大名。（「窕」是轻浮不实。这一段是全章的落点：听人不是听他说什么，是听他说完之后剩下什么。）</div>
+<h2 id="ch7">气色章第七</h2>
+<div class="ai ai-head">末章把时间放进来：面部是命，气色是运；命一生不改，运三个月一换。一生、一年、一月、一日四层气色，是全书唯一一处把人放在日历上看的地方。</div>
+<p id="ch7p1">面部如命，气色如运。大命固宜整齐，小运亦当亨泰。是故光焰不发，珠玉与瓦砾同观；藻绘未扬，明光与布葛齐价。大者主一生祸福，小者亦三月吉凶。</p>
+<div class="ai" id="ai-ch7p1">面部好比一个人的命，气色好比一个人的运。大的命固然要整齐，小的运也应当亨通。所以光焰不发出来，珠玉和瓦砾看着一样；文采不显扬出来，明光锦和粗布葛布卖一个价钱。大的主一生祸福，小的也主三个月的吉凶。（「明光」指明光锦，贵重的织物。底本作「明光与布葛齐价」，通行本多作「缯帛与布葛齐价」。）</div>
+<p id="ch7p2">人以气为主，于内为精神，于外为气色。有终身之气色，少淡、长明、壮艳、老素是也；有一年之气色，春青、夏绿、秋黄、冬白是也；有一月之气色，朔后森发、望后隐跃是也；有一日之气色，早青、昼满、晚停、暮静是也。</p>
+<div class="ai" id="ai-ch7p2">人以气为主：在里面是精神，在外面就是气色。有管一辈子的气色：年少时淡，壮年前明，壮年艳，年老素净。有管一年的气色：春天青，夏天绿，秋天黄，冬天白。有管一个月的气色：初一以后蓬勃生发，十五以后隐隐跳动。有管一天的气色：早上青，白天满，傍晚停住，入夜安静。（底本一年之气色作「夏绿」、一日之气色作「早青」，通行本多作「夏红」「早透」。）</div>
+<p id="ch7p3">科名中人，以黄色为主，此正色也。黄云盖顶，必掇大魁；黄翅入鬓，进身不远；印堂黄色，富贵逼人；明堂素净，明年及第。他如眼角霞鲜，决利小考；印堂垂紫，动获小利；红晕中分，定产佳儿；两颧红润，骨肉发迹。由此推之，足见一斑矣。</p>
+<div class="ai" id="ai-ch7p3">走科举这条路的人，气色以黄为主，这是正色。黄气像云一样盖在头顶的，一定中头名；黄气像翅膀一样伸进鬓角的，进身的日子不远了；印堂发黄的，富贵逼人；明堂素净的，明年就中。此外像眼角有鲜亮的霞色，小考一定顺利；印堂垂下一缕紫气，一动就有小利；红晕从中间分开，一定生好儿子；两颧红润，亲族要发迹。照这样推下去，也就可见一斑了。（「大魁」指状元。「明堂」在印堂之上、发际之下。底本作「明堂素净」，通行本多作「学堂紫净」。）</div>
+<p id="ch7p4">色忌白、忌青。青尝见于眼底，白尝发于眉端。然亦有不同：心事忧劳，青如凝墨；祸生不测，青如浮烟；酒色惫倦，白如卧羊；灾晦催人，白如傅粉。又或青而带紫，金形遇之而飞扬；白而有光，土庚相当亦富贵：又不在此论也。最不佳者，太白夹日月，乌鸟集天庭，桃花散面颊，赪尾守地阁。有一于此，前程退落，祸患再三矣。</p>
+<div class="ai" id="ai-ch7p4">气色忌白、忌青。青色常见于眼底，白色常发于眉梢。不过也有分别：心事忧劳的，青得像凝住的墨；祸事出在意料之外的，青得像浮起的烟；酒色过度而疲惫的，白得像躺着的羊；灾晦催逼的，白得像敷了粉。又或者青而带紫，金形的人遇上反而飞扬；白而有光，土形庚金相配的也一样富贵——这些又不在上面这番话里头。最不好的是：太白之气夹住日月（两眼），乌黑之色聚在天庭，桃花色散在两颊，赤红色守在下巴。有一样落到这里，前程就要退落，祸患也要接二连三了。（「日月」指左右两眼，「地阁」指下颔。「赪」是浅赤色。）</div>
+<h2 id="ba">跋（清·吴荣光）</h2>
+<div class="ai ai-head">这篇跋是《冰鉴》能传下来的原因，也是它作者不明的证据：吴荣光家藏一个抄本，七篇，没有撰人姓名，怕它失传才刻出来。今天流行的「曾国藩著」之说，这篇跋是最直接的反证。</div>
+<p id="bap1">余家有《冰鉴》七篇，不著撰人姓名，宛似一子，世无刻本，恐其湮没也。观人之法，孔有焉廋之辞，孟有眸子之论，圣贤所重，吾辈其可不知乎。此篇固切于用，非同泛书，亦兼赏其文辞云尔。南海吴荣光荷屋氏并识。</p>
+<div class="ai" id="ai-bap1">我家里藏有《冰鉴》七篇，上面没有写撰人的姓名，俨然自成一家之言，世上又没有刻本，我怕它就此湮没了（所以刻出来）。看人的办法，孔子有「人焉廋哉」的话，孟子有「观其眸子」的议论，圣贤都看重这件事，我辈岂可以不知道。这几篇切于实用，不同于泛泛之书；顺带也是欣赏它的文辞罢了。南海吴荣光荷屋氏一并记。（吴荣光，字伯荣，号荷屋，广东南海人，清嘉道间官至湖南巡抚，故旧题「中丞跋」。这段话说明：此书在他手上时已无撰人姓名，且世间尚无刻本。近人考出道光九年（1829）此书即已刊刻，其时曾国藩不足十九岁——「曾国藩撰」之说于此不攻自破。）</div>
+
+    <a class="top" href="#">— 回顶 —</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var b=document.body, d=document;
+
+  var ai=d.getElementById('ai');
+  function setAi(on){
+    b.classList.toggle('ai-on', on);
+    ai.setAttribute('aria-pressed', on?'true':'false');
+    try{ localStorage.setItem('bj-ai', on?'on':'off'); }catch(e){}
+  }
+  var savedAi='off';
+  try{ savedAi=localStorage.getItem('bj-ai')||'off'; }catch(e){}
+  setAi(savedAi==='on');
+  ai.onclick=function(){ setAi(ai.getAttribute('aria-pressed')!=='true'); };
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>

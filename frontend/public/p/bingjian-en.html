@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Ice Mirror (English)</title>
+<meta name="description" content="A complete English translation of the Bingjian (Ice Mirror): all seven chapters — spirit and bone, hard and yielding, frame and face, manner, beard and brow, voice, and colour — with Wu Rongguang’s colophon.">
+<style>
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif;
+  line-height:1.75; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(32px,6vw,54px); letter-spacing:.02em;
+  text-indent:0; font-weight:600; line-height:1.3;
+}
+.mast h1 .hz{display:block; font-size:.4em; letter-spacing:.34em; text-indent:.34em;
+  color:var(--ink-soft); font-weight:400; margin-top:14px}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.06em; text-align:center; text-indent:0}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.78rem; letter-spacing:.1em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.bar .tag{font-size:.6em; letter-spacing:.06em; opacity:.7; margin-left:.4em;
+  align-self:flex-start; margin-top:.5em}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:256px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.8rem; line-height:1.85;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:1px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.04em}
+  nav.toc a.l3{padding-left:20px}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.16em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px}
+
+main{padding:34px 0 100px; max-width:36em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.5rem; font-weight:600;
+  letter-spacing:.04em; text-indent:0; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:60px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.03em; text-indent:0; scroll-margin-top:24px;
+}
+h2 .hz,h3 .hz{font-weight:400; color:var(--ink-soft); letter-spacing:.16em;
+  font-size:.78em; margin-left:.5em}
+p{margin:1.05em 0}
+main > p{text-indent:0}
+
+/* 按語 — the commentary paragraph that follows each verse. The 底本 prints it as
+   one block opening with the character 按, so the marker is drawn by CSS rather
+   than carried in the text: it must not end up in a copied selection. */
+p.an::before{
+  content:"Note. "; color:var(--seal); font-weight:600;
+  letter-spacing:.02em;
+}
+
+.var{border-bottom:1px dotted var(--seal); cursor:help}
+.yin{font-size:.82em; color:var(--ink-soft); letter-spacing:0}
+.lead{color:var(--ink-soft); font-size:.9rem; border-left:2px solid var(--rule);
+  padding-left:14px; margin:.9em 0 1.6em}
+
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.76rem; letter-spacing:.2em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>The Ice Mirror<span class="hz">冰鑑</span></h1>
+  <p class="sub">Anonymous, Qing&nbsp;dynasty　·　seven chapters</p>
+</header>
+
+<div class="bar">
+  <div class="grp langs">
+    <a class="btn" href="/p/bingjian-hans.html">简体</a>
+    <a class="btn" href="/p/bingjian.html">繁體</a>
+    <span class="btn cur" aria-current="page">EN</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#ch1">1. Spirit and Bone</a>
+<a class="l3" href="#ch1p1">Spirit and bone come first</a>
+<a class="l3" href="#ch1p2">Clear, muddy, crooked, upright</a>
+<a class="l3" href="#ch1p3">Reading a man at the joins</a>
+<a class="l3" href="#ch1p4">The nine risings of the bone</a>
+<a class="l3" href="#ch1p5">The colour and grain of bone</a>
+<a class="l2" href="#ch2">2. Hard and Yielding</a>
+<a class="l3" href="#ch2p1">The outward hard and yielding</a>
+<a class="l3" href="#ch2p2">The inward hard and yielding</a>
+<a class="l2" href="#ch3">3. Frame and Face</a>
+<a class="l3" href="#ch3p1">Body and face</a>
+<a class="l3" href="#ch3p2">Being whole</a>
+<a class="l3" href="#ch3p3">The star and the line</a>
+<a class="l3" href="#ch3p4">Signs of rank, signs of baseness</a>
+<a class="l2" href="#ch4">4. Manner and Bearing</a>
+<a class="l3" href="#ch4p1">Manner as the remainder of spirit</a>
+<a class="l3" href="#ch4p2">The four standing manners</a>
+<a class="l3" href="#ch4p3">The three occasional manners</a>
+<a class="l2" href="#ch5">5. Beard and Brow</a>
+<a class="l3" href="#ch5p1">Beard and brow make the man</a>
+<a class="l3" href="#ch5p2">The sheen of the brow</a>
+<a class="l3" href="#ch5p3">A beard that answers the brow</a>
+<a class="l2" href="#ch6">6. Voice and Tone</a>
+<a class="l3" href="#ch6p1">The voice as breath</a>
+<a class="l3" href="#ch6p2">How to read the voice</a>
+<a class="l3" href="#ch6p3">Tone, what is left over</a>
+<a class="l2" href="#ch7">7. Breath and Colour</a>
+<a class="l3" href="#ch7p1">The face is fate, the colour fortune</a>
+<a class="l3" href="#ch7p2">The four registers of colour</a>
+<a class="l3" href="#ch7p3">Yellow for the examination road</a>
+<a class="l3" href="#ch7p4">Avoid white, avoid blue</a>
+<a class="l2" href="#ba">Colophon, by Wu Rongguang</a>
+<a class="l3" href="#bap1">The colophon</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>Contents</summary>
+<a class="l2" href="#ch1">1. Spirit and Bone</a>
+<a class="l3" href="#ch1p1">Spirit and bone come first</a>
+<a class="l3" href="#ch1p2">Clear, muddy, crooked, upright</a>
+<a class="l3" href="#ch1p3">Reading a man at the joins</a>
+<a class="l3" href="#ch1p4">The nine risings of the bone</a>
+<a class="l3" href="#ch1p5">The colour and grain of bone</a>
+<a class="l2" href="#ch2">2. Hard and Yielding</a>
+<a class="l3" href="#ch2p1">The outward hard and yielding</a>
+<a class="l3" href="#ch2p2">The inward hard and yielding</a>
+<a class="l2" href="#ch3">3. Frame and Face</a>
+<a class="l3" href="#ch3p1">Body and face</a>
+<a class="l3" href="#ch3p2">Being whole</a>
+<a class="l3" href="#ch3p3">The star and the line</a>
+<a class="l3" href="#ch3p4">Signs of rank, signs of baseness</a>
+<a class="l2" href="#ch4">4. Manner and Bearing</a>
+<a class="l3" href="#ch4p1">Manner as the remainder of spirit</a>
+<a class="l3" href="#ch4p2">The four standing manners</a>
+<a class="l3" href="#ch4p3">The three occasional manners</a>
+<a class="l2" href="#ch5">5. Beard and Brow</a>
+<a class="l3" href="#ch5p1">Beard and brow make the man</a>
+<a class="l3" href="#ch5p2">The sheen of the brow</a>
+<a class="l3" href="#ch5p3">A beard that answers the brow</a>
+<a class="l2" href="#ch6">6. Voice and Tone</a>
+<a class="l3" href="#ch6p1">The voice as breath</a>
+<a class="l3" href="#ch6p2">How to read the voice</a>
+<a class="l3" href="#ch6p3">Tone, what is left over</a>
+<a class="l2" href="#ch7">7. Breath and Colour</a>
+<a class="l3" href="#ch7p1">The face is fate, the colour fortune</a>
+<a class="l3" href="#ch7p2">The four registers of colour</a>
+<a class="l3" href="#ch7p3">Yellow for the examination road</a>
+<a class="l3" href="#ch7p4">Avoid white, avoid blue</a>
+<a class="l2" href="#ba">Colophon, by Wu Rongguang</a>
+<a class="l3" href="#bap1">The colophon</a>
+    </details>
+
+<h2 id="ch1">1. Spirit and Bone<span class="hz">神骨章第一</span></h2>
+<p class="lead">The first cut the book makes: not the frame, but the spirit and the bone — spirit read in the two eyes, bone in the face. The method laid down here governs the whole book: first separate the clear from the muddy, then the upright from the crooked; and to tell those apart you must see a man both at rest and in motion. The sting is in the last line — both kinds can counterfeit clarity, and so "the two must not go unsorted."</p>
+<p id="ch1p1">The old saying runs: hull the grain and you have chaff, yet the pith of it is still there — that is what is meant by spirit. A mountain is worn away and does not fall, because rock holds it down — that is what is meant by bone. A man’s whole spirit is gathered in his two eyes; his whole bone-structure is gathered in his face. Other schools take the frame of the body into account as well; the scholar looks first at spirit and bone. Straight to the point — and so this comes first.</p>
+<p id="ch1p2">In reading spirit, the physiognomists begin by separating the clear from the muddy. Clear and muddy are easy to tell apart; upright and crooked are hard. To tell those apart, look first at the man at rest and the man in motion. At rest as though holding a pearl in the mouth, in motion as though a spring were welling; at rest as though no one were in the room, in motion as though going out to meet an enemy — this is clear all the way down. At rest like the flicker of a firefly, in motion like water drifting: sharp, clever, and given to appetite. At rest like a man half asleep, in motion like a startled deer: talented in another line, but his thinking runs too deep. The one is a spoiled vessel, the other a hidden current. Both take shelter under the same appearance of clarity, and the two must not go unsorted.</p>
+<p id="ch1p3">When a man’s spirit is up and brisk it is easy to see; it is at the joins, where it breaks off and picks up again, that seeing is hard. What breaks off, breaks off where he is out in the open; what picks up again, picks up where he is shut away. This is what the Daoists mean by "gathering it in at the door." In what he has left unfinished, look at how loosely he let it go; in what he has finished, look at the stitching. For the careful man, look at what he did not finish: coarse joints and wide meshes, as though he had not been attending — that is the looseness. For the bold man, look at what he did finish: weighed, close, with nothing scamped — that is the stitching. Both of these look at the side of him that faces inward. Shift outward even a little and you have fallen into manner and bearing; and manner is easy to see.</p>
+<p id="ch1p4">There are nine risings of the bone: the bone of the upper forehead should swell; the occiput should rise strongly; the crown should rise level; the bone behind the ear should rise to an angle; the bone at the temple should rise in a line; the brow-bone should rise like a rhinoceros horn lying down; the bone of the nose should rise like a shoot; the cheekbone should rise full; the jugal bone below it should rise flat. On the head, the forehead, occiput and temple bones are the chief ones; on the face, the brow-bone and the cheekbone. Where all five are present, here is the stuff of a pillar of state. One of them and he will not be poor; two and he will not be lowly; three and he will have the small advantage in what he undertakes; four, and he will be a man of rank.</p>
+<p id="ch1p5">Bone has colour. In the face, a bluish cast is best — half the men who reach high office young have the blue face. Purple comes next; white is lower still. Bone has grain. In the head, bone that runs together is noble; broken bone comes next. In sum: let the head have no bad bone in it, for a fine face is worth less than a fine head. Still, a great head that wants the forehead stays a low article; a round head with no bone behind the ear is likely a monk without kin; a nose-bone that trespasses on the brow means short life for the parents; cheekbones at war with the eyes mean that sons will not stand. In all this, noble and base are divided by a hair’s breadth that opens into a thousand li.</p>
+<h2 id="ch2">2. Hard and Yielding<span class="hz">剛柔章第二</span></h2>
+<p class="lead">Hard and yielding has an outer layer and an inner one. The outer is the five agents, generating and overcoming one another — that belongs to fate. The inner is temper: quick or heavy, sunk or springing, shallow or deep. The chapter ends on its own sharpest line: "watch what a man makes nothing of" — the places he himself does not think worth guarding.</p>
+<p id="ch2p1">Having made out spirit and bone, one must next distinguish the hard from the yielding. Hard and yielding are just the reckoning of the five agents generating and overcoming one another, and they are called the seed sown before birth. What is deficient is supplemented, what is in excess is drawn off; the waxing and waning of it runs straight through to a man’s fate, and this much is plain and easy to see. The agents have their ways of combining. Wood combines with fire, water with wood: these go with the grain. Those who combine with the grain are mostly rich, and even their rank rises and sinks. Metal and fire are enemies, yet metal sometimes combines with fire; and so, by extension, with water and earth. These go against the grain, and those who combine against the grain rise to no ordinary height. But the against-the-grain combination runs one way only. A metal form carrying fire — well and good; a fire form carrying metal dies at thirty. A water form carrying earth — well and good; an earth form carrying water grows old alone and cold. A wood form carrying metal — well and good; a metal form carrying wood goes through life with a blade at his side. Anything else that is forced together is a mixed case, and has no place in the sober talk of scholars.</p>
+<p id="ch2p2">The five agents are the outward hard and yielding. The inward hard and yielding are these: joy and anger, sinking and springing, shallow and deep. High in joy and heavy in anger, yet forgetting a thing the moment it is out of sight — that verges on the coarse. Sinking without going low, springing without going high — that verges on the stupid. The first thought very shallow and the second very deep — that verges on the cunning. A man cunning within may look for office and repute. A man half coarse and half stupid will outlast his betters by sheer length of life. A man wholly cunning who can yet be large-minded will come to something in the end. A man wholly coarse with no closeness in him will drop the thing half-way. Watch what a man makes nothing of, and you will be right eight or nine times in ten.</p>
+<h2 id="ch3">3. Frame and Face<span class="hz">容貌章第三</span></h2>
+<p class="lead">Rong is the whole body; mao is the face alone. The chapter sets a standard that is easy to misread: the body should be "whole," and whole does not mean neat — it means the parts answer to one another. The second half turns to two marks, the star of examination fame and the line of hidden merit, and both are things that come and go: you have to catch them at the right hour.</p>
+<p id="ch3p1">The body is measured against a span of seven feet; the face is discussed by the two principles, yin and yang. Chest, belly, hands and feet answer in fact to the five directions; ears, eyes, mouth and nose are open to the breath of the four seasons. Where the parts regard one another and answer to one another, good fortune is born there. Where they turn their backs on one another, or are merely thrown together, then all the faces in the world are not worth discussing.</p>
+<p id="ch3p2">The body is prized for being whole, and whole does not mean neat. Short without squatting like a pig; tall without standing stiff like a reed; fat without the look of a bear at its food; thin without the look of a magpie in the cold — that is being whole. The back should be round, the belly full and flat, the hands warm and soft and curved like a drawn bow, the feet full, with hollows underneath that would hold an egg — that too is being whole. Men short in all five parts are often noble; men with two parts overgrown do not get on; a man who can carry weight rises to high office; a man who walks like a rat is out for gain. These are fixed forms. Besides them: arms longer than the trunk, the trunk longer than the body it sits on, and a good bone to go with them — that man will surely be made a marquis. Fine whorls over the whole body, a well-formed bone in the chest, and a fine spirit to go with them — if he is not made chancellor he will stand in the first three at the examinations.</p>
+<p id="ch3p3">The face-readers distinguish the clear, the antique, the strange and the fine; but none of that is needed. What must be looked at, above all, is the star of examination fame and the line of hidden merit. The star may show at any time between thirteen and thirty-nine; the line at any time between nineteen and forty-six. A man in whom both appear is a great vessel; one of the two is enough for rank. The star shows in the light between the brows and at the point of the eyebrow, now hidden and now visible, sometimes like a stiff needle, sometimes like a small pellet, commonly with a glint about it, and easiest to see after wine or in anger. The line shows at the corner of the eye, comes out in wet weather, is shaped like a three-pronged fork, and is easiest to see when a man is dozing. He who has the star rises early; he who has the line rises late. With neither, do not ask about his prospects. If the line shows at the throat it means an honoured son as well. Men who take some other road than the examinations do not fall under this rule.</p>
+<p id="ch3p4">The eye is the deep pool of the face: not deep, and it is not clear. The nose is the mountain of the face: not high, and it has no spirit in it. A mouth broad and square means a stipend of a thousand measures; teeth many and round mean he will not eat at his own table. Eye-corners running back into the hair: he will hold the power of punishments. Ears whiter than the face: money and grain all his life. These are the signs of rank. A slack tongue, and there will be no office; a face like orange peel, and he will not come to eminence. A scholar must not have a hurt left eye; a man with a hawk’s beak eats men the moment he stirs. These are the signs of baseness.</p>
+<h2 id="ch4">4. Manner and Bearing<span class="hz">情態章第四</span></h2>
+<p class="lead">Manner is what is left over from spirit, and it often stands in where spirit falls short. The chapter gives a rule of timing: watch a man long and you see his spirit; catch him at first sight and you see his manner. Four standing manners are each given the condition on which they succeed or fail. The three occasional manners at the end are three men not worth going deep with — but note the limit the text puts on itself: "these three need not settle a man for life."</p>
+<p id="ch4p1">Face and frame are what is left over from bone, and often stand in where bone falls short; manner and bearing are what is left over from spirit, and often stand in where spirit falls short. Watch a man a long while and you are watching his spirit; catch him at first sight and you are watching his manner. In a man of good family, even shyness of bearing is not amiss; in a child, the more he leaps and shouts the further he is from it. In the large, one is still sorting clear from muddy; it is in the fine detail that taking and leaving come in.</p>
+<p id="ch4p2">Men have the weak manner, the wild manner, the idle manner and the accommodating manner. Like a bird come down to the hand, feeling turned this way and that — that is the weak manner. Coat awry and shoes down at heel, as if no one else were there — that is the wild manner. Sitting or standing as he pleases, answering whatever he is asked — that is the idle manner. Covering the works inside, sparing of talk and laughter, reading faces, going toward what is lucky and away from what is not — that is the accommodating manner. All four grow out of a man’s nature; none is forced into shape. Weak but not fawning; wild but not noisy; idle but sincere; accommodating but vigorous in what he does — all four can make something. The reverse of them is refuse. Roughly, one may get two or three in ten this way.</p>
+<p id="ch4p3">Those were the standing manners; there are also the occasional ones. You are in the middle of talking with him and his spirit is suddenly elsewhere; the company is all saying one thing and he alone smiles coldly: dark, hard to come near, not worth opening your feelings to. What is said does not hold, and he agrees with every word of it; he has never had dealings with a man, and goes out of his way to run him down: mean, common, contemptible, not worth doing business with. He will commit himself neither way and hangs back when something has to be done; a matter scarcely touches him and he sheds tears over it: a woman’s kindness, not worth speaking your heart to. These three need not settle a man for life; but seek the opposite of them, and you may make friends of the best men in the empire.</p>
+<h2 id="ch5">5. Beard and Brow<span class="hz">鬚眉章第五</span></h2>
+<p class="lead">The brow governs the early years, the beard the late. The chapter states a rule, at once produces two counter-examples — Guo Ziyi and Huo Qubing — and then takes the exception back with "after all, nine in ten." Setting a rule, breaking it, and returning to it: this is the most carefully turned passage in the book.</p>
+<p id="ch5p1">Beard and brow: that is what a man is. There has never been one who could be called a man without them. Two brows in youth, a thicket of beard in age — which is to say that the brow governs early ripening and the beard the later fortune. And yet a purple face with no beard is noble of itself, and jutting jaws with a thin beard come to honour too: Duke Guo had not half of either, and Huo the Swift-and-Fierce had a bare face altogether. Such cases turn up now and then; but after all, nine men in ten have beard and brow.</p>
+<p id="ch5p2">The brow is prized for its sheen — the sheen being the light thrown back at the tip of the hairs. Men of rank have three layers of it; one or two layers is what is called the look of civility. The brow should be open and crisp, not clotted and heavy. One that at a glance has the air of riding the wind and dancing is of the first order; one like spilled ink is the lowest. Standing up is of the first order; hanging down is the lowest. A long brow should rise and fall; a short one should have spirit in it. In a heavy brow avoid a greasy shine; in a light one avoid a withered look. A brow like a sword: he will hold military power. A brow like a broom: he will go to the execution ground. There are shades in this too fine to name, and they must be told apart. Besides these: a brow pressing on the eye is unlucky; a scattered brow means much worry; fine with a coaxing air, or coarse with no pattern in it — these are the lowest of all.</p>
+<p id="ch5p3">Beards run thick or thin; the point is that they answer to the brow. A thick beard should be clear, open, drawn in, and uneven; a thin one should be strong, glossy, rounded, and have the hairs regarding one another. Curled like a snail’s whorl: clever and large-minded. Long like an untwisted rope: elegant and honoured. Stiff like a halberd at guard: high place and heavy power. Bright as a bar of silver: early into the halls of state. All of these are great vessels for the official road. A purple beard with sword brows and a voice deep and full; or a wild, coiling beard that reaches back behind the ears — put a clear and uncommon spirit and bone with either, and if he is not enfeoffed over a thousand li he will be chancellor within ten years. Besides these: when the cheek-beard grows first, it ends badly; when the groove above the lip cannot be seen, poverty for life; hairs of the nose running into the beard mean a clogged, dull fate; a short moustache covering the mouth means hunger to the end. These are the plain ones, that anyone may see.</p>
+<h2 id="ch6">6. Voice and Tone<span class="hz">聲音章第六</span></h2>
+<p class="lead">The chapter splits voice into two things. Sheng — the voice itself — is heard where it comes out; yin — the tone — is heard where it stops. What this chapter really asks you to listen for is the resonance a man leaves behind after he has finished speaking.</p>
+<p id="ch6p1">A man’s voice is like the breath of heaven and earth: what is light and clear floats up, what is heavy and muddy sinks down. It begins in the cinnabar field, issues at the throat, turns on the tongue, is articulated at the teeth and comes out at the lips, and it answers in fact to the five notes. Take it for being a thing of its own; it need not agree with the scale note for note. Hear the voice and you think of the man — the man is there in it. Must one really see him before deciding whether he is a hero?</p>
+<p id="ch6p2">Voice and tone are not the same. The voice asserts, and is caught where it comes out; the tone draws in, and is caught where it stops. To read the voice, one must read it through joy, anger, grief and delight: joy like bamboo splitting in the wind; anger like thunder rising underground; grief like a stone striking thin ice; delight like snow dancing before the wind — and on the whole the light and clear is best. In a strong voice, a bell is noble and a gong is base; in a slight voice, the cry of a pheasant is noble and the croak of a frog is base. Full when heard from far off, and lingering when heard near; rising as though on the wind and stopping as though a lute were stilled — that is the highest of all. Speaking loud without opening the lips wide, speaking low as though no teeth stood in the way — that is high. Going out and not coming back, like an ox lowing in waste country; hurried and never arriving, like a rat gnawing at dead of night; words strung together in a clatter of glib talk; or teeth and throat cut off from each other, so that everything is mumbled together — these are men of the market place, and not worth counting.</p>
+<p id="ch6p3">Tone is what is left over from the voice, and lies not far from it; only here one must look through the fine and the winding to the straight. The poor and low have voice without tone; the sharp and clever have tone without voice — this is what is meant by saying that birds have no voice and beasts no tone. In ordinary speech, what comes out is the voice; what disperses to left and right, before and behind, is the tone. If a man opens his mouth as though feeling were held in it, and when he has finished there is resonance left over, he is not merely a man of taste but a man of the realm. If his mouth is broad and nothing spills out of it, his tongue sharp and there is no flippancy in the tone, he is not merely solid but will win a great name.</p>
+<h2 id="ch7">7. Breath and Colour<span class="hz">氣色章第七</span></h2>
+<p class="lead">The last chapter brings in time. The face is a man’s fate; his colour is his fortune. Fate does not change in a lifetime; fortune turns over in three months. The four registers — of a life, a year, a month, a day — are the one place in the book where a man is read against a calendar.</p>
+<p id="ch7p1">The face is like a man’s fate; his colour is like his fortune. The great fate should of course be whole and in order; the small fortune too should run smooth. Therefore, while the flame does not come out, pearls and jade look no different from broken tiles; while the figuring is not displayed, the finest brocade fetches the price of hemp cloth. The great governs the fortune and misfortune of a lifetime; the small, the luck of three months.</p>
+<p id="ch7p2">Breath is what governs a man: within, it is his spirit; without, it is his colour. There is a colour that runs through a whole life: pale in youth, bright in the growing years, vivid in full strength, plain in age. There is a colour of the year: green-blue in spring, green in summer, yellow in autumn, white in winter. There is a colour of the month: after the new moon it comes thronging up, after the full it beats faintly under the surface. And there is a colour of the day: blue in the early morning, full at noon, settling in the evening, quiet at nightfall.</p>
+<p id="ch7p3">For men on the examination road, yellow is the governing colour, and it is the true one. A yellow cloud covering the crown: he will certainly take the first place. Yellow wings running back into the hair: his advancement is not far off. Yellow between the brows: wealth and rank pressing in on him. The bright hall above the brows clear and plain: he passes next year. Besides these: a fresh glow at the corner of the eye, and the lesser examinations will go well; a thread of purple hanging between the brows, and there is a small gain to be had at once; a red flush parted down the middle, and a fine son is coming; both cheekbones red and moist, and his kin are on the rise. Reason on from these, and you may see the whole leopard by its one spot.</p>
+<p id="ch7p4">In colour, avoid white and avoid blue. Blue commonly shows under the eye, white commonly comes out at the tip of the brow. Yet they are not all alike: a heart worn with care is blue like ink congealed; disaster coming out of nowhere is blue like smoke drifting up; a body worn out with wine and women is white like a sheep lying down; calamity pressing on a man is white like powder laid on. Then again, blue with purple in it will send a metal-form man soaring; and white with a light in it, where earth and the metal stem answer one another, means wealth and rank as well — these do not come under what has just been said. Worst of all are these: the pallor of Venus gripping the sun and moon, that is the two eyes; crow-black gathering on the forehead; peach-blossom scattered over the cheeks; and a red like a fish’s tail standing on the chin. Let one of these appear, and his prospects fall away and troubles come two and three together.</p>
+<h2 id="ba">Colophon, by Wu Rongguang<span class="hz">清吳榮光中丞跋</span></h2>
+<p class="lead">This colophon is the reason the book survives — and the evidence that its author is unknown. Wu Rongguang had a manuscript in seven chapters, with no author’s name on it, and printed it for fear it would be lost. It is the most direct evidence against the modern attribution to Zeng Guofan.</p>
+<p id="bap1">I have in my house the seven chapters of the Ice Mirror. They carry no author’s name, and stand quite as a work of their own; there was no printed edition anywhere, and I feared the thing would be lost. As for the art of reading men — Confucius has the saying "how can a man conceal himself?", and Mencius the discourse on watching the pupils of the eyes. The sages set store by it; how should we not know it? These chapters are close to practical use and are not like books written at large; and I have taken pleasure in their prose besides. Recorded by Wu Rongguang, styled Hewu, of Nanhai in Guangdong.</p>
+
+    <a class="top" href="#">&mdash; top &mdash;</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var d=document;
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 [
   {
     "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴",
     "href": "/p/dianji.html",
     "zone": "classic",
     "deletable": true,
@@ -147,6 +147,51 @@
     "paths": [
       "frontend/public/p/sanshiliuji-en.html",
       "frontend/public/p/sanshiliuji-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-bingjian-hans",
+    "title": "冰鉴 · 简体版",
+    "href": "/p/bingjian-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T11:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/bingjian-hans.html",
+      "frontend/public/p/bingjian-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-bingjian",
+    "title": "冰鑑 · 繁體版",
+    "href": "/p/bingjian.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T11:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/bingjian.html",
+      "frontend/public/p/bingjian.meta.json"
+    ]
+  },
+  {
+    "id": "upload-bingjian-en",
+    "title": "The Ice Mirror (English)",
+    "href": "/p/bingjian-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T11:00:00.000Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/bingjian-en.html",
+      "frontend/public/p/bingjian-en.meta.json"
     ]
   },
   {
