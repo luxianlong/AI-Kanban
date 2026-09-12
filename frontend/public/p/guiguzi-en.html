@@ -1,0 +1,1559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guiguzi — The Master of Ghost Valley (English)</title>
+<meta name="description" content="A complete English translation of the Guiguzi in three scrolls — all twenty-one chapters, with Qin Enfu's 1805 preface, the study of the chapter list, the appended fragments and the three colophons. A plain-text edition: the old commentary attributed to Tao Hongjing is not included.">
+<style>
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+  --shadow:0 1px 2px rgba(60,45,20,.06),0 12px 34px rgba(60,45,20,.09);
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1;
+         --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 34px rgba(0,0,0,.45); }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",
+    "Noto Serif","Liberation Serif",Georgia,serif;
+  line-height:1.72; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+.zh{font-family:"Noto Serif CJK TC","Source Han Serif TC","Songti SC","SimSun",serif}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(40px,7vw,66px); letter-spacing:.06em;
+  font-weight:600; line-height:1.15;
+}
+.mast .hz{display:block; margin:10px 0 0; font-size:.34em; letter-spacing:.34em;
+  text-indent:.34em; color:var(--ink-soft); font-weight:400}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.04em}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.76rem; letter-spacing:.08em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:250px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.79rem; line-height:1.7;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:2px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.04em}
+  nav.toc a.l3{padding-left:20px}
+  nav.toc a.l4{padding-left:32px; font-size:.94em; opacity:.85}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.16em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px} details.toc-m a.l4{padding-left:30px}
+
+main{padding:34px 0 100px; max-width:36em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.5rem; font-weight:600;
+  letter-spacing:.04em; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:60px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.03em; scroll-margin-top:24px;
+}
+h4{margin:38px 0 2px; font-size:1rem; font-weight:600; letter-spacing:.03em;
+  color:var(--ink-soft); scroll-margin-top:24px}
+h2 .hz,h3 .hz,h4 .hz{font-weight:400; color:var(--ink-soft); letter-spacing:.16em;
+  font-size:.78em; margin-left:.5em}
+p{margin:1.05em 0}
+.byline{color:var(--ink-soft); font-size:.82rem; letter-spacing:.06em; margin-top:.4em}
+.lead{color:var(--ink-soft); font-size:.9rem; border-left:2px solid var(--rule);
+  padding-left:14px; margin:.9em 0 1.6em}
+
+.var{border-bottom:1px dotted var(--seal); cursor:help}
+
+/* ---------- colophon card ---------- */
+.about{
+  margin:96px 0 0; border:1px solid var(--rule); border-radius:10px;
+  background:var(--paper-2); padding:26px 28px; font-size:.86rem;
+  line-height:1.7; box-shadow:var(--shadow);
+}
+.about h2{margin:0 0 14px; font-size:1.05rem; border:0; padding:0; letter-spacing:.06em}
+.about p{margin:.6em 0}
+.about dl{margin:.4em 0 0; display:grid; grid-template-columns:auto 1fr; gap:2px 16px}
+.about dt{color:var(--ink-soft); white-space:nowrap; letter-spacing:.04em}
+.about dd{margin:0 0 .5em}
+@media(max-width:560px){ .about dl{grid-template-columns:1fr} .about dt{margin-top:.6em} }
+.top{display:block; margin:44px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.76rem; letter-spacing:.2em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>Guiguzi<span class="hz">鬼谷子</span></h1>
+  <p class="sub">The Master of Ghost Valley　·　<b>text only</b>, without the old commentary<br>
+     from the 1805 <b>Qin Enfu</b> woodblock edition, Jiangdu</p>
+  <p class="sub">Three scrolls, twenty-one chapters, with the study of the chapter list, the appended fragments and three colophons</p>
+</header>
+
+<div class="bar">
+  <div class="grp shelf">
+    <a class="btn" href="/p/dianji.html" title="回典籍架">← Classics</a>
+  </div>
+  <div class="grp langs">
+    <a class="btn" href="/p/guiguzi-hans.html">简体</a>
+    <a class="btn" href="/p/guiguzi.html">繁體</a>
+    <span class="btn cur" aria-current="page">EN</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#preface">Preface to the Guiguzi</a>
+<a class="l2" href="#scroll1">Scroll One</a>
+<a class="l3" href="#baihe">1. Opening and Closing</a>
+<a class="l3" href="#fanying">2. Turning Back and Responding</a>
+<a class="l3" href="#neijian">3. Fastening Within</a>
+<a class="l3" href="#dixi">4. Striking the Fissure</a>
+<a class="l2" href="#scroll2">Scroll Two</a>
+<a class="l3" href="#feiqian">5. Flying and Clamping</a>
+<a class="l3" href="#wuhe">6. Crossing and Joining</a>
+<a class="l3" href="#chuai">7. Estimating</a>
+<a class="l3" href="#mo">8. Probing</a>
+<a class="l3" href="#quan">9. Weighing Words</a>
+<a class="l3" href="#mou">10. Designs</a>
+<a class="l3" href="#jue">11. Deciding</a>
+<a class="l3" href="#fuyan">12. Words as Tallies</a>
+<a class="l4" href="#lost">The two lost chapters</a>
+<a class="l2" href="#scroll3">Scroll Three</a>
+<a class="l3" href="#benjing">The Seven Arts of the Yin Tally: the Root Canon</a>
+<a class="l4" href="#wulong">Filling the Spirit, on the model of the Five Dragons</a>
+<a class="l4" href="#lingui">Nourishing the Will, on the model of the Sacred Tortoise</a>
+<a class="l4" href="#tengshe">Solidifying the Intent, on the model of the Teng-Serpent</a>
+<a class="l4" href="#fuxiong">Dividing the Awe, on the model of the Crouching Bear</a>
+<a class="l4" href="#zhiniao">Scattering the Force, on the model of the Bird of Prey</a>
+<a class="l4" href="#mengshou">Turning the Round, on the model of the Fierce Beast</a>
+<a class="l4" href="#lingshi">Reducing and Seeing, on the model of the Sacred Milfoil</a>
+<a class="l3" href="#chishu">Holding the Pivot</a>
+<a class="l3" href="#zhongjing">The Middle Canon</a>
+<a class="l2" href="#piancemu">A Study of the Chapter List</a>
+<a class="l2" href="#fulu">Appendix: Fragments and Notices</a>
+<a class="l3" href="#fulu-lost">Lost passages</a>
+<a class="l3" href="#fulu-preface">From an old preface</a>
+<a class="l3" href="#fulu-man">Accounts of the man</a>
+<a class="l2" href="#colophons">Three Colophons</a>
+<a class="l3" href="#zhou">Colophon by Zhou Guangye</a>
+<a class="l3" href="#lu">Colophon by Lu Wenchao</a>
+<a class="l3" href="#ruan">Colophon by Ruan Yuan</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>Contents</summary>
+<a class="l2" href="#preface">Preface to the Guiguzi</a>
+<a class="l2" href="#scroll1">Scroll One</a>
+<a class="l3" href="#baihe">1. Opening and Closing</a>
+<a class="l3" href="#fanying">2. Turning Back and Responding</a>
+<a class="l3" href="#neijian">3. Fastening Within</a>
+<a class="l3" href="#dixi">4. Striking the Fissure</a>
+<a class="l2" href="#scroll2">Scroll Two</a>
+<a class="l3" href="#feiqian">5. Flying and Clamping</a>
+<a class="l3" href="#wuhe">6. Crossing and Joining</a>
+<a class="l3" href="#chuai">7. Estimating</a>
+<a class="l3" href="#mo">8. Probing</a>
+<a class="l3" href="#quan">9. Weighing Words</a>
+<a class="l3" href="#mou">10. Designs</a>
+<a class="l3" href="#jue">11. Deciding</a>
+<a class="l3" href="#fuyan">12. Words as Tallies</a>
+<a class="l4" href="#lost">The two lost chapters</a>
+<a class="l2" href="#scroll3">Scroll Three</a>
+<a class="l3" href="#benjing">The Seven Arts of the Yin Tally: the Root Canon</a>
+<a class="l4" href="#wulong">Filling the Spirit, on the model of the Five Dragons</a>
+<a class="l4" href="#lingui">Nourishing the Will, on the model of the Sacred Tortoise</a>
+<a class="l4" href="#tengshe">Solidifying the Intent, on the model of the Teng-Serpent</a>
+<a class="l4" href="#fuxiong">Dividing the Awe, on the model of the Crouching Bear</a>
+<a class="l4" href="#zhiniao">Scattering the Force, on the model of the Bird of Prey</a>
+<a class="l4" href="#mengshou">Turning the Round, on the model of the Fierce Beast</a>
+<a class="l4" href="#lingshi">Reducing and Seeing, on the model of the Sacred Milfoil</a>
+<a class="l3" href="#chishu">Holding the Pivot</a>
+<a class="l3" href="#zhongjing">The Middle Canon</a>
+<a class="l2" href="#piancemu">A Study of the Chapter List</a>
+<a class="l2" href="#fulu">Appendix: Fragments and Notices</a>
+<a class="l3" href="#fulu-lost">Lost passages</a>
+<a class="l3" href="#fulu-preface">From an old preface</a>
+<a class="l3" href="#fulu-man">Accounts of the man</a>
+<a class="l2" href="#colophons">Three Colophons</a>
+<a class="l3" href="#zhou">Colophon by Zhou Guangye</a>
+<a class="l3" href="#lu">Colophon by Lu Wenchao</a>
+<a class="l3" href="#ruan">Colophon by Ruan Yuan</a>
+    </details>
+
+<h2 id="preface">Preface to the Guiguzi<span class="hz">鬼谷子序</span></h2>
+<p class="byline">Qin Enfu 秦恩復 of Jiangdu　·　Jiaqing 10 (1805)</p>
+
+<p>The <i>Guiguzi</i> does not appear in the bibliographical treatise of the <i>History
+of the Han</i>; it is first catalogued under the Sui and the Tang. Both the Old and the
+New <i>History of the Tang</i> take it for a work of Su Qin. Yet among the Vertical-and-Horizontal
+ writers the <i>History of the Han</i> lists a separate <i>Master Su</i> in
+thirty-two chapters, whose prose is nothing like the <i>Guiguzi</i>; and if Su Qin had
+in fact published under a borrowed name, why should Ban Gu have passed the matter over
+without a word? Lu Guimeng holds that Guiguzi was one Wang Xu. Wang Jia's <i>Records of
+Gleanings</i> holds that Ghost Valley (<span class="zh">鬼谷</span>) is Returning Valley
+(<span class="zh">歸谷</span>), <i>gui</i> "ghost" and <i>gui</i> "return" being no more
+than a shift of sound &mdash; and indeed the <i>Erya</i> glosses: "<i>gui</i>, ghost, is
+to say <i>gui</i>, to return."</p>
+
+<p>The claim that Su Qin wrote under a borrowed name rests on this much: that Zhang Yi and
+Su Qin studied under Guiguzi, and that Su Qin's biography in the <i>Records of the Grand
+Historian</i> has the phrase "he drilled himself in estimating and probing," while the
+<i>Guiguzi</i> happens to contain two chapters called <i>Estimating</i> and <i>Probing</i>.
+On that the theory was built; in truth there is nothing to support it. Others say he was a
+man of spirit of the Zhou age who lived hidden in Ghost Valley &mdash; and this comes nearer
+the mark.</p>
+
+<p>The book runs to three scrolls. From <i>Opening and Closing</i> to <i>Words as Tallies</i>
+there are twelve chapters; the two chapters <i>Turning the Pellet</i> and <i>Prying the
+Chest</i> were lost long ago. To these are added the <i>Seven Arts of the Yin Tally</i> of
+the Root Canon, together with <i>Holding the Pivot</i> and the <i>Middle Canon</i> &mdash;
+twenty-one chapters in all. Liu Zongyuan once mocked the book as devious and steep, harsh
+and thin, wild talk that throws an age into disorder. But look at it now: it picks out what
+lies hidden, turns and doubles back and changes shape. Su Qin got no more than its leavings,
+and with one wag of his tongue made himself chief of the Vertical Alliance. It is truly the
+ancestor of the Vertical-and-Horizontal school.</p>
+
+<p>Checking the passages quoted in the <i>Garden of Persuasions</i>, in the commentaries to
+the <i>Records of the Grand Historian</i> and the <i>Wenxuan</i>, in the <i>Yilin</i> and the
+<i>Imperial Readings of the Taiping Era</i>: some are not to be found in the book as we have
+it, and some differ in wording from present copies. After the disorder of the Five Dynasties
+the text, passing from hand to hand by copying, gradually lost its true shape &mdash;
+<span class="zh">陶</span> written for <span class="zh">陰</span>, <span class="zh">帝</span>
+for <span class="zh">虎</span> &mdash; corruptions and omissions following one upon another,
+and not in the case of <i>Turning the Pellet</i> and <i>Prying the Chest</i> alone.</p>
+
+<p>As for those who annotated the <i>Guiguzi</i>, there were formerly three: Yue Yi, Huangfu
+Mi and Yin Zhizhang. One note of Yue's survives in the commentary to the <i>Wenxuan</i>;
+several items in the <i>Taiping Yulan</i> likewise carry no commentator's name. The
+<i>Zhongxing Catalogue</i> is the first to list a commentary by Tao Hongjing, and Chao
+Gongwu and Chen Zhensun followed it. Now Zhenbai &mdash; Tao Hongjing &mdash; lived under the
+Liang of the Xiao house, yet the book surfaced late, and readers are not without their
+suspicions. My contemporary Zhou Gengya of Haining, the licentiate, concluded from the
+frequent avoidance of Tang taboo-names in the commentary that it is Yin's work and not Tao's;
+his argument is wide and eloquent, but it too is conjecture resting on air, without a shred of
+corroboration. Only Ma Duanlin, under "Tao's commentary" in the <i>Comprehensive Examination
+of Documents</i>, says: "The Tang bibliography takes it for Yin Zhizhang's commentary; which
+is right is not known." So already in Song times the two accounts were kept side by side.
+Happily, under the name of the True Recluse of Huayang, the book found shelter in the Daoist
+Canon; and whether it be Tao's or Yin's, one may decide with certainty that it is no work of
+post-Song date.</p>
+
+<p>This book was cut in the <i>jiyou</i> year of Qianlong (1789), collated only against the
+copy recorded by Circuit Intendant Sun Xingyan at the Mount Hua temple. Master Lu Wenchao
+went over the collation again, and again, and a third time; and at the last he sent me by post
+the old Shugutang manuscript, from which I learned for the first time how many corruptions and
+omissions the Daoist Canon text in fact preserves. Reading books is hard indeed; collating them
+is no easier.</p>
+
+<p>I have therefore committed it to the blocks afresh, taking the Qian copy as the basis
+throughout. Where the Canon copy has what the Qian copy lacks, I have examined the differences
+and checked the one against the other. I have further culled the old commentary quoted in Tang
+and Song books and notes, gathering and preserving it below the text. And such matter as is
+lost from present copies but survives elsewhere, together with accounts of Guiguzi's doings
+that may serve for reference, I have appended at the end, for the reader's convenience.</p>
+
+<p class="byline">Jiaqing 10, <i>yichou</i>, the fifteenth day of the eighth month (1805).
+Prefaced by Qin Enfu of Jiangdu.</p>
+
+
+<h2 id="scroll1">Scroll One<span class="hz">鬼谷子卷上</span></h2>
+
+
+<h3 id="baihe">1. Opening and Closing<span class="hz">捭闔第一</span></h3>
+<p class="lead"><i>Bai</i> is to pry open, to stir into motion; <i>he</i> is to shut and store
+away. The chapter is the frame for everything that follows: all dealing with men reduces to
+drawing them out or shutting oneself in.</p>
+
+<p>Now, looking back to antiquity: the sage, dwelling between heaven and earth, is forerunner to the living multitude. He watches the opening and
+closing of yin and yang, and by names calls things into their names; he knows the gate of survival and ruin; he reckons out the ends and
+beginnings of the ten thousand kinds, penetrates the pattern of the human heart, and sees the
+first traces of change; and he guards and keeps that gate.</p>
+
+<p>So the sage in the world: from antiquity down to now, his Way is
+one. Its transformations are without end, yet each has that to which it
+returns; now yin, now yang; now yielding, now hard; now open, now shut;
+now slack, now drawn taut. Therefore the sage keeps single guard
+over that gate and examines closely what comes first and what after. He gauges their cunning and measures their capacity, and weighs the long and the
+short of their skills.</p>
+
+<p>Worthy and unworthy, wise and foolish, brave and timid, humane and righteous &mdash; these
+differ by degree; and so one may open, or close; advance a man, or set him back; hold him
+cheap, or hold him dear; and shepherd them all by doing nothing. He settles what they have and
+have not, and what in them is solid and what hollow; he follows their
+appetites and desires, so as to see their aims and intents. He pushes back lightly against what they say and pries it open against them, so as to get at
+the fact; what matters is to seize their drift. He closes, and then opens, so as to find where
+their advantage lies.</p>
+
+<p>Sometimes he opens and shows himself; sometimes he closes and shuts himself in. To open and
+show is to make common cause with their feeling; to close and shut is to stand apart and try
+their good faith. Feasible
+and unfeasible: he examines their plans clearly and traces them back to where they agree and
+differ. Whether they part from him or join him, so long as they hold to something he first goes along
+with their intent.</p>
+
+<p>If you would open, what counts is thoroughness; if you would close, what counts is secrecy.
+In thoroughness and secrecy alike what counts is subtlety, and so to keep pace with the Way. Opening is for sorting their feelings; closing is for
+binding up their good faith. In every case one sees where they stand on the
+balance, light or heavy, and then fixes measure and number for them; and the sage lays his
+plans for them accordingly. For those who
+do not answer to balance, measure and number, the sage lays his plans for himself instead.</p>
+
+<p>So of opening: one may open and send out, or open and take in. And of closing: one
+may close and take, or close and let go.</p>
+
+<p>Opening and closing are the Way of heaven and earth. By opening and closing, yin and yang are shifted and moved and the four
+seasons open and shut, and so the ten thousand things are transformed, raised up and put down; turning
+out, turning back, turning athwart &mdash; all must come from this. Opening and closing are the great transformation of the Way and the turning of
+persuasion; one must examine their changes beforehand, for on them hang fortune, disaster and the great mandate.</p>
+
+<p>The mouth is the gate of the heart; the heart is the master of the spirit. Aim and intent, delight and desire, thought and deliberation, wit and stratagem:
+all pass in and out by that gate. So bar it with opening and closing, and govern it by going out and coming in.
+Opening is swinging wide, is speech, is yang. Closing is shutting, is silence, is yin. Let yin and yang
+be in accord, and end and beginning be each in its right sense.</p>
+
+<p>So talk of long life, ease and joy, wealth and rank, honour and glory, bright fame, love and
+liking, goods and profit, getting one's wish, delight and desire &mdash; this is yang, and is
+called the beginning. And talk of death and ruin, grief and trouble, poverty and low estate, bitterness
+and disgrace, being cast off and cut down, losing profit, missing one's wish, harm, mutilation
+and execution, punishment and penalty &mdash; this is yin, and is called the end. All speech
+patterned on the yang kind is called beginning: one speaks of the good to begin the affair. All
+speech patterned on the yin kind is called end: one speaks of the bad to finish off the design.</p>
+
+<p>The way of opening and closing tries men by yin and yang. So with one who speaks in the yang manner, rest on
+the lofty and high; with one who speaks in the yin manner, rest on the low and small. By the low one seeks the
+small; by the high one seeks the great. Speaking from this, there is nowhere one cannot go out, nowhere one
+cannot come in, nothing one cannot do. One may persuade a man, persuade a house, persuade a
+state, persuade the world. Made small, it has no inside; made great, it has no outside.</p>
+
+<p>Increase and decrease, leaving and joining, turning away and turning back &mdash; all drive
+the matter by yin and yang. Yang moves and proceeds, yin halts and stores away; yang moves and goes out, yin
+hides and comes in; yang, coming round, ends in yin, and yin at its utmost turns back into yang. Moving by yang, they give birth to
+one another through virtue; stilled by yin, they complete one another through form. Seeking yin
+by yang, one enfolds them in virtue; binding yang by yin, one spends one's strength on them. That yin and yang seek
+one another comes of opening and closing.</p>
+
+<p>This is the Way of heaven and earth, of yin and yang; and it is the method of persuading men. It goes before the ten thousand affairs; it is
+called the gate of the round and the square.</p>
+
+<h3 id="fanying">2. Turning Back and Responding<span class="hz">反應第二</span></h3>
+<p class="lead">To learn what a man has in him, contradict him. Push his words back and he must
+think again; and in thinking again he answers, and in answering he shows himself.</p>
+
+<p>The great transformers of antiquity were born together with the formless. They turned back to observe what had
+gone, and returned to verify what was coming; turned back to know antiquity, and returned to
+know the present; turned back to know the other, and returned to know the self. Where the pattern of motion and stillness, of the hollow and the
+solid, does not fit the present, turn back to antiquity and seek it there. That a matter should be turned back and so come round &mdash; that is the
+sage's intent, and it
+must not go unexamined.</p>
+
+<p>When another speaks, that is motion; when I keep silent, that is stillness. Take his speech,
+and listen to his words. Where the
+speech does not fit, turn it back and seek it out, and his response is certain to come out. Speech has its figures; affairs have their
+parallels. Having figure and parallel, watch what comes next. The figure figures the affair; the parallel matches the wording. By the
+formless one seeks the sounded. His angled speech
+fits the case, and one has the man's reality. It is like spreading nets to take game: spread many
+at the runs and keep watch, and when the Way fits the case, the other comes out of himself. This
+is the net for angling men. Hold that net constantly and drive him into it; and if he will not speak, and there
+is no parallel, then change for his sake.</p>
+
+<p>Move him with a figure, to answer to his heart; and once you see his feeling, follow it and
+shepherd him. I turn toward him and he comes
+back to me; speech having figure and parallel, on this the foundation is laid. Weight
+it, layer it, turn it, return it, and in ten thousand affairs the wording will not fail. When the sage draws out the foolish and the wise alike, in
+neither case is there doubt about the affair.</p>
+
+<p>So the man skilled at listening in reverse can turn ghost and spirit themselves, and get at
+what men feel. His changes being apt, his shepherding is exact. Shepherd without exactness and the feeling one gets is unclear; the feeling
+unclear, the foundation is laid without exactness.</p>
+
+<p>When figure and parallel shift, there must be words turned back, to be listened to in return. Would you hear his voice, be silent instead; would you have him spread out, draw in instead;
+would you be high, be low instead; would you take, give instead. Would you open up his feeling, set
+a figure and a parallel before him, and shepherd his words. Like voices call to one another; true
+patterns come home to the same place. Now from this side, now from that; now to serve those above, now to
+shepherd those below. By this
+one hears the true and the false, knows sameness and difference, and gets at feeling and
+deception.</p>
+
+<p>Act and rest, speech and silence, go out and come in with this; delight and anger show their
+form by it. In every case what is settled first is made the rule, and by turning toward him one seeks the return, and watches what his
+feeling rests on &mdash; this is the use of the method.</p>
+
+<p>Be level and still in yourself as you listen to his words, examine his affairs, discourse on
+the ten thousand things, and tell the male from the female. Even where the affair is not the one in hand, from the small sign
+one knows the kind. It is as though you had reached into the man and were living
+inside him: you measure his capacity and shoot at his intent, and the tally answers without fail,
+as the <i>teng</i>-serpent points, as Yi drew his arrow.</p>
+
+<p>So knowing begins with oneself: know yourself, and then you may know others. Their knowing of one another is like the paired-eye fish; their showing of
+form, like light and its shadow. His examining of speech does not miss, as the lodestone takes up the needle, as the tongue takes
+the roasted bone clean. His dealing with men is subtle; his seeing of their feeling is swift. As yin to yang, as the round to the square, while the form is
+still unseen, guide him by the round; once the form is seen, employ him by the square. Advancing and withdrawing, to the left and to the right, are managed by this.</p>
+
+<p>If you have not settled yourself first, your shepherding of men will not be right, and the handling of affairs will
+be unskilful: this is called losing the feeling and missing the Way. But settle yourself exactly and so shepherd men, and your planning has
+no shape or countenance and none can find its door: this is called divine as heaven.</p>
+
+<h3 id="neijian">3. Fastening Within<span class="hz">內揵第三</span></h3>
+<p class="lead"><i>Nei</i> is what goes in &mdash; the counsel a minister brings to his lord;
+<i>jian</i> is the bolt that holds it there. The chapter is about how a tie between above and
+below is made fast, and how to withdraw from one that cannot be.</p>
+
+<p>In the business of ruler and minister, of above and below, there are the distant who are
+close and the near who are estranged; those who come and are not used, and those who leave and are sent for; those who present themselves daily and are not
+taken up, and those whose voice is heard from afar and thought upon. All of these
+have their inner bolt, their bond laid down at the outset.</p>
+
+<p>Some are bound by the Way and its virtue, some by party and friendship, some by goods and
+money, some are bound by women and beautiful things. Use his intent, and
+you go in when you wish to go in and come out when you wish to come out; are close when you wish
+to be close and distant when you wish to be distant; approach when you wish to approach and leave
+when you wish to leave; are sought when you wish to be sought and thought on when you wish to be
+thought on. It is as the trapdoor-spider mother goes about with her
+young: she goes out and leaves no gap, comes in and leaves no trace, goes and comes alone, and
+nothing can stop her.</p>
+
+<p>The <i>inner</i> is the counsel one brings in; the <i>bolt</i> is what bolts the plan fast. He who would
+persuade must take his measure in secret; he who would plan a matter must go with its grain. Consider in the dark whether it can be done
+or not, then state plainly the gain and the loss, and so drive his will. Let the method come to meet the moment, so as to match
+his design. Think out with care the bolt you bring, and in going forward you will meet the moment aptly.</p>
+
+<p>Where there is no inner agreement, nothing can be put into practice, and one must then estimate and probe what the hour requires, take whatever course
+is convenient, and so seek the change. To seek the inner
+by change is like taking hold of a bolt by its socket. Speaking of what is past, put the wording with the grain; speaking of
+what is to come, speak in terms of change.</p>
+
+<p>He who is good at change knows exactly the lie of the ground, and so reaches through to heaven;
+he transforms the four seasons, commands ghosts and spirits, accords with yin and yang, and so shepherds the people. Seeing how a man plans a matter, he
+knows his aim and intent. Where the matter does
+not agree, something is not yet known. Where they
+agree and yet no knot is tied, it is closeness in the open and estrangement in the dark. Where the matter does not agree, the sage does not plan
+for the man.</p>
+
+<p>So: the distant who are close have a hidden bond of virtue. The near who are estranged are not
+one in aim. Those who come and are not used have not hit on the plan; those who leave and
+are sent for are proved right by the event. Those who present themselves daily and are not taken up
+give what does not fit; those whose voice is heard from afar and is thought upon fit the design, and
+are waited for to settle the matter. </p>
+
+<p>So it is said: to act for a man without having seen his kind is to meet
+resistance; to persuade him without having got his feeling is to meet rejection. Get his feeling, and only then master
+your art upon him: then in using it you may go out or go in, bolt it fast or throw it open. So the sage, setting up his affairs, uses this
+to know beforehand, and bolts the ten thousand things fast.</p>
+
+<p>From this come the Way and virtue, humaneness and right, rites and music, reckoning and design. First he takes up the <i>Odes</i> and the <i>Documents</i>, blends them with his persuasion, weighs what
+to add and take away, and debates whether to go or stay. Would you join him, work from the inner; would you leave,
+work from the outer.</p>
+
+<p>In outer and inner alike one must be clear about the Way and its numbers: estimate what is coming, and
+where there is doubt, decide it. Let the
+planning miscount nothing, and merit is won and virtue established. To put the titles in order and bring in the revenue: this is
+called bolting fast and agreeing within.</p>
+
+<p>But where the one above is benighted and does not govern, and those below are in disorder and he does not
+wake to it, then bolt and turn away. If within he is self-satisfied and without he keeps
+nothing back, praise him and let him soar. If the summons then comes of itself, go to meet it and take the reins. And if you would be gone, give him your leave-taking
+at a moment of danger. Turn like a ring, go along with the change, and
+let none know what you are about: to withdraw is the great rule.</p>
+
+<h3 id="dixi">4. Striking the Fissure<span class="hz">抵巇第四</span></h3>
+<p class="lead"><i>Di</i> is to strike home and make solid; <i>xi</i> is a crack, a hairline flaw.
+A wall falls at its crack, a vessel breaks at its flaw. Deal with the flaw while it is a flaw and
+nothing breaks &mdash; or, if it cannot be saved, break it the rest of the way and build anew.</p>
+
+<p>Things have their own nature; affairs have their
+joining and parting. Some things are near and cannot be seen; some are far off and can be known. What is
+near and cannot be seen is what one has not examined in the wording; what is far off and can be
+known is got by turning back over what has gone to verify what is coming. A fissure is a
+crack; a crack is a <span class="var" tabindex="0" title="the graph here is uncertain in the
+blockprint">split</span>; a split is what grows into a great breach. When a fissure first shows its trace, it may be struck and stopped, struck and
+turned back, struck and brought to rest, struck and hidden away, struck and taken: this is what is
+meant by the principle of striking the fissure.</p>
+
+<p>When an affair stands in danger, the sage knows it, and alone keeps himself whole. He speaks to the matter as it transforms, and works his designs through, so
+as to recognise the fine and minute. It rises from the tip of an autumn hair, and is brandished at the root of Mount
+Tai. Every design laid against the first outward sprouting and budding
+comes from striking the fissure; and the breach of a struck fissure is what the art of the Way puts to
+use.</p>
+
+<p>When the world is in confusion and disorder, when there is no enlightened ruler above, when dukes
+and marquises are without the Way and its virtue; when small men slander and prey, worthy men go
+unused, sages hide themselves away, and the greedy and the false are at work; when ruler and minister
+deceive one another, the earth crumbles and the tiles fall apart and they strike and shoot at each
+other, when fathers and sons are scattered and turn on one another in rebellion and disorder &mdash;
+this is what is called the sprouting and budding of the crack. When the sage sees the sprouting and budding of the
+crack, he strikes it by rule. If the age can be governed, he strikes and stops it; if it cannot be
+governed, he strikes and takes it. He strikes in this way or in that; strikes and turns it, or strikes
+and overturns it. The governance of the Five Emperors was to strike and stop; the work of the Three Kings
+was to strike and take. The feudal lords
+strike at one another past counting; and in such a time the man who can strike stands highest.</p>
+
+<p>From the joining and parting, the ending and beginning, of heaven and earth themselves, there must
+be fissures and cracks, and they must not go unexamined. Examine them by opening
+and closing; and he who can use this Way is a sage. The sage is the envoy of heaven and earth. When the age offers nothing to strike at, he hides himself deep and waits his time;
+when the time offers something to strike at, he lays his design for it &mdash; whether to join with
+those above, or to bring those below under his hand. Able to take his occasion and to follow the course, he becomes the keeper of the spirit
+for heaven and earth.</p>
+
+<p class="byline">End of Scroll One <span class="zh">鬼谷子卷上</span></p>
+
+
+<h2 id="scroll2">Scroll Two<span class="hz">鬼谷子卷中</span></h2>
+
+
+<h3 id="feiqian">5. Flying and Clamping<span class="hz">飛箝第五</span></h3>
+<p class="lead"><i>Fei</i>, "to fly," is to raise a man up on praise until he soars; <i>qian</i>, the
+clamp, is to hold him fast so that he cannot slip away. Praise first &mdash; a man so lifted lays bare
+his feeling and spends his whole ambition &mdash; then take him by what he loves.</p>
+
+<p>Gauging a man's cunning and measuring his capacity is the means of summoning the distant and drawing
+in the near. Set up
+the balance of force, and take affairs in hand: but first examine sameness and difference, and tell right speech from wrong. See the outer and the
+inner in what they say and know the count of what is there and what is not; settle the plan for safety and danger
+and fix the matter of closeness and distance. Only then weigh and measure him; and if there is a frame to straighten him by, he may be summoned, may
+be sought out, may be used.</p>
+
+<p>Draw him with words of hook and clamp: fly him up, and clamp him. Words of hook and clamp, as persuasion, are now agreeing and now differing.</p>
+
+<p>For the man on whom this will not work, either summon him first and then pile praise upon him, or pile it on and then pull him down, or make the piling-on itself the
+pulling-down, or the pulling-down itself the piling-on.</p>
+
+<p>In the using of him: one may serve him with goods and money, rarities, pearls and jade, jade discs and
+silk, and beautiful women, or measure his capacity and
+set up a position of force to hook him with, or watch and wait, see the crack, and
+clamp him by it. In these matters one uses the striking of the
+fissure.</p>
+
+<p>If you would use it upon the world, you must gauge cunning and measure capacity; see whether heaven's
+season is waxing or waning; take the measure of the land's shape, broad or narrow, and of its passes,
+hard or easy; of the people and the goods, many or few. And in the dealings of the feudal lords: who is
+close and who estranged, who loved and who hated? Examine what is turning in their minds, know what they like
+and hate, and then speak to what weighs most with them; hook what they like with words of flying and
+clamping, and take them by the clamp.</p>
+
+<p>Used upon a person, one measures his wit and ability, weighs his talent and strength, reckons up his
+breath and momentum, and makes of these the pivot and the trigger &mdash; going before him
+to meet him, coming after him to follow him, clamping him into accord, spreading it abroad through his own
+intent. This is the joinery of flying and clamping.</p>
+
+<p>Used upon a person, empty goes out and solid comes back; hold the joint and do not lose it, and so run
+his words to the end. Then you may clamp him vertical or clamp him horizontal, draw him east or draw him
+west, draw him south or draw him north, draw him to turn or draw him to turn back. Even overturned, he can be set up again,
+and the measure is not lost.</p>
+
+<h3 id="wuhe">6. Crossing and Joining<span class="hz">忤合第六</span></h3>
+<p class="lead">In a fallen age no straight road runs straight through. To join yourself to this side you
+must first cross over to that, so that no one suspects you; only then can you do what you meant to do.
+Yi Yin and Lü Shang went and came in just this fashion.</p>
+
+<p>In all hastening to join and turning away to go back, there is a reckoning that fits the case. Transforming and turning, they link like the
+rings of a chain, each with its own shape and force; they seek one another by turning and returning, and
+the rule is made from the matter in hand.</p>
+
+<p>So the sage, placed between heaven and earth, standing himself up and driving his age, spreading his
+teaching and making his name resound, must take the concurrence of things and events, observe what heaven's
+season makes fitting, and so know what is in excess and what in want; by this he knows beforehand, and
+turns and transforms with it.</p>
+
+<p>The age has no constant nobility; affairs have no constant master. The sage constantly gives himself to no one and to
+everyone; of what he hears there is nothing he does not hear. He who brings the
+matter to success and meets the design &mdash; with him one makes a master. Join with that side and you part from this: design and
+reckoning cannot be loyal to both. There must be a turning and a crossing: turn to this and cross to that; cross to
+this and turn to that. Such is the art.</p>
+
+<p>Use it upon the world, and you must measure the world before giving yourself to it; use it upon a state,
+and you must measure the state; use it upon a house, and you must measure the house; use it upon a person,
+and you must measure his talent, capacity, breath and momentum before giving yourself to him. Great or
+small, advancing or withdrawing, the use of it is one. One must first settle the design and reckoning, and only then carry it out by the art of
+flying and clamping.</p>
+
+<p>Those of antiquity who were good at turning their backs and turning their faces harmonised the four seas
+and gathered up the feudal lords, driving them onto the ground of crossing and joining, and there
+transformed and shifted them; and only then sought the joining.</p>
+
+<p>So Yi Yin went five times to Tang and five times to Jie, and could make nothing clear, and then joined with Tang; and Lü Shang went three times to King Wen
+and three times entered Yin, and could make nothing clear, and then joined with King Wen. This is to
+know the clamp of heaven's mandate; hence they gave themselves over without hesitation.</p>
+
+<p>Without utmost sagacity reaching into the deeps, one cannot drive an age; without labouring the mind and
+wearing out thought, one cannot trace a matter to its source; without spending the whole heart to see men's
+feeling, one cannot make a name; without quickness in the natural stuff, one cannot use troops; being loyal
+and solid but without truth, one cannot know men. So in the way of crossing and joining, one must first take
+one's own measure of talent and ability and shrewdness, and weigh who falls short of oneself in long and
+short, near and far; and then one may advance, and may withdraw; may go vertical, and may go horizontal.</p>
+
+<h3 id="chuai">7. Estimating<span class="hz">揣篇第七</span></h3>
+<p class="lead"><i>Chuai</i> is to take a thing's weight by hand &mdash; to size up the standing of a
+state and the feeling of a man. It is the great root of all designing, and the rule of all persuasion.</p>
+
+<p>Those of antiquity who were good at using the world must have weighed the world's standing and
+estimated the feeling of the feudal lords. Weigh their standing inexactly, and you will not know which
+of them is strong and which weak, which counts heavy and which light. Estimate feeling inexactly, and
+you will not know the motion and rest of what is hidden and changing.</p>
+
+<p>What is meant by weighing their standing? It is said: gauge them for great and small; reckon them
+for many and few; count up the sums of goods and money they have and have not; reckon the people, many or few, plentiful or wanting, and
+by how much in surplus or in want. Distinguish the shape of the land, hard going or easy: which is to
+their advantage and which to their harm? In design and deliberation, who is long and who short? In the
+closeness or estrangement of ruler and minister, who is worthy and who unworthy? And in the wisdom of their retainers, who has less and who more? Observe the fortune
+and misfortune of heaven's seasons: which is auspicious and which ill? In the dealings of the lords, who is used and who is not? In the hearts of the
+hundred families &mdash; their turning away and turning to, their shifts and changes &mdash; who is safe
+and who in danger? Who is liked and who hated? Who can be told apart in his tossing and turning? He who can know these things is said to weigh their standing.</p>
+
+<p>To estimate feeling, one must go to a man at a time of great delight and drive his desire to its
+utmost: having a desire, he cannot hide his feeling. And one must go to him at a time
+of great fear and drive his aversion to its utmost: having an aversion, he cannot hide his feeling. Feeling
+and desire must come out in that change.</p>
+
+<p>If he is moved and you still do not know the change in him, then set the man aside, do not speak with
+him, and ask instead of those close to him, and so learn what he is at ease in. When feeling
+changes within, the form shows without. So one must always know what is hidden through what is seen; and
+this is what is called
+sounding the depths and probing the feeling.</p>
+
+<p>So in reckoning the affairs of a state one should examine the weighing of standing; in persuading the
+ruler of men one should examine the estimating of feeling. Design, deliberation, feeling and desire must all
+come out of this. Then one may
+make him honoured or make him base, make him weigh heavy or weigh light, profit him or harm him, bring him to
+success or to ruin. The count of it is one.</p>
+
+<p>So though one have the Way of the former kings and the designs of sages and wise men, without estimating
+feeling there is no way to search out what lies hidden. This is the great root of design and the rule of
+persuasion. To be always doing something with men, and
+that none can get ahead of &mdash; to be born ahead of the event: this is the hardest thing of all.</p>
+
+<p>So it is said: estimating feeling is the hardest thing to keep watch over, and in speaking one must time
+one's design to the moment.</p>
+
+<p>So look at the flitting of gnats and the crawling of worms: there is none without advantage and harm, and
+from this the beauty of getting a matter under way may be had. Getting a matter under way is the force of the
+incipient. So having estimated the
+feeling, one dresses the words, makes them into a shapely composition, and only then argues the case.</p>
+
+<h3 id="mo">8. Probing<span class="hz">摩篇第八</span></h3>
+<p class="lead"><i>Mo</i> is to rub, to stroke, to feel a thing over with the hand. Estimating tells you
+what a man wants; probing is the light touch laid on that want until the answering sign appears in him.</p>
+
+<p>Probing is the art of estimating; the inner tally is what
+estimating is master of. There is a Way to using it, and that Way must be hidden.</p>
+
+<p>Subtly probe him with what he wants; sound him and reach in; and by the
+tally he must answer. Answering, he is bound to act. Then withdraw quietly: this is called stopping the cellar-mouth and hiding the end of the thread. Hide your
+countenance and let your feeling escape, and men will not know; so the matter is accomplished and there is no
+trouble.</p>
+
+<p>The probing is here, the answering tally is there; follow it and answer to it, and nothing in the affair
+is impossible. Those of antiquity who were good at probing were like a
+man who takes his line to the deep pool: he baits it and casts it, and is certain to get his fish. Hence it is said: he who governs affairs
+succeeds day by day and men do not know it; he who governs armies conquers day by day and men do not fear
+him.</p>
+
+<p>The sage designs it in the dark &mdash; hence he is called divine; brings it to pass in the light &mdash;
+hence he is called clear. What is meant by "he who governs affairs
+succeeds day by day" is the heaping up of virtue. The people are put at ease by his use of them and do not
+know what does them good: this is the heaping up of goodness. The people take his Way and do not know why it is so; and the world likens
+him to the divine and the clear. "He who governs armies conquers day by day" fights always without contending and without expense, and the
+people do not know why they submit nor why they fear; and the world likens him to the divine and the clear.</p>
+
+<p>In probing there is
+the level and the upright; the delighted and the angry; the name and the deed; the
+<span class="var" tabindex="0" title="the graph here is uncertain; the received text reads 廉,
+'upright'">clean</span> and the trustworthy; the profitable and the lowly. The level is stillness; the upright is fitness; the delighted is
+pleasure; the angry is motion; the name is what is sent forth; the deed is what is brought to completion; the
+clean is purity; the trustworthy is keeping to the appointed time; the profitable is
+seeking; the lowly is flattery. So what the sage alone uses, the common run of men all have; yet they win no success,
+because they use it wrongly.</p>
+
+<p>So of designs, none is harder than to be thorough and secret; of persuasions, none is harder than to be
+heard out entire; of affairs, none is harder than to be sure of success. These three only the sage can take upon himself. So a design must be thorough and secret, and one must choose someone open to it to speak to.
+Hence it is said: some knots have no gap in them.</p>
+
+<p>An affair succeeds only by fitting the numbers; hence it is said: the Way, the numbers and the season go
+paired. A persuasion is heard only by fitting the feeling; hence it is said: what
+fits the feeling gets heard.</p>
+
+<p>So things go home to their kind: carry faggots toward a fire and the dry catch first; pour water on level
+ground and the wet parts soak first. This is how things of a kind answer one another under a force, and the likeness holds. This says
+that the answer of the inner tally to the outer probing is just so. So it is said: probe a man by his kind and there is that
+in him which does not answer; probe him by his desire and there is that in him which will not listen. Hence
+it is called the Way that walks alone. He who has the incipient is not late in succeeding, and is not held back; he takes
+his time and the transformation is accomplished.</p>
+
+<h3 id="quan">9. Weighing Words<span class="hz">權篇第九</span></h3>
+<p class="lead">A catalogue of speech: what persuasion is for, the five counterfeit kinds of talk, the five
+disorders of the voice, and the rule for pitching one's words to the man in front of one.</p>
+
+<p>To persuade is to talk a man round; to talk him round is to take something from him. To dress one's words is to borrow; and borrowing means adding
+and taking away. Reply and rejoinder are nimble speech; and nimble speech is
+light argument. To make the point good is to make it clear; and making it clear is verifying by
+the tally. Speech may turn and turn back, each side wishing to
+put the other off. To object is to argue back; and arguing back is angling for the incipient.</p>
+
+<p>Fawning speech flatters and angles for a name for loyalty. Toadying speech is copious and angles for
+a name for wit. Level
+<span class="var" tabindex="0" title="the graph in the blockprint is uncertain; the received text reads
+平, 'level'">speech</span> is decisive and angles for a name for courage. Grieving speech is calculating and angles for a
+name for good faith. Quiet speech turns things back and angles for a
+name for winning.</p>
+
+<p>Anticipating the wish and completing the desire is flattery. Heaping up citations and ornaments of phrase
+is copiousness. Letting go and letting be unfittingly is decisiveness. Picking plans and putting them forward
+is calculation. Laying out another's shortcomings and stopping up his fault is turning
+back.</p>
+
+<p>So the mouth is a trigger and a gate, the means of barring feeling and intent. Eyes and ears are the
+heart's helpers, the means of spying out wickedness. Hence it is said: let the three be tuned together and
+answer one another, and move along the advantageous way. So to speak copiously without confusion, to wheel and soar
+without losing the way, to shift and alter without danger, comes of seeing the essential and getting the
+pattern.</p>
+
+<p>So the eyeless cannot be shown the five colours; the earless cannot be told the five notes. So where one cannot go, there is nothing there to be opened; where one cannot be come to, there
+is nothing here to receive. Where a thing does not get through, the sage does not busy himself with it.</p>
+
+<p>The ancients had a saying: the mouth may be used to eat, but not to speak. Speech has things it must avoid;
+the mouths of the many will melt metal, because speech has its crooked reasons.</p>
+
+<p>It is the way of men that when they speak they want to be listened to, and when they undertake a thing they
+want it to succeed. Therefore the wise man does not use what he himself is short
+in, but uses what the foolish man is long in; does not use what he himself is clumsy at, but uses what the
+foolish man is skilled at; and so he is never at a loss. When he speaks of what is
+to a man's profit, he follows the man's long side; when he speaks of what is to his harm, he keeps clear of the
+man's short side.</p>
+
+<p>So the armoured insect, when it guards itself, does so by hardness and thickness; the stinging insect, when
+it moves, does so by its venomed sting. Birds and beasts know how to use their long side; and the talker too
+knows what is his to use, and uses it.</p>
+
+<p>So it is said: there are five disorders of speech &mdash; sickness, resentment, worry, anger and delight. Sickness: the breath is spent and the speech has no spirit. Fear: the
+bowels are cut through and there is no master in it. Worry: it is stopped up and does not run out. Anger: it runs wild and is not governed. Delight: it is
+spread abroad and has no point. Of these five, use them where they are fine and act on them where they serve.</p>
+
+<p>So in speaking with the wise, rest on breadth; with the broad, rest on
+discrimination; with the discriminating, rest on the essential; with the noble, rest on power; with the rich,
+rest on loftiness; with the poor, rest on profit; with the low, rest on humility; with the
+brave, rest on daring; with the foolish, rest on keenness. This is the art of it; and men constantly do the opposite. Therefore in speaking
+with the wise, use this to make it clear to them; in speaking with the unwise, use this to teach them &mdash;
+and that is very hard to do.</p>
+
+<p>Speech has many kinds and affairs many changes; so if one speaks all day and does not lose the kind, affairs
+are not thrown into confusion. Unchanging all day, one does not lose the ruling thread; so in wit what is prized is
+not being idle. In listening, keenness is prized; in wit, clarity; in wording, the unexpected.</p>
+
+<h3 id="mou">10. Designs<span class="hz">謀篇第十</span></h3>
+<p class="lead">How a design is made: find what a man rests on, set the three grades against one another, and
+work on him through what he likes, fears, doubts or hates. The chapter ends with the maxim the whole book turns
+on &mdash; the sage's Way is the hidden one.</p>
+
+<p>In all designing there is a Way: one must find what the man rests on, and by it seek out
+his feeling. Having examined and got the feeling,
+set up the three grades. The three grades are called the upper, the middle and the lower; set the three side by
+side and from them the unexpected is born; and the
+unexpected knows nothing that
+can stop it, for it begins in what the ancients went by.</p>
+
+<p>So when the men of Zheng went to gather jade, they took the south-pointing
+carriage with them, that they might not lose their way. Gauging a man's stuff, measuring his capacity and
+estimating his feeling are likewise the south-pointing carriage of affairs.</p>
+
+<p>So those who share a feeling and grow close are those who both succeed; those who share a desire and grow
+estranged are those only one of whom is harmed. Those who share a hatred and
+grow close are those who are both harmed; those who share a hatred and grow estranged are those only one of whom is
+harmed. So mutual gain makes closeness and mutual loss makes
+estrangement: this count runs true, and by it one examines where sameness and difference divide. So a wall breaks at its crack and a tree splits at its knot: this is the dividing of them.</p>
+
+<p>So change gives birth to affairs, affairs to design, design to reckoning, reckoning to debate, debate to
+persuasion, persuasion to advancing, advancing to withdrawing,
+advancing to governing; and by these affairs are governed. So a hundred affairs have one Way, and a hundred
+measures one count.</p>
+
+<p>The humane man holds goods light and cannot be lured by profit, but can be got to spend; the brave man holds
+danger light and cannot be frightened by peril, but can be got to hold a dangerous post; the wise man reaches
+through the numbers and is clear in the pattern, and cannot be cheated by what is untrue, but can be shown the
+pattern of the Way and got to establish merit. These are the three kinds of material. So the foolish are easily blinded, the
+unworthy easily frightened, the greedy easily lured. These are cut to the shape of the matter in hand.</p>
+
+<p>So the strong is built up out of weakness, the straight out of crookedness, abundance out of want. This is the
+art of the Way at work.</p>
+
+<p>So with him who is close without and distant within, speak to the within; with him who is close within and
+distant without, speak to the without. So take his doubt and change him by it; take what he has seen and confirm
+him in it; take what he says and pin him to it; take the force of his position and complete him by it; take what he hates and weigh him by it; take what he dreads and clear it away for him. Probe him and alarm him; raise him high and
+move him. Subtly bring proof, and answer
+him with a tally. Dam him and stop him, throw him into disorder and confusion: this is what is called reckoning and
+design.</p>
+
+<p>In the use of reckoning and design, public is not so good as private, and private is not so good as bound
+together &mdash; the bond so close that there is no gap in it. The regular is not so good as the unexpected, for the unexpected
+flows on and does not stop.</p>
+
+<p>So in persuading the ruler of men, one must speak to him of the unexpected; in persuading a minister, one must
+speak to him of the private. Whose
+person is within and whose words go outside is estranged; whose person is outside and whose words cut deep is in
+danger.</p>
+
+<p>Do not force on a man what he does not want; do not teach a man by what he does not know. Where a man has a liking, learn it and go along
+with it; where a man has a loathing, keep clear of it and leave it unsaid. So work by the dark and take by the
+light.</p>
+
+<p>So to be rid of a man, go along with him; and having gone along with him,
+ride him down.</p>
+
+<p>As for countenance: the man who is neither taken with what is fine nor set against what is foul &mdash; to him
+the deepest feeling may be entrusted. He who can be let into the matter can be used; he who cannot be let into it the designer does not
+use.</p>
+
+<p>So it is said: in affairs what counts is to govern others and not to be governed by them. To govern others is to
+hold the handle; to be governed
+by others is to have one's fate in another's hand. So the Way of the sage is the dark one; the way of the fool is the open one. The wise man is easy to serve, the unwise hard to serve. Looking at it so: what is ruined cannot be
+made to stand and what is in danger cannot be made safe; and yet, doing nothing, one prizes wit.</p>
+
+<p>Wit is used on what the common run cannot know, and can be used on what the common run cannot see. Having used it, seeing what can be done, he picks his affair and does it: this is doing for himself.
+Seeing what cannot be done, he picks his affair and does it: this is doing for others.</p>
+
+<p>So the Way of the former kings was the dark one. There is an old saying: the transforming of heaven and earth lies
+in the high and the deep; the sage's ordering of the Way lies in the hidden
+and the covered &mdash; not in loyalty, good faith, humaneness and right alone, but in being centred and upright, and
+in that only. He whose grasp of the Way's pattern reaches to
+this sense may be spoken with. And having got this, one may nourish the drawing-in of far and
+near.</p>
+
+<h3 id="jue">11. Deciding<span class="hz">決篇第十一</span></h3>
+<p class="lead">Every decision rests on a doubt. Men doubt because they cannot see where the good lies and
+where the harm; the art of deciding is to draw that out and then cut.</p>
+
+<p>In deciding anything, one must rest on the man's doubt. He wishes well to what brings him blessing and
+ill to what brings him trouble; and the harm of it comes down to the drawing-out. Be in the end without confusion and without partiality, and there is
+advantage in it; take the advantage away and he will not accept, and the thing is given over to the
+unexpected. If a thing is to his advantage and good, and you covertly put it to him as an evil,
+he will not accept it, and it makes for estrangement and distance. So there are ways of making a man lose his advantage, and ways of making him fall away into
+harm: these are failures in the handling of a matter.</p>
+
+<p>The sage has five means of bringing his affairs to success: there is deciding by open virtue; deciding by
+hidden attack; deciding by good faith and sincerity; deciding by covering and concealing; deciding by the plain
+and ordinary. Yang strives after the one, yin after the two; the plain and ordinary and the trigger of the
+pivot: use these four, and apply them subtly.</p>
+
+<p>Then gauge it against what is past, verify it against what is coming, check it against the plain and
+ordinary; and if it can be done, decide it.</p>
+
+<p>In the affairs of kings, dukes and great men: what is precarious but carries a fine name &mdash; if it can be
+done, decide it. What costs no strength and is easily accomplished &mdash; if it can be done, decide
+it. What costs strength and
+bitter labour, but cannot be helped and must be done &mdash; if it can be done, decide it. What rids him of trouble &mdash; if it can be done, decide it. What follows his blessing
+&mdash; if it can be done, decide it.</p>
+
+<p>So deciding feeling and settling doubt is the foundation of ten thousand affairs: by it order and disorder are set right and success
+and failure decided, and it is hard to do. So the former kings used milfoil and tortoise-shell, to decide for themselves.</p>
+
+<h3 id="fuyan">12. Words as Tallies<span class="hz">符言第十二</span></h3>
+<p class="lead">Nine short articles for a ruler, each closed by its rubric &mdash; "the above concerns the
+seat," "the above concerns clear sight," and so on. Words that answer the event as the two halves of a tally
+answer one another.</p>
+
+<p>Be at ease, unhurried, upright and still, and what your regulation reaches will be fat. Be quick to
+engage and not still, and you may empty your heart and level your intent and wait for your ruin.</p>
+<p class="byline">The above concerns the ruler's seat.</p>
+
+<p>In the eye, clear sight is prized; in the ear, keen hearing; in the heart, wit. See with the eyes of the world and there is nothing unseen; hear with the
+ears of the world and there is nothing unheard; think and deliberate with
+the heart of the world and there is nothing unknown. When they converge like spokes and come forward together, the clarity cannot
+be stopped up.</p>
+<p class="byline">The above concerns clear sight.</p>
+
+<p>The art of virtue says: do not stiffen and refuse. Grant them and they
+guard you; refuse them and you are shut in. Look up at the high
+mountain and its top can be reached; sound the deep pool and its bottom can be touched. But the virtue and art of
+the divine and clear, upright and still &mdash; nothing reaches its end.</p>
+<p class="byline">The above concerns virtue.</p>
+
+<p>In reward, good faith is prized; in punishment, uprightness. In rewards and gifts good
+faith is prized: they must be verified by what ear and eye have heard and seen; and then what is not heard and seen
+will be silently transformed as well. Sincerity floods the world and the
+spirits &mdash; how much more will it reach the wicked man who would usurp his lord!</p>
+<p class="byline">The above concerns reward.</p>
+
+<p>The first is heaven's; the second, earth's; the third, man's. Of the four quarters and above and below, of left and right and front and back &mdash; where does the baleful planet
+stand?</p>
+<p class="byline">The above concerns inquiry.</p>
+
+<p>The heart governs the nine apertures; the ruler is chief of the five offices. He who does good, the ruler gives reward; he who does wrong, the ruler gives punishment. If the ruler,
+taking what men seek, gives them accordingly, he is not wearied. The sage uses this, and so can reward them; going by it and following
+the pattern, he can indeed last long.</p>
+<p class="byline">The above concerns going by things.</p>
+
+<p>The ruler of men must be thorough; if he is not thorough, disorder springs up among his ministers. Their business becomes inconstant; inner and outer do not communicate, and how
+should he know where anything opens? Opening and shutting being ill done, he does not see the source.</p>
+<p class="byline">The above concerns thoroughness.</p>
+
+<p>The first is the far-reaching eye; the second, the flying ear; the third, the planted clarity. To know clearly what
+is beyond a thousand <i>li</i> and what lies hidden and minute &mdash; this is called seeing through the world, and no
+wickedness is not silently altered.</p>
+<p class="byline">The above concerns reverent attention.</p>
+
+<p>Act according to the name, and the substance is secure and whole. Name and substance give
+birth to one another, and turning back make each other's reality. So it is said: the name, when apt, is born of the
+substance, and the substance is born of the pattern. The pattern is born of the virtue of name and substance; virtue is born
+of harmony, and harmony of aptness.</p>
+<p class="byline">The above concerns the name.</p>
+
+<h4 id="lost">The two lost chapters<span class="hz">轉丸、胠篋</span></h4>
+<p><i>Turning the Pellet</i> and <i>Prying the Chest</i> are both lost.</p>
+
+<p class="byline">End of Scroll Two <span class="zh">鬼谷子卷中</span></p>
+
+
+<h2 id="scroll3">Scroll Three<span class="hz">鬼谷子卷下</span></h2>
+
+
+<h3 id="benjing">The Seven Arts of the Yin Tally: the Root Canon<span class="hz">夲經隂符七術</span></h3>
+<p class="lead">The first twelve chapters look outward, at other men. These seven look inward, at the stock of
+spirit, will, intent and momentum that any of it must be spent from. Each art is set under the figure of a
+creature: the five dragons, the sacred tortoise, the <i>teng</i>-serpent, the crouching bear, the bird of prey,
+the fierce beast, the sacred milfoil.</p>
+
+<h4 id="wulong">Filling the Spirit, on the model of the Five Dragons<span class="hz">盛神法五龍</span></h4>
+<p>Filling the spirit, on the model of the five dragons. In the full spirit are five breaths; spirit is their chief, the heart their lodging, virtue their
+greatness; and the nourishing of spirit finds its home in the Way.</p>
+<p>The Way is the beginning of heaven and earth, and the One is its thread. It is what things are made from and what
+heaven gives birth to; it wraps all round and has no form; the breath it transforms was complete before heaven and
+earth. None sees its shape, none knows its name: it is called the divine numen.</p>
+<p>So the Way is the source of the divine and clear, and the One is the start of its transforming. Therefore virtue
+nourishes the five breaths, and when the heart can get the One, then it has its art. The art is the Way of the heart's breath. Where it lodges, there the spirit is set to
+work.</p>
+<p>The nine apertures and the twelve lodgings are the gates of the breath and the heart's general holding. He who
+receives his life from heaven is called a true man; the true man is one with heaven. He who knows it by inward cultivation and practice is called a sage; the sage knows it by
+kinds.</p>
+<p>So men and life are one, and come out of the transformation of things. Knowing kinds lies in the apertures;
+where there is something doubted, it must pass through the heart's art; and where the heart has not the art, something
+must fail to get through. When it does get through, the five breaths are nourished, and the
+business is to lodge the spirit: this is what is called transformation.</p>
+<p>In the transformation are five breaths: the will, the thought, the spirit, the virtue; and the spirit is chief of
+them. He who is still and harmonious nourishes his breath, and the breath gets its
+harmony. Let the four not decay, and the awe and force at the four borders will all be there to be kept and lodged:
+this is called spirit-transformation; and when it comes home to the person, that is the true man.</p>
+<p>The true man is one with heaven and joined to the Way; he holds the One and nourishes and brings forth the ten
+thousand kinds; he carries heaven's heart in him, dispenses virtue and nurture, and does nothing, and so wraps up will
+and deliberation, thought and intent, and puts forth awe and force. The gentleman reaches through to this; the spirit
+being full, he can then nourish the will.</p>
+
+<h4 id="lingui">Nourishing the Will, on the model of the Sacred Tortoise<span class="hz">養志法靈龜</span></h4>
+<p>Nourishing the will, on the model of the sacred tortoise. Nourishing the will is for when the thought of the heart's breath does
+not get through. Where there is something the will wants, one keeps it and thinks on it. The will is the servant of desire.
+Desire being much, the heart is scattered; the heart scattered, the will decays; the will decayed, thought does not get
+through. So when the heart's breath is one, desire does not waver; desire not
+wavering, will and intent do not decay; will and intent not decaying, thought and pattern get through. Pattern getting through, there is harmony and passage; and with harmony and passage, no disordered breath
+troubles the breast.</p>
+<p>So within one nourishes the will, and without one knows men. Nourish the will and the heart gets through; know men and
+the division of offices is clear. If you would use this upon a man, you must first know how he nourishes his breath and
+will &mdash; know whether his breath is full or spent, nourish his breath and will, examine what he is at ease in, and so
+know what he is able to do.</p>
+<p>Where the will is not nourished, the heart's breath is not firm; the heart's breath not firm, thought and deliberation
+do not get through; thought and deliberation not getting through, will and intent are not solid; will and intent not solid,
+reply and rejoinder have no force; reply and rejoinder having no force, the will is lost and the heart's breath is empty;
+the will lost and the heart's breath empty, the spirit is gone. The spirit gone, one
+is a blur; being a blur, the three do not meet as one.</p>
+<p>At the start of nourishing the will the business is to put oneself at ease. Oneself at ease, will and intent are solid and
+firm; will and intent solid and firm, the awe and force are not scattered, the divine clarity comes and keeps constant guard,
+and one can then scatter another's.</p>
+
+<h4 id="tengshe">Solidifying the Intent, on the model of the <i>Teng</i>-Serpent<span class="hz">實意法螣蛇</span></h4>
+<p>Solidifying the intent, on the model of the <i>teng</i>-serpent. Solidifying the intent is the deliberating of the breath. The heart should be at rest and still, the deliberation
+deep and far-reaching. The heart at rest and still, the spirit's plans are born; the deliberation deep and far-reaching, the design is complete. The spirit's plans
+born, the will cannot be thrown into disorder; the design complete, the work cannot be broken into. Intent and deliberation settled, the heart is thereupon at ease, what one does goes not amiss,
+and the spirit is got of itself; and being got, it sets.</p>
+<p>When the recognising breath is only a lodger, wickedness leans upon it and false designs confuse it, and the words no longer come from the heart. So trust the heart's art, keep the true One and be not transformed, and wait for the meeting
+of another's intent and deliberation: this is the moment for listening.</p>
+<p>Design and reckoning are the trigger of survival and ruin; if the deliberation does not meet, the listening is not exact.
+The moment missed, the design is lost, and then the intent has nothing to trust to, and is empty and without substance. So the deliberation of design and reckoning has its business in solidifying the intent; and solidifying the
+intent must begin from the heart's art.</p>
+<p>Doing nothing, seek to put the five viscera at rest and make the six receptacles harmonious and open, so that essence,
+spirit and the two souls keep firm guard and do not stir; then one can look inward, listen backward and settle the will.
+Deliberate in the great void and wait for the spirit's coming and going.</p>
+<p>So one observes the opening out of heaven and earth, knows how the ten thousand things are made and transformed, sees the
+end and beginning of yin and yang, traces to its source the ordering of human affairs; without going out of doors one knows
+the world, without looking through the window one sees the Way of heaven; without seeing, one names; without travelling, one
+arrives. This is called
+knowing by the Way; by it one reaches through to the divine clarity, answers where there is no quarter, and the spirit lodges
+in one.</p>
+
+<h4 id="fuxiong">Dividing the Awe, on the model of the Crouching Bear<span class="hz">分威法伏熊</span></h4>
+<p>Dividing the awe, on the model of the crouching bear. Dividing the awe is the spirit's covering. So still the intent and make the will firm, and the spirit comes home to its lodging, and the awe's
+covering is ample. The awe's covering ample, the inside is solid and firm; the inside solid and firm, none can withstand it;
+none withstanding it, one can divide off other men's awe and move their force as heaven moves.</p>
+<p>By the solid take the empty; by the having take the not-having, as one weighs grains against an ingot. So whoever moves is
+followed, whoever calls is answered; crook one finger and watch what follows in order; motion and change take visible form and
+none can break in. Examine call and answer,
+and use the chink to see the chink; motion and change being clear, the awe can be divided.</p>
+<p>If you would move and change, you must first nourish the will and lay the intent low, and so watch for the chink. Knowing what in you is firm and solid is nourishing yourself; yielding your own place is nourishing
+others. So with the spirit present and the weapons gone, one may then make the shape of the force.</p>
+
+<h4 id="zhiniao">Scattering the Force, on the model of the Bird of Prey<span class="hz">散勢法鷙鳥</span></h4>
+<p>Scattering the force, on the model of the bird of prey. Scattering the force is the spirit's errand. In using it one must move along
+a chink. When awe
+and gravity are full within and one pushes through the chink and makes it run, the force scatters.</p>
+<p>Now in scattering the force the heart is empty and the will brims over. Where the intent is spent and the awe lost and essence and spirit are not concentrated,
+the words are off the point and shift about. So observe his will and intent, and make of them measure and
+number; and then estimate and persuade and plan the affair, exhausting the round and the square and making even the short and
+the long. Where there is no chink, do not scatter the force: wait for the chink and move, and moving, the force divides.</p>
+<p>So he who is good at looking for the chink must refine the five breaths within and watch the empty and the solid without, and
+in moving does not lose the substance of scattering and dividing. Moving, he follows their will and intent, and knows their design. Force is the deciding of advantage and harm, the awe of weighing and changing. The force that fails does so
+because the spirit has not gravely examined.</p>
+
+<h4 id="mengshou">Turning the Round, on the model of the Fierce Beast<span class="hz">轉圓法猛獸</span></h4>
+<p>Turning the round on the model of the fierce beast. Turning the round is the endless plan. He who is endless
+must have the heart of a sage, to trace the unfathomable wit to its source and get through to the heart's art. And the spirit-Way, a blended whole, is one; and by its changes he discourses
+on the ten thousand senses and kinds, and his discourse on sense is endless.</p>
+<p>Wit and stratagem, reckoning and design each have their shape and countenance: now round, now square; now yin, now yang; now
+auspicious, now ill &mdash; the kinds of affair are not the same. So the sage carries this use in him, and
+turns the round to seek the fit. So in setting the making and transforming going, and in beginning to act, there is nothing he does not wrap in the great Way, and
+so survey the country of the divine clarity.</p>
+<p>Heaven and earth are without limit and human affairs without end. Each brings its kind to completion; see the design, and one
+must know where fortune and misfortune, success and failure, will end. In turning the round, one turn is auspicious and another ill; the sage knows
+survival and ruin beforehand by the Way, and so knows to turn the round and follow the square.</p>
+<p>The round is what one uses to bring speech together; the square is what one uses to set affairs in place. Turning and
+transforming is how one observes design; dealing with things is how one observes the intent to advance or withdraw. See where all four meet,
+and then gather up the essentials and tie the knot, and so take up his persuasion.</p>
+
+<h4 id="lingshi">Reducing and Seeing, on the model of the Sacred Milfoil<span class="hz">損兊法靈蓍</span></h4>
+<p>Reducing and seeing, on the model of the sacred milfoil. Reducing and seeing is the deciding of the incipient and the perilous. Affairs have
+their "it so happened"; things have their success and failure. The motion of the incipient and perilous must not go
+unexamined.</p>
+<p>So the sage waits, doing nothing, upon those who have virtue; he speaks, examines their wording, and matches it to their
+deeds. <i>Dui</i>, seeing, is knowing it; <i>sun</i>, reducing, is doing it. Where in
+reducing and speaking there is that in a thing which cannot be, the sage does not make words for it.</p>
+<p>So the wise man does not let his own speech cost him the speech of others; and so his wording is not encumbered and his
+heart not empty, his will not disordered and his intent not crooked. Meet the moment of the easy and the hard, and then design for it, and take the Way
+of what is so of itself for your substance.</p>
+<p>What is round does not run and what is square does not stop: this is called the great work. Adding or reducing, one makes
+words for it. Use the handle of dividing the awe and scattering
+the force to see where the awe of his seeing lies, and then, at the incipient and perilous, decide. So the man good at reducing
+and seeing is like one loosing water from a dyke a thousand fathoms high, or rolling a round stone down a ravine ten thousand
+fathoms deep; and that he can do this is because the shape of the force could not be otherwise.</p>
+
+<h3 id="chishu">Holding the Pivot<span class="hz">持樞</span></h3>
+
+<p>Holding the pivot: that spring gives birth and summer grows, autumn gathers in and winter stores away, is the rightness of
+heaven, and it may not be crossed and gone against. He who goes
+against it, though he succeed, must come to ruin.</p>
+
+<p>So the ruler of men too has his pivot of heaven: birth and nurture, completion and storing; and this
+too may not be crossed and gone against. He who goes against it, though he flourish, must decay. This is the great mainstay of
+heaven's Way and of the ruler of men.</p>
+
+<h3 id="zhongjing">The Middle Canon<span class="hz">中經</span></h3>
+
+<p>The Middle Canon means raising up the destitute and hastening to those in straits, and spending this upon men who can speak
+and men of ample virtue. Those held fast by circumstance and caught in extremity do not forget a kindness. Those who can speak are of the company of
+the good and spread benefits wide. Those
+who dispense virtue go by the Way. And he who saves those held fast nourishes small men and makes them serviceable.</p>
+
+<p>A gentleman may meet an age out of joint: it may be his lot to be saved from the ditch by some chance; or to be cut down for
+being able to speak; or to see virtue broken and force made king; or to be held down and made a criminal; or to grieve and keep
+his own goodness; or to be ruined again and again and stand up for himself.</p>
+
+<p>So in the Way what counts is to govern others and not to be governed by others. To govern others is
+to hold the handle; to be governed by others is to lose one's fate.</p>
+
+<p>Hence: seeing the form for the countenance and figuring the body for the look; hearing the voice and knowing the note; loosing
+the feud and setting the breach to fight; stitching on the departing and turning back the words; drawing in the heart and keeping
+what is fitting. The <i>Root Canon</i>,
+in recording affairs, records the Way and its numbers; the essentials of change lie in <i>Holding the Pivot</i> and the
+<i>Middle Canon</i>.</p>
+
+<p><b>Seeing the form for the countenance and figuring the body for the look</b> means that the line of the hexagram gives it birth.  It can be got as shadow and echo answer to form and look. But the man who does keep guard &mdash; whose eye does not look at what is wrong, whose ear does not listen to what is
+crooked, whose words are always of the <i>Odes</i> and <i>Documents</i> and whose conduct is not perverse or licentious, who makes
+the Way his form and virtue his countenance, whose look is grave and whose colour is warm &mdash; he cannot be got at by figuring his
+look. With such a man, hide your purpose, stop the chink and go away.</p>
+
+<p><b>Hearing the voice and knowing the note</b> means that where voice and breath are unlike, affection does not pass between them;
+so <i>shang</i> and <i>jue</i> do not agree together, and <i>zhi</i> and <i>yu</i> are not matched. And who can be master of the four notes but
+<i>gong</i>? So where the notes do not harmonise there is grief; and when the voice is scattered, wounded, ugly
+or harmful, the words are sure to grate on the ear. Though one had fine conduct and a full reputation, one could not be as
+the paired-eye fish and the joined-wing birds that need one another. This comes of breath not matching and note not being tuned.</p>
+
+<p><b>Loosing the feud and setting the
+breach to fight</b> means loosing the feud of the weak side; setting the
+breach to fight is setting the strong to fight. The strong breach once set
+to fight, praise the winner, raise his merit high and swell his force; and
+of the weak, pity his defeat, condole with his low place, foul his name and shame his clan. So the winner, hearing of his merit and force, presses
+forward and does not know when to stop; and the weaker, hearing his defeat pitied and seeing himself condoled with, redoubles his strength
+&mdash; and it is he who dies. Where the breach has no great strength and the defence has no great
+strength, both can be cowed and swallowed up.</p>
+
+<p><b>Stitching on the departing</b> means stitching on the thing that binds him to you, so that your words leave him something to
+think on after. So with the true and faithful, praise his
+conduct, spur his resolve, and say that it can be done and can be done again, and bring him to a joyful parting. Cite others who come near it as proof to bind what has
+passed, and make plain your own whole-hearted sincerity as you go.</p>
+
+<p><b>Turning back the words</b> means watching and waiting for his shortcomings. Where a man says much,
+there must be several short places; mark his shortcomings and verify them. Move him with what must be avoided, and show him what the times forbid. The man
+grows afraid; and then tie the knot of good faith to set his heart at ease, gather up what he said, cover it over and put it by. Do not show
+what you yourself cannot do before men of many sorts.</p>
+
+<p><b>Drawing in the heart</b> means that when you meet a man fond of learning and of an art, you make his name carry far. Then test him, startle him with something strange and rare, and the man ties his heart to you. Set it out with proofs; with the proofs made, put in
+order what lies before him, and say that one's sincerity is given over to him.</p>
+
+<p>Meeting a man given over to women and wine, make an art of music for him, and move him by telling him he must die, and that his days
+of life grow few &mdash; a thing to grieve over. Delight him with things he has never seen, and in the end one may show him a
+life flowing free and without bound, and make him wish to meet again.</p>
+
+<p><b>Keeping what is fitting</b> means using the man himself to sound what is within him and so to meet with it. Sounding the heart, one gets deeply hold of its master. Then one governs the inner from the outer, and affairs have
+their attachment and follow by the winding way.</p>
+
+<p>So when a small man matches himself against others, he uses these by the left-hand way, and can go so far as to wreck a house and
+seize a state. None but a worthy and wise man can keep a house by what is fitting, or keep a state by the
+Way. That the sage prizes the Way's fineness and subtlety is truly because by it he can turn danger into safety and save what is perishing
+and make it stand.</p>
+
+<p class="byline">End of Scroll Three <span class="zh">鬼谷子卷下</span></p>
+
+<h2 id="piancemu">A Study of the Chapter List<span class="hz">鬼谷子篇目考</span></h2>
+<p class="byline">Compiled by Qin Enfu 秦恩復 (Qing)</p>
+<p class="lead">Everything the bibliographies, catalogues and critics from the Sui to the early Qing had to say about
+this book, gathered in order &mdash; who wrote it, who annotated it, and whether it was worth reading at all.</p>
+
+<p><b><i>Treatise on Bibliography, History of the Sui</i></b>, under the Vertical-and-Horizontal school:
+"<i>Guiguzi</i>, three scrolls. <i>Guiguzi</i>, three scrolls."</p>
+
+<p><b><i>Treatise on Bibliography, Old History of the Tang</i></b>: "<i>Guiguzi</i>, two scrolls. Also three scrolls. Also three
+scrolls."</p>
+
+<p><b><i>Treatise on Arts and Letters, New History of the Tang</i></b>: "<i>Guiguzi</i>, two scrolls. Yue Yi's annotated <i>Guiguzi</i>, three scrolls. Yin Zhizhang's annotated
+<i>Guiguzi</i>, three scrolls."</p>
+
+<p><b>Liu Zongyuan, <i>Disputation on the Guiguzi</i></b>: "Yuan Ji loved to read old books, and thought very highly of the
+<i>Guiguzi</i>, writing some thousands of words of <i>Essentials</i> upon it. But the <i>Guiguzi</i> is on the whole not
+worth taking. In Han times Liu Xiang and Ban Gu catalogued the books, and there was no <i>Guiguzi</i>. The
+<i>Guiguzi</i> came out later, and is devious and steep, harsh and thin; one fears it is wild talk that throws an age into
+disorder, and hard to trust, and scholars do well not to speak of it. Yet those in the world who talk of the vertical and
+horizontal have from time to time cherished the book. The worst of it is that at last the <i>Seven Arts</i> came out too,
+strange and false beyond measure and past all checking. Its words grow ever more outlandish and its Way ever narrower,
+setting men off in a mad crouch, out of all guard, and easy to topple into the pit. It is fortunate that few cherish it.
+And now Master Yuan has adorned it with his <i>Essentials</i> as well. Alas! He has gone too far in his love of
+technique."</p>
+
+<p><b><i>Zhongxing Catalogue</i></b>: "<i>Guiguzi</i>, three scrolls. A lofty gentleman of the Zhou age, of no known
+village, clan or name, who called himself Master Ghost Valley from the place where he lived hidden. Su Qin and Zhang Yi
+served him, and he gave them the twelve chapters from <i>Opening and Closing</i> down to <i>Words as Tallies</i>, and also
+<i>Turning the Round</i>, the <i>Root Canon</i>, <i>Holding the Pivot</i> and the <i>Middle Canon</i>, which he likewise
+told to Yi and Qin. One copy is annotated from beginning to end by
+<span class="var" tabindex="0" title="collation: 陶弘景 for 陶宏景">Tao Hongjing</span> of the Eastern Jin. In another
+copy the four chapters <i>Opening and Closing</i>, <i>Turning Back and Responding</i>, <i>Fastening Within</i> and
+<i>Striking the Fissure</i> are glossed by an unknown hand, while the middle and lower scrolls agree with Hongjing's
+commentary."</p>
+
+<p><b><i>Treatise on Arts and Letters, History of the Song</i></b>: "<i>Guiguzi</i>, three scrolls."</p>
+
+<p><b>Chao Gongwu, <i>Record of Readings</i></b>: "<i>Guiguzi</i>, three scrolls, composed by Master Ghost Valley. The
+<i>Shiji</i> has it that in the Warring States he lived hidden in Ghost Valley at Yangcheng in Yingchuan, and took his
+style from it. He was skilled in nourishing the nature and ordering the person; Su Qin and Zhang Yi took him for master and
+received from him the business of the vertical and the horizontal. The preface says that this book is the very one he gave to Qin and Yi: thirteen
+chapters of the art of opening and closing, and the three
+chapters <i>Root Canon</i>, <i>Holding the Pivot</i> and <i>Middle Canon</i>, annotated by
+<span class="var" tabindex="0" title="collation: 陶弘景 for 陶宏景">Tao Hongjing</span> of the Liang. Liu Zongyuan once said: 'Liu Xiang and Ban Gu catalogued the books and
+there was no <i>Guiguzi</i>. The <i>Guiguzi</i> came out later, and is steep and harsh and thin; one fears its words are
+wild talk that throws an age into disorder, and hard to trust. The worst of it is that at last the <i>Seven Arts</i> came out
+too, strange and false beyond measure; its words grow narrower, and set men off in a mad crouch, out of all guard.' And Lai
+Hu likewise said: 'Guiguzi of old taught men the arts of deceiving, entangling, denouncing, guessing and cunning, and the
+chapters are full of them; and the only students of them were Yi and Qin. As for <i>Opening and Closing</i> and <i>Flying
+and Clamping</i>, they are in truth the ordinary manners of our own day.' From which one sees that in a thinned and fallen
+age men who have never read the <i>Guiguzi</i> nonetheless act so as to answer it like two halves of a tally. Of old, when
+Cang Jie made writing, the ghosts wept for it; one wonders what the ghosts did when Guiguzi made this book. Whoever wishes
+to know the <i>Guiguzi</i> will have got it nearly all from the words of these two men; so I have picked out their main
+points and set them down."</p>
+
+<p><b>Zheng Qiao, <i>Tongzhi, Synopsis of Arts and Letters</i></b>: "<i>Guiguzi</i>, three scrolls. Also three scrolls. Also three scrolls. Also three scrolls."</p>
+
+<p><b>Ma Duanlin, <i>Comprehensive Examination, Treatise on Books</i></b>: "<i>Guiguzi</i>, three scrolls."</p>
+
+<p><b>Wang Yinglin, <i>Yuhai</i></b>, citing the <i>Correct Meaning of the Shiji</i>: "Ghost Valley is the name of a
+valley, five <i>li</i> north of Yangcheng county in Luozhou. The <i>Qilu</i> has a <i>Book of Su Qin</i>. Yue Yi's note
+says: 'Qin wished to make his Way seem divine and secret, so he borrowed the name of Ghost Valley.' <i>Guiguzi</i>, three
+scrolls, annotated by Yue Yi &mdash; Yue Yi, styled Zheng, a man of Lu commandery. It has the <i>Seven Arts of the Yin
+Tally</i>, and the two chapters <i>Estimating</i> and <i>Probing</i>. The <i>Stratagems of the Warring States</i> says that
+Su Qin 'got the Grand Duke's <i>Yin Tally</i> stratagems, bent over them and recited them, drilling himself in estimating
+and probing; and within the year his estimating and probing were complete.' On this evidence it is clear that the
+<i>Guiguzi</i> is the <i>Book of Su Qin</i>."</p>
+
+<p><b>Wang Yinglin, <i>Textual Examination of the Han Bibliography</i></b>: "Among the Vertical-and-Horizontal writers,
+<i>Master Su</i> in thirty-two chapters." ○ <i>Guiguzi</i>, three scrolls; Yue Yi's note says: "Su Qin wished to make his
+Way seem divine and secret, so he borrowed the name of Ghost Valley." The <i>Correct Meaning of the Shiji</i>: "The
+<i>Stratagems of the Warring States</i> says that he opened his books and laid out dozens of boxes, and got the Grand Duke's
+<i>Yin Tally</i> stratagems, bent over them and recited them, drilling himself in estimating and probing. The
+<i>Guiguzi</i> has the <i>Seven Arts of the Yin Tally</i> and the two chapters <i>Estimating</i> and <i>Probing</i>: it is
+clearly the <i>Book of Su Qin</i>." Mr Lü of Donglai said: "The fashion of roving persuasion in the Warring States was set
+going in fact by Su Qin, Zhang Yi and Gongsun Yan. Qin was a man of Zhou; Yi and Yan were both men of Wei. So when men speak
+of the crafty and eloquent, they must say 'the Three Jin and the Two Zhou.'" Mr Ye of Shilin said: "Su Qin's learning came
+out of estimating and probing; he never had any settled ambition for the world. He turned and turned again, kept to no one
+Way, and wherever he gauged a gap he might enter, he entered. Such is the art of estimating and probing. So he first sought
+to persuade Zhou; King Xian of Zhou could not use him, and he left for Qin. He sought again to persuade Qin; Duke Xiao of
+Qin could not use him, and he left for Yan; and by luck Marquis Wen of Yan suited him, and the Vertical persuasion went
+through. What he said to Zhou I cannot know. But had Duke Xiao of Qin listened to him, he would surely have made the
+Horizontal persuasion first and eaten up the six states &mdash; and what would Zhou have been to him? This is how Su Qin came
+by his death." Mr Liu Jing said: "The
+drawing-in and spreading-out of Laozi, the shutting and opening of the Confucians, go to and fro with Guiguzi like a ring.
+<i>Gui</i>, the ghost, is what is hidden and yet manifest; <i>gu</i>, the valley, is what is struck and answers. Hiding what
+is hidden and showing what is shown, one knock and one answer &mdash; he is true to his name indeed!"</p>
+
+<p><b>Gao Sisun, <i>Synopsis of the Masters</i></b>: "The affairs of the Warring States were perilous. There were gentlemen
+who, carrying a rare and towering spirit, sought to be given rein and put to use; and in their answering and exchanging, their
+shiftings and their soaring, they let themselves loose in composition, and in what showed as checking and turning, strangeness
+and peril, parting and joining, estimating and probing, their language reached its farthest. The book of Guiguzi &mdash; its wit
+and design, its numbers and arts, its shiftings and trickeries, its speech and argument &mdash; stands out beyond all the men of
+the Warring States. One opening and one shutting is the divinity of the <i>Changes</i>; one drawing-in and one spreading-out is
+the incipience of Laozi. And the art of Guiguzi often gets something beyond that shutting and opening, drawing-in and
+spreading-out, makes it divine and clear, and so goes on to let itself loose, bursting all bounds past holding. I have looked into
+the <i>Yin Tally</i>: it exhausts the workings of heaven and preys upon what is private in men; and for hidden design and secret
+stratagem, there is in it what the <i>Golden Casket</i> and the <i>Sheath</i> and <i>Synopsis</i> do not cover, and the
+<i>Guiguzi</i> gets it all and lets it out. Is he not the great man of an age? Note: Liu Xiang and Ban Gu catalogued the books and
+there was no <i>Guiguzi</i>; the Sui bibliography first has it, placed among the Vertical-and-Horizontal writers, and the Tang
+bibliography takes it for Su Qin's book. Yet what Su Qin records is that in the Zhou age there was a bold recluse who lived in
+Ghost Valley and called himself Master Ghost Valley, of no known village, clan or name. Now, examining his words, he says: 'The
+age has no constant nobility; affairs have no constant master.' And again: 'When others move I am still; when others speak I
+listen. Know your nature and your burdens are few; know your fate and you do not grieve.' Sayings of this sort are surely
+distinguished. And as for the chapters <i>Filling the Spirit</i> and <i>Nourishing the Will</i> &mdash; what is called examining
+within the ancestry of the Way and its virtue, and spreading out into the recesses of the divine and clear &mdash; do they not come
+near it? Guo Pu's <i>Rhapsody on Climbing the Tower</i> says: 'I salute the two old men of Shouyang, and beckon the recluse of
+Ghost Valley.' And his <i>Poems of the Wandering Immortal</i>: 'The green stream falls a thousand fathoms and more, and in it there
+is one adept. Ask who this may be, and they say it is Guiguzi.' One may say he thought of the man with feeling. Xu Guang says:
+'There is a Ghost Valley at Yangcheng in Yingchuan.' Those who annotated the book were Yue Yi, Huangfu Mi,
+<span class="var" tabindex="0" title="collation: 陶弘景 for 陶宏景">Tao Hongjing</span> and Yin Zhizhang."</p>
+
+<p><b>Chen Zhensun, <i>Annotated Catalogue of the Zhizhai Library</i></b>: "<i>Guiguzi</i>, three scrolls. In the Warring States
+the man whom Su Qin and Zhang Yi served as master was styled Master Ghost Valley; the place is at Yangcheng in Yingchuan, and his
+name has not come down to the world. This book too is absent from the Han bibliography; the Sui and Tang bibliographies simply take
+it for Su Qin's composition, which cannot be checked. The Sui bibliography has commentaries by Huangfu Mi and Yue Yi; the present
+text bears the commentary of <span class="var" tabindex="0" title="collation: 陶弘景 for 陶宏景">Tao Hongjing</span>." And again:
+"Note: the <i>Treatise on Arts and Letters</i> in the <i>New Tang History</i> gives two scrolls."</p>
+
+<p><b>Qian Zeng, <i>Records of a Diligent Seeker after Books</i></b>: "<i>Guiguzi</i> with
+<span class="var" tabindex="0" title="collation: 陶弘景 for 陶宏景">Tao Hongjing</span>'s commentary, three scrolls. Guiguzi has
+no known village, clan or name; in the Warring States he lived hidden in Ghost Valley at Yangcheng in Yingchuan, and took it for his
+style. His two chapters <i>Turning the Pellet</i> and <i>Prying the Chest</i> are now lost; Zhenbai says: 'Some say these are in fact
+the <i>Root Canon</i> and the <i>Middle Canon</i>.'"</p>
+
+<h2 id="fulu">Appendix: Fragments and Notices<span class="hz">鬼谷子附録</span></h2>
+<p class="byline">Compiled by Qin Enfu 秦恩復 (Qing)</p>
+<p class="lead">Passages quoted as <i>Guiguzi</i> in other books but absent from the text as we have it; the surviving
+scraps of an old preface; and the earliest accounts of the man himself.</p>
+
+<h3 id="fulu-lost">Lost passages</h3>
+<p><b><i>Garden of Persuasions</i>, "On Good Persuasion,"</b> quotes the <i>Guiguzi</i>: "To take a man who is not good and
+straighten him is hard. When a persuasion does not go through and the words are not followed, it is because the argument
+was not clear. Clear, and still it does not go through &mdash; then it was not held to firmly. Held to firmly, and still it
+does not go through &mdash; then it has not hit on what the man's own heart holds good. Make the argument clear, hold to it
+firmly, and hit besides on what the man holds good, and the words are divine and precious, white and distinct, and can
+enter into a man's heart. That such a persuasion should fail to go through has never been heard of in this world."</p>
+
+<p><b><i>Shiji</i>, "The Grand Historian's Own Preface"</b>: "So it is said: 'The sage does not decay; he keeps himself by
+the shifts of the time. Emptiness is the constant of the Way; going by things is the mainstay of the ruler.'" The
+<i>Suoyin</i> commentary says: "This comes from the <i>Guiguzi</i>; Qian quoted it to complete his chapter, hence 'so it
+is said.'" The <i>Life of Sima Qian</i> in the <i>Han shu</i> has <span class="zh">巧</span>, "cunning," for
+<span class="zh">朽</span>, "decay"; Yan Shigu says: "He has no cunning and contriving heart, but only goes with the
+time."</p>
+
+<p><b><i>Shiji</i>, <i>Suoyin</i> on the hereditary house of Tian</b>, quotes the <i>Guiguzi</i>: "Tian Chengzi killed the
+ruler of Qi, and for twelve generations his line held Qi."</p>
+
+<p><b><i>Taiping Yulan</i>, section on the Way of governing</b>, quotes the <i>Guiguzi</i>: "In serving a sage ruler there
+is listening and following, and no remonstrance and contention; in serving a middling ruler there is remonstrance and
+contention, and no flattery and fawning; in serving a violent ruler there is patching and trimming, and no straightening
+and thwarting." And again: "Let the ruler get a name and the whole body of ministers will lean on it."</p>
+
+<p><b><i>Yilin</i></b> quotes the <i>Guiguzi</i>: "When others move I am still; when others speak I listen. To hold fast or
+to let go &mdash; it rests with me, and I ask myself. Know your nature and your burdens are few; know your fate and you do
+not grieve. Grief and burden gone, the heart is level; the heart level, humaneness and right stand out." And again: "To
+nourish the people with virtue is like plants getting their season; to transform men with humaneness is like heaven giving
+birth to plants and soaking them with rain."</p>
+
+<h3 id="fulu-preface">From an old preface</h3>
+<p><b>The <i>Wenxuan</i> commentary</b> quotes the preface to the <i>Guiguzi</i>: "In the Zhou age there was a bold
+gentleman who lived hidden in Ghost Valley and styled himself Guiguzi, meaning that he had put himself far away. But the
+name Ghost Valley is a general style for recluses."</p>
+
+<p><b><i>Taiping Yulan</i>, section on rites</b>, quotes the <i>Guiguzi</i>: "In Zhou there was a bold gentleman who lived
+in Ghost Valley and was styled the Divine Master of Ghost Valley. Su Qin and Zhang Yi went to see him. The master said: 'I
+shall set out the utmost Way before you two; do you fast and purify yourselves and choose a day to learn.' Afterwards Qin
+and Yi fasted and purified themselves and went."</p>
+
+<p><b>Chao Gongwu, <i>Record of Readings</i></b>, Yin Zhizhang's preface: "Yi and Qin came again to see him, and the master
+then straightened his mat and sat, composed his face and spoke, and told the two of them the Way of keeping the person
+whole."</p>
+
+<p><b><i>Shiji</i>, <i>Suoyin</i> on the life of Su Qin</b>: "Yue Yi, annotating the book of Guiguzi, says: 'Su Qin wished
+to make his Way seem divine and secret, and so borrowed the name of Ghost Valley.'"</p>
+
+<h3 id="fulu-man">Accounts of the man</h3>
+<p><b><i>Shiji</i>, life of Su Qin</b>: "Su Qin went east and served a master in Qi, and studied under Master Ghost Valley."
+Xu Guang says: "There is a Ghost Valley at Yangcheng in Yingchuan; it must be where the man lived, and he took his style
+from it." Pei Yin's note: "The <i>Comprehensive Meaning of Customs</i> says: 'Master Ghost Valley was a Vertical-and-Horizontal
+ writer of the time of the Six States.'" The <i>Suoyin</i> says: "Ghost Valley is a place name. There are ruins
+of a Ghost Valley both at Chiyang in Fufeng and at Yangcheng in Yingchuan; it must be where the man lived, and he took his
+style from it." ○ The <i>Jijie</i>: "The <i>Guiguzi</i> has a chapter <i>Estimating and Probing</i>." Wang Shao says:
+"<i>Estimating Feeling</i> and <i>Probing Intent</i> are the names of two chapters of the <i>Guiguzi</i>, and not of
+one."</p>
+
+<p><b><i>Model Sayings</i></b>: "Su Qin studied the art of Ghost Valley."</p>
+
+<p><b>Wang Chong, <i>Discourses Weighed</i>, "Answering on Sycophancy"</b>: "Su Qin and Zhang Yi studied the vertical and
+horizontal under Master Ghost Valley. He dug a pit in the ground and said: 'Go down and persuade me; make my tears come out,
+and you are fit to carve up the lands of rulers.' Su Qin went down and persuaded him, and Master Ghost Valley's tears fell
+and wet his lapel." And in "On the Rain Sacrifice": "Su Qin and Zhang Yi made their grieving persuasion in the pit, and
+Master Ghost Valley's tears fell and wet his lapel."</p>
+
+<p><b>Wang Jia, <i>Records of Gleanings</i></b>: "Zhang Yi and Su Qin, the two of them, cut off their hair by turns to keep
+themselves alive, or hired themselves out to copy books. If on the road they came upon a sage's writing and had nothing to
+note it down with, they wrote it in ink on their palms and on the insides of their thighs, and at night on returning split
+bamboo and copied it out. The two of them begged food along the road and stripped tree-bark for bags to hold the good books
+of the world. Whenever they rested under a great tree, they would take a snatch of sleep. A certain master asked them: 'Why
+do you two labour so bitterly?' And Yi and Qin fell to talking with him and said: 'Who are you, sir?' He answered: 'I have
+lived and shall die in the mountain valleys; the world calls me Master Returning Valley.' Afterwards, in their travels for
+learning, Qin and Yi met Master Returning Valley again, and asked him for his art; and he taught them the arts of argument
+for meddling with the age and rising above the common, and drew from his breast three scrolls in leather wrappers speaking
+of the business of assisting the times &mdash; and so Yi and Qin studied them all their lives. The <i>Examination of Ancient
+History</i> says: 'Yi and Qin received their art from Master Ghost Valley; the sound of <i>gui</i>, "return," and
+<i>gui</i>, "ghost," having got confused.'"</p>
+
+<p><b><i>Master of the Golden Tower</i></b>: "The First Emperor of Qin, hearing the words of Master Ghost Valley, thereupon
+sent Xu Fu out to sea to seek golden herbs and jade greens."</p>
+
+<h2 id="colophons">Three Colophons<span class="hz">鬼谷子跋</span></h2>
+
+<h3 id="zhou">Colophon by Zhou Guangye<span class="hz">周廣業跋</span></h3>
+<p>Master Bao Lüyin acquired a manuscript copy of the annotated <i>Guiguzi</i> and asked me to set it right. The
+commentary is very lucid, plain and apt, and plainly beyond the reach of men of the Five Dynasties or the Song. Yet the
+head of the scroll is inscribed "annotated by Master Zhenbai of the Eastern Jin, Tao Hongjing of Danyang" &mdash; and
+that is wrong. Tao belonged to the Liang, and was granted the posthumous name Zhenbai at the beginning of the Datong era;
+the error "Eastern Jin" needs no long argument.</p>
+<p>Consider: the <i>Guiguzi</i> is catalogued from the Sui bibliography on, with commentaries by Huangfu Mi and Yue Yi in
+three scrolls each; the Old and New Tang bibliographies drop Huangfu and add Yin Zhizhang's commentary in three scrolls,
+and say nothing of Tao. Tao's commentary first appears in Chao Gongwu's <i>Record of Readings</i>, and Song Lian's
+<i>Disputation of the Masters</i> follows him. It has the same number of scrolls as Yue's and Yin's and lacks the two
+chapters <i>Turning the Pellet</i> and <i>Prying the Chest</i>; this copy's chapters and scrolls answer to that exactly,
+and it must be the one Mr Song saw.</p>
+<p>The book is unlike the old copies. It puts <i>Opening and Closing</i>, <i>Turning Back and Responding</i>,
+<i>Fastening Within</i> and <i>Striking the Fissure</i> in the upper scroll; <i>Flying and Clamping</i>, <i>Crossing and
+Joining</i>, <i>Estimating and Probing</i>, <i>Weighing and Designing</i>, <i>Deciding Affairs</i> and <i>Words as
+Tallies</i>, together with the lost chapters, in the middle; and the <i>Seven Arts of the Yin Tally</i> of the Root Canon
+with <i>Holding the Pivot</i> and the <i>Middle Canon</i> in the lower &mdash; no different from recent printings. Of all
+the passages lost from the text but preserved in the <i>Shiji</i>, the <i>Yilin</i>, the <i>Taiping Yulan</i> and the rest,
+this copy has none. And the chapter titles once given as <i>Turning and Returning</i>, <i>Striking the Fissure</i>,
+<i>Flying and Gripping</i>, <i>Blackening and Muffling</i>, <i>Crossing and Joining</i>, <i>Estimating Feeling</i>,
+<i>Probing Intent</i>, <i>Measuring the Weight</i> and <i>Design and Deliberation</i> are not so here either.</p>
+<p>As for the chapters <i>Filling the Spirit</i>, <i>Nourishing the Will</i> and the rest, they are precisely what Liu
+Zongyuan mocked when he said "at last the <i>Seven Arts</i> came out too, strange and false and past all checking." Could
+such things really have existed in the Liang? And even if they did, the Recluse held his will high at Huayang &mdash; what
+use had he for devious and tricky talk? Neither the <i>History of the Liang</i> nor the stele inscription for the Prince of
+Shaoling says a word about his annotating the <i>Guiguzi</i>; so how can the attribution be anything but false?</p>
+<p>Wang Yinglin's <i>Record of Studies</i> records Yin Zhizhang's preface to the <i>Guiguzi</i>, which says: "Su Qin and
+Zhang Yi served him and received the thirteen chapters of the art of opening and closing, and received further the three
+chapters <i>Turning the Pellet</i> and <i>Prying the Chest</i>." Chao merely says that the preface calls this the book given
+to Qin and Yi. Full or brief, the two prove that both are Yin's preface. The preface being Yin's, why should the commentary
+not be Yin's too?</p>
+<p>Look at the commentary and it constantly avoids Tang taboo-names: writing <span class="zh">人</span> for
+<span class="zh">民</span>, <span class="zh">代</span> for <span class="zh">世</span>, <span class="zh">理</span> for
+<span class="zh">治</span>, <span class="zh">縲絏</span> for <span class="zh">縲紲</span>, and the like; and the brushwork
+is moreover exactly like that of the <i>Commentary on the Guanzi</i>. That it is Yin's commentary is beyond doubt. Yin lived
+in the reigns of Zhongzong and Ruizong and died in the sixth year of Kaiyuan, and so no longer avoided the graphs of
+"Longji." His note on the lost chapters says: "Some have taken Zhuang Zhou's 'Prying the Chest' to fill out the sequence; as
+it is not the intent of this book, nothing is taken from it." His note on <i>Holding the Pivot</i> says: "Vexingly brief and
+cramped &mdash; perhaps the slips of the chapter were broken and lost, and the copy could not be made whole." After the
+sinking of the Dizhu barge the five sections were mutilated and the old Wende-hall copy could not be seen again, and so the
+commentators counted it a grief.</p>
+<p>Had the commentary really been Tao's, then Liu Xie, his contemporary, in the <i>Wenxin diaolong</i>, says plainly:
+"<i>Turning the Pellet</i> gives its skilful phrasing free rein; <i>Flying and Gripping</i> keeps its fine art in reserve."
+Could a man who had seen the original text have said out of hand that <i>Turning the Pellet</i> was already lost? Yu Zhongrong
+too was a man of the Liang, and of the masters he excerpted there survive in the <i>Yilin</i> the two items "when others move
+I am still" and "to nourish the people with virtue," which plainly rest on a complete book. Why then should this copy alone
+lament the text as broken and lost? Here too is clear proof that it is Yin's and not Tao's.</p>
+<p>How "Yin" was corrupted into "Tao" I cannot explain. Guessing at it: Yin's commentary is in the Old History, and is said to
+have circulated widely in its day; yet the New Bibliography notes of itself that "Yin Zhizhang is not entered in the
+catalogue," which suggests that at the beginning of the Song the copy carried no attribution at all. And in the notes to
+<i>Holding the Pivot</i> the name "Yuanliang says" occurs once. Yuanliang was the style of Tao Yuanming of the Jin; someone may
+have mistaken Tao Yuanming for Tao Tongming and so set up an owner's name out of nothing, which readers failed to check, and
+the loan became permanent. Or else some flatterer of the Way &mdash; having already falsely made Guiguzi out to be Wang Xu and
+forced on him the name Master Yuanwei &mdash; may have taken Zhenbai's fondness for the immortals' arts as a pretext and
+fathered the commentary on him. One cannot know.</p>
+<p>But the commentary is now rarely transmitted and is much to be treasured, and it would seem right to re-title it "annotated
+by Yin Zhizhang, Erudite of the Imperial Academy under the Tang," and print it together with Zhao Rui's <i>Changduan jing</i>;
+the profit to men's wits would be no small thing.</p>
+<p class="byline">The seventh day of the intercalary fifth month, <i>xinchou</i> of Qianlong (1781). Written by Zhou Guangye
+of Haining.</p>
+
+<h3 id="lu">Colophon by Lu Wenchao<span class="hz">盧文弨跋</span></h3>
+<p>The <i>Guiguzi</i> is a small man's book. Its arts of opening and closing, of hook and clamp, can be worked only on a
+benighted ruler. The intent is to sound out which way his mind leans, and then cunningly to shift one's own account of things
+to suit it and so tie him up, until he takes one for a favourite and cleaves fast and cannot be parted from one. In all ages
+the crooked and wicked who make their master out a fine fellow have done exactly this. Do they need to be taught it before they
+know it, or to study it before they can do it? That their arts agree one by one with this book does not mean they have all seen
+the book. Lai Hu said it: "Opening and closing, flying and clamping, are in truth the ordinary manners of our own day; men who
+never read the <i>Guiguzi</i> answer to it like two halves of a tally." That is true.</p>
+<p>And when one looks at how it is applied to ordinary men, it too must be to the benighted, the crooked, the mediocre and the
+timid. The book says: "The man who keeps guard &mdash; whose eye does not look at what is wrong, whose ear does not listen to
+what is crooked, whose words are always of the <i>Odes</i> and <i>Documents</i> and whose conduct is not perverse or licentious,
+who makes the Way his form and virtue his countenance, whose look is grave and whose colour is warm &mdash; he cannot be got at
+by figuring his look. With such a man, hide your purpose, stop the chink and go away." On the showing of that passage, the art
+runs out when it meets an upright man. And the chapter <i>Striking the Fissure</i> says: "When the age offers nothing to strike
+at, he hides himself deep and waits his time." Is that not to say that when one meets an enlightened ruler and a well-governed
+age, the whole art one carries is of no use at all?</p>
+<p>Someone asks: "If so, why is the book not destroyed?" I answer: every shape and condition of the crooked and wicked is fully
+displayed in it. He who is a ruler of men cannot but turn it over and keep it in mind, so that should he meet such a person he may
+see clean through his liver and lungs. The other means to try his art on me, and I am able to turn it back on him beforehand.
+That is helping the one above to know men &mdash; how could one destroy it?</p>
+<p>What I much regret is that within his square inch, the lodging of the divine clarity, the man was wholly taken up with tricks
+and shifts and deceits, and in the end could not escape running dry. To what purpose all that trouble? And some of his arts are so
+shallow and so crude that they could not possibly move anyone. Take the passage on meeting a man given to wine and women: one is
+to make an art of music for him, on the supposition that it is enough to shift what he likes. But hearing correct music he will do
+nothing but fear he may fall asleep; so one would have to use loose and melting music to stir him at all &mdash; and loose, melting
+music is fit only to help his appetites along. Is the art not looser still?</p>
+<p>This book was cut from the Daoist Canon copy by Qin Dunfu, Academician of Jiangdu, the son of a family long allied to mine, and
+I collated it once for him. This year, <i>jiayin</i> (1794), I saw for the first time Qian Zunwang's own manuscript copy, and so
+learned that the corruptions and omissions of the Canon text are past counting &mdash; in the chapter <i>Fastening Within</i> alone
+four hundred and twelve graphs of text and commentary have dropped out. I hastened to borrow it and repair the text by it. Ah! Had
+this copy not existed, should we not have gone on taking the Canon copy for a good one? The collation done, I have therefore written
+this at the end.</p>
+<p class="byline">Colophon by Lu Wenchao of Dongli.</p>
+
+<h3 id="ruan">Colophon by Ruan Yuan<span class="hz">阮元跋</span></h3>
+<p>Tao Hongjing's annotated <i>Guiguzi</i> is an old text of the Daoist Canon. Qin Dunfu, Compiler, of my own district, is widely
+read and fond of antiquity and exact in collation; he has therefore culled from many books, fixed the errors, and put it through the
+blocks. The outline of it is given in his own preface.</p>
+<p>Reading the <i>Guiguzi</i>, I find much rhymed language in it. Moreover its chapter <i>Striking the Fissure</i> says: "A fissure
+is a crack," reading <span class="zh">巇</span> as <i>hu</i> &mdash; which agrees with the old phonetic glossing of graphs, and is
+not something a later hand could have faked. Among the chapter titles there is <i>Flying and Clamping</i>. Now in the <i>Zhouli</i>,
+office of spring, "Master of Concord," we read "a faint sound is <i>an</i>"; and the later Zheng reads this as the <i>an</i> of
+<span class="zh">飛鉆湼韽</span>. <span class="zh">箝</span> and <span class="zh">鉆</span> are the same graph, and Jia Gongyan's
+sub-commentary cites the <i>Guiguzi</i> in evidence. As for the two chapters <i>Estimating</i> and <i>Probing</i>, they look to be
+modelled on the phrase in the life of Su Qin, "he drilled himself in estimating and probing." Yet the life of Yu Qing in the
+<i>Shiji</i> says that the <i>Spring and Autumn of Mr Yu</i> also had a chapter <i>Estimating and Probing</i>; so it was the common
+language of the roving persuaders.</p>
+<p>I hold privately that any book catalogued in the Sui and Tang bibliographies and barely surviving now ought without exception to
+be exactly collated and handed on &mdash; and how much more this one, the sole surviving masters' book of the Vertical-and-Horizontal
+school, with a commentary by Tao long lost to the world besides. Those who gather up the old records will truly be glad to see
+it.</p>
+<p class="byline">Winter, <i>wushen</i> of Qianlong (1788). Colophon by Ruan Yuan of Yizhen.</p>
+
+
+    <section class="about">
+      <h2>About this edition</h2>
+      <p>This page is a complete English translation of the <i>Guiguzi</i> in three scrolls &mdash;
+         all twenty-one surviving chapters, together with Qin Enfu's 1805 preface, his study of the
+         chapter list, the appended fragments and the three colophons. This is a plain-text edition:
+         the old commentary attributed to Tao Hongjing that the blockprint carries interlinearly is
+         not reproduced here, so what follows is the <i>Guiguzi</i> itself.</p>
+      <p>The translation is made from the Chinese text of the
+         <a href="/p/guiguzi.html">traditional-character edition</a> on this site, which reproduces
+         the 1805 Qin Enfu woodblock. A dotted underline marks a word where the blockprint and the
+         collated copies read different graphs &mdash; hover or focus to see which.</p>
+      <dl>
+        <dt>Base text</dt><dd><i>Guiguzi</i> in three scrolls, with one scroll of the study of the
+          chapter list and one of appended matter; cut by Qin Enfu 秦恩復 of Jiangdu, Jiaqing 10
+          (1805).</dd>
+        <dt>Commentary</dt><dd>Not included. The blockprint carries an old commentary ascribed to
+          Tao Hongjing 陶弘景 of the Liang (Zhou Guangye, in his colophon here, argues from the Tang
+          taboo-names in it that the commentator is really Yin Zhizhang 尹知章 of the Tang); this
+          edition prints the text alone.</dd>
+        <dt>Chapters</dt><dd>Scroll one, <i>Opening and Closing</i> to <i>Striking the Fissure</i>,
+          four chapters; scroll two, <i>Flying and Clamping</i> to <i>Words as Tallies</i>, eight
+          chapters (<i>Turning the Pellet</i> and <i>Prying the Chest</i> long lost); scroll three,
+          the <i>Seven Arts of the Yin Tally</i> of the Root Canon, <i>Holding the Pivot</i> and the
+          <i>Middle Canon</i>.</dd>
+        <dt>On the rendering</dt><dd>Chapter titles keep the Chinese alongside, because most of them
+          are technical terms of the book rather than ordinary words &mdash; <i>bai he</i> 捭闔,
+          <i>fei qian</i> 飛箝, <i>di xi</i> 抵巇. Recurring terms are rendered consistently:
+          <i>dao</i> as "the Way," <i>qi</i> as "breath," <i>shen</i> as "spirit," <i>shi</i> as
+          "force," <i>wei</i> as "awe," <i>ji</i> 幾 as "the incipient," <i>quan</i> as "weighing"
+          or "the handle" as the sense requires.</dd>
+        <dt>Original blocks</dt><dd>Scan of the copy held by the Nanjing Library (90 leaves, public
+          domain), by way of Wikimedia Commons.</dd>
+      </dl>
+    </section>
+
+    <a class="top" href="#">&mdash; top &mdash;</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var d=document;
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id],main h4[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>
