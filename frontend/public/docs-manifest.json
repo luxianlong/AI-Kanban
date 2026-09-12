@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-guiguzi",
+    "title": "鬼谷子（陶弘景注·嘉慶秦刻本）",
+    "href": "/p/guiguzi.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T06:38:27.664Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi.html",
+      "frontend/public/p/guiguzi.meta.json"
+    ]
+  },
+  {
     "id": "upload-page-89f133c0",
     "title": "苹果发布会（配图版）",
     "href": "/p/page-89f133c0.html",
