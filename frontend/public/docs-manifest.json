@@ -1,11 +1,25 @@
 [
   {
+    "id": "upload-guiguzi-hans",
+    "title": "鬼谷子（陶弘景注·嘉庆秦刻本）· 简体版",
+    "href": "/p/guiguzi-hans.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T06:55:15.614Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi-hans.html",
+      "frontend/public/p/guiguzi-hans.meta.json"
+    ]
+  },
+  {
     "id": "upload-guiguzi",
     "title": "鬼谷子（陶弘景注·嘉慶秦刻本）",
     "href": "/p/guiguzi.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T06:38:27.664Z",
+    "updatedAt": "2026-09-12T06:39:07.718Z",
     "isNew": true,
     "private": false,
     "paths": [
