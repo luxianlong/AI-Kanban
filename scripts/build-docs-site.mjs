@@ -68,6 +68,19 @@ const UPLOAD_ID_PREFIX = 'upload-'
 // shelf at /p/dianji.html (task #378) — the same two books stand on both
 // shelves, and they must not hand a reader a different edition depending on
 // which shelf they came in by.
+// The three readings every volume comes in. Declared ONCE here because the
+// shelf no longer offers them per book: task #393 moved the choice to a single
+// switch in the corner of the page, so the same vocabulary has to serve the
+// switch's buttons and each volume's edition list. `key` is what the markup and
+// localStorage speak; `label` is what both the buttons and the CLASSICS entries
+// below are written in.
+const LANGS = [
+  { key: 'hans', label: '简体' },
+  { key: 'hant', label: '繁體' },
+  { key: 'en', label: 'English' },
+]
+const LANG_KEY_BY_LABEL = new Map(LANGS.map((l) => [l.label, l.key]))
+
 const CLASSICS_SHELF_ID = 'upload-dianji'
 const CLASSICS_SHELF_HREF = '/p/dianji.html'
 const CLASSICS = [
@@ -81,7 +94,7 @@ const CLASSICS = [
     crop: 'background-size:207.5% 104.2%;background-position:3.4% 48.8%',
     ar: '.5595', // cover width/height AFTER the crop, so the book has the proportions of the object
     coverAlt: '宋刻《十一家注孙子》卷首「孙子本传」书影',
-    imprint: ['春秋 · 白文十三篇'],
+    imprint: ['春秋 · 十三篇'],
     editions: [
       { label: '简体', id: 'upload-sunzi-hans' },
       { label: '繁體', id: 'upload-sunzi' },
@@ -96,14 +109,128 @@ const CLASSICS = [
     crop: 'background-size:101.7% 100%;background-position:0% 0%',
     ar: '.632',
     coverAlt: '清嘉庆秦恩复刻本《鬼谷子》原书封面，题「鬼谷子三卷 陶贞白注本 通介叟校」',
-    imprint: ['战国 · 白文三卷二十一篇'],
+    imprint: ['战国 · 三卷二十一篇'],
     editions: [
       { label: '简体', id: 'upload-guiguzi-hans' },
       { label: '繁體', id: 'upload-guiguzi' },
       { label: 'English', id: 'upload-guiguzi-en' },
     ],
   },
+  {
+    key: 'sanshiliuji',
+    title: '三十六计',
+    cover: '/img/classics/sanshiliuji-cover.jpg',
+    // 民国三十年(1941)瑞琴楼刊本的原书封面 — the printing the modern text descends
+    // from. The JPEG is already cropped to the cover itself (the 500x747 page
+    // render less the mounting board on the right and the library label), the
+    // crop measured off column/row luminance, so it simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.5855',
+    coverAlt: '民国三十年瑞琴楼刊本《三十六计》原书封面，题「三十六计（秘本兵法）」',
+    imprint: ['明清 · 六套三十六计'],
+    editions: [
+      { label: '简体', id: 'upload-sanshiliuji-hans' },
+      { label: '繁體', id: 'upload-sanshiliuji' },
+      { label: 'English', id: 'upload-sanshiliuji-en' },
+    ],
+  },
+  {
+    key: 'bingjian',
+    title: '冰鉴',
+    cover: '/img/classics/bingjian-cover.jpg',
+    // 民国十四年(1925)上海昌文书局《神骨冰鉴・白鹤仙数》合一册的原书封面 —
+    // the printing the text on these pages was collated against. The JPEG is
+    // already cropped to the cover sheet (the 500x746 page render less the
+    // black binding clip down the right edge, x>=432, measured off column
+    // luminance), so it simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.5764',
+    coverAlt: '民国十四年上海昌文书局本《神骨冰鉴》原书封面，题「神骨冰鉴 白鹤仙数 合一册」',
+    imprint: ['清 · 七篇'],
+    editions: [
+      { label: '简体', id: 'upload-bingjian-hans' },
+      { label: '繁體', id: 'upload-bingjian' },
+      { label: 'English', id: 'upload-bingjian-en' },
+    ],
+  },
+  {
+    key: 'daodejing',
+    title: '道德经',
+    cover: '/img/classics/daodejing-cover.jpg',
+    // 民国上海文瑞楼石印《老子道德经》(华亭张氏原本、晋王弼注) 的原书封面 —
+    // the printing the text on these pages was collated against. The printed
+    // frame sits at x 22..1437, y 262..2395 of the 1500x2549 scan (measured off
+    // column/row luminance); the JPEG is already cut to x 14..1474, y 200..2418
+    // and scaled to 620 wide, so it simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.6582',
+    coverAlt: '民国上海文瑞楼石印本《老子道德经》原书封面，题「老子道德经　晋王弼注　王儒舲点句　陆德明释文坿　上海文瑞楼印行」',
+    imprint: ['春秋 · 八十一章'],
+    editions: [
+      { label: '简体', id: 'upload-daodejing-hans' },
+      { label: '繁體', id: 'upload-daodejing' },
+      { label: 'English', id: 'upload-daodejing-en' },
+    ],
+  },
+  {
+    key: 'liaofansixun',
+    title: '了凡四训',
+    cover: '/img/classics/liaofansixun-cover.png',
+    // 民国二十三年(1934)上海佛学书局《了凡四训》(印光法师鉴定、尤惜阴圈点注释,
+    // 中国国家图书馆藏) 的原书内封 — the printing the text on these pages was
+    // collated against, leaf by leaf. The scan is CCITT G4 at 1535x2132; row and
+    // column ink counts put the title and its rule at y 397..518, the seal and the
+    // 上海佛学书局印行 imprint at y 1342..1680, and a modern barcode and library
+    // label at y 1734..2076 — the label is cut away. The image is already cut to
+    // x 310..1265, y 200..1728 and scaled to 560 wide, so it simply fills the box.
+    // PNG, not JPEG: the scan is bilevel, and 560x896 of it costs 7 KB.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.6250',
+    coverAlt: '民国二十三年上海佛学书局本《了凡四训》原书内封，题「了凡四训」，下署「上海佛学书局印行」，钤北海公园图书室藏书印',
+    imprint: ['明 · 四篇'],
+    editions: [
+      { label: '简体', id: 'upload-liaofansixun-hans' },
+      { label: '繁體', id: 'upload-liaofansixun' },
+      { label: 'English', id: 'upload-liaofansixun-en' },
+    ],
+  },
+  {
+    key: 'sushu',
+    title: '素书',
+    cover: '/img/classics/sushu-cover.jpg',
+    // 明万历吴兴慎懋赏解本《黄石公素书》(中国国家图书馆藏) 卷前的手书题耑 — the
+    // very leaf that fronts the copy these pages were collated against, leaf by
+    // leaf. Big brush characters 「黄石公素书」 down the left, a running-script
+    // colophon dated 道光丁亥 (1827) beside them, four collector's seals below.
+    // The scan is 1920 wide; the paper sits at x 985..1875, y 45..1635, and the
+    // scanner bed all round it is cut away, leaving 560x1000 — so the image
+    // simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.5600',
+    coverAlt: '明万历吴兴慎懋赏解本《黄石公素书》卷前手书题耑，大字题「黄石公素书」，旁有道光丁亥（1827）行书题记，钤「小桐」等藏印',
+    imprint: ['秦 · 六章'],
+    editions: [
+      { label: '简体', id: 'upload-sushu-hans' },
+      { label: '繁體', id: 'upload-sushu' },
+      { label: 'English', id: 'upload-sushu-en' },
+    ],
+  },
 ]
+
+// A label that isn't one of LANGS would drop that edition off the switch without
+// a word — the volume would simply refuse to follow the corner control. Catch it
+// at build time instead: a typo in an edition label fails the deploy gate.
+for (const book of CLASSICS) {
+  for (const ed of book.editions) {
+    if (!LANG_KEY_BY_LABEL.has(ed.label)) {
+      throw new Error(
+        `CLASSICS: ${book.key} lists edition label "${ed.label}", which is not one of ` +
+          LANGS.map((l) => l.label).join(' / ')
+      )
+    }
+  }
+}
+
 
 // Every id the classics zone owns: the volumes' editions plus the standalone
 // shelf page. These are the cards kept OUT of 文章收藏.
@@ -115,7 +242,9 @@ function classicsIds() {
 
 // The volumes to actually shelve, resolved against this build's cards. A private
 // edition is left off the shelf entirely rather than listed and gated: the shelf
-// is a public display, and the owner still reaches the page through 管理这些页面.
+// is a public display. Since task #382 there are no owner controls in this zone
+// at all — a classic is managed by editing the repo, not by a button on a
+// reading page.
 function resolveShelf(cards) {
   const byId = new Map(cards.map((c) => [c.id, c]))
   const books = []
@@ -640,10 +769,6 @@ body.has-tabs .hero { border-bottom: none; }
   font-family: var(--mono); font-size: 11px; font-weight: 500;
   letter-spacing: 0.1em; color: var(--muted);
 }
-.zone-note {
-  margin: 30px 0 0; color: var(--muted); font-size: 15px;
-  line-height: 1.72; text-wrap: pretty; max-width: 62ch;
-}
 
 /* ---------- 典籍: a library grid, several books to a row --------------------
    Kindle-shaped, but the objects are stitched Chinese books, so they are drawn
@@ -653,7 +778,10 @@ body.has-tabs .hero { border-bottom: none; }
 .classics {
   --board-hi: #dcc9a3; --board-mid: #b99f74; --board-lo: #8e7549;
   --leaf-hi: #f2ead6; --leaf-lo: #ddd0ae;
-  margin-top: 34px;
+  /* No zone note above the shelf any more (task #380); since task #393 the
+     language switch sits in this gap, in the corner, so the margin opens the
+     zone rather than padding an empty top. */
+  margin-top: 22px;
 }
 .shelf {
   display: grid;
@@ -732,35 +860,32 @@ body.has-tabs .hero { border-bottom: none; }
   margin: 7px 0 0; font-size: 12.5px; line-height: 1.7;
   letter-spacing: 0.02em; color: var(--muted);
 }
-.eds { margin: 11px 0 0; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
-.ed {
-  display: inline-flex; align-items: center;
+/* ---------- one switch for the whole shelf (task #393) ----------------------
+   The three readings used to hang under every book, which asked the same
+   question once per volume. They are now a single control in the top-right
+   corner of the zone, level with the first shelf, and it re-points every cover
+   at once. Right-aligned rather than centred so it reads as the page's corner
+   control and not as a caption belonging to the books. */
+.langbar {
+  display: flex; justify-content: flex-end; gap: 4px;
+  /* The shelf row reserves ~15px of air above the covers (the books stand on
+     the board at the row's foot), so the switch only needs a few px of its own
+     to clear the first cover — measured at 19px in a browser. */
+  margin: 0 0 4px; padding: 0 2px;
+}
+.lang {
+  appearance: none; -webkit-appearance: none; background: none; cursor: pointer;
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em;
-  color: var(--muted); text-decoration: none;
-  border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px;
+  color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px;
   transition: color 0.14s ease, border-color 0.14s ease;
 }
-.ed:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
-.ed.first { color: var(--accent); border-color: #c2cdde; }
+.lang:hover { color: var(--accent); border-color: var(--accent); }
+.lang[aria-pressed="true"] { color: var(--accent); border-color: #c2cdde; }
 .shelf-more {
   margin: 44px 0 0; text-align: center;
   font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
 }
-/* The shelf shows covers, not controls. The owner still needs the delete and
-   privacy switches these pages had as cards, so the ordinary cards stay — folded
-   away under the shelf, and only for the owner. */
-.manage { margin: 52px 0 0; border-top: 1px solid var(--line); padding-top: 10px; }
-.manage > summary {
-  cursor: pointer; list-style: none;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
-  text-transform: uppercase; color: var(--muted); padding: 8px 0;
-}
-.manage > summary::-webkit-details-marker { display: none; }
-.manage > summary::before { content: "▸ "; display: inline-block; transition: transform 0.16s ease; }
-.manage[open] > summary::before { content: "▾ "; }
-.manage > summary:hover { color: var(--accent); }
-.manage .manage-note { margin: 0 0 4px; color: var(--muted); font-size: 14px; }
-body:not(.is-owner) .manage { display: none; }
 @media (max-width: 700px) {
   .tabs { padding: 0 20px; gap: 20px; }
   .tab { font-size: 15.5px; }
@@ -993,6 +1118,21 @@ function renderCard(c) {
 // The 典籍 shelf: one <li> per volume, cover standing on the board, editions
 // underneath. A volume whose cover scan isn't on disk gets its name set on plain
 // boards instead of a hole where the book should be.
+// The one language control for the whole shelf (task #393). It used to be three
+// pills under every single book, which repeated the same choice once per volume
+// and grew with the shelf; it is now a single switch in the top-right corner,
+// and pressing it re-points every cover at that reading. Buttons, not links: the
+// switch doesn't navigate, it changes what the covers open.
+function renderLangbar() {
+  const btns = LANGS.map(
+    (l, i) =>
+      `  <button type="button" class="lang" data-lang="${l.key}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(l.label)}</button>`
+  ).join('\n')
+  return `<div class="langbar" role="group" aria-label="读本语言" data-default="${LANGS[0].key}">
+${btns}
+</div>`
+}
+
 function renderShelf(books) {
   const bays = books
     .map((b) => {
@@ -1000,10 +1140,16 @@ function renderShelf(books) {
       const face = hasCover
         ? `<div class="cover" role="img" aria-label="${esc(b.coverAlt)}" style="background-image:url(${esc(b.cover)});${b.crop}"></div>`
         : `<div class="cover blank" role="img" aria-label="${esc(b.title)}">${esc(b.title)}</div>`
+      // Every edition this volume actually has, hung on the bay for the corner
+      // switch to read. No pills under the book any more (task #393) — the shelf
+      // shows covers, and the one control that picks a reading sits in the
+      // corner of the page. `data-href` is the volume's default (editions[0],
+      // 简体), which is where a bay lands with JS off or when the chosen
+      // reading doesn't exist for this book.
       const eds = b.editions
-        .map((e, i) => `<a class="ed${i === 0 ? ' first' : ''}" href="${e.card.href}">${esc(e.label)}</a>`)
-        .join('\n          ')
-      return `    <li class="bay">
+        .map((e) => ` data-href-${LANG_KEY_BY_LABEL.get(e.label)}="${esc(e.card.href)}"`)
+        .join('')
+      return `    <li class="bay" data-title="${esc(b.title)}" data-href="${esc(b.href)}"${eds}>
       <div class="stand">
         <a class="vol" href="${b.href}" aria-label="打开《${esc(b.title)}》">
           <div class="book" style="--ar:${b.ar}">
@@ -1014,9 +1160,6 @@ function renderShelf(books) {
       <div class="plate">
         <h3><a href="${b.href}">${esc(b.title)}</a></h3>
         <p class="imprint">${b.imprint.map(esc).join('<br />')}</p>
-        <p class="eds">
-          ${eds}
-        </p>
       </div>
     </li>`
     })
@@ -1028,7 +1171,6 @@ function renderIndex(cards) {
   const shelf = resolveShelf(cards)
   const owned = classicsIds()
   const articles = cards.filter((c) => !owned.has(c.id))
-  const classicCards = cards.filter((c) => owned.has(c.id))
   // Two tabs only once something is actually on the shelf. A repo with no
   // classics renders the archive exactly as it did before task #377 — one
   // column, no switch to press.
@@ -1048,19 +1190,12 @@ ${articleGrid}
 </section>
 <section id="panel-classics" role="tabpanel" aria-labelledby="tab-classics" tabindex="0" hidden>
 <div class="classics">
-<p class="zone-note">读了千年还在读的那几种。都是<b>白文本</b>——只有正文，不载旧注；每种各有简体、繁體、English 三个读本，点封面进正文。</p>
+${renderLangbar()}
 ${renderShelf(shelf)}${
         hasShelfPage
           ? `\n<p class="shelf-more"><a href="${CLASSICS_SHELF_HREF}">整页书架 →</a></p>`
           : ''
       }
-<details class="manage">
-  <summary>管理这些页面</summary>
-  <p class="manage-note">书架上只放封面。要改某个读本的隐私或删掉它，用下面的卡片——控件和文章那边是同一套。</p>
-  <div class="grid manage-grid">
-${classicCards.map(renderCard).join('\n')}
-  </div>
-</details>
 </div>
 </section>
 </div>`
@@ -1179,6 +1314,58 @@ ${body}
     };
     window.recountTabs();
   })();
+
+  // The 简体 / 繁體 / English switch (task #393). One control for the whole
+  // shelf: it does not navigate, it re-points every cover and title at the
+  // chosen reading. The choice is remembered, so a reader who reads in 繁體
+  // does not have to say so again on the next visit or on the full-page shelf.
+  //
+  // A volume that has no page in the chosen reading keeps its default (简体)
+  // and SAYS SO on the link rather than handing over a different language
+  // without a word.
+  (function () {
+    var bar = document.querySelector('.langbar');
+    if (!bar) return;
+    var KEY = 'classics:lang';
+    var btns = [].slice.call(bar.querySelectorAll('.lang'));
+    var bays = [].slice.call(document.querySelectorAll('.bay'));
+    var labels = {};
+    btns.forEach(function (b) { labels[b.getAttribute('data-lang')] = b.textContent; });
+
+    function apply(lang, remember) {
+      btns.forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+      });
+      bays.forEach(function (bay) {
+        var title = bay.getAttribute('data-title') || '';
+        var want = bay.getAttribute('data-href-' + lang);
+        var href = want || bay.getAttribute('data-href');
+        if (!href) return;
+        var vol = bay.querySelector('a.vol');
+        var head = bay.querySelector('.plate h3 a');
+        [vol, head].forEach(function (a) {
+          if (!a) return;
+          a.setAttribute('href', href);
+          if (want) a.removeAttribute('title');
+          else a.setAttribute('title', '《' + title + '》暂无' + labels[lang] + '读本，打开' + labels[bar.getAttribute('data-default')] + '本');
+        });
+        if (vol) {
+          vol.setAttribute('aria-label', want
+            ? '打开《' + title + '》' + labels[lang] + '读本'
+            : '打开《' + title + '》（暂无' + labels[lang] + '读本）');
+        }
+      });
+      if (remember) { try { localStorage.setItem(KEY, lang); } catch (e) {} }
+    }
+
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    var known = btns.map(function (b) { return b.getAttribute('data-lang'); });
+    apply(known.indexOf(stored) >= 0 ? stored : bar.getAttribute('data-default'), false);
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () { apply(b.getAttribute('data-lang'), true); });
+    });
+  })();
 </script>
 
 <script>
@@ -1189,9 +1376,9 @@ ${body}
   // UX (task #278): the raw window.confirm()/alert() are replaced with an
   // accessible styled modal (focus trap, Esc to cancel, restores focus), a
   // smooth card-collapse animation, and toast feedback for success and errors.
-  // Scoped to the articles panel (task #377): the classics tab holds a second
-  // .grid of cards under 管理这些页面, and blanking .wrap on the last delete
-  // would take the tab bar and the shelf with it.
+  // Scoped to the articles panel (task #377): blanking .wrap on the last delete
+  // would take the tab bar and the shelf with it. Since task #382 the classics
+  // tab holds no cards at all, so there is nothing over there to delete either.
   var grid = document.querySelector('#panel-articles .grid') || document.querySelector('.grid');
   var wrapEl = document.getElementById('panel-articles') || document.querySelector('.wrap');
   var modal = document.getElementById('del-modal');
