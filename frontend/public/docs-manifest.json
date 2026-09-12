@@ -28,20 +28,6 @@
     ]
   },
   {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子",
-    "href": "/p/dianji.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T07:46:50.107Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
-    ]
-  },
-  {
     "id": "upload-page-89f133c0",
     "title": "苹果发布会（配图版）",
     "href": "/p/page-89f133c0.html",
