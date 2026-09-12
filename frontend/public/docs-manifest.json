@@ -1,19 +1,5 @@
 [
   {
-    "id": "upload-guiguzi",
-    "title": "鬼谷子（白文·嘉慶秦刻本）",
-    "href": "/p/guiguzi.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T07:46:57.836Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/guiguzi.html",
-      "frontend/public/p/guiguzi.meta.json"
-    ]
-  },
-  {
     "id": "upload-sunzi-en",
     "title": "Sunzi — The Art of War (English)",
     "href": "/p/sunzi-en.html",
