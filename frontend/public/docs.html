@@ -384,6 +384,14 @@ body:not(.is-owner) .doc-priv { display: none !important; }
 }
 body.is-owner .hero .write { display: inline-block; }
 .hero .write:hover { color: var(--accent); border-color: var(--accent); }
+/* "Mark everything read" (task #412) — the companion to the red NEW stamps.
+   It sits next to 写文章 and stays out of sight until the read-state probe finds
+   something actually unread, so the masthead only grows a second button when
+   there is something for it to do. The [hidden] rule has to be spelled out:
+   the owner rule above sets an explicit display, which would otherwise beat the
+   browser's own [hidden] { display: none }. */
+.hero .write.mark-read { margin-left: 10px; }
+.hero .write[hidden] { display: none !important; }
 
 /* The editor pop-up (task #223): a wider sheet than the delete confirmation,
    holding a title line and the Markdown itself. The paper/ink palette carries
@@ -440,6 +448,7 @@ body.is-owner .hero .write { display: inline-block; }
 <header class="hero">
 <h1>文章存档</h1>
 <button class="write" type="button" id="write-open">✎ 写文章</button>
+<button class="write mark-read" type="button" id="mark-all-read" hidden>✓ 全部标为已读</button>
 </header>
 <nav class="tabs" role="tablist" aria-label="存档分区">
   <button type="button" class="tab" role="tab" id="tab-articles" aria-controls="panel-articles" aria-selected="true">文章收藏<span class="n" data-count-of="panel-articles">28</span></button>
@@ -1181,18 +1190,77 @@ body.is-owner .hero .write { display: inline-block; }
       var dot = wrap.querySelector('.new-dot');
       if (dot) dot.remove();
     }
+    // "Mark everything read" (task #412). Both the NEW stamps here and the
+    // board's Docs badge mean "in the manifest, not yet in /api/docs/reads", so
+    // one button that POSTs every unread id clears both at once — including the
+    // 典籍, which stand on the shelf rather than in a card and so can never be
+    // clicked off one by one. The button is owner-only like the other masthead
+    // controls (an anonymous POST is answered by the gate with a no-op) and
+    // stays hidden while there is nothing unread.
+    var allBtn = document.getElementById('mark-all-read');
+    var seen = Object.create(null); // doc ids the user has already opened
+    var unread = [];                // manifest ids still unread — what the button sends
+
+    function refreshAllBtn() {
+      if (!allBtn) return;
+      allBtn.hidden = unread.length === 0;
+      allBtn.title = unread.length
+        ? '把 ' + unread.length + ' 篇未读（含书架上的典籍）标记为已读'
+        : '';
+    }
+    function forget(id) { // this one just became read
+      if (!id) return;
+      seen[id] = true;
+      var i = unread.indexOf(id);
+      if (i >= 0) unread.splice(i, 1);
+      refreshAllBtn();
+    }
     fetch('/api/docs/reads')
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (ids) {
-        if (!Array.isArray(ids) || !ids.length) return;
-        var seen = Object.create(null);
-        ids.forEach(function (id) { seen[id] = true; });
+        if (Array.isArray(ids)) ids.forEach(function (id) { seen[id] = true; });
         var wraps = document.querySelectorAll('.card-wrap[data-id]');
         for (var i = 0; i < wraps.length; i++) {
           if (seen[wraps[i].getAttribute('data-id')]) clearNew(wraps[i]);
         }
+        // Count what the board counts: the whole manifest minus what's been
+        // opened — not just the cards on this page.
+        return fetch('/docs-manifest.json', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (docs) {
+            if (!Array.isArray(docs)) return;
+            unread = docs
+              .map(function (d) { return d && d.id; })
+              .filter(function (id) { return id && !seen[id]; });
+            refreshAllBtn();
+          });
       })
       .catch(function () {});
+    if (allBtn) {
+      allBtn.addEventListener('click', function () {
+        if (!unread.length) return;
+        var ids = unread.slice();
+        allBtn.disabled = true;
+        fetch('/api/docs/reads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: ids }),
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            ids.forEach(function (id) { seen[id] = true; });
+            unread = [];
+            refreshAllBtn();
+            var wraps = document.querySelectorAll('.card-wrap');
+            for (var i = 0; i < wraps.length; i++) clearNew(wraps[i]);
+            if (typeof toast === 'function') toast('已把 ' + ids.length + ' 篇标为已读', false);
+          })
+          .catch(function (err) {
+            if (typeof toast === 'function') toast('标记已读失败：' + err.message, true);
+          })
+          .then(function () { allBtn.disabled = false; });
+      });
+    }
     // Per-article visit tallies (task #523). Counting happens server-side in the
     // gate as each article is served, so the index only reads the numbers back
     // and paints them next to the date; an article nobody has opened stays bare.
@@ -1217,6 +1285,7 @@ body.is-owner .hero .write { display: inline-block; }
       if (!wrap) return;
       markRead(wrap.getAttribute('data-id'));
       clearNew(wrap);
+      forget(wrap.getAttribute('data-id'));
     });
   })();
 </script>
