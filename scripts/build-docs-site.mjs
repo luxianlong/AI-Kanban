@@ -46,6 +46,89 @@ const UPLOADS_DIR = path.join(ROOT, 'frontend', 'public', 'p')
 // a docs/*.md slug. The backend derives the same id (PageUploadService).
 const UPLOAD_ID_PREFIX = 'upload-'
 
+// /docs.html holds two kinds of thing (task #377), so it holds them in two tabs
+// instead of one interleaved timeline:
+//
+//   文章收藏 — the reports, guides and notes written here, newest first
+//   典籍    — books that were already old when this board was built, shown AS
+//             books: a library grid of cover images, several volumes to a row,
+//             wrapping to the next shelf as more are added
+//
+// Membership is DECLARED below, never inferred from a title: a page whose id is
+// not named here is an article. That is the safe default — a new upload can
+// never silently land on the classics shelf.
+//
+// Each volume lists its editions by manifest id, and the shelf is resolved
+// against the cards that actually exist at build time: an edition whose page has
+// been deleted simply drops off, and a volume with no readable edition left is
+// not shelved at all (no cover that opens nothing).
+//
+// Editions are listed READING ORDER FIRST: editions[0] is what the cover and the
+// title open, and the pill that gets inked. It is 简体 to match the standalone
+// shelf at /p/dianji.html (task #378) — the same two books stand on both
+// shelves, and they must not hand a reader a different edition depending on
+// which shelf they came in by.
+const CLASSICS_SHELF_ID = 'upload-dianji'
+const CLASSICS_SHELF_HREF = '/p/dianji.html'
+const CLASSICS = [
+  {
+    key: 'sunzi',
+    title: '孙子兵法',
+    cover: '/img/classics/sunzi-cover.jpg',
+    // The crop was measured off the scan itself (column/row luminance), not
+    // eyeballed: a 1141x1024 two-page opening whose left leaf is x 20..570,
+    // y 20..1003 — the blank right-hand page is cut away.
+    crop: 'background-size:207.5% 104.2%;background-position:3.4% 48.8%',
+    ar: '.5595', // cover width/height AFTER the crop, so the book has the proportions of the object
+    coverAlt: '宋刻《十一家注孙子》卷首「孙子本传」书影',
+    imprint: ['春秋 · 白文十三篇'],
+    editions: [
+      { label: '简体', id: 'upload-sunzi-hans' },
+      { label: '繁體', id: 'upload-sunzi' },
+      { label: 'English', id: 'upload-sunzi-en' },
+    ],
+  },
+  {
+    key: 'guiguzi',
+    title: '鬼谷子',
+    cover: '/img/classics/guiguzi-cover.jpg',
+    // 655x1019 front cover -> x 0..644, dropping the black photographic surround.
+    crop: 'background-size:101.7% 100%;background-position:0% 0%',
+    ar: '.632',
+    coverAlt: '清嘉庆秦恩复刻本《鬼谷子》原书封面，题「鬼谷子三卷 陶贞白注本 通介叟校」',
+    imprint: ['战国 · 白文三卷二十一篇'],
+    editions: [
+      { label: '简体', id: 'upload-guiguzi-hans' },
+      { label: '繁體', id: 'upload-guiguzi' },
+      { label: 'English', id: 'upload-guiguzi-en' },
+    ],
+  },
+]
+
+// Every id the classics zone owns: the volumes' editions plus the standalone
+// shelf page. These are the cards kept OUT of 文章收藏.
+function classicsIds() {
+  const ids = new Set([CLASSICS_SHELF_ID])
+  for (const book of CLASSICS) for (const ed of book.editions) ids.add(ed.id)
+  return ids
+}
+
+// The volumes to actually shelve, resolved against this build's cards. A private
+// edition is left off the shelf entirely rather than listed and gated: the shelf
+// is a public display, and the owner still reaches the page through 管理这些页面.
+function resolveShelf(cards) {
+  const byId = new Map(cards.map((c) => [c.id, c]))
+  const books = []
+  for (const book of CLASSICS) {
+    const editions = book.editions
+      .map((ed) => ({ ...ed, card: byId.get(ed.id) }))
+      .filter((ed) => ed.card && !ed.card.private)
+    if (!editions.length) continue
+    books.push({ ...book, editions, href: editions[0].card.href })
+  }
+  return books
+}
+
 function readPrivateIds() {
   try {
     const raw = JSON.parse(fs.readFileSync(VISIBILITY_FILE, 'utf8'))
@@ -530,6 +613,165 @@ ${hasMermaid ? `<!-- A doc that draws diagrams loads the same vendored renderer 
 
 const INDEX_CSS = `
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 6px 24px 96px; }
+
+/* ---------- the two tabs (task #377) ----------------------------------------
+   文章收藏 and 典籍 are different kinds of thing and are looked for differently,
+   so they get a switch rather than one interleaved list. The switch is drawn as
+   a row of section headings sitting ON the masthead's hairline — the active one
+   inks it — so the page gains a control without gaining a widget. */
+.tabs {
+  max-width: var(--maxw); margin: -1px auto 0; padding: 0 24px;
+  display: flex; gap: 26px;
+  border-bottom: 1px solid var(--line);
+}
+body.has-tabs .hero { border-bottom: none; }
+.tab {
+  appearance: none; -webkit-appearance: none; background: none; border: 0;
+  padding: 13px 0 11px; margin-bottom: -1px; cursor: pointer;
+  font-family: var(--display); font-size: 17px; font-weight: 600;
+  color: var(--muted); border-bottom: 2px solid transparent;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+/* The count rides with the label in the same mono grey as the dates. */
+.tab .n {
+  margin-left: 7px; vertical-align: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.1em; color: var(--muted);
+}
+.zone-note {
+  margin: 30px 0 0; color: var(--muted); font-size: 15px;
+  line-height: 1.72; text-wrap: pretty; max-width: 62ch;
+}
+
+/* ---------- 典籍: a library grid, several books to a row --------------------
+   Kindle-shaped, but the objects are stitched Chinese books, so they are drawn
+   as those: a cover standing on a board, the block of pages showing at the
+   fore-edge. The board colours are local to this zone — they are the only
+   non-paper surface on the page. */
+.classics {
+  --board-hi: #dcc9a3; --board-mid: #b99f74; --board-lo: #8e7549;
+  --leaf-hi: #f2ead6; --leaf-lo: #ddd0ae;
+  margin-top: 34px;
+}
+.shelf {
+  display: grid;
+  /* auto-fit with a FIXED track, not auto-fill with 1fr: a row takes as many
+     volumes as the width allows, but the tracks nobody stands in collapse. With
+     two books on a wide screen that keeps the board under the books instead of
+     running it out into empty space, and the shelf still fills left-to-right as
+     volumes are added. */
+  grid-template-columns: repeat(auto-fit, 178px);
+  justify-content: center;
+  column-gap: 40px; row-gap: 56px;
+  margin: 0; padding: 0; list-style: none;
+}
+.bay { min-width: 0; }
+/* Every cover's bottom edge meets the board's top, so volumes of different
+   proportions still share one shelf line. Each bay draws its own board and
+   overhangs the 40px gutter by 20px a side, so neighbouring boards meet in the
+   middle and read as one shelf — for whatever number of columns the grid fits. */
+.stand {
+  --bh: 228px;
+  position: relative; display: flex; align-items: flex-end; justify-content: center;
+  height: calc(var(--bh) + 26px); padding-bottom: 11px;
+}
+.stand::after {
+  content: ""; position: absolute; left: -20px; right: -20px; bottom: 0; height: 11px;
+  background: linear-gradient(180deg, var(--board-hi) 0 2px, var(--board-mid) 2px 62%, var(--board-lo));
+  box-shadow: 0 4px 9px rgba(60,45,20,0.32), inset 0 1px 0 rgba(255,255,255,0.22);
+  border-radius: 1px;
+}
+.vol { display: block; text-decoration: none; color: inherit; }
+.book {
+  position: relative;
+  height: var(--bh); width: calc(var(--bh) * var(--ar));
+  transition: transform 0.28s cubic-bezier(0.2,0.7,0.3,1);
+}
+/* A Chinese stitched book is sewn on the RIGHT (both covers carry the thread),
+   so the loose leaf edges show on the LEFT. That's the block of pages. */
+.book::before {
+  content: ""; position: absolute; left: -7px; top: 4px; bottom: 2px; width: 8px;
+  border-radius: 3px 0 0 3px;
+  background: repeating-linear-gradient(90deg, var(--leaf-hi) 0 1.5px, var(--leaf-lo) 1.5px 3px);
+  box-shadow: inset -3px 0 4px rgba(60,45,20,0.22), 0 12px 16px -12px rgba(60,45,20,0.7);
+}
+.cover {
+  position: absolute; inset: 0; border-radius: 2px;
+  background-repeat: no-repeat;
+  box-shadow: 0 1px 1px rgba(60,45,20,0.3), 0 22px 24px -16px rgba(60,45,20,0.65);
+}
+/* light down the fore-edge, shadow into the sewn edge */
+.cover::after {
+  content: ""; position: absolute; inset: 0; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,255,255,0.18) 0 2%, rgba(255,255,255,0) 12%,
+    rgba(0,0,0,0) 91%, rgba(0,0,0,0.15) 100%);
+}
+/* No scan on disk yet — set the volume's name on plain boards rather than
+   leaving a hole where the book should be. */
+.cover.blank {
+  background: linear-gradient(160deg, #efe6d2, #ddd0b4);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 19px; font-weight: 600;
+  writing-mode: vertical-rl; letter-spacing: 0.2em; color: #6b5a3d;
+  border: 1px solid #c9b894;
+}
+.vol:hover .book, .vol:focus-visible .book { transform: translateY(-11px); }
+.vol:focus-visible { outline: none; }
+.vol:focus-visible .cover { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* ---------- the label under each book ---------- */
+.plate { padding: 18px 2px 0; text-align: center; }
+.plate h3 {
+  margin: 0; font-family: var(--display); font-size: 19px; font-weight: 600;
+  line-height: 1.45; letter-spacing: 0.08em; text-indent: 0.08em;
+}
+.plate h3 a { color: var(--ink); text-decoration: none; }
+.plate h3 a:hover { color: var(--accent); }
+.plate .imprint {
+  margin: 7px 0 0; font-size: 12.5px; line-height: 1.7;
+  letter-spacing: 0.02em; color: var(--muted);
+}
+.eds { margin: 11px 0 0; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+.ed {
+  display: inline-flex; align-items: center;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em;
+  color: var(--muted); text-decoration: none;
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+.ed:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+.ed.first { color: var(--accent); border-color: #c2cdde; }
+.shelf-more {
+  margin: 44px 0 0; text-align: center;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+}
+/* The shelf shows covers, not controls. The owner still needs the delete and
+   privacy switches these pages had as cards, so the ordinary cards stay — folded
+   away under the shelf, and only for the owner. */
+.manage { margin: 52px 0 0; border-top: 1px solid var(--line); padding-top: 10px; }
+.manage > summary {
+  cursor: pointer; list-style: none;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--muted); padding: 8px 0;
+}
+.manage > summary::-webkit-details-marker { display: none; }
+.manage > summary::before { content: "▸ "; display: inline-block; transition: transform 0.16s ease; }
+.manage[open] > summary::before { content: "▾ "; }
+.manage > summary:hover { color: var(--accent); }
+.manage .manage-note { margin: 0 0 4px; color: var(--muted); font-size: 14px; }
+body:not(.is-owner) .manage { display: none; }
+@media (max-width: 700px) {
+  .tabs { padding: 0 20px; gap: 20px; }
+  .tab { font-size: 15.5px; }
+  .shelf { grid-template-columns: repeat(auto-fit, 156px); column-gap: 18px; row-gap: 44px; }
+  .stand { --bh: 186px; }
+  .stand::after { left: -11px; right: -11px; }
+  .plate h3 { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book { transition: none; }
+}
 /* The archive: one column of dated entries, not a wall of cards. Each entry is
    a date, a title, a paragraph and a link — the shape of a blog index. */
 .grid { display: block; }
@@ -725,10 +967,8 @@ body.is-owner .hero .write { display: inline-block; }
 }
 `
 
-function renderIndex(cards) {
-  const cardHtml = cards
-    .map((c) => {
-      const card = `<div class="card-wrap${c.isNew ? ' is-new' : ''}${c.private ? ' is-private' : ''}" data-id="${esc(c.id)}" data-private="${c.private ? 'true' : 'false'}">
+function renderCard(c) {
+  const card = `<div class="card-wrap${c.isNew ? ' is-new' : ''}${c.private ? ' is-private' : ''}" data-id="${esc(c.id)}" data-private="${c.private ? 'true' : 'false'}">
   <a class="doc-card${c.featured ? ' featured' : ''}" href="${c.href}">
   <div class="entry-date">${c.updatedAt ? `<span class="date">${formatDate(c.updatedAt)}</span>` : ''}<span class="views" hidden></span></div>
   <h2>${esc(c.title)}${c.featured ? '<span class="badge">Featured</span>' : ''}${c.private ? '<span class="badge lock">🔒 Private</span>' : ''}</h2>
@@ -745,11 +985,86 @@ function renderIndex(cards) {
           : ''
       }
 </div>`
-      // Wrap private cards in markers the auth gate strips for anonymous visitors
-      // (task #268) so a private doc is never even listed to others.
-      return c.private ? `<!--PRIVATE-CARD:${esc(c.id)}-->\n${card}\n<!--/PRIVATE-CARD-->` : card
+  // Wrap private cards in markers the auth gate strips for anonymous visitors
+  // (task #268) so a private doc is never even listed to others.
+  return c.private ? `<!--PRIVATE-CARD:${esc(c.id)}-->\n${card}\n<!--/PRIVATE-CARD-->` : card
+}
+
+// The 典籍 shelf: one <li> per volume, cover standing on the board, editions
+// underneath. A volume whose cover scan isn't on disk gets its name set on plain
+// boards instead of a hole where the book should be.
+function renderShelf(books) {
+  const bays = books
+    .map((b) => {
+      const hasCover = fs.existsSync(path.join(ROOT, 'frontend', 'public', b.cover.replace(/^\//, '')))
+      const face = hasCover
+        ? `<div class="cover" role="img" aria-label="${esc(b.coverAlt)}" style="background-image:url(${esc(b.cover)});${b.crop}"></div>`
+        : `<div class="cover blank" role="img" aria-label="${esc(b.title)}">${esc(b.title)}</div>`
+      const eds = b.editions
+        .map((e, i) => `<a class="ed${i === 0 ? ' first' : ''}" href="${e.card.href}">${esc(e.label)}</a>`)
+        .join('\n          ')
+      return `    <li class="bay">
+      <div class="stand">
+        <a class="vol" href="${b.href}" aria-label="打开《${esc(b.title)}》">
+          <div class="book" style="--ar:${b.ar}">
+            ${face}
+          </div>
+        </a>
+      </div>
+      <div class="plate">
+        <h3><a href="${b.href}">${esc(b.title)}</a></h3>
+        <p class="imprint">${b.imprint.map(esc).join('<br />')}</p>
+        <p class="eds">
+          ${eds}
+        </p>
+      </div>
+    </li>`
     })
     .join('\n')
+  return `<ul class="shelf">\n${bays}\n  </ul>`
+}
+
+function renderIndex(cards) {
+  const shelf = resolveShelf(cards)
+  const owned = classicsIds()
+  const articles = cards.filter((c) => !owned.has(c.id))
+  const classicCards = cards.filter((c) => owned.has(c.id))
+  // Two tabs only once something is actually on the shelf. A repo with no
+  // classics renders the archive exactly as it did before task #377 — one
+  // column, no switch to press.
+  const tabbed = shelf.length > 0
+  const articleGrid = articles.length
+    ? `<div class="grid">\n${articles.map(renderCard).join('\n')}\n</div>`
+    : '<p class="empty">还没有文章。</p>'
+  const hasShelfPage = cards.some((c) => c.id === CLASSICS_SHELF_ID)
+  const body = tabbed
+    ? `<nav class="tabs" role="tablist" aria-label="存档分区">
+  <button type="button" class="tab" role="tab" id="tab-articles" aria-controls="panel-articles" aria-selected="true">文章收藏<span class="n">${articles.length}</span></button>
+  <button type="button" class="tab" role="tab" id="tab-classics" aria-controls="panel-classics" aria-selected="false" tabindex="-1">典籍<span class="n">${shelf.length}</span></button>
+</nav>
+<div class="wrap">
+<section id="panel-articles" role="tabpanel" aria-labelledby="tab-articles" tabindex="0">
+${articleGrid}
+</section>
+<section id="panel-classics" role="tabpanel" aria-labelledby="tab-classics" tabindex="0" hidden>
+<div class="classics">
+<p class="zone-note">读了千年还在读的那几种。都是<b>白文本</b>——只有正文，不载旧注；每种各有简体、繁體、English 三个读本，点封面进正文。</p>
+${renderShelf(shelf)}${
+        hasShelfPage
+          ? `\n<p class="shelf-more"><a href="${CLASSICS_SHELF_HREF}">整页书架 →</a></p>`
+          : ''
+      }
+<details class="manage">
+  <summary>管理这些页面</summary>
+  <p class="manage-note">书架上只放封面。要改某个读本的隐私或删掉它，用下面的卡片——控件和文章那边是同一套。</p>
+  <div class="grid manage-grid">
+${classicCards.map(renderCard).join('\n')}
+  </div>
+</details>
+</div>
+</section>
+</div>`
+    : `<div class="wrap">\n${articleGrid}\n</div>`
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -762,14 +1077,12 @@ ${FONTS}
 <style>${THEME}
 ${INDEX_CSS}</style>
 </head>
-<body>
+<body${tabbed ? ' class="has-tabs"' : ''}>
 <header class="hero">
 <h1>文章存档</h1>
 <button class="write" type="button" id="write-open">✎ 写文章</button>
 </header>
-<div class="wrap">
-${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">还没有文章。</p>'}
-</div>
+${body}
 
 <div class="modal-backdrop" id="del-modal" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" aria-describedby="del-modal-desc" hidden>
   <div class="modal">
@@ -805,6 +1118,57 @@ ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">�
 <div class="toast-host" id="toast-host" aria-live="polite" aria-atomic="true"></div>
 
 <script>
+  // The 文章收藏 / 典籍 switch (task #377). A real tablist: roving tabindex,
+  // arrow/Home/End keys, aria-selected on the buttons and hidden on the panels.
+  // The chosen tab is written to the URL fragment so a tab is linkable and
+  // survives a reload — replaceState, not a push, so the back button still means
+  // "the page before this one" rather than "the other tab".
+  (function () {
+    var tablist = document.querySelector('.tabs');
+    if (!tablist) return; // no classics on this build: one zone, no switch
+    var tabs = [].slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function show(tab, moveFocus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute('aria-controls'));
+        if (panel) panel.hidden = !on;
+      });
+      if (moveFocus) tab.focus();
+      try { history.replaceState(null, '', '#' + tab.id.replace(/^tab-/, '')); } catch (e) {}
+    }
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () { show(t, false); });
+    });
+    tablist.addEventListener('keydown', function (e) {
+      var i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      var to = null;
+      if (e.key === 'ArrowRight') to = (i + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') to = (i - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') to = 0;
+      else if (e.key === 'End') to = tabs.length - 1;
+      if (to === null) return;
+      e.preventDefault();
+      show(tabs[to], true);
+    });
+    // #classics / #articles opens straight onto that tab — on load, and again
+    // whenever the fragment changes under us (a link to the other tab from a
+    // page that is already open changes the hash without reloading, so without
+    // this the URL would say one tab and the page would show the other).
+    function fromHash() {
+      var want = (location.hash || '').replace(/^#/, '');
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].id === 'tab-' + want) { show(tabs[i], false); return; }
+      }
+    }
+    window.addEventListener('hashchange', fromHash);
+    fromHash();
+  })();
+</script>
+
+<script>
   // Delete a document: ask the backend to remove its source Markdown + generated
   // page, then drop the card. The board proxies /api to the Spring backend, so a
   // same-origin fetch works whether we're on :80 (dev/tunnel) or a build preview.
@@ -812,8 +1176,11 @@ ${cards.length ? `<div class="grid">\n${cardHtml}\n</div>` : '<p class="empty">�
   // UX (task #278): the raw window.confirm()/alert() are replaced with an
   // accessible styled modal (focus trap, Esc to cancel, restores focus), a
   // smooth card-collapse animation, and toast feedback for success and errors.
-  var grid = document.querySelector('.grid');
-  var wrapEl = document.querySelector('.wrap');
+  // Scoped to the articles panel (task #377): the classics tab holds a second
+  // .grid of cards under 管理这些页面, and blanking .wrap on the last delete
+  // would take the tab bar and the shelf with it.
+  var grid = document.querySelector('#panel-articles .grid') || document.querySelector('.grid');
+  var wrapEl = document.getElementById('panel-articles') || document.querySelector('.wrap');
   var modal = document.getElementById('del-modal');
   var modalName = modal.querySelector('.doc-name');
   var confirmBtn = modal.querySelector('[data-act="confirm"]');
@@ -1285,10 +1652,14 @@ function build() {
   // unseen docs (id/title/href); the backend's DELETE /api/docs/{id} reads the
   // extra `deletable`/`paths` fields to know which docs the web user may remove
   // and exactly which files/dirs back each one.
+  const inClassics = classicsIds()
   const manifest = cards.map((c) => ({
     id: c.id,
     title: c.title,
     href: c.href,
+    // Which tab of /docs.html lists this card (task #377). Declared, not
+    // guessed — see CLASSICS. Anything unlisted is an article.
+    zone: inClassics.has(c.id) ? 'classic' : 'article',
     deletable: !!c.deletable,
     file: c.file || null,
     // When the source Markdown was last modified, and whether that's recent
