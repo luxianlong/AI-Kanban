@@ -1,30 +1,30 @@
 [
   {
-    "id": "upload-sunzi-hans",
-    "title": "孙子兵法（白文·十三篇）· 简体版",
-    "href": "/p/sunzi-hans.html",
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子",
+    "href": "/p/dianji.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:32:19.954Z",
+    "updatedAt": "2026-09-12T07:46:50.107Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/sunzi-hans.html",
-      "frontend/public/p/sunzi-hans.meta.json"
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
     ]
   },
   {
-    "id": "upload-sunzi",
-    "title": "孫子兵法（白文·十三篇）",
-    "href": "/p/sunzi.html",
+    "id": "upload-guiguzi-en",
+    "title": "Guiguzi — The Master of Ghost Valley (English)",
+    "href": "/p/guiguzi-en.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:31:18.845Z",
+    "updatedAt": "2026-09-12T07:40:30.602Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/sunzi.html",
-      "frontend/public/p/sunzi.meta.json"
+      "frontend/public/p/guiguzi-en.html",
+      "frontend/public/p/guiguzi-en.meta.json"
     ]
   },
   {
@@ -33,7 +33,7 @@
     "href": "/p/guiguzi-hans.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:19:47.473Z",
+    "updatedAt": "2026-09-12T07:40:30.601Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -47,7 +47,7 @@
     "href": "/p/guiguzi.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:19:47.471Z",
+    "updatedAt": "2026-09-12T07:40:30.599Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -56,17 +56,45 @@
     ]
   },
   {
-    "id": "upload-guiguzi-en",
-    "title": "Guiguzi — The Master of Ghost Valley (English)",
-    "href": "/p/guiguzi-en.html",
+    "id": "upload-sunzi-en",
+    "title": "Sunzi — The Art of War (English)",
+    "href": "/p/sunzi-en.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:14:58.159Z",
+    "updatedAt": "2026-09-12T07:40:30.597Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/guiguzi-en.html",
-      "frontend/public/p/guiguzi-en.meta.json"
+      "frontend/public/p/sunzi-en.html",
+      "frontend/public/p/sunzi-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sunzi-hans",
+    "title": "孙子兵法（白文·十三篇）· 简体版",
+    "href": "/p/sunzi-hans.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T07:40:30.596Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi-hans.html",
+      "frontend/public/p/sunzi-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sunzi",
+    "title": "孫子兵法（白文·十三篇）",
+    "href": "/p/sunzi.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T07:40:30.596Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi.html",
+      "frontend/public/p/sunzi.meta.json"
     ]
   },
   {
