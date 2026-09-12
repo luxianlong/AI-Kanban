@@ -1,5 +1,19 @@
 [
   {
+    "id": "upload-sunzi-en",
+    "title": "Sunzi — The Art of War (English)",
+    "href": "/p/sunzi-en.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T07:56:51.193Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi-en.html",
+      "frontend/public/p/sunzi-en.meta.json"
+    ]
+  },
+  {
     "id": "upload-guiguzi-en",
     "title": "Guiguzi — The Master of Ghost Valley (English)",
     "href": "/p/guiguzi-en.html",
