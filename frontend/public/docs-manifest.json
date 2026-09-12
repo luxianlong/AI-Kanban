@@ -1,39 +1,11 @@
 [
   {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子",
-    "href": "/p/dianji.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T07:46:50.107Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
-    ]
-  },
-  {
-    "id": "upload-guiguzi-en",
-    "title": "Guiguzi — The Master of Ghost Valley (English)",
-    "href": "/p/guiguzi-en.html",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T07:40:30.602Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/guiguzi-en.html",
-      "frontend/public/p/guiguzi-en.meta.json"
-    ]
-  },
-  {
     "id": "upload-guiguzi-hans",
     "title": "鬼谷子（白文·嘉庆秦刻本）· 简体版",
     "href": "/p/guiguzi-hans.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:40:30.601Z",
+    "updatedAt": "2026-09-12T07:46:57.838Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -47,7 +19,7 @@
     "href": "/p/guiguzi.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:40:30.599Z",
+    "updatedAt": "2026-09-12T07:46:57.836Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -61,7 +33,7 @@
     "href": "/p/sunzi-en.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:40:30.597Z",
+    "updatedAt": "2026-09-12T07:46:57.835Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -75,7 +47,7 @@
     "href": "/p/sunzi-hans.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:40:30.596Z",
+    "updatedAt": "2026-09-12T07:46:57.835Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -89,12 +61,26 @@
     "href": "/p/sunzi.html",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T07:40:30.596Z",
+    "updatedAt": "2026-09-12T07:46:57.833Z",
     "isNew": true,
     "private": false,
     "paths": [
       "frontend/public/p/sunzi.html",
       "frontend/public/p/sunzi.meta.json"
+    ]
+  },
+  {
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子",
+    "href": "/p/dianji.html",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-12T07:46:50.107Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
     ]
   },
   {
