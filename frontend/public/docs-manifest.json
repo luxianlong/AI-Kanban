@@ -360,21 +360,6 @@
     ]
   },
   {
-    "id": "ai-startup-tracks-2026-talk",
-    "title": "八条AI赛道我挨个算了一遍：最热的三条，恰好最不该你进",
-    "href": "/docs/ai-startup-tracks-2026-talk.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/ai-startup-tracks-2026-talk.md",
-    "updatedAt": "2026-09-08T08:55:02.632Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/ai-startup-tracks-2026-talk.md",
-      "frontend/public/docs/ai-startup-tracks-2026-talk.html"
-    ]
-  },
-  {
     "id": "ai-startup-tracks-2026",
     "title": "2026 AI 创业赛道分析：一份选赛道的决策报告",
     "href": "/docs/ai-startup-tracks-2026.html",
