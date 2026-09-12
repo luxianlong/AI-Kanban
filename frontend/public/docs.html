@@ -217,21 +217,6 @@ body.has-tabs .hero { border-bottom: none; }
   margin: 44px 0 0; text-align: center;
   font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
 }
-/* The shelf shows covers, not controls. The owner still needs the delete and
-   privacy switches these pages had as cards, so the ordinary cards stay — folded
-   away under the shelf, and only for the owner. */
-.manage { margin: 52px 0 0; border-top: 1px solid var(--line); padding-top: 10px; }
-.manage > summary {
-  cursor: pointer; list-style: none;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
-  text-transform: uppercase; color: var(--muted); padding: 8px 0;
-}
-.manage > summary::-webkit-details-marker { display: none; }
-.manage > summary::before { content: "▸ "; display: inline-block; transition: transform 0.16s ease; }
-.manage[open] > summary::before { content: "▾ "; }
-.manage > summary:hover { color: var(--accent); }
-.manage .manage-note { margin: 0 0 4px; color: var(--muted); font-size: 14px; }
-body:not(.is-owner) .manage { display: none; }
 @media (max-width: 700px) {
   .tabs { padding: 0 20px; gap: 20px; }
   .tab { font-size: 15.5px; }
@@ -860,89 +845,6 @@ body.is-owner .hero .write { display: inline-block; }
     </li>
   </ul>
 <p class="shelf-more"><a href="/p/dianji.html">整页书架 →</a></p>
-<details class="manage">
-  <summary>管理这些页面</summary>
-  <p class="manage-note">书架上只放封面。要改某个读本的隐私或删掉它，用下面的卡片——控件和文章那边是同一套。</p>
-  <div class="grid manage-grid">
-<div class="card-wrap is-new" data-id="upload-dianji" data-private="false">
-  <a class="doc-card" href="/p/dianji.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>典籍 · 孙子兵法 · 鬼谷子</h2>
-  <p>《孙子兵法》《鬼谷子》，按书影排开。各有简体、繁体、English 三个读本，默认简体。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 典籍 · 孙子兵法 · 鬼谷子" data-id="upload-dianji" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 典籍 · 孙子兵法 · 鬼谷子" data-id="upload-dianji" data-title="典籍 · 孙子兵法 · 鬼谷子">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi-hans" data-private="false">
-  <a class="doc-card" href="/p/sunzi-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孙子兵法 · 简体版</h2>
-  <p>《孙子兵法》十三篇简体，带标点，不载旧注；附佚文及吴王问对十七则。今注可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孙子兵法 · 简体版" data-id="upload-sunzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孙子兵法 · 简体版" data-id="upload-sunzi-hans" data-title="孙子兵法 · 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi" data-private="false">
-  <a class="doc-card" href="/p/sunzi.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孫子兵法 · 繁體版</h2>
-  <p>《孫子兵法》十三篇繁體，帶標點，不載舊注；附佚文及吳王問對十七則。今注可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孫子兵法 · 繁體版" data-id="upload-sunzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孫子兵法 · 繁體版" data-id="upload-sunzi" data-title="孫子兵法 · 繁體版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi-en" data-private="false">
-  <a class="doc-card" href="/p/guiguzi-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>Guiguzi — The Master of Ghost Valley (English)</h2>
-  <p>The Guiguzi in three scrolls, complete English translation of all twenty-one chapters, from the 1805 Qin Enfu edition.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-title="Guiguzi — The Master of Ghost Valley (English)">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi-hans" data-private="false">
-  <a class="doc-card" href="/p/guiguzi-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子 · 简体版</h2>
-  <p>《鬼谷子》三卷二十一篇简体，带标点，不载陶注（嘉庆秦刻本）。今注可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子 · 简体版" data-id="upload-guiguzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子 · 简体版" data-id="upload-guiguzi-hans" data-title="鬼谷子 · 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi" data-private="false">
-  <a class="doc-card" href="/p/guiguzi.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子 · 繁體版</h2>
-  <p>《鬼谷子》三卷二十一篇繁體，帶標點，不載陶注（嘉慶秦刻本）。今注可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子 · 繁體版" data-id="upload-guiguzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子 · 繁體版" data-id="upload-guiguzi" data-title="鬼谷子 · 繁體版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi-en" data-private="false">
-  <a class="doc-card" href="/p/sunzi-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>Sunzi — The Art of War (English)</h2>
-  <p>The Sunzi (Art of War) in thirteen chapters, complete English translation, with the seventeen surviving fragments.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-title="Sunzi — The Art of War (English)">✕</button>
-</div>
-  </div>
-</details>
 </div>
 </section>
 </div>
@@ -1052,9 +954,9 @@ body.is-owner .hero .write { display: inline-block; }
   // UX (task #278): the raw window.confirm()/alert() are replaced with an
   // accessible styled modal (focus trap, Esc to cancel, restores focus), a
   // smooth card-collapse animation, and toast feedback for success and errors.
-  // Scoped to the articles panel (task #377): the classics tab holds a second
-  // .grid of cards under 管理这些页面, and blanking .wrap on the last delete
-  // would take the tab bar and the shelf with it.
+  // Scoped to the articles panel (task #377): blanking .wrap on the last delete
+  // would take the tab bar and the shelf with it. Since task #382 the classics
+  // tab holds no cards at all, so there is nothing over there to delete either.
   var grid = document.querySelector('#panel-articles .grid') || document.querySelector('.grid');
   var wrapEl = document.getElementById('panel-articles') || document.querySelector('.wrap');
   var modal = document.getElementById('del-modal');

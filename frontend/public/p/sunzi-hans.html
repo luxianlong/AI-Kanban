@@ -137,12 +137,6 @@ body.ai-on .ai-head{
     color-mix(in srgb,var(--accent) 14%,transparent), transparent 85%);
 }
 body.ai-on .ai-head::before{content:"篇旨"}
-body.ai-on .ai-notice{
-  border-left-color:var(--seal); font-size:.78em; line-height:1.8;
-  background:linear-gradient(90deg,
-    color-mix(in srgb,var(--seal) 9%,transparent), transparent 80%);
-}
-body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:var(--seal)}
 /* 今注 toggle. The hover tint paints the label green, so it must never apply
    while the button is ON — green-on-green fill made 今注 and the AI tag
    vanish into a solid green pill. Keep an explicit readable colour in both. */
@@ -235,9 +229,6 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
 <a class="l2" href="#附录">附录　孙子佚文及吴王问对</a>
     </details>
 
-<div class="ai ai-notice">「今注」是以现代汉语逐段串讲原文的一层注解，由 AI（Claude）依原文生成，
-逐段与正文对照，篇首另有「篇旨」提要。它只作辅助阅读之用，<b>不属于底本，也不能替代原文</b>；
-遇有疑义，一以上方原文为准。按工具列「今注」可随时关闭。</div>
 
 <h2 id="始计第一">始计第一</h2>
 <div class="ai ai-head">篇旨：全书总纲。战争是国家生死存亡的大事，不能凭血气决定，必先「算」：以五事（道、天、地、将、法）立框架，以七计（七项敌我对比）打分，算赢了才打。后半转入「兵者诡道」十二法——那不是开战后的花招，而是压低对方判断质量的手段。末句「多算胜，少算不胜」把全篇收成一句：胜负在开战之前的庙堂里就已经定了大半。</div>

@@ -136,12 +136,6 @@ body.ai-on .ai-head{
     color-mix(in srgb,var(--accent) 14%,transparent), transparent 85%);
 }
 body.ai-on .ai-head::before{content:"篇旨"}
-body.ai-on .ai-notice{
-  border-left-color:var(--seal); font-size:.78em; line-height:1.8;
-  background:linear-gradient(90deg,
-    color-mix(in srgb,var(--seal) 9%,transparent), transparent 80%);
-}
-body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:var(--seal)}
 /* 今注 toggle. The hover tint paints the label green, so it must never apply
    while the button is ON — green-on-green fill made 今注 and the AI tag
    vanish into a solid green pill. Keep an explicit readable colour in both. */
@@ -270,9 +264,6 @@ body.ai-on .ai-notice::before{content:"说明"; color:var(--seal); border-color:
 <a class="l3" href="#阮元跋">阮元跋</a>
     </details>
 
-<div class="ai ai-notice">「今注」是以现代汉语逐段串讲原文的一层注解，由 AI（Claude）依底本原文生成，
-逐段与正文对照，篇首另有「篇旨」提要。它只作辅助阅读之用，<b>不属于底本，也不能替代原文</b>；
-遇有疑义，一以上方原文为准。按工具列「今注」可随时关闭。</div>
 
 <h2 id="鬼谷子序">鬼谷子序</h2>
 <div class="ai ai-head">秦恩复为这个刻本写的自序，交代三件事：一、《鬼谷子》不是苏秦托名之作，旧说多属附会；二、全书篇目与流传源流；三、他这次重刻以钱曾钞本为底本，兼校《道藏》本，并辑录旧注佚文与相关记载附于书后。要读懂这部书的版本来历，此序是入口。</div>
