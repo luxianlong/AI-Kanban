@@ -16,14 +16,17 @@
 //      into empty space;
 //   3. deleting the last article blanks the ARTICLES PANEL, not `.wrap` — which
 //      would take the tab bar and the shelf with it;
-//   4. the owner keeps a delete/privacy control for every shelved page, since
-//      a cover is a link and carries no buttons.
+//   4. no shelved page is orphaned — since task #393 the shelf's covers carry
+//      one reading each, so the other two are reachable through the corner
+//      switch's data and through the volume's own toolbar, and the test holds
+//      the two entrances (the 典籍 tab and /p/dianji.html) to the same offer.
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..')
 const generator = fs.readFileSync(path.join(ROOT, 'scripts', 'build-docs-site.mjs'), 'utf8')
+const CLASSICS_SHELF_HREF = (generator.match(/const CLASSICS_SHELF_HREF = '([^']+)'/) || [])[1]
 
 // --- the rules live in the generator ----------------------------------------
 {
@@ -47,6 +50,37 @@ const generator = fs.readFileSync(path.join(ROOT, 'scripts', 'build-docs-site.mj
     generator,
     /\.shelf \{[\s\S]*?repeat\(auto-fill/,
     'auto-fill would leave the shelf board running out past the last book',
+  )
+
+  // One switch for the whole shelf (task #393), not three pills under every
+  // book. The readings are declared once, so the switch's buttons and each
+  // volume's edition list can't drift apart, and a label that isn't one of them
+  // fails the build rather than quietly dropping a volume off the switch.
+  assert.match(generator, /const LANGS = \[/, 'the readings are declared in one table')
+  assert.match(
+    generator,
+    /const LANG_KEY_BY_LABEL = new Map\(LANGS\.map/,
+    'the switch and the edition lists must speak one vocabulary',
+  )
+  assert.match(
+    generator,
+    /if \(!LANG_KEY_BY_LABEL\.has\(ed\.label\)\) \{[\s\S]{0,200}?throw new Error/,
+    'an unknown edition label must fail the build, not vanish from the switch',
+  )
+  assert.match(generator, /function renderLangbar\(\)/, 'the shelf has one language control')
+  assert.doesNotMatch(
+    generator,
+    /class="ed( first)?"/,
+    'the per-book edition pills are gone (task #393)',
+  )
+  // The control re-points the covers; it does not navigate. And the choice is
+  // remembered, under a key both entrances to the shelf share.
+  assert.match(generator, /class="lang" data-lang="\$\{l\.key\}"/, 'the switch is buttons, not links')
+  assert.match(generator, /var KEY = 'classics:lang'/, 'the chosen reading is remembered')
+  assert.match(
+    generator,
+    /data-href-\$\{LANG_KEY_BY_LABEL\.get\(e\.label\)\}=/,
+    'every bay must carry the editions the switch can point it at',
   )
 
   // Deleting the last article must not be able to wipe the tab bar.
@@ -102,25 +136,69 @@ const generator = fs.readFileSync(path.join(ROOT, 'scripts', 'build-docs-site.mj
       const [beforeClassics, afterClassics] = html.split('<section id="panel-classics"')
       assert.ok(afterClassics, 'the classics panel must exist')
 
-      // Every classic lives in the classics panel; none is left in the timeline.
+      // A classic is never a card. Not in the timeline, and since task #382 not
+      // in the classics zone either: that zone is a shelf of covers, with no
+      // delete button and no privacy switch on it for anyone. The reader still
+      // has to be able to get to the page, so the shelf must link it.
       for (const c of classics) {
         assert.ok(
           !beforeClassics.includes(`data-id="${c.id}"`),
           `${c.id} is a classic but still listed among the articles`,
         )
         assert.ok(
-          afterClassics.includes(`data-id="${c.id}"`),
-          `${c.id} is a classic but has no card in the classics panel`,
+          !html.includes(`data-id="${c.id}"`),
+          `${c.id} is a classic but still has a management card`,
         )
       }
-
-      // The shelf shows covers, so the owner's controls ride the folded-away
-      // cards instead — one delete and one privacy switch per shelved page.
-      const manage = afterClassics.split('<details class="manage">')[1] || ''
+      assert.ok(
+        !afterClassics.includes('class="manage"'),
+        'the classics zone carries no owner controls (task #382)',
+      )
       assert.equal(
-        (manage.match(/class="doc-priv"/g) || []).length,
-        classics.length,
-        'every shelved page keeps a privacy switch',
+        (afterClassics.match(/class="doc-priv"|class="doc-del"/g) || []).length,
+        0,
+        'no privacy switch or delete button belongs on the shelf',
+      )
+      // Dropping the cards must not orphan a page. A cover carries ONE reading
+      // now (task #393), so a shelved page counts as reachable if the panel
+      // either links it outright or hangs it on a bay for the corner switch —
+      // and, for the readings the switch points at, only if the volume's own
+      // page links back to it, which is the no-JS way through.
+      const reachable = (href) =>
+        afterClassics.includes(`href="${href}"`) || afterClassics.includes(`="${href}"`)
+      for (const c of classics) {
+        assert.ok(reachable(c.href), `${c.id} has no card any more, so the shelf must reach it`)
+      }
+      for (const c of classics) {
+        if (afterClassics.includes(`<a class="vol" href="${c.href}"`)) continue // a cover opens it
+        if (c.href === CLASSICS_SHELF_HREF) continue
+        const page = path.join(ROOT, 'frontend', 'public', c.href.replace(/^\//, ''))
+        if (!fs.existsSync(page)) continue
+        const defaults = [...afterClassics.matchAll(/<a class="vol" href="([^"]+)"/g)].map((m) => m[1])
+        const ok = defaults.some((d) => {
+          const from = path.join(ROOT, 'frontend', 'public', d.replace(/^\//, ''))
+          return fs.existsSync(from) && fs.readFileSync(from, 'utf8').includes(`href="${c.href}"`)
+        })
+        assert.ok(ok, `${c.id} is only reachable through the switch — no shelved page links it`)
+      }
+
+      // One control, in the corner, for the whole shelf — and every bay carries
+      // the readings it can be pointed at.
+      assert.equal(
+        (afterClassics.match(/class="langbar"/g) || []).length,
+        1,
+        'the shelf gets one language switch, not one per book',
+      )
+      assert.equal(
+        (afterClassics.match(/class="ed( first)?"/g) || []).length,
+        0,
+        'the per-book edition pills are gone (task #393)',
+      )
+      const bayCount = (afterClassics.match(/class="bay"/g) || []).length
+      assert.equal(
+        (afterClassics.match(/ data-href-hans="/g) || []).length,
+        bayCount,
+        'every bay must name the reading the switch defaults to',
       )
 
       // At least one volume is actually on the shelf, drawn as a book.
@@ -131,21 +209,56 @@ const generator = fs.readFileSync(path.join(ROOT, 'scripts', 'build-docs-site.mj
       assert.ok(afterClassics.includes('<ul class="shelf">'), 'the volumes are shelved in a grid')
 
       // The same volumes also stand on the standalone shelf at /p/dianji.html.
-      // Both shelves must open the SAME edition, or which door a reader came in
-      // by decides which script they get. This caught a real mismatch: the tab
-      // opened 繁體 while the shelf page had been moved to 简体 (task #378).
+      // The two entrances must make the SAME offer, or which door a reader came
+      // in by decides which script they get. This caught a real mismatch: the
+      // tab opened 繁體 while the shelf page had been moved to 简体 (task #378).
+      // Since task #393 that means the whole bay — the default AND each reading
+      // the corner switch can point it at — not just the inked pill.
       const shelfPage = path.join(ROOT, 'frontend', 'public', 'p', 'dianji.html')
       if (fs.existsSync(shelfPage)) {
-        const firstEds = (src) => (src.match(/<a class="ed first" href="([^"]+)"/g) || [])
-        const onTab = firstEds(afterClassics)
-        const onPage = firstEds(fs.readFileSync(shelfPage, 'utf8'))
-        if (onTab.length && onPage.length) {
-          assert.deepEqual(
-            onTab,
-            onPage,
-            'the tab and /p/dianji.html must open the same edition of each volume',
-          )
+        const dianji = fs.readFileSync(shelfPage, 'utf8')
+        const bays = (src) => {
+          const out = new Map()
+          for (const m of src.matchAll(/<li class="bay"([^>]*)>/g)) {
+            const at = Object.fromEntries(
+              [...m[1].matchAll(/data-(href[\w-]*|title)="([^"]+)"/g)].map((a) => [a[1], a[2]]),
+            )
+            if (at.title) out.set(at.title, at)
+          }
+          return out
         }
+        const onTab = bays(afterClassics)
+        const onPage = bays(dianji)
+        if (onTab.size && onPage.size) {
+          assert.deepEqual(
+            [...onTab.keys()].sort(),
+            [...onPage.keys()].sort(),
+            'the tab and /p/dianji.html must shelve the same volumes',
+          )
+          for (const [title, tab] of onTab) {
+            assert.deepEqual(
+              tab,
+              onPage.get(title),
+              `《${title}》 is offered differently on the tab and on /p/dianji.html`,
+            )
+          }
+        }
+        // And the standalone shelf carries the same single control, remembering
+        // the choice under the same key, so picking 繁體 on one holds on both.
+        assert.equal(
+          (dianji.match(/class="langbar"/g) || []).length,
+          1,
+          '/p/dianji.html gets one language switch, not one per book',
+        )
+        assert.equal(
+          (dianji.match(/class="ed( first)?"/g) || []).length,
+          0,
+          'the per-book edition pills are gone from /p/dianji.html too (task #393)',
+        )
+        assert.ok(
+          dianji.includes("var KEY = 'classics:lang'"),
+          'both entrances must remember the reading under the same key',
+        )
       }
     }
   }
