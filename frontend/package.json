@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "node src/workflowGraph.test.mjs && node src/workflowDraft.test.mjs && node src/workflowPanes.test.mjs && node src/workflowLive.test.mjs && node src/markdownParts.test.mjs && node src/resultPage.test.mjs && node src/docLinks.test.mjs && node docsGate.test.mjs && node ../scripts/lib/md-to-html.test.mjs && node ../scripts/lib/docs-index.test.mjs && node ../scripts/lib/docs-toc.test.mjs",
+    "test": "node src/workflowGraph.test.mjs && node src/workflowDraft.test.mjs && node src/workflowPanes.test.mjs && node src/workflowLive.test.mjs && node src/markdownParts.test.mjs && node src/resultPage.test.mjs && node src/docLinks.test.mjs && node docsGate.test.mjs && node ../scripts/lib/md-to-html.test.mjs && node ../scripts/lib/docs-index.test.mjs && node ../scripts/lib/docs-toc.test.mjs && node ../scripts/lib/docs-tabs.test.mjs",
     "gen:singapore": "node ../scripts/build-singapore-page.mjs",
     "gen:docs": "node ../scripts/build-docs-site.mjs",
     "gen:pages": "npm run gen:singapore && npm run gen:docs",

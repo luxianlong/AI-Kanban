@@ -86,6 +86,165 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 6px 24px 96px; }
+
+/* ---------- the two tabs (task #377) ----------------------------------------
+   文章收藏 and 典籍 are different kinds of thing and are looked for differently,
+   so they get a switch rather than one interleaved list. The switch is drawn as
+   a row of section headings sitting ON the masthead's hairline — the active one
+   inks it — so the page gains a control without gaining a widget. */
+.tabs {
+  max-width: var(--maxw); margin: -1px auto 0; padding: 0 24px;
+  display: flex; gap: 26px;
+  border-bottom: 1px solid var(--line);
+}
+body.has-tabs .hero { border-bottom: none; }
+.tab {
+  appearance: none; -webkit-appearance: none; background: none; border: 0;
+  padding: 13px 0 11px; margin-bottom: -1px; cursor: pointer;
+  font-family: var(--display); font-size: 17px; font-weight: 600;
+  color: var(--muted); border-bottom: 2px solid transparent;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+/* The count rides with the label in the same mono grey as the dates. */
+.tab .n {
+  margin-left: 7px; vertical-align: 2px;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.1em; color: var(--muted);
+}
+.zone-note {
+  margin: 30px 0 0; color: var(--muted); font-size: 15px;
+  line-height: 1.72; text-wrap: pretty; max-width: 62ch;
+}
+
+/* ---------- 典籍: a library grid, several books to a row --------------------
+   Kindle-shaped, but the objects are stitched Chinese books, so they are drawn
+   as those: a cover standing on a board, the block of pages showing at the
+   fore-edge. The board colours are local to this zone — they are the only
+   non-paper surface on the page. */
+.classics {
+  --board-hi: #dcc9a3; --board-mid: #b99f74; --board-lo: #8e7549;
+  --leaf-hi: #f2ead6; --leaf-lo: #ddd0ae;
+  margin-top: 34px;
+}
+.shelf {
+  display: grid;
+  /* auto-fit with a FIXED track, not auto-fill with 1fr: a row takes as many
+     volumes as the width allows, but the tracks nobody stands in collapse. With
+     two books on a wide screen that keeps the board under the books instead of
+     running it out into empty space, and the shelf still fills left-to-right as
+     volumes are added. */
+  grid-template-columns: repeat(auto-fit, 178px);
+  justify-content: center;
+  column-gap: 40px; row-gap: 56px;
+  margin: 0; padding: 0; list-style: none;
+}
+.bay { min-width: 0; }
+/* Every cover's bottom edge meets the board's top, so volumes of different
+   proportions still share one shelf line. Each bay draws its own board and
+   overhangs the 40px gutter by 20px a side, so neighbouring boards meet in the
+   middle and read as one shelf — for whatever number of columns the grid fits. */
+.stand {
+  --bh: 228px;
+  position: relative; display: flex; align-items: flex-end; justify-content: center;
+  height: calc(var(--bh) + 26px); padding-bottom: 11px;
+}
+.stand::after {
+  content: ""; position: absolute; left: -20px; right: -20px; bottom: 0; height: 11px;
+  background: linear-gradient(180deg, var(--board-hi) 0 2px, var(--board-mid) 2px 62%, var(--board-lo));
+  box-shadow: 0 4px 9px rgba(60,45,20,0.32), inset 0 1px 0 rgba(255,255,255,0.22);
+  border-radius: 1px;
+}
+.vol { display: block; text-decoration: none; color: inherit; }
+.book {
+  position: relative;
+  height: var(--bh); width: calc(var(--bh) * var(--ar));
+  transition: transform 0.28s cubic-bezier(0.2,0.7,0.3,1);
+}
+/* A Chinese stitched book is sewn on the RIGHT (both covers carry the thread),
+   so the loose leaf edges show on the LEFT. That's the block of pages. */
+.book::before {
+  content: ""; position: absolute; left: -7px; top: 4px; bottom: 2px; width: 8px;
+  border-radius: 3px 0 0 3px;
+  background: repeating-linear-gradient(90deg, var(--leaf-hi) 0 1.5px, var(--leaf-lo) 1.5px 3px);
+  box-shadow: inset -3px 0 4px rgba(60,45,20,0.22), 0 12px 16px -12px rgba(60,45,20,0.7);
+}
+.cover {
+  position: absolute; inset: 0; border-radius: 2px;
+  background-repeat: no-repeat;
+  box-shadow: 0 1px 1px rgba(60,45,20,0.3), 0 22px 24px -16px rgba(60,45,20,0.65);
+}
+/* light down the fore-edge, shadow into the sewn edge */
+.cover::after {
+  content: ""; position: absolute; inset: 0; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,255,255,0.18) 0 2%, rgba(255,255,255,0) 12%,
+    rgba(0,0,0,0) 91%, rgba(0,0,0,0.15) 100%);
+}
+/* No scan on disk yet — set the volume's name on plain boards rather than
+   leaving a hole where the book should be. */
+.cover.blank {
+  background: linear-gradient(160deg, #efe6d2, #ddd0b4);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: 19px; font-weight: 600;
+  writing-mode: vertical-rl; letter-spacing: 0.2em; color: #6b5a3d;
+  border: 1px solid #c9b894;
+}
+.vol:hover .book, .vol:focus-visible .book { transform: translateY(-11px); }
+.vol:focus-visible { outline: none; }
+.vol:focus-visible .cover { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* ---------- the label under each book ---------- */
+.plate { padding: 18px 2px 0; text-align: center; }
+.plate h3 {
+  margin: 0; font-family: var(--display); font-size: 19px; font-weight: 600;
+  line-height: 1.45; letter-spacing: 0.08em; text-indent: 0.08em;
+}
+.plate h3 a { color: var(--ink); text-decoration: none; }
+.plate h3 a:hover { color: var(--accent); }
+.plate .imprint {
+  margin: 7px 0 0; font-size: 12.5px; line-height: 1.7;
+  letter-spacing: 0.02em; color: var(--muted);
+}
+.eds { margin: 11px 0 0; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+.ed {
+  display: inline-flex; align-items: center;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em;
+  color: var(--muted); text-decoration: none;
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+.ed:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+.ed.first { color: var(--accent); border-color: #c2cdde; }
+.shelf-more {
+  margin: 44px 0 0; text-align: center;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+}
+/* The shelf shows covers, not controls. The owner still needs the delete and
+   privacy switches these pages had as cards, so the ordinary cards stay — folded
+   away under the shelf, and only for the owner. */
+.manage { margin: 52px 0 0; border-top: 1px solid var(--line); padding-top: 10px; }
+.manage > summary {
+  cursor: pointer; list-style: none;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--muted); padding: 8px 0;
+}
+.manage > summary::-webkit-details-marker { display: none; }
+.manage > summary::before { content: "▸ "; display: inline-block; transition: transform 0.16s ease; }
+.manage[open] > summary::before { content: "▾ "; }
+.manage > summary:hover { color: var(--accent); }
+.manage .manage-note { margin: 0 0 4px; color: var(--muted); font-size: 14px; }
+body:not(.is-owner) .manage { display: none; }
+@media (max-width: 700px) {
+  .tabs { padding: 0 20px; gap: 20px; }
+  .tab { font-size: 15.5px; }
+  .shelf { grid-template-columns: repeat(auto-fit, 156px); column-gap: 18px; row-gap: 44px; }
+  .stand { --bh: 186px; }
+  .stand::after { left: -11px; right: -11px; }
+  .plate h3 { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book { transition: none; }
+}
 /* The archive: one column of dated entries, not a wall of cards. Each entry is
    a date, a title, a paragraph and a link — the shape of a blog index. */
 .grid { display: block; }
@@ -281,90 +440,18 @@ body.is-owner .hero .write { display: inline-block; }
 }
 </style>
 </head>
-<body>
+<body class="has-tabs">
 <header class="hero">
 <h1>文章存档</h1>
 <button class="write" type="button" id="write-open">✎ 写文章</button>
 </header>
+<nav class="tabs" role="tablist" aria-label="存档分区">
+  <button type="button" class="tab" role="tab" id="tab-articles" aria-controls="panel-articles" aria-selected="true">文章收藏<span class="n">34</span></button>
+  <button type="button" class="tab" role="tab" id="tab-classics" aria-controls="panel-classics" aria-selected="false" tabindex="-1">典籍<span class="n">2</span></button>
+</nav>
 <div class="wrap">
+<section id="panel-articles" role="tabpanel" aria-labelledby="tab-articles" tabindex="0">
 <div class="grid">
-<div class="card-wrap is-new" data-id="upload-dianji" data-private="false">
-  <a class="doc-card" href="/p/dianji.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>典籍 · 孙子兵法 · 鬼谷子</h2>
-  <p>《孙子兵法》《鬼谷子》白文本，按书影排开。各有简体、繁体、English 三个读本，默认简体。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 典籍 · 孙子兵法 · 鬼谷子" data-id="upload-dianji" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 典籍 · 孙子兵法 · 鬼谷子" data-id="upload-dianji" data-title="典籍 · 孙子兵法 · 鬼谷子">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi-en" data-private="false">
-  <a class="doc-card" href="/p/sunzi-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>Sunzi — The Art of War (English)</h2>
-  <p>The Sunzi (Art of War) in thirteen chapters, complete English translation, with the seventeen surviving fragments.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-title="Sunzi — The Art of War (English)">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi-en" data-private="false">
-  <a class="doc-card" href="/p/guiguzi-en.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>Guiguzi — The Master of Ghost Valley (English)</h2>
-  <p>The Guiguzi in three scrolls, complete English translation of all twenty-one chapters, from the 1805 Qin Enfu edition.</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-title="Guiguzi — The Master of Ghost Valley (English)">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi-hans" data-private="false">
-  <a class="doc-card" href="/p/guiguzi-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子（白文·嘉庆秦刻本）· 简体版</h2>
-  <p>《鬼谷子》三卷二十一篇白文·简体，带标点，不载陶注（嘉庆秦刻本）。今注可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子（白文·嘉庆秦刻本）· 简体版" data-id="upload-guiguzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子（白文·嘉庆秦刻本）· 简体版" data-id="upload-guiguzi-hans" data-title="鬼谷子（白文·嘉庆秦刻本）· 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-guiguzi" data-private="false">
-  <a class="doc-card" href="/p/guiguzi.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>鬼谷子（白文·嘉慶秦刻本）</h2>
-  <p>《鬼谷子》三卷二十一篇白文·繁體，帶標點，不載陶注（嘉慶秦刻本）。今注可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子（白文·嘉慶秦刻本）" data-id="upload-guiguzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子（白文·嘉慶秦刻本）" data-id="upload-guiguzi" data-title="鬼谷子（白文·嘉慶秦刻本）">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi-hans" data-private="false">
-  <a class="doc-card" href="/p/sunzi-hans.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孙子兵法（白文·十三篇）· 简体版</h2>
-  <p>《孙子兵法》十三篇白文·简体，带标点，不载旧注；附佚文及吴王问对十七则。今注可开关。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孙子兵法（白文·十三篇）· 简体版" data-id="upload-sunzi-hans" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孙子兵法（白文·十三篇）· 简体版" data-id="upload-sunzi-hans" data-title="孙子兵法（白文·十三篇）· 简体版">✕</button>
-</div>
-<div class="card-wrap is-new" data-id="upload-sunzi" data-private="false">
-  <a class="doc-card" href="/p/sunzi.html">
-  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
-  <h2>孫子兵法（白文·十三篇）</h2>
-  <p>《孫子兵法》十三篇白文·繁體，帶標點，不載舊注；附佚文及吳王問對十七則。今注可開關。</p>
-  <div class="meta">阅读全文 →</div>
-</a>
-  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
-  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孫子兵法（白文·十三篇）" data-id="upload-sunzi" data-private="false">🌐</button>
-  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孫子兵法（白文·十三篇）" data-id="upload-sunzi" data-title="孫子兵法（白文·十三篇）">✕</button>
-</div>
 <div class="card-wrap is-new" data-id="upload-page-89f133c0" data-private="false">
   <a class="doc-card" href="/p/page-89f133c0.html">
   <div class="entry-date"><span class="date">2026.09.11</span><span class="views" hidden></span></div>
@@ -733,6 +820,134 @@ body.is-owner .hero .write { display: inline-block; }
   <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 赵长鹏那条推里,没有孙宇晨" data-id="upload-why-cz-could-stop-sun" data-title="赵长鹏那条推里,没有孙宇晨">✕</button>
 </div>
 </div>
+</section>
+<section id="panel-classics" role="tabpanel" aria-labelledby="tab-classics" tabindex="0" hidden>
+<div class="classics">
+<p class="zone-note">读了千年还在读的那几种。都是<b>白文本</b>——只有正文，不载旧注；每种各有简体、繁體、English 三个读本，点封面进正文。</p>
+<ul class="shelf">
+    <li class="bay">
+      <div class="stand">
+        <a class="vol" href="/p/sunzi-hans.html" aria-label="打开《孙子兵法》">
+          <div class="book" style="--ar:.5595">
+            <div class="cover" role="img" aria-label="宋刻《十一家注孙子》卷首「孙子本传」书影" style="background-image:url(/img/classics/sunzi-cover.jpg);background-size:207.5% 104.2%;background-position:3.4% 48.8%"></div>
+          </div>
+        </a>
+      </div>
+      <div class="plate">
+        <h3><a href="/p/sunzi-hans.html">孙子兵法</a></h3>
+        <p class="imprint">春秋 · 白文十三篇</p>
+        <p class="eds">
+          <a class="ed first" href="/p/sunzi-hans.html">简体</a>
+          <a class="ed" href="/p/sunzi.html">繁體</a>
+          <a class="ed" href="/p/sunzi-en.html">English</a>
+        </p>
+      </div>
+    </li>
+    <li class="bay">
+      <div class="stand">
+        <a class="vol" href="/p/guiguzi-hans.html" aria-label="打开《鬼谷子》">
+          <div class="book" style="--ar:.632">
+            <div class="cover" role="img" aria-label="清嘉庆秦恩复刻本《鬼谷子》原书封面，题「鬼谷子三卷 陶贞白注本 通介叟校」" style="background-image:url(/img/classics/guiguzi-cover.jpg);background-size:101.7% 100%;background-position:0% 0%"></div>
+          </div>
+        </a>
+      </div>
+      <div class="plate">
+        <h3><a href="/p/guiguzi-hans.html">鬼谷子</a></h3>
+        <p class="imprint">战国 · 白文三卷二十一篇</p>
+        <p class="eds">
+          <a class="ed first" href="/p/guiguzi-hans.html">简体</a>
+          <a class="ed" href="/p/guiguzi.html">繁體</a>
+          <a class="ed" href="/p/guiguzi-en.html">English</a>
+        </p>
+      </div>
+    </li>
+  </ul>
+<p class="shelf-more"><a href="/p/dianji.html">整页书架 →</a></p>
+<details class="manage">
+  <summary>管理这些页面</summary>
+  <p class="manage-note">书架上只放封面。要改某个读本的隐私或删掉它，用下面的卡片——控件和文章那边是同一套。</p>
+  <div class="grid manage-grid">
+<div class="card-wrap is-new" data-id="upload-dianji" data-private="false">
+  <a class="doc-card" href="/p/dianji.html">
+  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
+  <h2>典籍 · 孙子兵法 · 鬼谷子</h2>
+  <p>《孙子兵法》《鬼谷子》白文本，按书影排开。各有简体、繁体、English 三个读本，默认简体。</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 典籍 · 孙子兵法 · 鬼谷子" data-id="upload-dianji" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 典籍 · 孙子兵法 · 鬼谷子" data-id="upload-dianji" data-title="典籍 · 孙子兵法 · 鬼谷子">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="upload-sunzi-hans" data-private="false">
+  <a class="doc-card" href="/p/sunzi-hans.html">
+  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
+  <h2>孙子兵法（白文·十三篇）· 简体版</h2>
+  <p>《孙子兵法》十三篇白文·简体，带标点，不载旧注；附佚文及吴王问对十七则。今注可开关。</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孙子兵法（白文·十三篇）· 简体版" data-id="upload-sunzi-hans" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孙子兵法（白文·十三篇）· 简体版" data-id="upload-sunzi-hans" data-title="孙子兵法（白文·十三篇）· 简体版">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="upload-sunzi" data-private="false">
+  <a class="doc-card" href="/p/sunzi.html">
+  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
+  <h2>孫子兵法（白文·十三篇）</h2>
+  <p>《孫子兵法》十三篇白文·繁體，帶標點，不載舊注；附佚文及吳王問對十七則。今注可開關。</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 孫子兵法（白文·十三篇）" data-id="upload-sunzi" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 孫子兵法（白文·十三篇）" data-id="upload-sunzi" data-title="孫子兵法（白文·十三篇）">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="upload-guiguzi-en" data-private="false">
+  <a class="doc-card" href="/p/guiguzi-en.html">
+  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
+  <h2>Guiguzi — The Master of Ghost Valley (English)</h2>
+  <p>The Guiguzi in three scrolls, complete English translation of all twenty-one chapters, from the 1805 Qin Enfu edition.</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Guiguzi — The Master of Ghost Valley (English)" data-id="upload-guiguzi-en" data-title="Guiguzi — The Master of Ghost Valley (English)">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="upload-guiguzi-hans" data-private="false">
+  <a class="doc-card" href="/p/guiguzi-hans.html">
+  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
+  <h2>鬼谷子（白文·嘉庆秦刻本）· 简体版</h2>
+  <p>《鬼谷子》三卷二十一篇白文·简体，带标点，不载陶注（嘉庆秦刻本）。今注可开关。</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子（白文·嘉庆秦刻本）· 简体版" data-id="upload-guiguzi-hans" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子（白文·嘉庆秦刻本）· 简体版" data-id="upload-guiguzi-hans" data-title="鬼谷子（白文·嘉庆秦刻本）· 简体版">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="upload-guiguzi" data-private="false">
+  <a class="doc-card" href="/p/guiguzi.html">
+  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
+  <h2>鬼谷子（白文·嘉慶秦刻本）</h2>
+  <p>《鬼谷子》三卷二十一篇白文·繁體，帶標點，不載陶注（嘉慶秦刻本）。今注可開關。</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: 鬼谷子（白文·嘉慶秦刻本）" data-id="upload-guiguzi" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete 鬼谷子（白文·嘉慶秦刻本）" data-id="upload-guiguzi" data-title="鬼谷子（白文·嘉慶秦刻本）">✕</button>
+</div>
+<div class="card-wrap is-new" data-id="upload-sunzi-en" data-private="false">
+  <a class="doc-card" href="/p/sunzi-en.html">
+  <div class="entry-date"><span class="date">2026.09.12</span><span class="views" hidden></span></div>
+  <h2>Sunzi — The Art of War (English)</h2>
+  <p>The Sunzi (Art of War) in thirteen chapters, complete English translation, with the seventeen surviving fragments.</p>
+  <div class="meta">阅读全文 →</div>
+</a>
+  <span class="new-dot" title="Updated 2026-09-12" aria-label="Recently updated">NEW</span>
+  <button class="doc-priv" type="button" title="Make private" aria-label="Make private: Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-private="false">🌐</button>
+  <button class="doc-del" type="button" title="Delete this document" aria-label="Delete Sunzi — The Art of War (English)" data-id="upload-sunzi-en" data-title="Sunzi — The Art of War (English)">✕</button>
+</div>
+  </div>
+</details>
+</div>
+</section>
 </div>
 
 <div class="modal-backdrop" id="del-modal" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" aria-describedby="del-modal-desc" hidden>
@@ -769,6 +984,57 @@ body.is-owner .hero .write { display: inline-block; }
 <div class="toast-host" id="toast-host" aria-live="polite" aria-atomic="true"></div>
 
 <script>
+  // The 文章收藏 / 典籍 switch (task #377). A real tablist: roving tabindex,
+  // arrow/Home/End keys, aria-selected on the buttons and hidden on the panels.
+  // The chosen tab is written to the URL fragment so a tab is linkable and
+  // survives a reload — replaceState, not a push, so the back button still means
+  // "the page before this one" rather than "the other tab".
+  (function () {
+    var tablist = document.querySelector('.tabs');
+    if (!tablist) return; // no classics on this build: one zone, no switch
+    var tabs = [].slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function show(tab, moveFocus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(t.getAttribute('aria-controls'));
+        if (panel) panel.hidden = !on;
+      });
+      if (moveFocus) tab.focus();
+      try { history.replaceState(null, '', '#' + tab.id.replace(/^tab-/, '')); } catch (e) {}
+    }
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () { show(t, false); });
+    });
+    tablist.addEventListener('keydown', function (e) {
+      var i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      var to = null;
+      if (e.key === 'ArrowRight') to = (i + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') to = (i - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') to = 0;
+      else if (e.key === 'End') to = tabs.length - 1;
+      if (to === null) return;
+      e.preventDefault();
+      show(tabs[to], true);
+    });
+    // #classics / #articles opens straight onto that tab — on load, and again
+    // whenever the fragment changes under us (a link to the other tab from a
+    // page that is already open changes the hash without reloading, so without
+    // this the URL would say one tab and the page would show the other).
+    function fromHash() {
+      var want = (location.hash || '').replace(/^#/, '');
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].id === 'tab-' + want) { show(tabs[i], false); return; }
+      }
+    }
+    window.addEventListener('hashchange', fromHash);
+    fromHash();
+  })();
+</script>
+
+<script>
   // Delete a document: ask the backend to remove its source Markdown + generated
   // page, then drop the card. The board proxies /api to the Spring backend, so a
   // same-origin fetch works whether we're on :80 (dev/tunnel) or a build preview.
@@ -776,8 +1042,11 @@ body.is-owner .hero .write { display: inline-block; }
   // UX (task #278): the raw window.confirm()/alert() are replaced with an
   // accessible styled modal (focus trap, Esc to cancel, restores focus), a
   // smooth card-collapse animation, and toast feedback for success and errors.
-  var grid = document.querySelector('.grid');
-  var wrapEl = document.querySelector('.wrap');
+  // Scoped to the articles panel (task #377): the classics tab holds a second
+  // .grid of cards under 管理这些页面, and blanking .wrap on the last delete
+  // would take the tab bar and the shelf with it.
+  var grid = document.querySelector('#panel-articles .grid') || document.querySelector('.grid');
+  var wrapEl = document.getElementById('panel-articles') || document.querySelector('.wrap');
   var modal = document.getElementById('del-modal');
   var modalName = modal.querySelector('.doc-name');
   var confirmBtn = modal.querySelector('[data-act="confirm"]');
