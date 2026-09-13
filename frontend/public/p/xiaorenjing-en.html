@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Classic of the Petty Man — Xiao Ren Jing (English)</title>
+<meta name="description" content="A complete English translation of the Xiao Ren Jing, also called the Rong Ku Jian or Mirror of Rise and Fall, in ten scrolls: a handbook of the petty man ascribed to Feng Dao, chief minister to four of the Five Dynasties houses, and in fact written under his name in modern times. The case against the attribution is stated on the page.">
+<style>
+
+
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",
+    "Noto Serif","Liberation Serif",Georgia,serif;
+  line-height:1.72; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+.zh{font-family:"Noto Serif CJK TC","Source Han Serif TC","Songti SC","SimSun",serif}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(40px,7vw,66px); letter-spacing:.06em;
+  font-weight:600; line-height:1.15;
+}
+.mast .hz{display:block; margin:10px 0 0; font-size:.34em; letter-spacing:.34em;
+  text-indent:.34em; color:var(--ink-soft); font-weight:400}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.04em}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.76rem; letter-spacing:.08em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:250px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.79rem; line-height:1.7;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:2px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.04em}
+  nav.toc a.l3{padding-left:20px}
+  nav.toc a.l4{padding-left:32px; font-size:.94em; opacity:.85}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.16em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px} details.toc-m a.l4{padding-left:30px}
+
+main{padding:34px 0 100px; max-width:36em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.5rem; font-weight:600;
+  letter-spacing:.04em; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:60px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.03em; scroll-margin-top:24px;
+}
+h4{margin:38px 0 2px; font-size:1rem; font-weight:600; letter-spacing:.03em;
+  color:var(--ink-soft); scroll-margin-top:24px}
+h2 .hz,h3 .hz,h4 .hz{font-weight:400; color:var(--ink-soft); letter-spacing:.16em;
+  font-size:.78em; margin-left:.5em}
+p{margin:1.05em 0}
+.byline{color:var(--ink-soft); font-size:.82rem; letter-spacing:.06em; margin-top:.4em}
+.lead{color:var(--ink-soft); font-size:.9rem; border-left:2px solid var(--rule);
+  padding-left:14px; margin:.9em 0 1.6em}
+
+.var{border-bottom:1px dotted var(--seal); cursor:help}
+
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.76rem; letter-spacing:.2em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+nav.toc .hz,details.toc-m .hz{margin-left:.45em; font-size:.9em; opacity:.65;
+  letter-spacing:.08em}
+.colo{margin:96px 0 0; padding:22px 0 0; border-top:1px solid var(--rule);
+  font-size:.86rem; line-height:1.75; color:var(--ink-soft)}
+.colo h2.colo-h{margin:0 0 10px; font-size:1.02rem; letter-spacing:.03em;
+  border-bottom:none; padding-bottom:0; color:var(--ink)}
+.colo p{margin:.6em 0}
+.colo b{color:var(--ink); font-weight:600}
+.colo .colo-ai{margin-top:1.1em; padding-top:.7em; border-top:1px dashed var(--rule)}
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>The Classic of the Petty Man<span class="hz">小人經</span></h1>
+  <p class="sub">Xiao Ren Jing　·　also called the Mirror of Rise and Fall　·　ascribed to Feng Dao of the Five Dynasties　·　ten scrolls</p>
+</header>
+
+<div class="bar">
+  <div class="grp langs">
+    <a class="btn" href="/p/xiaorenjing-hans.html">简体</a>
+    <a class="btn" href="/p/xiaorenjing.html">繁體</a>
+    <span class="btn cur" aria-current="page">EN</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#j1">I. Taking Things as They Come<span class="hz">圓通卷一</span></a>
+<a class="l3" href="#s1a">What a name is worth</a>
+<a class="l3" href="#s1b">Gentleman and petty man</a>
+<a class="l2" href="#j2">II. Getting On<span class="hz">聞達卷二</span></a>
+<a class="l3" href="#s2a">Pleasing above, pleasing below</a>
+<a class="l3" href="#s2b">Substance and discernment</a>
+<a class="l2" href="#j3">III. Getting Out of Trouble<span class="hz">解厄卷三</span></a>
+<a class="l3" href="#s3a">Worry first</a>
+<a class="l3" href="#s3b">Trouble above, trouble below</a>
+<a class="l3" href="#s3c">No faction, and interest</a>
+<a class="l2" href="#j4">IV. Making Connections<span class="hz">交結卷四</span></a>
+<a class="l3" href="#s4a">Use them all, good and bad</a>
+<a class="l3" href="#s4b">Show them a fool</a>
+<a class="l3" href="#s4c">Open dealing and secret dealing</a>
+<a class="l2" href="#j5">V. Integrity<span class="hz">節儀卷五</span></a>
+<a class="l3" href="#s5a">The real gentleman and the real petty man</a>
+<a class="l3" href="#s5b">Integrity does not outweigh gold</a>
+<a class="l2" href="#j6">VI. Seeing Clearly<span class="hz">明鑒卷六</span></a>
+<a class="l3" href="#s6a">Know the luck before it comes</a>
+<a class="l3" href="#s6b">Set a crook to catch a crook</a>
+<a class="l2" href="#j7">VII. Slander<span class="hz">謗言卷七</span></a>
+<a class="l3" href="#s7a">The four ways to ruin a man</a>
+<a class="l3" href="#s7b">Answering it, and not answering it</a>
+<a class="l2" href="#j8">VIII. Showing a False Face<span class="hz">示偽卷八</span></a>
+<a class="l3" href="#s8a">True and false</a>
+<a class="l3" href="#s8b">Loyalty and benevolence</a>
+<a class="l2" href="#j9">IX. Bringing a Man to Heel<span class="hz">降心卷九</span></a>
+<a class="l3" href="#s9a">Break the mind, not the argument</a>
+<a class="l3" href="#s9b">Remonstrance, kindness and fear</a>
+<a class="l2" href="#j10">X. Reading People<span class="hz">揣知卷十</span></a>
+<a class="l3" href="#s10a">Knowing the man, knowing the mind</a>
+<a class="l3" href="#s10b">Doubt, patronage, and the corner they cannot get out of</a>
+<a class="l2" href="#ben">The Text Behind This Page</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>Contents</summary>
+<a class="l2" href="#j1">I. Taking Things as They Come<span class="hz">圓通卷一</span></a>
+<a class="l3" href="#s1a">What a name is worth</a>
+<a class="l3" href="#s1b">Gentleman and petty man</a>
+<a class="l2" href="#j2">II. Getting On<span class="hz">聞達卷二</span></a>
+<a class="l3" href="#s2a">Pleasing above, pleasing below</a>
+<a class="l3" href="#s2b">Substance and discernment</a>
+<a class="l2" href="#j3">III. Getting Out of Trouble<span class="hz">解厄卷三</span></a>
+<a class="l3" href="#s3a">Worry first</a>
+<a class="l3" href="#s3b">Trouble above, trouble below</a>
+<a class="l3" href="#s3c">No faction, and interest</a>
+<a class="l2" href="#j4">IV. Making Connections<span class="hz">交結卷四</span></a>
+<a class="l3" href="#s4a">Use them all, good and bad</a>
+<a class="l3" href="#s4b">Show them a fool</a>
+<a class="l3" href="#s4c">Open dealing and secret dealing</a>
+<a class="l2" href="#j5">V. Integrity<span class="hz">節儀卷五</span></a>
+<a class="l3" href="#s5a">The real gentleman and the real petty man</a>
+<a class="l3" href="#s5b">Integrity does not outweigh gold</a>
+<a class="l2" href="#j6">VI. Seeing Clearly<span class="hz">明鑒卷六</span></a>
+<a class="l3" href="#s6a">Know the luck before it comes</a>
+<a class="l3" href="#s6b">Set a crook to catch a crook</a>
+<a class="l2" href="#j7">VII. Slander<span class="hz">謗言卷七</span></a>
+<a class="l3" href="#s7a">The four ways to ruin a man</a>
+<a class="l3" href="#s7b">Answering it, and not answering it</a>
+<a class="l2" href="#j8">VIII. Showing a False Face<span class="hz">示偽卷八</span></a>
+<a class="l3" href="#s8a">True and false</a>
+<a class="l3" href="#s8b">Loyalty and benevolence</a>
+<a class="l2" href="#j9">IX. Bringing a Man to Heel<span class="hz">降心卷九</span></a>
+<a class="l3" href="#s9a">Break the mind, not the argument</a>
+<a class="l3" href="#s9b">Remonstrance, kindness and fear</a>
+<a class="l2" href="#j10">X. Reading People<span class="hz">揣知卷十</span></a>
+<a class="l3" href="#s10a">Knowing the man, knowing the mind</a>
+<a class="l3" href="#s10b">Doubt, patronage, and the corner they cannot get out of</a>
+<a class="l2" href="#ben">The Text Behind This Page</a>
+    </details>
+
+<h2 id="j1">I. Taking Things as They Come<span class="hz">圓通卷一</span></h2>
+<p class="lead">The book opens on name and gain. 圓通 is roundness — holding to no one position and turning with the situation. The first half says that name and gain are themselves blameless and that the blame lies with men; the second takes apart both the gentleman and the petty man, since high and low, gain and loss are not decided by what a man intends: a name is empty, gain is seductive, and petty men are the majority, which cannot be fought. This is where the book plants its argument. It does not urge anyone to be a petty man; it turns “being a gentleman does not pay” into a proposition that the other nine scrolls simply develop. A word first about parentage. There is no old edition of this book; the attribution and its history are set out in the colophon. In short: “written by Feng Dao of the Five Dynasties” is a modern claim, and no bibliography, public or private, from the Song onward records the title at all.</p>
+<h3 id="s1a">What a name is worth</h3>
+<p id="c1-1">Good and bad each have their names; the man of sense is not bound by them. Heaven’s order has its constancies; the man of clear sight does not throw them away. Whether the road is open or blocked, the man who bends with things does not trouble himself. (Three clauses in a row: the labels may be ignored, the standing order may not be denied, and the state of the road is not worth worrying about.)</p>
+<p id="c1-2">The man who is careful of his name damages it; the man who is careful of his skin keeps it whole. There is nothing wrong with name or gain, and no crime in pursuing them: the fault is in men. (The last clause moves the fault off the thing and onto the person — a move the book makes again and again. Cancel the good and bad of the object, then cancel the good and bad of the act, and what is left is profit and loss.)</p>
+<h3 id="s1b">Gentleman and petty man</h3>
+<p id="c1-3">The gentleman is not thereby honoured, the petty man is not thereby despised; high and low are not settled in the world by such labels. The gentleman does not necessarily get, the petty man does not necessarily lose; getting and losing do not follow from what a man intends. Names are all empty, gain leads men astray — and men can hardly refuse it.</p>
+<p id="c1-4">A man who prospers may be called a gentleman; a man who is ruined will certainly be called a petty man. Few come up to the gentleman; petty men are the many, and the many cannot be fought. A name can be exchanged but a situation cannot; a disposition can be exchanged but a fate cannot. Men do not set out to harm the gentleman — why then should they harm the petty man? (The old glosses on the last clause differ; either way the scroll ends in the same place: being a gentleman does not pay. 榮 “flourishing” and 枯 “withered” are the two words that give the book its other title, 榮枯鑒, the Mirror of Rise and Fall.)</p>
+<h2 id="j2">II. Getting On<span class="hz">聞達卷二</span></h2>
+<p class="lead">On office, and on rising in it. 聞達 — “being heard of and getting on” — is lifted from Zhuge Liang’s memorial, where he says he never sought it; here the phrase is turned inside out. One rule governs: please the man above and you prosper, please the men below and you limp. Straight without flattery and the man above doubts you; flattery without straightness and the men below drop you — and since only one of the two can be had, take the one above. The second half sets up two posts: not being tied by an empty reputation is “substance”, not being ashamed of a crooked act is “discernment”. Put together they make four words — no tie and no shame — the plainest sentence in the book.</p>
+<h3 id="s2a">Pleasing above, pleasing below</h3>
+<p id="c2-1">Office does not reckon good and bad; promotion does not ask whether a man is crooked or small. Please the man above and you prosper; please the men below and you limp. When a gentleman pleases those below, the man above is not taken in by his reputation; when a petty man pleases the man above, wrongdoing below goes unpunished. Below, straightness is thought fine; above, compliance is thought loyal. Straight and not ingratiating, and you are doubted above; ingratiating and not straight, and you are dropped below. To be doubted above is the root of disaster; to be dropped below only spoils a reputation. Every man who prospers gets called a petty man for it — because he has held the root and let the branch go. (Which of the two is “root” and which “branch” is settled here, and everything the book chooses afterwards follows from it.)</p>
+<h3 id="s2b">Substance and discernment</h3>
+<p id="c2-2">Wealth and honour follow a constant way, and that way is substance. Blessing and disaster are not fated, and the way of them is discernment. Substance means not being tied by an empty reputation; discernment means not being ashamed of a crooked act. No tie and no shame — that is what prospering means. (The four words 無羈無恥 are the nakedest thing in the book. Many quote them; few defend them.)</p>
+<p id="c2-3">A man who wants a name should not take office: a post is not a name. A man who wants a post should not want a name: virtue is not prosperity. The gentleman talks about the mind; the petty man works on it. The ways differ, so of course the results differ. (Talks about it, works on it — one character apart in the Chinese.)</p>
+<h2 id="j3">III. Getting Out of Trouble<span class="hz">解厄卷三</span></h2>
+<p class="lead">On getting clear of trouble. The premise is that trouble unworried about arrives at full force. The method has two ends: above, do not lose the man’s confidence; below, incur no grudges. When something does go wrong, admit the fault without arguing if it happened above you, and be the first to put the blame on someone else if it happened below. The last paragraph is the coldest in the book: the gentleman forms no faction, so when trouble comes nobody helps him; the petty man deals in interest, so when trouble comes somebody does. “Losing righteousness carries no penalty” — six words, and they are the defence the book enters on the petty man’s behalf.</p>
+<h3 id="s3a">Worry first</h3>
+<p id="c3-1">Trouble not worried about beforehand arrives at full force. The man who worries about the state loses himself; the man who worries about himself keeps his life. Disaster is what everyone pushes away — and also what a man takes in himself; disaster is what everyone resents — and also what everyone meets. The gentleman does no evil and his troubles never stop; the petty man is no worthy and his good fortune never runs out. (餘慶, “fortune left over”, comes from the Book of Changes: “a house that piles up good has fortune left over for its heirs.” The book turns the sentence on its head. The base text has a character here that makes no sense; the other transcription is followed.)</p>
+<h3 id="s3b">Trouble above, trouble below</h3>
+<p id="c3-2">For those above and below to fall out — only a petty man can bring that off. To incur no grudge below — only a gentleman is in a position to. When the trouble is above you, the man who makes no defence and takes the blame himself comes through whole. When the trouble is below you, the man who gets in first and puts the blame on someone else gets off. (For the first clause the other transcription reads “to keep the man above from falling out with you”, which pairs better with the second; the base reading is kept here and the variant noted.)</p>
+<h3 id="s3c">No faction, and interest</h3>
+<p id="c3-3">The gentleman forms no faction, so when disaster comes there is no one to pull him out. The petty man deals in interest, so where there is profit there is no shortage of hands. Losing righteousness carries no penalty; a disaster with no way out is certain to trap you. The gentleman cannot change this about himself — the petty man may perhaps be excused. (The defence the book enters: since righteousness is neither paid for nor enforced, being a petty man is presented as a forgivable choice.)</p>
+<h2 id="j4">IV. Making Connections<span class="hz">交結卷四</span></h2>
+<p class="lead">On dealing with people. The first sentence puts the worthy and the bad side by side as things to be used; the second makes friend and enemy interchangeable at any moment. The middle teaches showing people a fool: let them think you stupid and your scheme can be large. It looks like the Daodejing’s “great wisdom seems foolish” and means something else — one is not showing off, the other is setting a trap. The last paragraph is the most quoted in the book: the gentleman deals by benevolence and only fears his benevolence is not complete; the petty man binds in the dark and only fears he cannot hold down what is in the light. That, it says, is where the gentleman loses.</p>
+<h3 id="s4a">Use them all, good and bad</h3>
+<p id="c4-1">The man of sense does not turn the worthy away; the man of clear sight does not keep the bad at a distance: good and bad are alike to be used. Fall in with me and you are a friend; cross me and you are an enemy — and the two change places all the time. (The base text has the character for “salty” here, an artefact of converting simplified script to traditional; the other transcription has the right one.)</p>
+<p id="c4-2">Honour that comes of knowing men is real honour; baseness that comes of keeping crooks about you is real baseness. When the honoured do not think themselves honoured and the base do not accept being base, high and low change places; when the honoured do not look down on men and the base do not look up to them, high and low stay as they are. (Four clauses, two sides of one thing: position moves, and it is attitude that decides which way.)</p>
+<h3 id="s4b">Show them a fool</h3>
+<p id="c4-3">Everyone hopes other men are fools and he himself sharp; so show men a fool, and the scheme can be large. Everyone resents other men being sharp and himself a fool; so if your wits cannot be kept out of sight, the damage never ends. The clear-sighted do not take up with fools — a fool will not make you any sharper. The shrewd do not make enemies — a man with a grudge is not frightened of your shrewdness.</p>
+<h3 id="s4c">Open dealing and secret dealing</h3>
+<p id="c4-4">The gentleman deals by benevolence, and fears only that his benevolence is not complete. The petty man binds in the dark, and fears only that what is in the light cannot be held down. The gentleman does not get the better of the petty man, and this is very nearly why. (The last word of the second clause is not classical Chinese at all: the only sentence-final particles in the whole book are the five old ones, and this one place has the modern colloquial 的 instead. Both transcriptions have it, so it is left standing — and it is itself a piece of internal evidence that the text is late.)</p>
+<h2 id="j5">V. Integrity<span class="hz">節儀卷五</span></h2>
+<p class="lead">On integrity. The base text writes the title with a character meaning “decorum”; most printings write it “righteousness”, and the last sentence of the scroll uses that one. The scroll falls in two: first, that the real gentleman is hidden under a petty man’s exterior; then, that integrity does not outweigh gold and righteousness does not outweigh a life. The closing sentence is a rare piece of candour — “this is not the way of integrity; it is the way of staying alive.”</p>
+<h3 id="s5a">The real gentleman and the real petty man</h3>
+<p id="c5-1">A gentleman outside and a petty man within is the real petty man; a petty man outside and a gentleman within is the real gentleman. The man of high character does not preen; the man who holds righteousness heavy holds harm to himself light.</p>
+<p id="c5-2">Men admire the gentleman and act like petty men, because the gentleman is hard to be. Men resent the petty man and have long since forgotten righteousness themselves, because the petty man is under no restraint. What is hard to do yields little; what is unrestrained yields much — and so everyone is a petty man. (This is the skeleton of the book’s reasoning: convert conduct into cost and return, and the conclusion walks out by itself.)</p>
+<h3 id="s5b">Integrity does not outweigh gold</h3>
+<p id="c5-3">The higher the post the lower the integrity; the meaner the man the thinner the righteousness. The gentleman cannot bear to have his purpose insulted; the petty man cannot bear to have his body damaged. So in a disordered age the gentleman withdraws, and the petty man rises at court.</p>
+<p id="c5-4">Integrity does not outweigh gold: a man in want will hardly be a gentleman. Righteousness does not outweigh a life: with the situation dangerous a man will hardly refuse to be a petty man. To care nothing for what is said and to reckon only profit and harm — this is not the way of integrity; it is the way of staying alive. (The one place where the book admits that what it teaches is not righteousness. That admission is also why it goes under the name Classic of the Petty Man.)</p>
+<h2 id="j6">VI. Seeing Clearly<span class="hz">明鑒卷六</span></h2>
+<p class="lead">On seeing. It opens with the rule that a blessing not noticed is no blessing and a disaster not prepared for is certain to be one, and then gives method: spend a little credit to bring off a large deceit; watch small places to settle large plans; never finish a matter, never say all of it, and be on guard even with your nearest. Feign fear while in fact enduring; be deferential outside while resenting within. The second half is franker still — keep people about you only for their use, trust nothing but money, set a crook to catch a crook, and do not put down wickedness gently. The closing line ties it all back to money.</p>
+<h3 id="s6a">Know the luck before it comes</h3>
+<p id="c6-1">A blessing not noticed is no blessing; a disaster not prepared for is bound to be a disaster. Know blessing and disaster before they come, and everything can be brought through.</p>
+<p id="c6-2">Extend a little credit and a large deceit comes off; watch the small places and the large plan settles itself. Do not push a matter to its end, do not say a thing to its end — be on guard even with your nearest. Feign fear while you are in fact enduring, be deferential outside while resenting within, and even a crooked man is taken in. Knowing what to hold back is near to blessing; being able to take men in is far from disaster; wait for the turn and you survive.</p>
+<h3 id="s6b">Set a crook to catch a crook</h3>
+<p id="c6-3">Keep your own people only for their use, and the profit runs long. Favour from on high cannot be reckoned on; only money can be relied upon. Set a crooked man on a crooked man, and when the crooked are gone you are safe. Put down the wicked ungently, and the trouble does not grow back.</p>
+<p id="c6-4">Do not put a plan into effect unless it is gold; do not plan with a man unless he is shrewd; the fool should take this as a warning. (Glosses differ on “gold” — either sound as gold, or money itself. Coming straight after “only money can be relied upon”, the second reading fits.)</p>
+<h2 id="j7">VII. Slander<span class="hz">謗言卷七</span></h2>
+<p class="lead">The one scroll in the book that is method from beginning to end: how to destroy a man. Four sentences, four steps — corner him until he dirties himself, be good to his enemies, dig up his old small business, and put words in his mouth. Then the other side: what to do when it is done to you — do not answer and the thing clears itself, answer hard and it only muddies. The last paragraph is about borrowing force: borrow Heaven’s name to punish a man and hide your own motive, borrow the people’s voice to be believed. Both faces of the book stand side by side here.</p>
+<h3 id="s7a">The four ways to ruin a man</h3>
+<p id="c7-1">With a man of no standing, do not argue; a man of middling ability, do not recommend. Attack him where everyone already resents him, and no one will have him. Corner him and he dirties himself — the easy way. Be good to his enemies and let no one see the connection — the clever way. Dig out the small old business nobody has looked into — the solid way. Put words in his mouth that he cannot argue his way out of — and the thing is done. (Taken together the four are a sequence: find the men who hate him, force him into a false position, open the old ledger, and then invent.)</p>
+<h3 id="s7b">Answering it, and not answering it</h3>
+<p id="c7-2">Slandered and not answering, the matter clears itself and men’s dislike of you falls off a little. Slandered and answering hard, the matter only muddies and men’s resentment grows. (Read against the paragraph before it: that one teaches how to slander, this one what to do when it is your turn.)</p>
+<p id="c7-3">Lose the man above and those below will certainly tear you down; lose those below and the man above will certainly doubt you. Borrow Heaven to reprove a man and your own motive is covered; borrow the people’s voice to speak of a matter and you are believed — and everyone is taken in. (Both kinds of force, the one above and the one below, are treated here purely as things to borrow.)</p>
+<h2 id="j8">VIII. Showing a False Face<span class="hz">示偽卷八</span></h2>
+<p class="lead">On true and false. The opening sentence ties them together — without the false there is no true — and then: the true need not fear the false, the false cannot replace the true, and what is to be feared is only that they cannot be told apart. The middle swaps the test of truth from content to direction: fall in with the man above and even a false thing is no fault; cross him and even a true thing is a crime. The last part turns to loyalty and benevolence: the gentleman’s benevolence does not discard old ties, the petty man’s conduct carries no gratitude — and which of the two a man does has nothing to do with whether he is down or up, and everything to do with the man. Set that against “and so everyone is a petty man” in scroll five.</p>
+<h3 id="s8a">True and false</h3>
+<p id="c8-1">Without the false there is no true. The true does not fear the false and the false cannot stand in for the true; what is to be feared is that they cannot be told apart.</p>
+<p id="c8-2">A false face not well enough made brings disaster on yourself; a true one with no reserve makes men dislike you. Fall in with the man above and the false is no fault; cross him and the true is a crime. In asking, directness is the thing to avoid — go round and you get it. In refusing, plainness is the thing to avoid — put it gently and nothing goes wrong.</p>
+<h3 id="s8b">Loyalty and benevolence</h3>
+<p id="c8-3">Loyalty has benevolence for its master, and the gentleman’s benevolence does not discard old ties. Benevolence has conduct for its master, and there is no gratitude in the petty man’s conduct. The gentleman in straits still does not mislead men; the petty man, once he has risen, turns on the master he had. That is a matter of the false face, not of being down or up. (The cause of conduct is moved back off circumstance and onto the man — the exact reverse of scroll five.)</p>
+<p id="c8-4">A man who does not hold to the common forms is not therefore false; a man who keeps his promise in a bad business is not therefore trustworthy. Things differ, and the handling of them changes with them.</p>
+<h2 id="j9">IX. Bringing a Man to Heel<span class="hz">降心卷九</span></h2>
+<p class="lead">On making men submit. The first sentence disposes of governing by cleverness: cleverness runs out, and then men turn on you; to subdue a man you have to subdue his mind. The middle is technique — a method succeeds by not showing, a plan wins by being used in the dark; against a gentleman use his family as a hostage, against a petty man use a harder hand each time. The end is proportion: benevolence and righteousness must not be poured out, kindness and fear must not fall all on one side. When this book says “beware”, it is nearly always speaking to the man working the lever.</p>
+<h3 id="s9a">Break the mind, not the argument</h3>
+<p id="c9-1">Govern men by cleverness and, when the cleverness runs out, they turn on you. Subdue a man by frightening his mind, and his purpose will not change again.</p>
+<p id="c9-2">When you are in favour above, do not wear the honour on your face; when you are out of favour, do not tie yourself to anyone in the dark. A method succeeds by not showing; a plan wins by being used in the dark. The gentleman is held by his family: take the family as hostage and he falls in of himself. The petty man is afraid of a harder hand: keep the crooked pressure on and he breaks of himself. (One of the very few places where the book names a technique outright.)</p>
+<h3 id="s9b">Remonstrance, kindness and fear</h3>
+<p id="c9-3">Do not put the reason plainly; remonstrance is not a matter of arguing well — it gets through when it gives no offence. Feelings need not be displayed, a matter need not be brought into the open — it is done by going along with the turn of things.</p>
+<p id="c9-4">Benevolence is enough to destroy a gentleman; righteousness will not put down a petty man; so benevolence and righteousness are to be guarded against pouring out. Let kindness not pass over the able; let fear fall on the crooked as well; so kindness and fear are to be guarded against falling on one side. (The first pair is described as powerless, the second as usable — and it is the second that the book actually believes in.)</p>
+<h2 id="j10">X. Reading People<span class="hz">揣知卷十</span></h2>
+<p class="lead">The closing scroll, on sizing people up. Observe well and you know the man; think well and you know his mind; knowing the man you are not afraid, knowing the mind you can guard against it. The middle turns it round: what you know you do not show, for showing it is disaster. The last paragraph is four practical things and the end of the book — set a doubt to test what is true, attach yourself to the powerful to get out of the way of trouble, cultivate the people around a man to learn how he stands, and put him somewhere hard enough to cut off what he is hoping for. After “there is nothing that will not break” the book simply stops.</p>
+<h3 id="s10a">Knowing the man, knowing the mind</h3>
+<p id="c10-1">The good observer knows the man; the good thinker knows the mind. Knowing the man, you are not afraid; knowing the mind, you can hold him off.</p>
+<p id="c10-2">What you know you do not show; showing it is disaster. Take his measure quietly, and what men resent in you dissolves. The gentleman is in the dark about small things and not about large ones; the petty man reckons what is near and not what is far. (The last two clauses are the nearest thing to praise of the gentleman in the whole book — and they come immediately after a passage on hiding what you know.)</p>
+<h3 id="s10b">Doubt, patronage, and the corner they cannot get out of</h3>
+<p id="c10-3">Set a doubt in his way to confuse him, and true and false show up in the mirror. Attach yourself to the powerful and make the connection hold, and disaster can be got out of the way of. Cultivate the men around him to see how things stand, and there is nothing you will not learn. Put him somewhere hard and dangerous to cut off what he is hoping for, and there is nothing that will not break. (鑒, “mirror”, is the same character as in the book’s other title. The book ends on these four clauses: the earlier scrolls still argued; by this point there is nothing but method.)</p>
+
+<div class="colo">
+  <h2 id="ben" class="colo-h">The Text Behind This Page</h2>
+  <p><b>There is no old edition of this book.</b> The modern printings ascribe it to Feng Dao of the Five Dynasties, or to “the Old Man of Changle”, which was his own name for himself. Feng Dao (882–954) was real enough: Ouyang Xiu says he “served four houses and ten rulers” — Later Tang, Later Jin, Later Han and Later Zhou, with the Khitan in between — and he was chief minister for more than twenty years. Late in life he wrote an <i>Account of the Old Man of Changle</i>, which survives in his biography in the <i>Old History of the Five Dynasties</i>, scroll 126. Ouyang Xiu opens scroll 54 of his <i>History of the Five Dynasties</i> with Guanzi on the four bonds of the state — rites, right, integrity and shame — and then: “I have read Feng Dao’s <i>Account of the Old Man of Changle</i>, and seen that he sets it all down as something to be proud of; the man may fairly be called one who had no integrity and no shame.” But the title <i>Rong Ku Jian</i> is in no bibliography. The treatise on literature in the <i>History of the Song</i> (scrolls 202–209) was read through for this page: the two characters do not occur in it anywhere, and under Feng Dao’s name it lists only three collections of his writings. Modern writers on the book say the same of every public and private catalogue from the Song onward. No manuscript and no old printing of it survives. The ten-scroll text in circulation today appears only in popular printings of the last few decades, every one of them carrying the same epigraph — “Zeng Guofan said: one copy of the <i>Rong Ku Jian</i> tells the whole secret art of the petty man” — and not one of them says where it comes from. The <i>Ice Mirror</i>, also on this shelf, is another book hung on Zeng Guofan’s name. The pages here therefore read this one as written under a borrowed name: the attribution follows the modern printing, and the case against it is stated at the head of the first scroll.</p>
+  <p><b>The cover</b> is not this book’s cover; this book has none. It is the opening leaf of scroll 54 of the <i>History of the Five Dynasties</i> in the earliest surviving printing, made in the early Southern Song and repaired under the Song (National Central Library, Taipei, rare book 201.243 01561; 74 scrolls in 18 stitched volumes, twelve columns to the half-leaf, 21–23 characters to the column, block 16.7 × 11.6 cm; collectors’ seals including “Song edition”, “Eastern Palace Library” and two of Yang Shoujing’s). The columns give the scroll and chapter number, Ouyang Xiu as author and Xu Wudang as commentator, and then the men the chapter is about, Feng Dao first; the text begins “The tradition says: rites, right, integrity and shame are the four bonds of the state” and comes within a few lines to Feng Dao’s own account of himself. It is the leaf on which the man whose name is on this book enters the standard histories.</p>
+  <p><b>Base text.</b> The Chinese Wikisource transcription of the <i>Rong Ku Jian</i> in ten scrolls, under the name of the Old Man of Changle: ten scrolls, thirty-six paragraphs, 1,279 characters of text (the punctuation on this page is editorial and is not counted).</p>
+  <p><b>Collation.</b> Compared character by character against a second, independent transcription — the one that descends from the modern annotated translations. The two are the same length to the character, and the whole book yields three points of difference, each noted in the Chinese pages at the paragraph concerned: in scroll three a character that makes no sense in the base text and is corrected from the other witness; in scroll three “above and below fall out”, where the other witness reads “the man above does not fall out with you”, which pairs better with the clause that follows (the base reading is kept and the variant noted); and in scroll four “what is in the light cannot be held down”, where the other witness reads “the dark”, losing the light-and-dark antithesis.</p>
+  <p><b>Conventions.</b> The base text was made by converting a simplified transcription into traditional characters, and four graphs were over-converted; all four are corrected here and noted at the paragraph. Scrolls, paragraphing and punctuation are editorial — the base text has none — and so are the section headings under each scroll. The title of scroll five is kept as the base text writes it, though most printings write it with the character for “righteousness”, which is also the character the scroll’s own last sentence uses. The last word of scroll four is not classical Chinese at all; both witnesses have it, so it stands, with a note.</p>
+  <p class="colo-ai">The chapter summaries and the parenthetical notes are AI-written. The Chinese pages carry the same notes behind a toggle; this page shows them inline.</p>
+</div>
+
+    <a class="top" href="#">— top —</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var d=document;
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>

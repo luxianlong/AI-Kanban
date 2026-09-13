@@ -1,0 +1,42 @@
+--- a/scripts/build-docs-site.mjs	2026-09-13 05:41:20.739578408 +0000
++++ b/scripts/build-docs-site.mjs	2026-09-13 05:41:20.740869513 +0000
+@@ -324,6 +324,39 @@
+       },
+     ],
+   },
++  {
++    key: 'xiaorenjing',
++    cover: '/img/classics/xiaorenjing-cover.jpg',
++    // The second book on this shelf with no edition of its own, and the case is
++    // thinner than 罗织经's: there the TITLE is at least recorded in two histories,
++    // here not even that. 冯道 is real (欧阳修 wrote him up in 《五代史记》卷五十四,
++    // and his own 《长乐老自叙》 survives in 《旧五代史》卷一百二十六), but 《荣枯鉴》
++    // is in no bibliography — 《宋史·艺文志》 lists three collections under his name
++    // and nothing like this — and no old copy of any kind survives. So the cover is
++    // not this book's cover: it is the opening leaf of 《五代史记》卷第五十四
++    // 《杂传第四十二》 in the earliest surviving printing (南宋初刊宋修本; National
++    // Central Library, Taipei, 201.243 01561; 12 columns to the half-leaf, 21-23
++    // characters to the column, block 16.7 x 11.6 cm) — the leaf on which the man
++    // whose name is on this book enters the standard histories, 首列馮道, and whose
++    // first paragraph is 欧阳修 reading 《长乐老叙》 and calling him shameless. The
++    // 3000px render of the opened spread is cut to the left half-leaf (x 48..1340,
++    // y 0..2345, the fold measured off column luminance at x≈1490) and scaled to
++    // 560 wide, so the JPEG simply fills the box.
++    crop: 'background-size:100% 100%;background-position:0% 0%',
++    ar: '.5512',
++    coverAlt:
++      '南宋初刊宋修本《五代史记》卷第五十四《杂传第四十二》卷端叶，首列冯道，下接「传曰：礼义廉耻，国之四维」',
++    editions: [
++      { label: '简体', id: 'upload-xiaorenjing-hans', title: '小人经', imprint: ['旧题五代 · 十卷'] },
++      { label: '繁體', id: 'upload-xiaorenjing', title: '小人經', imprint: ['舊題五代 · 十卷'] },
++      {
++        label: 'English',
++        id: 'upload-xiaorenjing-en',
++        title: 'The Classic of the Petty Man',
++        imprint: ['Ascribed to the Five Dynasties · ten scrolls'],
++      },
++    ],
++  },
+ ]
+ 
+ // A label that isn't one of LANGS would drop that edition off the switch without

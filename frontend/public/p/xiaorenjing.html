@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小人經 · 繁體版</title>
+<meta name="description" content="《小人經》（一名《榮枯鑒》）全本：圓通、聞達、解厄、交結、節儀、明鑒、謗言、示偽、降心、揣知十卷。舊題五代馮道撰，實為今人託名之作——史志不著錄，原書無傳，卷末《底本與校例》具其考。註釋可開關。">
+<style>
+
+
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --seal-soft:#b8705f; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --seal-soft:#c08a78; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Serif CJK TC","Source Han Serif TC","Songti SC","Songti TC",
+    "SimSun","STSong","Noto Serif CJK SC",serif;
+  line-height:2.05; font-size:var(--fs,18px);
+  text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:56px 24px 40px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{
+  margin:0; font-size:clamp(38px,7vw,64px); letter-spacing:.32em;
+  text-indent:.32em; font-weight:600; line-height:1.3;
+}
+.mast .sub{margin:18px 0 0; color:var(--ink-soft); font-size:.92rem;
+  letter-spacing:.12em; text-align:center; text-indent:0}
+.mast .sub b{font-weight:600; color:var(--ink)}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  align-items:center; justify-content:center;
+  padding:10px 16px; background:var(--paper); border-bottom:1px solid var(--rule);
+}
+.bar button,.bar .btn{
+  display:inline-flex; align-items:center; font:inherit; font-size:.78rem; letter-spacing:.1em; cursor:pointer;
+  background:transparent; color:var(--ink-soft); border:1px solid var(--rule);
+  border-radius:999px; padding:6px 14px; text-decoration:none; transition:.15s;
+}
+.bar button:hover,.bar a.btn:hover{border-color:var(--seal); color:var(--seal)}
+.bar button[aria-pressed="true"],.bar .btn.cur{
+  background:var(--seal); border-color:var(--seal); color:var(--paper-2)}
+.grp{display:inline-flex; gap:4px; align-items:center}
+.bar .tag{font-size:.6em; letter-spacing:.06em; opacity:.7; margin-left:.4em;
+  align-self:flex-start; margin-top:.5em}
+.langs .cur{cursor:default}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px; display:grid;
+  grid-template-columns:minmax(0,1fr); gap:40px}
+@media(min-width:1000px){ .wrap{grid-template-columns:232px minmax(0,1fr); gap:56px} }
+
+nav.toc{display:none}
+@media(min-width:1000px){
+  nav.toc{
+    display:block; position:sticky; top:24px; align-self:start;
+    max-height:calc(100vh - 52px); overflow:auto; padding:32px 0 40px;
+    font-size:.8rem; line-height:1.85;
+  }
+  nav.toc a{display:block; color:var(--ink-soft); text-decoration:none;
+    padding:1px 8px; border-left:2px solid transparent}
+  nav.toc a:hover{color:var(--seal)}
+  nav.toc a.on{color:var(--seal); border-left-color:var(--seal)}
+  nav.toc a.l2{margin-top:14px; color:var(--ink); letter-spacing:.08em}
+  nav.toc a.l3{padding-left:20px}
+  nav.toc a.l4{padding-left:32px; font-size:.94em; opacity:.85}
+}
+details.toc-m{margin:26px 0 0; border:1px solid var(--rule); border-radius:8px;
+  background:var(--paper-2); padding:10px 14px; font-size:.85rem}
+@media(min-width:1000px){ details.toc-m{display:none} }
+details.toc-m summary{cursor:pointer; letter-spacing:.2em; color:var(--ink-soft)}
+details.toc-m a{display:block; color:var(--ink-soft); text-decoration:none; padding:2px 0}
+details.toc-m a.l3{padding-left:16px} details.toc-m a.l4{padding-left:30px}
+
+main{padding:34px 0 100px; max-width:42em}
+
+/* ---------- text ---------- */
+h2{
+  margin:78px 0 6px; font-size:1.52rem; font-weight:600;
+  letter-spacing:.26em; text-indent:.26em; scroll-margin-top:24px;
+  padding-bottom:12px; border-bottom:1px solid var(--rule);
+}
+h2:first-of-type{margin-top:30px}
+h3{
+  margin:56px 0 4px; font-size:1.2rem; font-weight:600; color:var(--seal);
+  letter-spacing:.2em; text-indent:.2em; scroll-margin-top:24px;
+}
+p{margin:1.05em 0; text-align:justify; text-justify:inter-ideograph}
+main > p{text-indent:2em}
+
+/* 現代文註釋（AI 生成）— hidden by default */
+.ai{display:none}
+body.ai-on .ai{
+  display:block; margin:.85em 0 1.5em; padding:.75em 2px .75em 16px;
+  text-indent:0; color:var(--ink-soft); font-size:.84em; line-height:1.95;
+  border-left:3px solid var(--accent); border-radius:0 7px 7px 0;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--accent) 9%,transparent), transparent 78%);
+  font-family:"Noto Sans CJK TC","Source Han Sans TC","PingFang TC",
+    "Microsoft JhengHei","Noto Sans CJK SC",system-ui,sans-serif;
+}
+body.ai-on .ai-head::before{
+  float:left; margin:.22em .7em .1em 0;
+  color:var(--accent); border:1px solid var(--accent); border-radius:3px;
+  padding:0 5px; font-size:.78em; letter-spacing:.16em; text-indent:.16em;
+  opacity:.9; white-space:nowrap;
+}
+body.ai-on .ai-head{
+  margin:1.1em 0 1.6em;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--accent) 14%,transparent), transparent 85%);
+}
+body.ai-on .ai-head::before{content:"篇旨"}
+/* 註釋 toggle. The hover tint paints the label green, so it must never apply
+   while the button is ON — green-on-green fill made 註釋 and the AI tag
+   vanish into a solid green pill. Keep an explicit readable colour in both. */
+.bar button#ai[aria-pressed="true"]{
+  background:var(--accent); border-color:var(--accent); color:var(--paper-2)}
+.bar button#ai:not([aria-pressed="true"]):hover{
+  border-color:var(--accent); color:var(--accent)}
+.bar button#ai[aria-pressed="true"]:hover{
+  background:var(--accent); border-color:var(--accent); color:var(--paper-2);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paper-2) 55%,transparent)}
+
+.top{display:block; margin:96px 0 0; text-align:center; color:var(--ink-soft);
+  text-decoration:none; font-size:.78rem; letter-spacing:.24em}
+@media print{ .bar,nav.toc,details.toc-m,.top{display:none} body{--fs:11pt} }
+.colo{margin:96px 0 0; padding:22px 0 0; border-top:1px solid var(--rule);
+  font-size:.86rem; line-height:1.9; color:var(--ink-soft);
+  font-family:"Noto Sans CJK TC","Source Han Sans TC","PingFang TC",
+    "Microsoft JhengHei","Noto Sans CJK SC",system-ui,sans-serif}
+.colo h2.colo-h{margin:0 0 10px; font-size:1.02rem; letter-spacing:.2em;
+  text-indent:.2em; border-bottom:none; padding-bottom:0; color:var(--ink)}
+.colo p{margin:.6em 0; text-indent:0 !important; text-align:justify}
+.colo b{color:var(--ink); font-weight:600}
+.colo .colo-ai{margin-top:1.1em; padding-top:.7em; border-top:1px dashed var(--rule)}
+</style>
+</head>
+<body class="">
+
+<header class="mast">
+  <h1>小人經</h1>
+  <p class="sub">五代　舊題 馮道　撰　·　一名《榮枯鑒》　·　十卷</p>
+</header>
+
+<div class="bar">
+  <div class="grp">
+    <button id="ai" aria-pressed="false" title="現代文註釋（AI 生成），預設隱藏">註釋 <span class="tag">AI</span></button>
+  </div>
+  <div class="grp langs">
+    <a class="btn" href="/p/xiaorenjing-hans.html">简体</a>
+    <span class="btn cur" aria-current="page">繁體</span>
+    <a class="btn" href="/p/xiaorenjing-en.html">EN</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+<a class="l2" href="#j1">圓通卷一</a>
+<a class="l3" href="#s1a">名利之辨</a>
+<a class="l3" href="#s1b">君子與小人</a>
+<a class="l2" href="#j2">聞達卷二</a>
+<a class="l3" href="#s2a">悅上與悅下</a>
+<a class="l3" href="#s2b">實與察</a>
+<a class="l2" href="#j3">解厄卷三</a>
+<a class="l3" href="#s3a">憂與禍</a>
+<a class="l3" href="#s3b">禍於上，禍於下</a>
+<a class="l3" href="#s3c">不黨與利交</a>
+<a class="l2" href="#j4">交結卷四</a>
+<a class="l3" href="#s4a">善惡咸用</a>
+<a class="l3" href="#s4b">示人以愚</a>
+<a class="l3" href="#s4c">仁交與陰結</a>
+<a class="l2" href="#j5">節儀卷五</a>
+<a class="l3" href="#s5a">真君子與真小人</a>
+<a class="l3" href="#s5b">節不抵金</a>
+<a class="l2" href="#j6">明鑒卷六</a>
+<a class="l3" href="#s6a">福禍先知</a>
+<a class="l3" href="#s6b">以奸治奸</a>
+<a class="l2" href="#j7">謗言卷七</a>
+<a class="l3" href="#s7a">謗之四法</a>
+<a class="l3" href="#s7b">辯與不辯</a>
+<a class="l2" href="#j8">示偽卷八</a>
+<a class="l3" href="#s8a">真與偽</a>
+<a class="l3" href="#s8b">忠與仁</a>
+<a class="l2" href="#j9">降心卷九</a>
+<a class="l3" href="#s9a">伏人懾心</a>
+<a class="l3" href="#s9b">諫與恩威</a>
+<a class="l2" href="#j10">揣知卷十</a>
+<a class="l3" href="#s10a">知人知心</a>
+<a class="l3" href="#s10b">設疑與附貴</a>
+<a class="l2" href="#ben">底本與校例</a>
+  </nav>
+
+  <main>
+    <details class="toc-m"><summary>目　錄</summary>
+<a class="l2" href="#j1">圓通卷一</a>
+<a class="l3" href="#s1a">名利之辨</a>
+<a class="l3" href="#s1b">君子與小人</a>
+<a class="l2" href="#j2">聞達卷二</a>
+<a class="l3" href="#s2a">悅上與悅下</a>
+<a class="l3" href="#s2b">實與察</a>
+<a class="l2" href="#j3">解厄卷三</a>
+<a class="l3" href="#s3a">憂與禍</a>
+<a class="l3" href="#s3b">禍於上，禍於下</a>
+<a class="l3" href="#s3c">不黨與利交</a>
+<a class="l2" href="#j4">交結卷四</a>
+<a class="l3" href="#s4a">善惡咸用</a>
+<a class="l3" href="#s4b">示人以愚</a>
+<a class="l3" href="#s4c">仁交與陰結</a>
+<a class="l2" href="#j5">節儀卷五</a>
+<a class="l3" href="#s5a">真君子與真小人</a>
+<a class="l3" href="#s5b">節不抵金</a>
+<a class="l2" href="#j6">明鑒卷六</a>
+<a class="l3" href="#s6a">福禍先知</a>
+<a class="l3" href="#s6b">以奸治奸</a>
+<a class="l2" href="#j7">謗言卷七</a>
+<a class="l3" href="#s7a">謗之四法</a>
+<a class="l3" href="#s7b">辯與不辯</a>
+<a class="l2" href="#j8">示偽卷八</a>
+<a class="l3" href="#s8a">真與偽</a>
+<a class="l3" href="#s8b">忠與仁</a>
+<a class="l2" href="#j9">降心卷九</a>
+<a class="l3" href="#s9a">伏人懾心</a>
+<a class="l3" href="#s9b">諫與恩威</a>
+<a class="l2" href="#j10">揣知卷十</a>
+<a class="l3" href="#s10a">知人知心</a>
+<a class="l3" href="#s10b">設疑與附貴</a>
+<a class="l2" href="#ben">底本與校例</a>
+    </details>
+
+<h2 id="j1">圓通卷一</h2>
+<div class="ai ai-head">全書從「名」與「利」起頭。圓通者，不執一端、隨勢而轉之謂。前半說名利本身無罪，有罪的是人；後半把君子、小人一併拆掉——貴賤得失都不由存心決定，名是虛的，利是惑人的，而小人是多數，多數敵不過。這是全書的立論處：它不勸人做小人，它把「做君子划不來」講成一條可以推演的道理，往下九卷都由此推。這部書沒有古本，題署與出身見卷末《底本與校例》，這裡先說一句：所謂「五代馮道撰」是今人之說，宋以來的公私書目沒有一家著錄過它。</div>
+<h3 id="s1a">名利之辨</h3>
+<p id="c1-1">善惡有名，智者不拘也。天理有常，明者不棄也。道之靡通，易者無虞也。</p>
+<div class="ai" id="ai-c1-1">善和惡各有名目，明白人不被這名目捆住。天理有它的常軌，眼亮的人不丟開它。路通不通，肯變的人不放在心上。（「拘」是拘束、受限；「靡」是無、不；「易」是變易、隨勢而改；「虞」是憂慮。三句一路排下來：名目可以不管，常理不能不認，通塞不必發愁。）</div>
+<p id="c1-2">惜名者傷其名，惜身者全其身。名利無咎，逐之非罪，過乃人也。</p>
+<div class="ai" id="ai-c1-2">愛惜名聲的反而毀了名聲，愛惜身子的倒把身子保住了。名和利本身沒有毛病，去追也不算罪過；有毛病的是人。（「咎」是過失。末句把責任從物移到人身上——這是全書反覆使用的一種手法：先取消對象的善惡，再取消行為的善惡，剩下的只有得失。）</div>
+<h3 id="s1b">君子與小人</h3>
+<p id="c1-3">君子非貴，小人非賤，貴賤莫以名世。君子無得，小人無失，得失無由心也。名者皆虛，利者惑人，人所難拒哉。</p>
+<div class="ai" id="ai-c1-3">君子並不因此就尊貴，小人並不因此就下賤，貴賤不是靠這種名目定於世的。君子未必得到，小人未必失去，得失不取決於存心。名都是空的，利是能迷人的，而人很難拒絕。（「莫以名世」是不憑名目立於世；「無由心也」是不取決於存心。）</div>
+<p id="c1-4">榮或為君子，枯必為小人。君子無及，小人乃眾，眾不可敵矣。名可易事難易也，心可易命難易也，人不患君子，何患小人焉？</p>
+<div class="ai" id="ai-c1-4">顯達的人有時被稱作君子，敗落的人一定被叫作小人。做得到君子的沒有幾個，小人卻是多數，多數是敵不過的。名聲可以換，事情不好換；心地可以換，命不好換。人本來就不去害君子，又何必去害小人。（「無及」是及不上、做不到；「敵」是抵擋。末句舊註不一：一說「一般人不加害君子，更不會加害小人」，一說「連君子都不必憂慮，何況小人」；兩說都通，而全卷的結論一樣——做君子划不來。「榮」「枯」二字即本書另一個名字《榮枯鑒》所本。）</div>
+<h2 id="j2">聞達卷二</h2>
+<div class="ai ai-head">講做官，怎麼升上去。「聞達」二字出諸葛亮《出師表》「不求聞達於諸侯」，這裡整個反用。一條總則：悅上者榮，悅下者蹇；只直不媚上頭起疑，只媚不直下頭拋棄——既然只能取一頭，就取上頭。後半立起兩根柱子：不被虛名綁住叫「實」，不以奸行為恥叫「察」，合起來是「無羈無恥」四個字。這是全書寫得最直白的一處。</div>
+<h3 id="s2a">悅上與悅下</h3>
+<p id="c2-1">仕不計善惡，遷無論奸小。悅上者榮，悅下者蹇。君子悅下，上不惑名。小人悅上，下不懲惡。下以直為美，上以媚為忠。直而無媚，上疑也；媚而無直，下棄也。上疑禍本，下棄毀譽，榮者皆有小人之謂，蓋固本而舍末也。</p>
+<div class="ai" id="ai-c2-1">做官不論善惡，升遷不問奸不奸、小不小。討上頭喜歡的顯達，討下頭喜歡的困頓。君子討下頭喜歡，上頭就不被他的名聲迷住；小人討上頭喜歡，下頭的惡就沒人懲治。下頭以正直為美，上頭以順從為忠。只直不媚，上頭起疑；只媚不直，下頭拋棄。上頭起疑是禍的根，下頭拋棄不過壞了名聲；顯達的人都免不了被叫作小人，因為他們保住了根、丟掉了枝。（「蹇」音 jiǎn，困頓不順；「懲」是懲治。「固本而舍末」把上頭的信任定為本、下頭的口碑定為末——全書的取捨都從這一句推出去。）</div>
+<h3 id="s2b">實與察</h3>
+<p id="c2-2">富貴有常，其道乃實。福禍非命，其道乃察。實不為虛名所羈，察不以奸行為恥。無羈無恥，榮之義也。</p>
+<div class="ai" id="ai-c2-2">富貴是有常道的，那條道叫「實」；福禍不是命定的，那條道叫「察」。實，就是不被虛名綁住；察，就是不把奸詐的行為當成恥辱。不被綁住、不知恥辱，這就是「榮」的含義。（「羈」本是馬絡頭，引申為束縛。「無羈無恥」四字是本書最露骨的一句，歷來引它的人多，替它辯解的人少。）</div>
+<p id="c2-3">求名者莫仕，位非名也。求官者莫名，德非榮也。君子言心，小人攻心，其道不同，其效自異哉。</p>
+<div class="ai" id="ai-c2-3">想要名聲的別做官，官位換不來名聲；想要官位的別要名聲，德行換不來顯達。君子談論人心，小人算計人心；路子不同，結果自然兩樣。（「言心」與「攻心」只差一字：一個是講，一個是打。）</div>
+<h2 id="j3">解厄卷三</h2>
+<div class="ai ai-head">講怎麼從禍事裡脫身。前提是「無憂則患烈」——不預先擔心，禍來了就重。辦法分上下兩頭：對上不失其心，對下不結怨；真出了事，在上頭面前不辯而自認，在下頭面前搶先把人扯進來。末段是全書最冷的一段：君子不結黨，所以出事沒人幫；小人以利相交，所以出事有人幫。「道義失之無懲」六個字，是它替小人寫的辯護詞。</div>
+<h3 id="s3a">憂與禍</h3>
+<p id="c3-1">無憂則患烈也。憂國者失身，憂己者安命。禍之人拒，然亦人納；禍之人怨，然亦人遇。君子非惡，患事無休；小人不賢，餘慶弗絕。</p>
+<div class="ai" id="ai-c3-1">不先憂慮，禍患來了就烈。替國家憂的把自己搭進去，替自己憂的把命保住。禍是人人都推開的，可也是人自己招來的；禍是人人都怨的，可也是人人都碰得上的。君子並不作惡，麻煩卻不斷；小人算不上賢良，好日子卻不絕。（「納」是收進、自取。「餘慶」出《易·坤·文言》「積善之家必有餘慶」——本書把這句話整個倒過來用。底本此字作「佘」，於此無義，據通校本改。）</div>
+<h3 id="s3b">禍於上，禍於下</h3>
+<p id="c3-2">上下離心，非小人難為；下不結怨，非君子勿論。禍於上，無辯自罪者全。禍於下，爭而罪人者免。</p>
+<div class="ai" id="ai-c3-2">上下一離心，不是小人辦不到；下頭不結怨，不是君子談不上。上頭出了事，不辯解、自己認罪的保得住；下頭出了事，搶先把罪推給別人的脫得開。（通校本首句作「上不離心」——與下句「下不結怨」正對，於文為順，意謂「要上頭不生二心，不做小人做不到」。底本作「上下離心」亦可通，今仍從底本，並存異文。）</div>
+<h3 id="s3c">不黨與利交</h3>
+<p id="c3-3">君子不黨，其禍無援也。小人利交，其利人助也。道義失之無懲，禍無解處必困，君子莫能改之，小人或可諒矣。</p>
+<div class="ai" id="ai-c3-3">君子不結黨，所以出了禍沒人搭救；小人以利相交，有利可圖時不缺幫手。丟掉道義並不受什麼懲罰，禍事沒有解法就一定困住；君子改不了這一條，小人倒或許還情有可原。（「不黨」用《論語·述而》「君子不黨」義。末句是全書的辯護詞：既然道義既無償又無罰，做小人便被說成一種可以原諒的選擇。）</div>
+<h2 id="j4">交結卷四</h2>
+<div class="ai ai-head">講交人。第一句就把賢與惡並列為可用之物，第二句把敵友說成隨時對調。中段講「示人以愚」：讓人以為你蠢，謀才做得大——與《老子》「大智若愚」形似而心異，一個是不炫，一個是設局。末段是全書被引得最多的一句：君子以仁相交，只怕仁不夠周到；小人在暗處結夥，只怕明處的壓不下去。君子鬥不過小人，就敗在這裡。</div>
+<h3 id="s4a">善惡咸用</h3>
+<p id="c4-1">智不拒賢，明不遠惡，善惡咸用也。順則為友，逆則為敵，敵友常易也。</p>
+<div class="ai" id="ai-c4-1">有智的不拒絕賢人，明白的不疏遠惡人，善的惡的都拿來用。順著自己的是朋友，逆著自己的是敵人，敵友是常常對調的。（「咸」是都、皆。底本此字作「鹹」，係簡繁轉換之誤，據通校本正。）</div>
+<p id="c4-2">貴以識人者貴，賤以養奸者賤。貴不自貴，賤不自賤，貴賤易焉。貴不賤人，賤不貴人，貴賤久焉。</p>
+<div class="ai" id="ai-c4-2">因為認得人而顯貴的才真貴，因為養著奸人而下賤的就真賤。顯貴的不自以為貴，卑賤的不自甘於賤，貴賤就會對調；顯貴的不輕賤人，卑賤的不高抬人，貴賤就長久不變。（四句兩兩相對，說的是一件事的兩面：位置會動，而態度決定它往哪邊動。）</div>
+<h3 id="s4b">示人以愚</h3>
+<p id="c4-3">人冀人愚而自明，示人以愚，其謀乃大。人忌人明而自愚，智無潛藏，其害無止。明不接愚，愚者勿長其明。智不結怨，仇者無懼其智。</p>
+<div class="ai" id="ai-c4-3">人都盼別人蠢而自己精，所以把蠢的一面擺給人看，謀才做得大。人都忌別人精而自己蠢，智謀藏不住，害處就沒個完。明白人不去交接蠢人，蠢人不會讓你更明白；有智的不去結怨，結了仇的人不會因為你有智就怕你。（「冀」是希望；「潛藏」是深藏。「示人以愚」與《老子》「大智若愚」形似而心異：一個是不炫，一個是設局。）</div>
+<h3 id="s4c">仁交與陰結</h3>
+<p id="c4-4">君子仁交，惟憂仁不盡善。小人陰結，惟患陽不制的。君子弗勝小人，殆於此也。</p>
+<div class="ai" id="ai-c4-4">君子用仁去交往，只擔心自己的仁還不夠周全；小人在暗處結夥，只擔心明處的壓不下去。君子鬥不過小人，差不多就差在這裡。（「陰」「陽」在此是暗與明。末字「的」不成文言：全書句末的語助詞只有也、矣、焉、哉、耳五個，獨此一處作「的」，通校本亦同，無從據改，姑存其舊——這個字本身就是今本晚出的一條內證。又通校本此句作「惟患陰不制的」，失了陰陽相對，今從底本。）</div>
+<h2 id="j5">節儀卷五</h2>
+<div class="ai ai-head">講氣節。標題底本作「節儀」，通行印本多作「節義」，而卷末「此非節義之道」正用「義」字。全卷分兩截：前截說真君子藏在小人的外表下面，後截說氣節抵不過金錢、道義抵不過性命。末句是本書少見的坦白——「此非節義之道，然生之道焉」：我講的不是節義，是活命。</div>
+<h3 id="s5a">真君子與真小人</h3>
+<p id="c5-1">外君子而內小人者，真小人也。外小人而內君子者，真君子也。德高者不矜，義重者輕害。</p>
+<div class="ai" id="ai-c5-1">外面是君子、裡面是小人的，才是真小人；外面像小人、裡面是君子的，才是真君子。德高的不自誇，重義的把自身的損害看得輕。（「矜」是自恃、誇耀。）</div>
+<p id="c5-2">人慕君子，行則小人，君子難為也。人怨小人，實則忘義，小人無羈也。難為獲寡，無羈利豐，是以人皆小人也。</p>
+<div class="ai" id="ai-c5-2">人嘴上仰慕君子，做起來是小人，因為君子難做；人嘴上怨恨小人，實際上早把義丟了，因為做小人沒有拘束。難做的所得少，無拘束的獲利多，所以人人都成了小人。（這一段是全書的推理骨架：把行為換算成成本與收益，結論便自己走出來。）</div>
+<h3 id="s5b">節不抵金</h3>
+<p id="c5-3">位高節低，人賤義薄。君子不堪辱其志，小人不堪壞其身。君子避於亂也，小人達於朝堂。</p>
+<div class="ai" id="ai-c5-3">位子越高氣節越低，人越卑賤道義越薄。君子受不了志向被侮辱，小人受不了身子被毀壞。所以亂世裡君子躲開，小人在朝堂上得志。（底本「志」作「誌」，係簡繁轉換之誤，據通校本正；卷九「其志無改」同。）</div>
+<p id="c5-4">節不抵金，人困難為君子。義不抵命，勢危難拒小人。不畏人言，惟計利害，此非節義之道，然生之道焉。</p>
+<div class="ai" id="ai-c5-4">氣節抵不過金子，人窮的時候難做君子；道義抵不過性命，形勢危急的時候難免做小人。不怕人議論，只算利害——這不是節義之道，卻是活命之道。（末句是全書唯一一次承認自己講的不是道義；「然生之道焉」五字，也是它被稱作《小人經》的由來。）</div>
+<h2 id="j6">明鑒卷六</h2>
+<div class="ai ai-head">講看人看事。開口就是「福不察非福，禍不預必禍」，接著給出一串具體辦法：用小信換大詐，盯小處定大謀；話不說盡、事不做絕，連至親也要防；裝怕、裝恭而心裡忍著、忌著。後半更露——用人只論有沒有用，靠山只靠錢，用奸人去治奸人，治惡不可用善。末句「計非金者莫施」把一切收束在錢上。</div>
+<h3 id="s6a">福禍先知</h3>
+<p id="c6-1">福不察非福，禍不預必禍。福禍先知，事盡濟耳。</p>
+<div class="ai" id="ai-c6-1">福來了看不出來就不算福，禍來了不預先防就一定成禍。福禍能先知道，事情就都辦得成。（「濟」是成、渡過。）</div>
+<p id="c6-2">施小信而大詐逞，窺小處而大謀定。事不可絕，言不能盡，至親亦戒也。佯懼實忍，外恭內忌，奸人亦惑也。知戒近福，惑人遠禍，俟變則存矣。</p>
+<div class="ai" id="ai-c6-2">給一點小信用，大的詐術就行得通；盯住小地方，大的謀劃才定得下來。事不做絕，話不說盡，對最親的人也要留一手。假裝害怕而其實忍著，外面恭敬而心裡忌恨，連奸人也會被騙過去。懂得留一手就近於福，騙得過人就遠於禍，等到局面一變就能存身。（「逞」是得逞；「佯」是假裝；「俟」音 sì，等待。）</div>
+<h3 id="s6b">以奸治奸</h3>
+<p id="c6-3">私人惟用，其利致遠。天恩難測，惟財可恃。以奸治奸，奸滅自安。伏惡勿善，其患不生。</p>
+<div class="ai" id="ai-c6-3">用自己人只看有沒有用處，利益才能長遠。上頭的恩典難以預料，只有錢財靠得住。用奸人去收拾奸人，奸人滅了自己就安穩。制服惡人不要用善法，禍患才不會再生。（「私人」指親信；「伏」是制伏。）</div>
+<p id="c6-4">計非金者莫施，人非智者弗謀，愚者當戒哉。</p>
+<div class="ai" id="ai-c6-4">不是萬全的計不要施行，不是有智的人不要與他共謀；蠢人應當引以為戒。（「計非金者」舊註兩說：一說「金」謂萬全、如金之固，一說「金」就是錢——與上段「惟財可恃」相承，後說於此為順。）</div>
+<h2 id="j7">謗言卷七</h2>
+<div class="ai ai-head">全書唯一一卷通篇是辦法，講怎麼毀一個人。四句四個步驟：把他逼到窘境讓他自污、厚待他的仇人、翻他的舊事、替他編話。接著講被謗時怎麼辦——不辯自明，強辯反濁。末段講借力：借上頭的名義壓人，借眾人的嘴取信。同一部書裡兩副面孔，就在這一卷裡挨著。</div>
+<h3 id="s7a">謗之四法</h3>
+<p id="c7-1">人微不諍，才庸不薦。攻其人忌，人難容也。陷其窘地人自汙，謗之易也。善其仇者人莫識，謗之奇也。究其末事人未察，謗之實也。設其惡言人弗辯，謗之成也。</p>
+<div class="ai" id="ai-c7-1">地位低的人不必跟他爭辯，才具平庸的人不必薦舉。攻他被眾人忌恨的地方，眾人就容不下他。把他逼到窘境，他自己就髒了——這是毀謗裡最省力的。厚待跟他有仇的人而別人看不出來——這是毀謗裡的奇招。翻出他不為人知的小事——這是毀謗裡最紮實的。替他編出惡言而他辯不清——毀謗就成了。（「諍」是直言爭辯；「汙」是「污」的異體字；「末事」是細小舊事。四句合起來是一套次序：先找恨他的人，再逼他失態，再翻舊帳，最後造話。）</div>
+<h3 id="s7b">辯與不辯</h3>
+<p id="c7-2">謗而不辯，其事自明，人惡稍減也。謗而強辯，其事反濁，人怨益增也。</p>
+<div class="ai" id="ai-c7-2">被謗而不辯，事情自己會清楚，別人的厭惡還能減幾分；被謗而硬辯，事情反而更渾，別人的怨恨只會更多。（與上段對看：上段教人怎麼謗，這段教人被謗時怎麼辦。）</div>
+<p id="c7-3">失之上者，下必毀之；失之下者，上必疑之。假天責人掩私，假民言事見信，人者盡惑焉。</p>
+<div class="ai" id="ai-c7-3">失了上頭的信任，下頭一定跟著毀他；失了下頭的人心，上頭一定跟著疑他。借「天意」去責備人，好遮自己的私心；借「民意」去說事，好取得信任——人就都被蒙住了。（「假」是借。這一段把上下兩種勢都當作可以借用的工具。）</div>
+<h2 id="j8">示偽卷八</h2>
+<div class="ai ai-head">講真與假。第一句「無偽則無真」把兩者綁在一起，接著說真不必忌假、假不能代真，可怕的只是分不清。中段把真偽的判準從內容換成方向：順上頭的，假也不算過；逆上頭的，真也是罪。後段講忠與仁：君子的仁是不棄舊，小人的行是不懷恩——而做不做得出來，跟困厄顯達無關，只跟人本身有關。這一句與卷五「是以人皆小人也」正好相反相成。</div>
+<h3 id="s8a">真與偽</h3>
+<p id="c8-1">無偽則無真也。真不忌偽，偽不代真，忌其莫辯。</p>
+<div class="ai" id="ai-c8-1">沒有假就沒有真。真的不怕假的，假的代替不了真的，可怕的是分不清。（「辯」通「辨」，分別。）</div>
+<p id="c8-2">偽不足自禍，真無忌人惡。順其上者，偽非過焉。逆其上者，真亦罪焉。求忌直也，曲之乃得。拒忌明也，婉之無失。</p>
+<div class="ai" id="ai-c8-2">假裝得不夠像，就會害了自己；真誠得沒有顧忌，也會招人厭惡。順著上頭的意思，假的也不算過錯；逆著上頭的意思，真的也是罪過。有求於人最忌直說，繞著說才求得到；拒絕人最忌說明白，婉轉說才不出錯。（「偽不足自禍」舊註兩說：一說「假得不徹底反而惹禍」，一說「作假本身不足以自招禍」；與下句「真無忌人惡」相對，前說為順。）</div>
+<h3 id="s8b">忠與仁</h3>
+<p id="c8-3">忠主仁也，君子仁不棄舊。仁主行也，小人行弗懷恩。君子困不惑人，小人達則背主，偽之故，非困達也。</p>
+<div class="ai" id="ai-c8-3">忠以仁為主，君子講仁就不拋棄舊人；仁要落在行上，小人的行事裡沒有感恩。君子就是困窘也不去騙人，小人一顯達就背棄舊主——這是偽不偽的緣故，不是困窘還是顯達的緣故。（末句把行為的原因從處境挪回人身上，與卷五「是以人皆小人也」相反相成。）</div>
+<p id="c8-4">俗禮不拘者非偽，事惡守諾者非信，物異而情易矣。</p>
+<div class="ai" id="ai-c8-4">不守俗套的算不上偽，明知是壞事還守約的算不上信；事情不同，處置也要跟著變。（通校本此句斷作「俗禮，不拘者非偽；事惡，守諾者非信」，義同而標點異。）</div>
+<h2 id="j9">降心卷九</h2>
+<div class="ai ai-head">講怎麼讓人服。頭一句就把「以智治人」否掉——智總有用盡的一天，人就背你；要服人得懾服他的心。中段是手法：不顯的術才成功，暗用的謀才取勝；對君子用他的親人作質，對小人一次比一次狠。末段講分寸：仁義不可濫，恩威不可偏。全書講「戒」，多半是講給施術的人聽的。</div>
+<h3 id="s9a">伏人懾心</h3>
+<p id="c9-1">以智治人，智窮人背也。伏人懾心，其志無改矣。</p>
+<div class="ai" id="ai-c9-1">靠智謀去管人，智謀用盡了人就背離你；要制伏人得先懾服他的心，這樣他的心志才不會再變。（「懾」是使之畏服。底本「志」作「誌」，係簡繁轉換之誤，據通校本正。）</div>
+<p id="c9-2">上寵者弗明貴，上怨者休暗結。術不顯則功成，謀暗用則致勝。君子制於親，親為質自從也。小人畏於烈，奸恒施自敗也。</p>
+<div class="ai" id="ai-c9-2">上頭寵你的時候不要把尊貴擺在臉上，上頭怨你的時候不要在暗處結黨。手段不顯露才辦得成，謀劃暗裡用才取得勝。君子受制於親情，拿他的親人作人質，他自然就順從；小人怕更狠的，奸法不斷地施下去，他自然就垮。（「恒」是常、不斷。此段是全書罕見的一處直說手段。）</div>
+<h3 id="s9b">諫與恩威</h3>
+<p id="c9-3">理不直言，諫非善辯，無嫌乃及焉。情非彰示，事不昭顯，順變乃就焉。</p>
+<div class="ai" id="ai-c9-3">道理不要直說，進諫不靠能言善辯，不惹人嫌才說得進去。心意不必擺明，事情不必挑開，順著局面變才辦得成。（「及」是達到、說得進；「就」是成。）</div>
+<p id="c9-4">仁堪誅君子，義不滅小人，仁義戒濫也。恩莫棄賢者，威亦施奸惡，恩威戒偏也。</p>
+<div class="ai" id="ai-c9-4">仁足以害了君子，義卻滅不掉小人，所以仁義最忌濫用。施恩不要漏掉賢能的人，威罰也要落到奸惡的人身上，所以恩威最忌偏在一邊。（「堪」是能夠、足以。上句說仁義的無力，下句說恩威的用法——本書真正信的是後一對。）</div>
+<h2 id="j10">揣知卷十</h2>
+<div class="ai ai-head">收尾一卷，講揣摩。善察知人，善思知心；知道了就不怕，也防得住。中段講反面：知道的不給人看，看出去就是禍。末段四句是全書的收束，也是四件實事——設疑以驗真偽，附貴以避殃禍，結交左右以探消息，置人於險難以絕其念。「無不破哉」三字之後，全書就沒有了。</div>
+<h3 id="s10a">知人知心</h3>
+<p id="c10-1">善察者知人，善思者知心。知人不懼，知心堪禦。</p>
+<div class="ai" id="ai-c10-1">善於觀察的能看清人，善於思索的能看清心。看清了人就不怕，看清了心就防得住。（「禦」是抵擋、防備。）</div>
+<p id="c10-2">知不示人，示人者禍也。密而測之，人忌處解矣。君子惑於微，不惑於大。小人慮於近，不慮於遠。</p>
+<div class="ai" id="ai-c10-2">知道的不擺給人看，擺出去就是禍。暗暗地去測度，別人忌恨的地方就化開了。君子在小事上糊塗，大事上不糊塗；小人只算眼前，不算長遠。（末兩句是全書對君子唯一一句近乎褒揚的話，而它接在一段教人藏智的話後面。）</div>
+<h3 id="s10b">設疑與附貴</h3>
+<p id="c10-3">設疑而惑，真偽可鑒焉。附貴而緣，殃禍可避焉。結左右以觀情，無不知也。置險難以絕念，無不破哉。</p>
+<div class="ai" id="ai-c10-3">故意設下疑點去迷惑他，真假就照得出來。攀附顯貴、結上這層緣分，災禍就躲得開。結交他左右的人來看他的情形，沒有打聽不到的；把他放到險難裡去斷他的念頭，沒有攻不破的。（「鑒」是照、辨，與書的另一個名字《榮枯鑒》同字；「緣」是攀結緣分。全書以此四句作結——前面幾卷還在講道理，到這裡只剩辦法。）</div>
+
+<div class="colo">
+  <h2 id="ben" class="colo-h">底本與校例</h2>
+  <p><b>這部書沒有古本。</b>今本題「五代　馮道　撰」，或題「長樂老　撰」。馮道（八八二—九五四）確有其人：歐陽修說他「事四姓十君」（後唐、後晉、後漢、後周，其間並事契丹），拜相二十餘年；乾祐中他自作《長樂老自敘》，文存《舊五代史》卷一百二十六本傳。歐陽修《五代史記》卷五十四《雜傳第四十二》開卷第一段，先引管子「禮義廉恥，國之四維」，接著就是「予讀馮道《長樂老敘》，見其自述以為榮，其可謂無廉恥者矣」。但《榮枯鑒》這個書名，史志不見著錄——《宋史·藝文志》八卷（《宋史》卷二〇二至二〇九）本頁逐條檢過，全志不見「榮枯」二字，馮道名下只有《馮道集》六卷、《河間集》五卷、《詩集》十卷三種；今人論此書者，也都說宋元以來的公私書目沒有一家著錄它。更沒有任何寫本、刻本傳世。今天流通的十卷本只見於近數十年的通俗印本，每一種都印著同一句題辭——「曾國藩曰：一部《榮枯鑒》，道盡小人之秘技，人生之榮枯」——而一概不注出處。本架上的《冰鑑》也是託在曾國藩名下的一種。本頁因此把它當託名之作來讀：題署照今本作「五代　舊題 馮道　撰」，反證擺在卷一篇旨的開頭。</p>
+  <p><b>封面</b>不是這部書的封面——這部書沒有封面。用的是南宋初刊宋修本《五代史記》卷第五十四的卷端葉（臺灣國家圖書館藏，善本書號 201.243 01561，七十四卷十八冊，十二行行二十一至二十三字，小字雙行行二十四至二十七字，左右雙欄，白口單魚尾，版匡一六·七×一一·六公分，鈐「宋本」「東宮文庫」「楊印守敬」「星吾海外訪得祕笈」諸印）。葉上自右而左是「五代史記卷第五十四／雜傳第四十二　歐陽脩撰／馮道　徐無黨注／李琪　鄭珏／李愚　盧導　司空頎」，接著就是「傳曰：禮義廉恥，國之四維……予讀馮道《長樂老敘》，見其自述以為榮」。被署上名字的那個人，在正史裡被立傳的第一葉，就是這一葉。裁法：3000px 寬的雙葉渲染，按列亮度量出書口在 x≈1490，取左半葉 x 48..1340、y 0..2345，縮到 560 寬。</p>
+  <p><b>正文底本</b>用維基文庫錄文《榮枯鑒》十卷（題「長樂老」撰），全書十卷三十六段，正文一千二百七十九字（本頁所加的標點不計在內）。</p>
+  <p><b>通校</b>軒宇閱讀網所收《荣枯鉴》原文（與博古文刊本同一系統，即今傳白話譯註本的一路），逐字機器比對。兩本字數相同，同為一千二百七十九字，全書只得異文三處，每一處都在該段註釋裡出校：卷三「餘慶弗絕」（底本作「佘」，不成義，從通校本）；卷三「上下離心」（通校本作「上不離心」，與下句「下不結怨」正對，今仍從底本並存異）；卷四「惟患陽不制」（通校本作「陰」，失了陰陽相對，今從底本）。</p>
+  <p><b>凡例</b>：一、底本係由簡體錄文轉成繁體，過度轉換四處——卷三「佘」當作「餘」，卷四「鹹」當作「咸」，卷五、卷九「誌」當作「志」——本頁一律改正並在該段註釋裡出校。二、卷、段與標點為本頁所加；底本無句讀，每卷下的小標題亦為本頁所立。三、卷五標題底本作「節儀」，通行印本多作「節義」，而該卷末句正作「此非節義之道」；今從底本作「儀」，記於此。四、卷四末字「的」不成文言，兩本皆同，無從據改，仍其舊而出校——全書句末的語助詞只有也、矣、焉、哉、耳五個，獨此一處例外。</p>
+  <p class="colo-ai">篇旨與註釋為 AI 所撰，可用工具欄第一顆按鈕開關。</p>
+</div>
+
+    <a class="top" href="#">— 回頂 —</a>
+  </main>
+</div>
+
+<script>
+(function(){
+  var b=document.body, d=document;
+
+  var ai=d.getElementById('ai');
+  function setAi(on){
+    b.classList.toggle('ai-on', on);
+    ai.setAttribute('aria-pressed', on?'true':'false');
+    try{ localStorage.setItem('xrj-ai', on?'on':'off'); }catch(e){}
+  }
+  var savedAi='off';
+  try{ savedAi=localStorage.getItem('xrj-ai')||'off'; }catch(e){}
+  setAi(savedAi==='on');
+  ai.onclick=function(){ setAi(ai.getAttribute('aria-pressed')!=='true'); };
+
+  // highlight the section currently in view
+  var links=[].slice.call(d.querySelectorAll('nav.toc a'));
+  var map={}; links.forEach(function(a){ map[a.getAttribute('href').slice(1)]=a; });
+  var heads=[].slice.call(d.querySelectorAll('main h2[id],main h3[id]'));
+  var active=null;
+  function sync(){
+    var cur=heads[0];
+    for(var i=0;i<heads.length;i++){
+      if(heads[i].getBoundingClientRect().top<=90) cur=heads[i]; else break;
+    }
+    var id=cur&&cur.id;
+    if(id===active) return;
+    if(active&&map[active]) map[active].classList.remove('on');
+    active=id;
+    if(map[id]){ map[id].classList.add('on');
+      if(map[id].scrollIntoView) map[id].scrollIntoView({block:'nearest'}); }
+  }
+  if(heads.length){
+    var tick=false;
+    addEventListener('scroll',function(){
+      if(tick) return; tick=true;
+      requestAnimationFrame(function(){ tick=false; sync(); });
+    },{passive:true});
+    sync();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,12 +1,57 @@
 [
   {
+    "id": "upload-xiaorenjing-en",
+    "title": "The Classic of the Petty Man — Xiao Ren Jing (English)",
+    "href": "/p/xiaorenjing-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T05:43:18.751Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/xiaorenjing-en.html",
+      "frontend/public/p/xiaorenjing-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-xiaorenjing-hans",
+    "title": "小人经 · 简体版",
+    "href": "/p/xiaorenjing-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T05:43:18.750Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/xiaorenjing-hans.html",
+      "frontend/public/p/xiaorenjing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-xiaorenjing",
+    "title": "小人經 · 繁體版",
+    "href": "/p/xiaorenjing.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T05:43:18.750Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/xiaorenjing.html",
+      "frontend/public/p/xiaorenjing.meta.json"
+    ]
+  },
+  {
     "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经",
     "href": "/p/dianji.html",
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:57:18.476Z",
+    "updatedAt": "2026-09-13T05:40:55.753Z",
     "isNew": true,
     "private": false,
     "paths": [
