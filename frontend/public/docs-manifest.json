@@ -1,12 +1,72 @@
 [
   {
+    "id": "upload-caigentan-en",
+    "title": "The Vegetable Root Discourses — Caigentan (English)",
+    "href": "/p/caigentan-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T09:39:08.586Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/caigentan-en.html",
+      "frontend/public/p/caigentan-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-caigentan-hans",
+    "title": "菜根谭 · 简体版",
+    "href": "/p/caigentan-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T09:39:08.585Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/caigentan-hans.html",
+      "frontend/public/p/caigentan-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-caigentan",
+    "title": "菜根譚 · 繁體版",
+    "href": "/p/caigentan.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T09:39:08.584Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/caigentan.html",
+      "frontend/public/p/caigentan.meta.json"
+    ]
+  },
+  {
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经",
+    "href": "/p/dianji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T09:38:00.689Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
+    ]
+  },
+  {
     "id": "upload-xiaorenjing-en",
     "title": "The Classic of the Petty Man — Xiao Ren Jing (English)",
     "href": "/p/xiaorenjing-en.html",
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-13T05:43:18.751Z",
+    "updatedAt": "2026-09-13T08:08:06.738Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -21,7 +81,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-13T05:43:18.750Z",
+    "updatedAt": "2026-09-13T08:08:06.738Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -36,27 +96,12 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-13T05:43:18.750Z",
+    "updatedAt": "2026-09-13T08:08:06.737Z",
     "isNew": true,
     "private": false,
     "paths": [
       "frontend/public/p/xiaorenjing.html",
       "frontend/public/p/xiaorenjing.meta.json"
-    ]
-  },
-  {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经",
-    "href": "/p/dianji.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-13T05:40:55.753Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
     ]
   },
   {
@@ -66,7 +111,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:41:23.235Z",
+    "updatedAt": "2026-09-13T08:07:31.711Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -81,7 +126,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:41:23.235Z",
+    "updatedAt": "2026-09-13T08:07:31.711Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -96,12 +141,102 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-12T14:41:23.235Z",
+    "updatedAt": "2026-09-13T08:07:31.709Z",
     "isNew": true,
     "private": false,
     "paths": [
       "frontend/public/p/luozhijing.html",
       "frontend/public/p/luozhijing.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sushu-en",
+    "title": "Su Shu — The Plain Book (English)",
+    "href": "/p/sushu-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T08:07:31.709Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sushu-en.html",
+      "frontend/public/p/sushu-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sushu-hans",
+    "title": "素书 · 简体版",
+    "href": "/p/sushu-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T08:07:31.709Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sushu-hans.html",
+      "frontend/public/p/sushu-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sushu",
+    "title": "素書 · 繁體版",
+    "href": "/p/sushu.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T08:07:31.708Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sushu.html",
+      "frontend/public/p/sushu.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun-en",
+    "title": "Liaofan’s Four Lessons (English)",
+    "href": "/p/liaofansixun-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T08:07:31.707Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun-en.html",
+      "frontend/public/p/liaofansixun-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun-hans",
+    "title": "了凡四训 · 简体版",
+    "href": "/p/liaofansixun-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T08:07:31.706Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun-hans.html",
+      "frontend/public/p/liaofansixun-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun",
+    "title": "了凡四訓 · 繁體版",
+    "href": "/p/liaofansixun.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-13T08:07:31.705Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun.html",
+      "frontend/public/p/liaofansixun.meta.json"
     ]
   },
   {
@@ -147,66 +282,6 @@
     "paths": [
       "frontend/public/p/shangjunshu.html",
       "frontend/public/p/shangjunshu.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sushu-hans",
-    "title": "素书 · 简体版",
-    "href": "/p/sushu-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T13:33:50.813Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sushu-hans.html",
-      "frontend/public/p/sushu-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sushu",
-    "title": "素書 · 繁體版",
-    "href": "/p/sushu.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T13:33:50.812Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sushu.html",
-      "frontend/public/p/sushu.meta.json"
-    ]
-  },
-  {
-    "id": "upload-liaofansixun-hans",
-    "title": "了凡四训 · 简体版",
-    "href": "/p/liaofansixun-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T13:33:50.810Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/liaofansixun-hans.html",
-      "frontend/public/p/liaofansixun-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-liaofansixun",
-    "title": "了凡四訓 · 繁體版",
-    "href": "/p/liaofansixun.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T13:33:50.808Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/liaofansixun.html",
-      "frontend/public/p/liaofansixun.meta.json"
     ]
   },
   {
@@ -357,36 +432,6 @@
     "paths": [
       "frontend/public/p/sunzi.html",
       "frontend/public/p/sunzi.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sushu-en",
-    "title": "Su Shu — The Plain Book (English)",
-    "href": "/p/sushu-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T12:06:52.063Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sushu-en.html",
-      "frontend/public/p/sushu-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-liaofansixun-en",
-    "title": "Liaofan’s Four Lessons (English)",
-    "href": "/p/liaofansixun-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-12T11:30:18.505Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/liaofansixun-en.html",
-      "frontend/public/p/liaofansixun-en.meta.json"
     ]
   },
   {

@@ -1,0 +1,38 @@
+--- a/scripts/build-docs-site.mjs
++++ b/scripts/build-docs-site.mjs
+@@ -357,6 +357,35 @@
+       },
+     ],
+   },
++  {
++    key: 'caigentan',
++    cover: '/img/classics/caigentan-cover.jpg',
++    // The one volume on this shelf whose cover is its OWN cover. 洪应明 wrote the
++    // book and 于孔兼 dated a foreword in front of it, so unlike 素书, 冰鉴,
++    // 罗织经 and 小人经 there is a real book here with a real printing behind it:
++    // the Harvard-Yenching Library's copy of the 万历四十五年 (1617) edition,
++    // which is also the base text of the reading pages. The picture is that
++    // copy's blue paper wrapper — the title brushed down the left in red as
++    // 「菜根談」 (the title slip writes 談 where the text inside writes 譚), the
++    // old shelfmark T 1681/3806 across the top, and the library's accession
++    // stamp of 6 January 1964 in the middle. The 1200x1854 scan is cut to the
++    // paper itself (x 21..1194, y 15..1845, measured off row and column
++    // luminance) and scaled to 560 wide, so the JPEG simply fills the box.
++    crop: 'background-size:100% 100%;background-position:0% 0%',
++    ar: '.6407',
++    coverAlt:
++      '哈佛燕京图书馆藏明万历四十五年刻本《菜根谭》原书蓝纸书衣，朱笔行书题「菜根談」，上端旧架号 T 1681/3806，中钤该馆 1964 年入藏戳',
++    editions: [
++      { label: '简体', id: 'upload-caigentan-hans', title: '菜根谭', imprint: ['明 · 前后集三五六条'] },
++      { label: '繁體', id: 'upload-caigentan', title: '菜根譚', imprint: ['明 · 前後集三五六條'] },
++      {
++        label: 'English',
++        id: 'upload-caigentan-en',
++        title: 'The Vegetable Root Discourses',
++        imprint: ['Ming · 356 entries in two parts'],
++      },
++    ],
++  },
+ ]
+ 
+ // A label that isn't one of LANGS would drop that edition off the switch without
