@@ -339,6 +339,31 @@ const CLASSICS_SHELF_HREF = (generator.match(/const CLASSICS_SHELF_HREF = '([^']
           dianji.includes("var KEY = 'classics:lang'"),
           'both entrances must remember the reading under the same key',
         )
+        // Every reading is LINKED, on both entrances (task #419). The corner
+        // switch moves an href with a script; a search engine follows the href
+        // that is written down. Before the editions row under each plate, only
+        // the eleven 简体 pages were ever written down — the 繁體, English and
+        // 日本語 readings, thirty-three pages, had no internal link pointing at
+        // them from either door into the shelf. A reading that is on the shelf
+        // but reachable only by pressing a button is a reading Google will not
+        // find here, so assert the anchors, not the data attributes.
+        for (const [src, where] of [
+          [afterClassics, 'the 典籍 tab'],
+          [dianji, '/p/dianji.html'],
+        ]) {
+          const shelved = new Set()
+          for (const m of src.matchAll(/<li class="bay"([^>]*)>/g)) {
+            for (const h of m[1].matchAll(/data-href-[\w-]+="([^"]+)"/g)) shelved.add(h[1])
+          }
+          assert.ok(shelved.size > 0, `${where} shelves nothing at all`)
+          for (const href of shelved) {
+            assert.ok(
+              src.includes(`<a href="${href}"`),
+              `${where} offers ${href} but never links it — only the switch can reach it`,
+            )
+          }
+        }
+
         // And both actually rewrite the plate (task #397) — the offer is the
         // same only if pressing 繁體 renames the books on either entrance.
         for (const [src, where] of [

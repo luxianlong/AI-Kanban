@@ -22,6 +22,7 @@ import {
   isSiteVerificationPath,
   requestOrigin,
   publicDocPaths,
+  classicAlternates,
   buildSitemap,
   buildRobotsTxt,
 } from './docsGate.mjs'
@@ -289,7 +290,9 @@ check('public doc paths drop private docs and normalise hrefs', () => {
 check('sitemap lists the index plus every public doc, absolute and private-free', () => {
   const xml = buildSitemap(crawlManifest, 'https://www.example.com')
   assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/)
-  assert.match(xml, /<urlset xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9">/)
+  // The namespace declaration now spans two lines: the xhtml prefix the
+  // classics' hreflang annotations need rides along with it (task #419).
+  assert.match(xml, /<urlset xmlns="http:\/\/www.sitemaps.org\/schemas\/sitemap\/0.9"\n/)
   for (const loc of ['/docs.html', '/docs/a.html', '/singapore.html', '/p/u.html']) {
     assert.ok(xml.includes(`<loc>https://www.example.com${loc}</loc>`), 'missing ' + loc)
   }
@@ -320,6 +323,86 @@ check('robots.txt allows the doc surfaces, denies the board, points at the sitem
   for (const line of txt.split('\n').filter((l) => l.startsWith('Allow: '))) {
     assert.ok(line.slice('Allow: '.length).length > 1, 'useless allow: ' + line)
   }
+})
+
+// --- hreflang annotations for the classics (task #419) -------------------
+const classicsManifest = {
+  entries: [
+    { id: 'c1', href: '/p/sunzi.html', zone: 'classic', private: false, updatedAt: null },
+    { id: 'c2', href: '/p/sunzi-hans.html', zone: 'classic', private: false, updatedAt: null },
+    { id: 'c3', href: '/p/sunzi-en.html', zone: 'classic', private: false, updatedAt: null },
+    { id: 'c4', href: '/p/sunzi-ja.html', zone: 'classic', private: false, updatedAt: null },
+    // The shelf: a classic-zone page that is nobody's translation.
+    { id: 'shelf', href: '/p/dianji.html', zone: 'classic', private: false, updatedAt: null },
+    // An ARTICLE whose slug happens to end in an edition suffix. It must never
+    // be folded into a book's cluster — the zone decides, not the filename.
+    { id: 'a1', href: '/p/tokyo-ja.html', zone: 'article', private: false, updatedAt: null },
+    { id: 'a2', href: '/p/tokyo.html', zone: 'article', private: false, updatedAt: null },
+  ],
+  privatePaths: new Set(),
+}
+
+check('each classic edition points at its three siblings, itself included', () => {
+  const alts = classicAlternates(classicsManifest)
+  const expected = [
+    ['zh-Hans', '/p/sunzi-hans.html'],
+    ['zh-Hant', '/p/sunzi.html'],
+    ['en', '/p/sunzi-en.html'],
+    ['ja', '/p/sunzi-ja.html'],
+    ['x-default', '/p/sunzi-en.html'],
+  ]
+  for (const loc of ['/p/sunzi.html', '/p/sunzi-hans.html', '/p/sunzi-en.html', '/p/sunzi-ja.html']) {
+    assert.deepEqual(alts.get(loc), expected, 'wrong alternates for ' + loc)
+  }
+  // The shelf is its own language cluster of one -> no annotation at all.
+  assert.equal(alts.get('/p/dianji.html'), undefined)
+  // The article pair is left alone even though the names look like editions.
+  assert.equal(alts.get('/p/tokyo-ja.html'), undefined)
+  assert.equal(alts.get('/p/tokyo.html'), undefined)
+  assert.equal(classicAlternates(null).size, 0)
+})
+
+check('the sitemap carries the hreflang set and declares the xhtml namespace', () => {
+  const xml = buildSitemap(classicsManifest, 'https://www.example.com')
+  assert.ok(xml.includes('xmlns:xhtml="http://www.w3.org/1999/xhtml"'))
+  assert.ok(xml.includes(
+    '<xhtml:link rel="alternate" hreflang="ja" href="https://www.example.com/p/sunzi-ja.html"/>'
+  ))
+  assert.ok(xml.includes(
+    '<xhtml:link rel="alternate" hreflang="x-default" href="https://www.example.com/p/sunzi-en.html"/>'
+  ))
+  // Five alternates on each of the four editions, and on nothing else.
+  assert.equal((xml.match(/<xhtml:link /g) || []).length, 20)
+  // A manifest with no classics is byte-for-byte the plain sitemap it was.
+  assert.ok(!buildSitemap(crawlManifest, 'http://x').includes('xhtml:link'))
+})
+
+// A half-built shelf (English not written yet) still groups what exists, but
+// names no x-default: pointing it at a page that isn't there would be worse.
+check('an incomplete classic groups only the editions that exist', () => {
+  const alts = classicAlternates({
+    entries: [
+      { id: 'x', href: '/p/sushu.html', zone: 'classic', private: false },
+      { id: 'y', href: '/p/sushu-hans.html', zone: 'classic', private: false },
+    ],
+  })
+  assert.deepEqual(alts.get('/p/sushu.html'), [
+    ['zh-Hans', '/p/sushu-hans.html'],
+    ['zh-Hant', '/p/sushu.html'],
+  ])
+})
+
+// A private edition is hidden from the world, so it may not be advertised as
+// the language alternate of a public one.
+check('a private edition drops out of the hreflang set', () => {
+  const alts = classicAlternates({
+    entries: [
+      { id: 'x', href: '/p/bingjian.html', zone: 'classic', private: false },
+      { id: 'y', href: '/p/bingjian-hans.html', zone: 'classic', private: false },
+      { id: 'z', href: '/p/bingjian-en.html', zone: 'classic', private: true },
+    ],
+  })
+  assert.ok(!JSON.stringify([...alts]).includes('bingjian-en'))
 })
 
 check('a private root-level doc is never allowed in robots.txt', () => {

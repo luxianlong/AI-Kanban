@@ -114,6 +114,14 @@ const LANGS = [
     missing: (t) => `Open ${t} (no English reading)`,
     note: (t, def) => `No English reading of ${t} — this opens the ${def} one`,
   },
+  {
+    key: 'ja',
+    label: '日本語',
+    bcp47: 'ja',
+    open: (t) => `『${t}』の日本語訳を開く`,
+    missing: (t) => `『${t}』を開く（日本語訳はまだありません）`,
+    note: (t, def) => `『${t}』の日本語訳はまだありません。開くのは${def}版です`,
+  },
 ]
 const LANG_KEY_BY_LABEL = new Map(LANGS.map((l) => [l.label, l.key]))
 const LANG_BY_KEY = new Map(LANGS.map((l) => [l.key, l]))
@@ -140,6 +148,7 @@ const CLASSICS = [
         title: 'The Art of War',
         imprint: ['Spring and Autumn period · thirteen chapters'],
       },
+      { label: '日本語', id: 'upload-sunzi-ja', title: '孫子兵法', imprint: ['春秋 · 全十三篇'] },
     ],
   },
   {
@@ -158,6 +167,7 @@ const CLASSICS = [
         title: 'Guiguzi',
         imprint: ['Warring States · three scrolls, twenty-one chapters'],
       },
+      { label: '日本語', id: 'upload-guiguzi-ja', title: '鬼谷子', imprint: ['戦国 · 三巻二十一篇'] },
     ],
   },
   {
@@ -179,6 +189,7 @@ const CLASSICS = [
         title: 'The Thirty-Six Stratagems',
         imprint: ['Ming–Qing · six sets of six'],
       },
+      { label: '日本語', id: 'upload-sanshiliuji-ja', title: '三十六計', imprint: ['明清 · 六套三十六計'] },
     ],
   },
   {
@@ -201,6 +212,7 @@ const CLASSICS = [
         title: 'The Ice Mirror',
         imprint: ['Qing · seven chapters'],
       },
+      { label: '日本語', id: 'upload-bingjian-ja', title: '氷鑑', imprint: ['清 · 全七章'] },
     ],
   },
   {
@@ -223,6 +235,7 @@ const CLASSICS = [
         title: 'The Daodejing',
         imprint: ['Spring and Autumn period · eighty-one chapters'],
       },
+      { label: '日本語', id: 'upload-daodejing-ja', title: '道徳経', imprint: ['春秋 · 全八十一章'] },
     ],
   },
   {
@@ -248,6 +261,7 @@ const CLASSICS = [
         title: 'Liaofan’s Four Lessons',
         imprint: ['Ming · four lessons'],
       },
+      { label: '日本語', id: 'upload-liaofansixun-ja', title: '了凡四訓', imprint: ['明 · 全四篇'] },
     ],
   },
   {
@@ -267,6 +281,7 @@ const CLASSICS = [
       { label: '简体', id: 'upload-sushu-hans', title: '素书', imprint: ['秦 · 六章'] },
       { label: '繁體', id: 'upload-sushu', title: '素書', imprint: ['秦 · 六章'] },
       { label: 'English', id: 'upload-sushu-en', title: 'Su Shu', imprint: ['Qin · six chapters'] },
+      { label: '日本語', id: 'upload-sushu-ja', title: '素書', imprint: ['秦 · 全六章'] },
     ],
   },
   {
@@ -292,6 +307,7 @@ const CLASSICS = [
         title: 'The Book of Lord Shang',
         imprint: ['Warring States · five scrolls, twenty-six chapters'],
       },
+      { label: '日本語', id: 'upload-shangjunshu-ja', title: '商君書', imprint: ['戦国 · 五巻二十六篇'] },
     ],
   },
   {
@@ -322,6 +338,71 @@ const CLASSICS = [
         title: 'The Classic of Netting',
         imprint: ['Ascribed to the Tang · twelve scrolls'],
       },
+      { label: '日本語', id: 'upload-luozhijing-ja', title: '羅織経', imprint: ['旧題唐 · 全十二巻'] },
+    ],
+  },
+  {
+    key: 'xiaorenjing',
+    cover: '/img/classics/xiaorenjing-cover.jpg',
+    // The second book on this shelf with no edition of its own, and the case is
+    // thinner than 罗织经's: there the TITLE is at least recorded in two histories,
+    // here not even that. 冯道 is real (欧阳修 wrote him up in 《五代史记》卷五十四,
+    // and his own 《长乐老自叙》 survives in 《旧五代史》卷一百二十六), but 《荣枯鉴》
+    // is in no bibliography — 《宋史·艺文志》 lists three collections under his name
+    // and nothing like this — and no old copy of any kind survives. So the cover is
+    // not this book's cover: it is the opening leaf of 《五代史记》卷第五十四
+    // 《杂传第四十二》 in the earliest surviving printing (南宋初刊宋修本; National
+    // Central Library, Taipei, 201.243 01561; 12 columns to the half-leaf, 21-23
+    // characters to the column, block 16.7 x 11.6 cm) — the leaf on which the man
+    // whose name is on this book enters the standard histories, 首列馮道, and whose
+    // first paragraph is 欧阳修 reading 《长乐老叙》 and calling him shameless. The
+    // 3000px render of the opened spread is cut to the left half-leaf (x 48..1340,
+    // y 0..2345, the fold measured off column luminance at x≈1490) and scaled to
+    // 560 wide, so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.5512',
+    coverAlt:
+      '南宋初刊宋修本《五代史记》卷第五十四《杂传第四十二》卷端叶，首列冯道，下接「传曰：礼义廉耻，国之四维」',
+    editions: [
+      { label: '简体', id: 'upload-xiaorenjing-hans', title: '小人经', imprint: ['旧题五代 · 十卷'] },
+      { label: '繁體', id: 'upload-xiaorenjing', title: '小人經', imprint: ['舊題五代 · 十卷'] },
+      {
+        label: 'English',
+        id: 'upload-xiaorenjing-en',
+        title: 'The Classic of the Petty Man',
+        imprint: ['Ascribed to the Five Dynasties · ten scrolls'],
+      },
+      { label: '日本語', id: 'upload-xiaorenjing-ja', title: '小人経', imprint: ['旧題五代 · 全十巻'] },
+    ],
+  },
+  {
+    key: 'caigentan',
+    cover: '/img/classics/caigentan-cover.jpg',
+    // The one volume on this shelf whose cover is its OWN cover. 洪应明 wrote the
+    // book and 于孔兼 dated a foreword in front of it, so unlike 素书, 冰鉴,
+    // 罗织经 and 小人经 there is a real book here with a real printing behind it:
+    // the Harvard-Yenching Library's copy of the 万历四十五年 (1617) edition,
+    // which is also the base text of the reading pages. The picture is that
+    // copy's blue paper wrapper — the title brushed down the left in red as
+    // 「菜根談」 (the title slip writes 談 where the text inside writes 譚), the
+    // old shelfmark T 1681/3806 across the top, and the library's accession
+    // stamp of 6 January 1964 in the middle. The 1200x1854 scan is cut to the
+    // paper itself (x 21..1194, y 15..1845, measured off row and column
+    // luminance) and scaled to 560 wide, so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.6407',
+    coverAlt:
+      '哈佛燕京图书馆藏明万历四十五年刻本《菜根谭》原书蓝纸书衣，朱笔行书题「菜根談」，上端旧架号 T 1681/3806，中钤该馆 1964 年入藏戳',
+    editions: [
+      { label: '简体', id: 'upload-caigentan-hans', title: '菜根谭', imprint: ['明 · 前后集三五六条'] },
+      { label: '繁體', id: 'upload-caigentan', title: '菜根譚', imprint: ['明 · 前後集三五六條'] },
+      {
+        label: 'English',
+        id: 'upload-caigentan-en',
+        title: 'The Vegetable Root Discourses',
+        imprint: ['Ming · 356 entries in two parts'],
+      },
+      { label: '日本語', id: 'upload-caigentan-ja', title: '菜根譚', imprint: ['明 · 前後集三五六条'] },
     ],
   },
 ]
@@ -349,6 +430,26 @@ for (const book of CLASSICS) {
   }
 }
 
+
+// --- what the archive index tells a search engine (task #419) ------------
+// The index is the site's second door into the classics: /p/dianji.html is the
+// shelf, but /docs.html carries the same eleven books on its 典籍 tab and is
+// what robots.txt names first. It used to introduce itself as 「文章存档」 with
+// a one-line description that mentioned notes and nothing else, so a search for
+// any of the books it holds had nothing here to match.
+//
+// The book list is READ OFF `CLASSICS`, never typed out again: the hand-written
+// version in p/dianji.meta.json already went stale once — it still listed ten
+// books after 菜根谭 was shelved.
+const INDEX_TITLE = '文章存档 · 典籍：十一部中文经典全文，免费在线阅读'
+function indexDescription() {
+  const names = CLASSICS.map((b) => `《${b.editions[0].title}》`).join('')
+  return (
+    `典籍${names}——${CLASSICS.length} 部全文读本，每部备简体、繁體、English、` +
+    '日本語 四种，附注释，全文免费在线阅读，无需注册。另有随手写下的报告、攻略和笔记，' +
+    '按更新时间排列。'
+  )
+}
 
 // Every id the classics zone owns: the volumes' editions plus the standalone
 // shelf page. These are the cards kept OUT of 文章收藏.
@@ -993,6 +1094,25 @@ body.has-tabs .hero { border-bottom: none; }
    two words. Trim it back for the English reading only. */
 .plate h3:lang(en) { letter-spacing: 0.01em; text-indent: 0; }
 .plate .imprint:lang(en) { letter-spacing: 0; }
+/* The four readings, spelled out under each plate (task #419). Deliberately
+   quiet — one hairline of small type below the imprint — because the corner
+   switch is still the main way to choose a language. This row exists for the
+   reader who wants ONE book in a particular reading, and for the crawler, which
+   reads hrefs and not the switch's script. */
+.plate .editions {
+  margin: 9px 0 0; font-size: 11.5px; line-height: 1.6;
+  letter-spacing: 0.02em; color: var(--line);
+}
+.plate .editions a {
+  color: var(--muted); text-decoration: none;
+  border-bottom: 1px solid transparent; padding-bottom: 1px;
+  /* A narrow plate has to wrap this row, and CJK breaks between any two
+     characters — 日本語 came apart as 日本 / 語. Break between the readings,
+     never inside one. */
+  white-space: nowrap;
+}
+.plate .editions a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.plate .editions .sep { padding: 0 0.35em; opacity: 0.8; }
 /* ---------- one switch for the whole shelf (task #393) ----------------------
    The three readings used to hang under every book, which asked the same
    question once per volume. They are now a single control in the top-right
@@ -1313,6 +1433,25 @@ function renderShelf(books) {
         )
       }).join('')
       const defLang = LANG_BY_KEY.get(LANG_KEY_BY_LABEL.get(b.editions[0].label)) || DEFAULT_LANG
+      // The readings, written out under the plate (task #419). The corner switch
+      // is the quick way to read the whole shelf in one language; this is the
+      // other direction — one book, straight to the reading you want. It is also
+      // the only way the 繁體 / English / 日本語 pages are ever LINKED from here:
+      // the switch moves an href with a script, and a search engine follows the
+      // href that is written down. Without this, eleven of the shelf's
+      // forty-four pages carried every internal link and the other thirty-three
+      // carried none.
+      const editionLinks = LANGS
+        .map((l) => {
+          const ed = b.editions.find((e) => LANG_KEY_BY_LABEL.get(e.label) === l.key)
+          if (!ed) return ''
+          return (
+            `<a href="${attr(ed.card.href)}" hreflang="${l.bcp47}" lang="${l.bcp47}"` +
+            ` aria-label="${attr(l.open(ed.title))}">${esc(l.label)}</a>`
+          )
+        })
+        .filter(Boolean)
+        .join('<span class="sep">·</span>')
       return `    <li class="bay" data-title="${attr(b.title)}" data-imprint="${attr(
         b.imprint.join('\n')
       )}" data-href="${attr(b.href)}"${eds}>
@@ -1326,6 +1465,7 @@ function renderShelf(books) {
       <div class="plate">
         <h3 lang="${defLang.bcp47}"><a href="${b.href}">${esc(b.title)}</a></h3>
         <p class="imprint" lang="${defLang.bcp47}">${b.imprint.map(esc).join('<br />')}</p>
+        <p class="editions">${editionLinks}</p>
       </div>
     </li>`
     })
@@ -1371,8 +1511,8 @@ ${renderShelf(shelf)}${
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>文章存档</title>
-<meta name="description" content="随手写下的报告、攻略和笔记，按更新时间排列。" />
+<title>${esc(INDEX_TITLE)}</title>
+<meta name="description" content="${escAttr(indexDescription())}" />
 <link rel="canonical" href="${SITE_ORIGIN}/docs.html" />
 ${FONTS}
 <style>${THEME}
