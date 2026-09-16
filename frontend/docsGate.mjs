@@ -293,10 +293,60 @@ export function publicDocPaths(manifest) {
   return out
 }
 
+// --- hreflang for the classics (task #419) -------------------------------
+// Each book on the shelf exists as four readings of one work — 繁體
+// (/p/sunzi.html), 简体 (-hans), English (-en) and 日本語 (-ja). Every reader
+// page already declares the whole set in its own <head>; annotating the sitemap
+// too is the second place Google looks for the grouping, and the only one it can
+// read before it has fetched a single page. Without it four near-identical pages
+// compete for the same query and Google picks one canonical for all four.
+//
+// Only the `classic` zone is grouped, and the zone is DECLARED in the docs
+// generator, never guessed from a filename — so an article that merely happens
+// to end in "-en" can never be folded into a book's language cluster.
+const CLASSIC_EDITIONS = [
+  ['zh-Hans', '-hans'],
+  ['zh-Hant', ''],
+  ['en', '-en'],
+  ['ja', '-ja'],
+]
+// Where a searcher lands when none of the four matches their locale. English,
+// because that is what the pages themselves declare: two sources disagreeing
+// about x-default is worse for Google than either answer alone.
+const X_DEFAULT_EDITION = '-en'
+
+// loc -> the full alternate set for its language cluster, self-reference
+// included (Google requires it). Clusters of one — the shelf page itself,
+// /p/dianji.html — get nothing: a lone hreflang says nothing.
+export function classicAlternates(manifest) {
+  const bySlug = new Map()
+  for (const e of (manifest && manifest.entries) || []) {
+    if (!e || e.private || e.zone !== 'classic' || typeof e.href !== 'string') continue
+    const m = /^\/p\/([a-z0-9-]+?)(-hans|-en|-ja)?\.html$/.exec(e.href.split('?')[0])
+    if (!m) continue
+    const [, slug, suffix = ''] = m
+    if (!bySlug.has(slug)) bySlug.set(slug, new Set())
+    bySlug.get(slug).add(suffix)
+  }
+  const out = new Map()
+  for (const [slug, suffixes] of bySlug) {
+    if (suffixes.size < 2) continue
+    const alts = CLASSIC_EDITIONS
+      .filter(([, suffix]) => suffixes.has(suffix))
+      .map(([lang, suffix]) => [lang, `/p/${slug}${suffix}.html`])
+    if (suffixes.has(X_DEFAULT_EDITION)) {
+      alts.push(['x-default', `/p/${slug}${X_DEFAULT_EDITION}.html`])
+    }
+    for (const suffix of suffixes) out.set(`/p/${slug}${suffix}.html`, alts)
+  }
+  return out
+}
+
 // The sitemap: the docs index plus every public document. The index carries the
 // newest document's date, since that is when the listing last changed.
 export function buildSitemap(manifest, origin) {
   const docs = publicDocPaths(manifest)
+  const alternates = classicAlternates(manifest)
   const newest = docs.reduce((a, d) => (d.lastmod && d.lastmod > a ? d.lastmod : a), '')
   const urls = [{ loc: '/docs.html', lastmod: newest || null }, ...docs]
   const body = urls
@@ -304,12 +354,19 @@ export function buildSitemap(manifest, origin) {
       '  <url>\n' +
       `    <loc>${xmlEsc(origin + loc)}</loc>\n` +
       (lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : '') +
+      (alternates.get(loc) || [])
+        .map(([lang, href]) =>
+          `    <xhtml:link rel="alternate" hreflang="${lang}" ` +
+          `href="${xmlEsc(origin + href)}"/>\n`
+        )
+        .join('') +
       '  </url>'
     )
     .join('\n')
   return (
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n' +
+    '        xmlns:xhtml="http://www.w3.org/1999/xhtml">\n' +
     body +
     '\n</urlset>\n'
   )

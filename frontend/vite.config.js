@@ -447,7 +447,15 @@ function basicAuthGate() {
         // --- Public documents (task #268) -----------------------------------
         // A document is readable WITHOUT the password unless it's marked private.
         // The board, /api and every other asset stay gated by the logic below.
-        if (req.method === 'GET') {
+        // HEAD is answered exactly like GET (task #419): it is the same read,
+        // minus the body. Handling only GET here meant `curl -I` on a public
+        // classic fell through to the gate and answered 401 while the GET of the
+        // very same URL answered 200 — a contradiction that link checkers, feed
+        // readers and social-card scrapers read as "page is gone". Nothing is
+        // counted for a HEAD: it is a probe, not a visit (see recordDocView
+        // below), and the two anonymous branches send headers with no body.
+        if (req.method === 'GET' || req.method === 'HEAD') {
+          const headOnly = req.method === 'HEAD'
           const manifest = readDocsManifest(MANIFEST_FILE, manifestCache)
           const kind = classifyDoc(urlPath, manifest)
           if (kind) {
@@ -457,7 +465,7 @@ function basicAuthGate() {
               // Private doc: owner only. Authed -> serve it; otherwise fall
               // through to the normal challenge (login form for an HTML nav).
               if (authed) {
-                recordDocView(req, urlPath, manifest, viewSeen)
+                if (!headOnly) recordDocView(req, urlPath, manifest, viewSeen)
                 if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
                 return next()
               }
@@ -468,7 +476,7 @@ function basicAuthGate() {
                 res.statusCode = 200
                 res.setHeader('Content-Type', 'text/html; charset=utf-8')
                 res.setHeader('Cache-Control', 'no-store')
-                return res.end(html)
+                return res.end(headOnly ? undefined : html)
               } catch {
                 return next()
               }
@@ -479,13 +487,13 @@ function basicAuthGate() {
                 res.statusCode = 200
                 res.setHeader('Content-Type', 'application/json; charset=utf-8')
                 res.setHeader('Cache-Control', 'no-store')
-                return res.end(text)
+                return res.end(headOnly ? undefined : text)
               } catch {
                 return next()
               }
             } else {
               // Public page/asset, or an authed listing -> serve, no password.
-              if (kind === 'page') recordDocView(req, urlPath, manifest, viewSeen)
+              if (kind === 'page' && !headOnly) recordDocView(req, urlPath, manifest, viewSeen)
               if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
               return next()
             }
