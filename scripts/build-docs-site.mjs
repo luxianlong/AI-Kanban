@@ -405,6 +405,36 @@ const CLASSICS = [
       { label: '日本語', id: 'upload-caigentan-ja', title: '菜根譚', imprint: ['明 · 前後集三五六条'] },
     ],
   },
+  {
+    key: 'fanjing',
+    cover: '/img/classics/fanjing-cover.jpg',
+    // Like 菜根谭 and unlike 素书 / 冰鉴 / 罗织经 / 小人经, this book's cover is its
+    // OWN: the National Diet Library's copy of the 讀畫齋叢書 printing of the
+    // 長短經 (清嘉慶間桐鄉顧修輯刊; shelfmark 082.1-D95K), 己集第四十一冊, the
+    // opening leaf of scroll one. The leaf carries the scroll title 「長短經卷第一」,
+    // the general heading 「文上」, the eight chapter names of the scroll, the
+    // chapter title 「大體第一」 and the first sentence of the book — and it settles
+    // a point the 四庫 editors could only guess at: they reasoned from the pattern
+    // that 卷二 must have lost the words 「文中」, and this printing has them.
+    // The 3000px render of the opened spread is cut to the left half-leaf
+    // (x 252..1400, y 149..2178, the fold measured off column luminance) and
+    // scaled to 560 wide, so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.5657',
+    coverAlt:
+      '日本国立国会图书馆藏清嘉庆读画斋丛书本《长短经》卷第一卷端叶，题「長短經卷第一　文上」，下列大体一至政体八八篇篇目，正文起「臣聞老子曰：以正理國」',
+    editions: [
+      { label: '简体', id: 'upload-fanjing-hans', title: '反经', imprint: ['唐 · 九卷六十四篇'] },
+      { label: '繁體', id: 'upload-fanjing', title: '反經', imprint: ['唐 · 九卷六十四篇'] },
+      {
+        label: 'English',
+        id: 'upload-fanjing-en',
+        title: 'The Classic of Reversal',
+        imprint: ['Tang · nine scrolls, 64 chapters'],
+      },
+      { label: '日本語', id: 'upload-fanjing-ja', title: '反経', imprint: ['唐 · 全九巻六十四篇'] },
+    ],
+  },
 ]
 
 // A label that isn't one of LANGS would drop that edition off the switch without
@@ -441,7 +471,7 @@ for (const book of CLASSICS) {
 // The book list is READ OFF `CLASSICS`, never typed out again: the hand-written
 // version in p/dianji.meta.json already went stale once — it still listed ten
 // books after 菜根谭 was shelved.
-const INDEX_TITLE = '文章存档 · 典籍：十一部中文经典全文，免费在线阅读'
+const INDEX_TITLE = '文章存档 · 典籍：十二部中文经典全文，免费在线阅读'
 function indexDescription() {
   const names = CLASSICS.map((b) => `《${b.editions[0].title}》`).join('')
   return (
