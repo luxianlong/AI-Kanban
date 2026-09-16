@@ -170,9 +170,15 @@ body.has-tabs .hero { border-bottom: none; }
   box-shadow: inset -3px 0 4px rgba(60,45,20,0.22), 0 12px 16px -12px rgba(60,45,20,0.7);
 }
 .cover {
-  position: absolute; inset: 0; border-radius: 2px;
-  background-repeat: no-repeat;
+  position: absolute; inset: 0; border-radius: 2px; overflow: hidden;
   box-shadow: 0 1px 1px rgba(60,45,20,0.3), 0 22px 24px -16px rgba(60,45,20,0.65);
+}
+/* The scan is a real <img>, so image search can find it and the page doesn't
+   carry the bytes inline. Each book's crop rides on the element's own style —
+   see coverImgStyle() for how the background-* measurement carries over. */
+.cover img {
+  position: absolute; display: block; max-width: none;
+  width: 100%; height: 100%; left: 0; top: 0;
 }
 /* light down the fore-edge, shadow into the sewn edge */
 .cover::after {
@@ -795,7 +801,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/sunzi-hans.html" aria-label="打开《孙子兵法》简体读本">
           <div class="book" style="--ar:.5595">
-            <div class="cover" role="img" aria-label="宋刻《十一家注孙子》卷首「孙子本传」书影" style="background-image:url(/img/classics/sunzi-cover.jpg);background-size:207.5% 104.2%;background-position:3.4% 48.8%"></div>
+            <div class="cover"><img src="/img/classics/sunzi-cover.jpg" alt="宋刻《十一家注孙子》卷首「孙子本传」书影" width="1141" height="1024" loading="lazy" decoding="async" style="width:207.5%;height:104.2%;left:-3.655%;top:-2.0496%"></div>
           </div>
         </a>
       </div>
@@ -809,7 +815,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/guiguzi-hans.html" aria-label="打开《鬼谷子》简体读本">
           <div class="book" style="--ar:.632">
-            <div class="cover" role="img" aria-label="清嘉庆秦恩复刻本《鬼谷子》原书封面，题「鬼谷子三卷 陶贞白注本 通介叟校」" style="background-image:url(/img/classics/guiguzi-cover.jpg);background-size:101.7% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/guiguzi-cover.jpg" alt="清嘉庆秦恩复刻本《鬼谷子》原书封面，题「鬼谷子三卷 陶贞白注本 通介叟校」" width="655" height="1019" loading="lazy" decoding="async" style="width:101.7%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -823,7 +829,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/sanshiliuji-hans.html" aria-label="打开《三十六计》简体读本">
           <div class="book" style="--ar:.5855">
-            <div class="cover" role="img" aria-label="民国三十年瑞琴楼刊本《三十六计》原书封面，题「三十六计（秘本兵法）」" style="background-image:url(/img/classics/sanshiliuji-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/sanshiliuji-cover.jpg" alt="民国三十年瑞琴楼刊本《三十六计》原书封面，题「三十六计（秘本兵法）」" width="435" height="743" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -837,7 +843,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/bingjian-hans.html" aria-label="打开《冰鉴》简体读本">
           <div class="book" style="--ar:.5764">
-            <div class="cover" role="img" aria-label="民国十四年上海昌文书局本《神骨冰鉴》原书封面，题「神骨冰鉴 白鹤仙数 合一册」" style="background-image:url(/img/classics/bingjian-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/bingjian-cover.jpg" alt="民国十四年上海昌文书局本《神骨冰鉴》原书封面，题「神骨冰鉴 白鹤仙数 合一册」" width="430" height="746" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -851,7 +857,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/daodejing-hans.html" aria-label="打开《道德经》简体读本">
           <div class="book" style="--ar:.6582">
-            <div class="cover" role="img" aria-label="民国上海文瑞楼石印本《老子道德经》原书封面，题「老子道德经　晋王弼注　王儒舲点句　陆德明释文坿　上海文瑞楼印行」" style="background-image:url(/img/classics/daodejing-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/daodejing-cover.jpg" alt="民国上海文瑞楼石印本《老子道德经》原书封面，题「老子道德经　晋王弼注　王儒舲点句　陆德明释文坿　上海文瑞楼印行」" width="620" height="942" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -865,7 +871,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/liaofansixun-hans.html" aria-label="打开《了凡四训》简体读本">
           <div class="book" style="--ar:.6250">
-            <div class="cover" role="img" aria-label="民国二十三年上海佛学书局本《了凡四训》原书内封，题「了凡四训」，下署「上海佛学书局印行」，钤北海公园图书室藏书印" style="background-image:url(/img/classics/liaofansixun-cover.png);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/liaofansixun-cover.png" alt="民国二十三年上海佛学书局本《了凡四训》原书内封，题「了凡四训」，下署「上海佛学书局印行」，钤北海公园图书室藏书印" width="560" height="896" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -879,7 +885,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/sushu-hans.html" aria-label="打开《素书》简体读本">
           <div class="book" style="--ar:.5600">
-            <div class="cover" role="img" aria-label="明万历吴兴慎懋赏解本《黄石公素书》卷前手书题耑，大字题「黄石公素书」，旁有道光丁亥（1827）行书题记，钤「小桐」等藏印" style="background-image:url(/img/classics/sushu-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/sushu-cover.jpg" alt="明万历吴兴慎懋赏解本《黄石公素书》卷前手书题耑，大字题「黄石公素书」，旁有道光丁亥（1827）行书题记，钤「小桐」等藏印" width="560" height="1000" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -893,7 +899,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/shangjunshu-hans.html" aria-label="打开《商君书》简体读本">
           <div class="book" style="--ar:.5680">
-            <div class="cover" role="img" aria-label="四部丛刊景印天一阁藏明刊本《商子》原书封面，左上题签墨书「商子」" style="background-image:url(/img/classics/shangjunshu-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/shangjunshu-cover.jpg" alt="四部丛刊景印天一阁藏明刊本《商子》原书封面，左上题签墨书「商子」" width="560" height="986" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -907,7 +913,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/luozhijing-hans.html" aria-label="打开《罗织经》简体读本">
           <div class="book" style="--ar:.5833">
-            <div class="cover" role="img" aria-label="明嘉靖十七年闻人诠刻本《旧唐书》卷一百八十六上《酷吏上》卷端叶，首列来俊臣，下接「古今御天下者，其政有四」序文" style="background-image:url(/img/classics/luozhijing-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/luozhijing-cover.jpg" alt="明嘉靖十七年闻人诠刻本《旧唐书》卷一百八十六上《酷吏上》卷端叶，首列来俊臣，下接「古今御天下者，其政有四」序文" width="560" height="960" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -921,7 +927,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/xiaorenjing-hans.html" aria-label="打开《小人经》简体读本">
           <div class="book" style="--ar:.5512">
-            <div class="cover" role="img" aria-label="南宋初刊宋修本《五代史记》卷第五十四《杂传第四十二》卷端叶，首列冯道，下接「传曰：礼义廉耻，国之四维」" style="background-image:url(/img/classics/xiaorenjing-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/xiaorenjing-cover.jpg" alt="南宋初刊宋修本《五代史记》卷第五十四《杂传第四十二》卷端叶，首列冯道，下接「传曰：礼义廉耻，国之四维」" width="560" height="1016" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>
@@ -935,7 +941,7 @@ body.is-owner .hero .write { display: inline-block; }
       <div class="stand">
         <a class="vol" href="/p/caigentan-hans.html" aria-label="打开《菜根谭》简体读本">
           <div class="book" style="--ar:.6407">
-            <div class="cover" role="img" aria-label="哈佛燕京图书馆藏明万历四十五年刻本《菜根谭》原书蓝纸书衣，朱笔行书题「菜根談」，上端旧架号 T 1681/3806，中钤该馆 1964 年入藏戳" style="background-image:url(/img/classics/caigentan-cover.jpg);background-size:100% 100%;background-position:0% 0%"></div>
+            <div class="cover"><img src="/img/classics/caigentan-cover.jpg" alt="哈佛燕京图书馆藏明万历四十五年刻本《菜根谭》原书蓝纸书衣，朱笔行书题「菜根談」，上端旧架号 T 1681/3806，中钤该馆 1964 年入藏戳" width="560" height="874" loading="lazy" decoding="async" style="width:100%;height:100%;left:0%;top:0%"></div>
           </div>
         </a>
       </div>

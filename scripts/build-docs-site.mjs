@@ -1054,9 +1054,15 @@ body.has-tabs .hero { border-bottom: none; }
   box-shadow: inset -3px 0 4px rgba(60,45,20,0.22), 0 12px 16px -12px rgba(60,45,20,0.7);
 }
 .cover {
-  position: absolute; inset: 0; border-radius: 2px;
-  background-repeat: no-repeat;
+  position: absolute; inset: 0; border-radius: 2px; overflow: hidden;
   box-shadow: 0 1px 1px rgba(60,45,20,0.3), 0 22px 24px -16px rgba(60,45,20,0.65);
+}
+/* The scan is a real <img>, so image search can find it and the page doesn't
+   carry the bytes inline. Each book's crop rides on the element's own style —
+   see coverImgStyle() for how the background-* measurement carries over. */
+.cover img {
+  position: absolute; display: block; max-width: none;
+  width: 100%; height: 100%; left: 0; top: 0;
 }
 /* light down the fore-edge, shadow into the sewn edge */
 .cover::after {
@@ -1394,12 +1400,65 @@ ${btns}
 </div>`
 }
 
+// Natural pixel size of a JPEG or PNG, read straight off the file header. The
+// <img> carries it as width/height so a crawler knows the asset's proportions
+// without fetching it; the stylesheet overrides both for layout.
+function imageSize(file) {
+  const b = fs.readFileSync(file)
+  if (b[0] === 0x89 && b.toString('latin1', 1, 4) === 'PNG') {
+    return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) }
+  }
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) {
+        i += 1
+        continue
+      }
+      const mk = b[i + 1]
+      if (mk >= 0xc0 && mk <= 0xcf && mk !== 0xc4 && mk !== 0xc8 && mk !== 0xcc) {
+        return { h: b.readUInt16BE(i + 5), w: b.readUInt16BE(i + 7) }
+      }
+      if (mk === 0xd8 || mk === 0xd9 || (mk >= 0xd0 && mk <= 0xd7)) {
+        i += 2
+        continue
+      }
+      i += 2 + b.readUInt16BE(i + 2)
+    }
+  }
+  return null
+}
+
+// Each `crop` above is written in background-size/background-position terms,
+// because that is how the scans were measured. The cover is an <img> now, so
+// restate the same crop as image geometry: background-position P% places the
+// image at (container - image) * P/100, which is a plain left/top offset.
+function coverImgStyle(crop) {
+  const size = /background-size:\s*([\d.]+)%\s+([\d.]+)%/.exec(crop || '')
+  const pos = /background-position:\s*(-?[\d.]+)%\s+(-?[\d.]+)%/.exec(crop || '')
+  const w = size ? Number(size[1]) : 100
+  const h = size ? Number(size[2]) : 100
+  const px = pos ? Number(pos[1]) : 0
+  const py = pos ? Number(pos[2]) : 0
+  const n = (v) => String(Number(v.toFixed(4)))
+  return (
+    `width:${n(w)}%;height:${n(h)}%;` +
+    `left:${n(((100 - w) * px) / 100)}%;top:${n(((100 - h) * py) / 100)}%`
+  )
+}
+
 function renderShelf(books) {
   const bays = books
     .map((b) => {
-      const hasCover = fs.existsSync(path.join(ROOT, 'frontend', 'public', b.cover.replace(/^\//, '')))
+      const coverFile = path.join(ROOT, 'frontend', 'public', b.cover.replace(/^\//, ''))
+      const hasCover = fs.existsSync(coverFile)
+      const dim = hasCover ? imageSize(coverFile) : null
+      // The shelf is never the first thing painted on this page (it lives in a
+      // tab), so every cover can wait for the reader to reach it.
       const face = hasCover
-        ? `<div class="cover" role="img" aria-label="${esc(b.coverAlt)}" style="background-image:url(${esc(b.cover)});${b.crop}"></div>`
+        ? `<div class="cover"><img src="${esc(b.cover)}" alt="${esc(b.coverAlt)}"` +
+          (dim ? ` width="${dim.w}" height="${dim.h}"` : '') +
+          ` loading="lazy" decoding="async" style="${esc(coverImgStyle(b.crop))}"></div>`
         : `<div class="cover blank" role="img" aria-label="${esc(b.title)}">${esc(b.title)}</div>`
       // Every edition this volume actually has, hung on the bay for the corner
       // switch to read. No pills under the book any more (task #393) — the shelf

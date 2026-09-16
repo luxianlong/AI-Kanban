@@ -293,6 +293,53 @@ const CLASSICS_SHELF_HREF = (generator.match(/const CLASSICS_SHELF_HREF = '([^']
       const shelfPage = path.join(ROOT, 'frontend', 'public', 'p', 'dianji.html')
       if (fs.existsSync(shelfPage)) {
         const dianji = fs.readFileSync(shelfPage, 'utf8')
+
+        // Task #419: a cover is a real <img>, on BOTH entrances. Two reasons it
+        // may not go back to being a CSS background or an inline data: URI —
+        // image search only ever indexes an <img>/<picture> source, and the
+        // shelf page once carried all eleven scans base64-inlined, which made
+        // it 1.2 MB of bytes that were already sitting on disk under /img/.
+        for (const [src, where] of [
+          [afterClassics, 'the 典籍 tab'],
+          [dianji, '/p/dianji.html'],
+        ]) {
+          assert.ok(
+            !/data:image\/[a-z]+;base64/.test(src),
+            `${where} must link its covers, not inline them`,
+          )
+          const covers = [...src.matchAll(/<div class="cover[^"]*">\s*<img ([^>]*)>/g)]
+          assert.ok(covers.length, `${where} must show the covers as images`)
+          for (const c of covers) {
+            assert.match(c[1], /src="\/img\/classics\/[\w-]+\.(?:jpg|png)"/, `${where}: cover src`)
+            assert.match(c[1], /alt="[^"]+"/, `${where}: a cover with no alt says nothing`)
+          }
+          assert.equal(
+            (src.match(/background-image:url\(\/img\/classics/g) || []).length,
+            0,
+            `${where} must not paint a cover as a background as well`,
+          )
+        }
+
+        // The crops were measured in background-size/background-position terms.
+        // They are applied to an <img> now, so redo that arithmetic here: a
+        // silent slip would re-crop eleven scans and nothing else would notice.
+        {
+          const crops = [...generator.matchAll(/crop: '([^']+)'/g)].map((m) => m[1])
+          assert.ok(crops.length, 'the registry still measures each crop')
+          const expect = crops.map((crop) => {
+            const size = /background-size:\s*([\d.]+)%\s+([\d.]+)%/.exec(crop)
+            const pos = /background-position:\s*(-?[\d.]+)%\s+(-?[\d.]+)%/.exec(crop)
+            const [w, h] = [Number(size[1]), Number(size[2])]
+            const [px, py] = [Number(pos[1]), Number(pos[2])]
+            const n = (v) => String(Number(v.toFixed(4)))
+            return (
+              `width:${n(w)}%;height:${n(h)}%;` +
+              `left:${n(((100 - w) * px) / 100)}%;top:${n(((100 - h) * py) / 100)}%`
+            )
+          })
+          const got = [...afterClassics.matchAll(/<img [^>]*style="([^"]+)"/g)].map((m) => m[1])
+          assert.deepEqual(got, expect, 'every cover must keep the crop it was measured at')
+        }
         const bays = (src) => {
           const out = new Map()
           for (const m of src.matchAll(/<li class="bay"([^>]*)>/g)) {
