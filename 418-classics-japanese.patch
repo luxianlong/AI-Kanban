@@ -1,0 +1,105 @@
+--- a/scripts/build-docs-site.mjs
++++ b/scripts/build-docs-site.mjs
+@@ -114,6 +114,14 @@
+     missing: (t) => `Open ${t} (no English reading)`,
+     note: (t, def) => `No English reading of ${t} — this opens the ${def} one`,
+   },
++  {
++    key: 'ja',
++    label: '日本語',
++    bcp47: 'ja',
++    open: (t) => `『${t}』の日本語訳を開く`,
++    missing: (t) => `『${t}』を開く（日本語訳はまだありません）`,
++    note: (t, def) => `『${t}』の日本語訳はまだありません。開くのは${def}版です`,
++  },
+ ]
+ const LANG_KEY_BY_LABEL = new Map(LANGS.map((l) => [l.label, l.key]))
+ const LANG_BY_KEY = new Map(LANGS.map((l) => [l.key, l]))
+@@ -140,6 +148,7 @@
+         title: 'The Art of War',
+         imprint: ['Spring and Autumn period · thirteen chapters'],
+       },
++      { label: '日本語', id: 'upload-sunzi-ja', title: '孫子兵法', imprint: ['春秋 · 全十三篇'] },
+     ],
+   },
+   {
+@@ -158,6 +167,7 @@
+         title: 'Guiguzi',
+         imprint: ['Warring States · three scrolls, twenty-one chapters'],
+       },
++      { label: '日本語', id: 'upload-guiguzi-ja', title: '鬼谷子', imprint: ['戦国 · 三巻二十一篇'] },
+     ],
+   },
+   {
+@@ -179,6 +189,7 @@
+         title: 'The Thirty-Six Stratagems',
+         imprint: ['Ming–Qing · six sets of six'],
+       },
++      { label: '日本語', id: 'upload-sanshiliuji-ja', title: '三十六計', imprint: ['明清 · 六套三十六計'] },
+     ],
+   },
+   {
+@@ -201,6 +212,7 @@
+         title: 'The Ice Mirror',
+         imprint: ['Qing · seven chapters'],
+       },
++      { label: '日本語', id: 'upload-bingjian-ja', title: '氷鑑', imprint: ['清 · 全七章'] },
+     ],
+   },
+   {
+@@ -223,6 +235,7 @@
+         title: 'The Daodejing',
+         imprint: ['Spring and Autumn period · eighty-one chapters'],
+       },
++      { label: '日本語', id: 'upload-daodejing-ja', title: '道徳経', imprint: ['春秋 · 全八十一章'] },
+     ],
+   },
+   {
+@@ -248,6 +261,7 @@
+         title: 'Liaofan’s Four Lessons',
+         imprint: ['Ming · four lessons'],
+       },
++      { label: '日本語', id: 'upload-liaofansixun-ja', title: '了凡四訓', imprint: ['明 · 全四篇'] },
+     ],
+   },
+   {
+@@ -267,6 +281,7 @@
+       { label: '简体', id: 'upload-sushu-hans', title: '素书', imprint: ['秦 · 六章'] },
+       { label: '繁體', id: 'upload-sushu', title: '素書', imprint: ['秦 · 六章'] },
+       { label: 'English', id: 'upload-sushu-en', title: 'Su Shu', imprint: ['Qin · six chapters'] },
++      { label: '日本語', id: 'upload-sushu-ja', title: '素書', imprint: ['秦 · 全六章'] },
+     ],
+   },
+   {
+@@ -292,6 +307,7 @@
+         title: 'The Book of Lord Shang',
+         imprint: ['Warring States · five scrolls, twenty-six chapters'],
+       },
++      { label: '日本語', id: 'upload-shangjunshu-ja', title: '商君書', imprint: ['戦国 · 五巻二十六篇'] },
+     ],
+   },
+   {
+@@ -322,6 +338,7 @@
+         title: 'The Classic of Netting',
+         imprint: ['Ascribed to the Tang · twelve scrolls'],
+       },
++      { label: '日本語', id: 'upload-luozhijing-ja', title: '羅織経', imprint: ['旧題唐 · 全十二巻'] },
+     ],
+   },
+   {
+@@ -355,6 +372,7 @@
+         title: 'The Classic of the Petty Man',
+         imprint: ['Ascribed to the Five Dynasties · ten scrolls'],
+       },
++      { label: '日本語', id: 'upload-xiaorenjing-ja', title: '小人経', imprint: ['旧題五代 · 全十巻'] },
+     ],
+   },
+   {
+@@ -384,6 +402,7 @@
+         title: 'The Vegetable Root Discourses',
+         imprint: ['Ming · 356 entries in two parts'],
+       },
++      { label: '日本語', id: 'upload-caigentan-ja', title: '菜根譚', imprint: ['明 · 前後集三五六条'] },
+     ],
+   },
+ ]
