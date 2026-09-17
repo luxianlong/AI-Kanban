@@ -1,5 +1,20 @@
 [
   {
+    "id": "the-cross-tab-that-isn-t-there",
+    "title": "The Cross-Tab That Isn't There",
+    "href": "/docs/the-cross-tab-that-isn-t-there.html",
+    "zone": "article",
+    "deletable": true,
+    "file": "docs/the-cross-tab-that-isn-t-there.md",
+    "updatedAt": "2026-09-17T08:42:54.777Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/the-cross-tab-that-isn-t-there.md",
+      "frontend/public/docs/the-cross-tab-that-isn-t-there.html"
+    ]
+  },
+  {
     "id": "upload-fanjing-ja",
     "title": "反経（長短経）— Fanjing（日本語）",
     "href": "/p/fanjing-ja.html",
