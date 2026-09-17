@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>典籍点击量 · 统计</title>
+<style>
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --accent:#3f5a4e;
+  --bar:#3f5a4e; --bar-soft:#cfd8d2;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --accent:#8fb3a1;
+         --bar:#8fb3a1; --bar-soft:#32392f; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Serif CJK SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  line-height:1.9; font-size:16px; text-rendering:optimizeLegibility;
+}
+a{color:var(--accent)}
+header.mast{
+  border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:54px 24px 30px; text-align:center; position:relative; overflow:hidden;
+}
+header.mast::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;
+}
+.mast h1{margin:0; font-size:clamp(30px,6vw,48px); letter-spacing:.3em; text-indent:.3em; font-weight:600}
+.mast .cross{margin:18px 0 0; font-size:.78rem; letter-spacing:.14em; color:var(--ink-soft)}
+.mast .cross a{text-decoration:none; border-bottom:1px solid var(--rule); padding-bottom:2px}
+main{max-width:960px; margin:0 auto; padding:52px 26px 96px}
+@media (max-width:640px){ main{padding:36px 16px 64px} }
+h2{
+  font-size:1.12rem; letter-spacing:.14em; margin:56px 0 18px; font-weight:600;
+  border-bottom:1px solid var(--rule); padding-bottom:10px;
+}
+h2:first-of-type{margin-top:0}
+p{margin:0 0 14px}
+.muted{color:var(--ink-soft)}
+small{font-size:.8rem}
+
+/* ---------- hero ---------- */
+.hero{
+  display:flex; flex-wrap:wrap; gap:14px 40px; align-items:flex-end;
+  padding:26px 28px; border:1px solid var(--rule); background:var(--paper-2);
+}
+.tile .n{font-size:clamp(30px,6vw,46px); line-height:1.1; font-variant-numeric:tabular-nums; font-weight:600}
+.tile .k{font-size:.76rem; letter-spacing:.14em; color:var(--ink-soft); margin-top:6px}
+.tile .d{font-size:.8rem; color:var(--ink-soft); font-variant-numeric:tabular-nums}
+
+/* ---------- tables ---------- */
+table{border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px; text-align:right; border-bottom:1px solid var(--rule); font-size:.9rem}
+th{font-weight:600; font-size:.74rem; letter-spacing:.1em; color:var(--ink-soft); text-align:right; white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td.book{white-space:nowrap}
+td.zero{color:var(--ink-soft)}
+tr.total td{border-top:2px solid var(--rule); border-bottom:none; font-weight:600}
+.delta{color:var(--seal); font-size:.75rem; margin-left:3px}
+
+/* one series, one hue: magnitude only, so no legend and no second colour */
+.barcell{width:34%; padding-left:14px}
+.bar{height:9px; background:var(--bar); border-radius:0 4px 4px 0; min-width:2px}
+.bartrack{background:var(--bar-soft); height:9px; border-radius:0 4px 4px 0}
+
+/* Narrow screens: the bar is the first thing to go — it repeats the number
+   beside it, and keeping it forces the 六-column book table into a sideways
+   scroll. Era labels go with it for the same reason. */
+@media (max-width:640px){
+  .barcell{display:none}
+  th,td{padding:6px 4px; font-size:.82rem}
+  td.book small{display:none}
+  .hero{padding:20px 18px; gap:12px 26px}
+}
+.note{border-left:3px solid var(--rule); padding:2px 0 2px 16px; margin:18px 0; color:var(--ink-soft); font-size:.9rem}
+.stamp{margin-top:56px; padding-top:18px; border-top:1px solid var(--rule); font-size:.78rem; color:var(--ink-soft)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.85em; background:var(--paper-2); padding:1px 4px; border:1px solid var(--rule)}
+</style>
+</head>
+<body>
+<header class="mast">
+  <h1>典籍点击量</h1>
+  <p class="cross"><a href="/p/dianji.html">书架</a> · <a href="/docs.html#classics">典籍 tab</a> · <span id="asof"></span></p>
+</header>
+
+<main>
+<p id="live-warn" class="note" hidden></p>
+
+<section class="hero" id="hero"></section>
+
+<h2>一、十二部书</h2>
+<p class="muted"><small>「合计」是四个读本相加，不含书架页。括号里的红字是自基线以来的新增。</small></p>
+<table id="books"><thead><tr>
+  <th>书</th><th>简体</th><th>繁體</th><th>English</th><th>日本語</th><th>合计</th><th class="barcell">&nbsp;</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>二、四个读本</h2>
+<p class="muted"><small>四种读本不是同时上架的：简体 / 繁體 / English 自 9 月 12–16 日陆续入库，日本語 全部生于 9 月 16 日 05:52。语言之间直接比总数并不公平，「日均」按各自实际在线天数折算。<b>但日本語 的日均是一天的窗口除出来的</b>——那一天恰好是上架当天，验收把四十四个读本逐个打开过，所以这个数是上架动静，不是读者；横条画的是点击数，不是日均。</small></p>
+<table id="langs"><thead><tr>
+  <th>读本</th><th>点击</th><th>占比</th><th>在线天数</th><th>日均</th><th class="barcell">&nbsp;</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>三、单页排行</h2>
+<table id="top"><thead><tr>
+  <th>页面</th><th>点击</th><th>上架</th><th>最近一次（基线时）</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>四、逐日增量</h2>
+<p class="muted"><small>后端只存一个累计数，不存历史。这一节由本页在浏览器里自己补：每天第一次打开时把当天的总数记进 <code>localStorage</code>，于是日子一久就有了真正的时间序列。它只记录在你这台机器上，清掉浏览器数据即归零。</small></p>
+<div id="series"></div>
+
+<h2>五、这些数字是怎么来的，能回答什么</h2>
+<p><b>怎么计数。</b>不是页面里的脚本，是服务器：Vite 的门（<code>frontend/vite.config.js</code> 的 <code>recordDocView</code>）每送出一个在册文档的 HTML，就往后端 <code>POST /api/docs/views</code> 记一笔。所以没有 JavaScript 的读者照样计数，沙箱里的上传页也照样计数。同一个 IP 对同一页三十分钟之内只算一次（<code>VIEW_DEDUPE_MS</code>）；<code>HEAD</code> 请求不算。</p>
+<p><b>能回答的只有一件事：每页累计被送出过多少次。</b>库里一页只有两列——累计数和最近一次的时刻。没有来访时刻的流水，没有 IP、没有 UA、没有来路、没有停留时长。所以「上周有多少人」「读者从哪来」「他们读完了吗」这三个最想问的问题，<b>现有数据一个都答不了</b>，本页也不会假装能答。</p>
+<p><b>计数分不清人和机器。</b>爬虫、我们自己的验收脚本、用 Googlebot UA 做的抓取复核，与真人一样计一次。上架一部书要把四个读本逐个打开核对，一轮 SEO 复核要把四十五个典籍页全部取一遍——这些都在下面的数里。</p>
+<p class="note">判读的办法：看「最近一次」。若一页最近一次被打开的时刻，正落在某次提交前后几十秒、且同一分钟里有另外十几页也被打开，那是机器扫的；若它孤零零落在没有任何任务在跑的时段，那才更像是人。</p>
+
+<p class="stamp" id="stamp"></p>
+</main>
+
+<script>
+const BASE = {
+ "asof": "2026-09-17T02:41:52.853Z",
+ "counts": {
+  "upload-sunzi-hans": 23,
+  "upload-sunzi": 15,
+  "upload-sunzi-en": 15,
+  "upload-sunzi-ja": 6,
+  "upload-guiguzi-hans": 20,
+  "upload-guiguzi": 14,
+  "upload-guiguzi-en": 13,
+  "upload-guiguzi-ja": 5,
+  "upload-sanshiliuji-hans": 8,
+  "upload-sanshiliuji": 4,
+  "upload-sanshiliuji-en": 4,
+  "upload-sanshiliuji-ja": 1,
+  "upload-bingjian-hans": 11,
+  "upload-bingjian": 4,
+  "upload-bingjian-en": 5,
+  "upload-bingjian-ja": 2,
+  "upload-daodejing-hans": 8,
+  "upload-daodejing": 4,
+  "upload-daodejing-en": 3,
+  "upload-daodejing-ja": 1,
+  "upload-liaofansixun-hans": 15,
+  "upload-liaofansixun": 6,
+  "upload-liaofansixun-en": 6,
+  "upload-liaofansixun-ja": 1,
+  "upload-sushu-hans": 8,
+  "upload-sushu": 4,
+  "upload-sushu-en": 6,
+  "upload-sushu-ja": 1,
+  "upload-shangjunshu-hans": 10,
+  "upload-shangjunshu": 5,
+  "upload-shangjunshu-en": 4,
+  "upload-shangjunshu-ja": 1,
+  "upload-luozhijing-hans": 9,
+  "upload-luozhijing": 5,
+  "upload-luozhijing-en": 5,
+  "upload-luozhijing-ja": 1,
+  "upload-xiaorenjing-hans": 8,
+  "upload-xiaorenjing": 4,
+  "upload-xiaorenjing-en": 4,
+  "upload-xiaorenjing-ja": 1,
+  "upload-caigentan-hans": 6,
+  "upload-caigentan": 5,
+  "upload-caigentan-en": 4,
+  "upload-caigentan-ja": 1,
+  "upload-fanjing-hans": 2,
+  "upload-fanjing": 1,
+  "upload-fanjing-en": 1,
+  "upload-fanjing-ja": 1,
+  "upload-dianji": 39
+ },
+ "books": [
+  {
+   "cn": "孙子兵法",
+   "era": "春秋",
+   "readings": {
+    "简体": {
+     "id": "upload-sunzi-hans",
+     "slug": "sunzi-hans",
+     "href": "/p/sunzi-hans.html",
+     "publishedAt": "2026-09-12T07:32:19.955Z",
+     "lastViewedAt": "2026-09-16 07:11:55.221965+00",
+     "kb": 93
+    },
+    "繁體": {
+     "id": "upload-sunzi",
+     "slug": "sunzi",
+     "href": "/p/sunzi.html",
+     "publishedAt": "2026-09-12T07:31:18.845Z",
+     "lastViewedAt": "2026-09-16 05:59:21.545557+00",
+     "kb": 93
+    },
+    "English": {
+     "id": "upload-sunzi-en",
+     "slug": "sunzi-en",
+     "href": "/p/sunzi-en.html",
+     "publishedAt": "2026-09-12T07:56:51.194Z",
+     "lastViewedAt": "2026-09-16 05:59:19.924195+00",
+     "kb": 85
+    },
+    "日本語": {
+     "id": "upload-sunzi-ja",
+     "slug": "sunzi-ja",
+     "href": "/p/sunzi-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 07:11:58.920156+00",
+     "kb": 84
+    }
+   }
+  },
+  {
+   "cn": "鬼谷子",
+   "era": "战国",
+   "readings": {
+    "简体": {
+     "id": "upload-guiguzi-hans",
+     "slug": "guiguzi-hans",
+     "href": "/p/guiguzi-hans.html",
+     "publishedAt": "2026-09-12T07:56:50.499Z",
+     "lastViewedAt": "2026-09-17 02:38:46.898729+00",
+     "kb": 142
+    },
+    "繁體": {
+     "id": "upload-guiguzi",
+     "slug": "guiguzi",
+     "href": "/p/guiguzi.html",
+     "publishedAt": "2026-09-12T07:56:50.151Z",
+     "lastViewedAt": "2026-09-16 05:11:20.724566+00",
+     "kb": 142
+    },
+    "English": {
+     "id": "upload-guiguzi-en",
+     "slug": "guiguzi-en",
+     "href": "/p/guiguzi-en.html",
+     "publishedAt": "2026-09-12T07:56:50.866Z",
+     "lastViewedAt": "2026-09-17 02:38:16.480125+00",
+     "kb": 119
+    },
+    "日本語": {
+     "id": "upload-guiguzi-ja",
+     "slug": "guiguzi-ja",
+     "href": "/p/guiguzi-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-17 02:38:49.497525+00",
+     "kb": 125
+    }
+   }
+  },
+  {
+   "cn": "三十六计",
+   "era": "明清",
+   "readings": {
+    "简体": {
+     "id": "upload-sanshiliuji-hans",
+     "slug": "sanshiliuji-hans",
+     "href": "/p/sanshiliuji-hans.html",
+     "publishedAt": "2026-09-12T10:17:13.627Z",
+     "lastViewedAt": "2026-09-16 05:28:45.688415+00",
+     "kb": 67
+    },
+    "繁體": {
+     "id": "upload-sanshiliuji",
+     "slug": "sanshiliuji",
+     "href": "/p/sanshiliuji.html",
+     "publishedAt": "2026-09-12T10:17:13.627Z",
+     "lastViewedAt": "2026-09-16 05:11:21.072005+00",
+     "kb": 67
+    },
+    "English": {
+     "id": "upload-sanshiliuji-en",
+     "slug": "sanshiliuji-en",
+     "href": "/p/sanshiliuji-en.html",
+     "publishedAt": "2026-09-12T10:17:13.627Z",
+     "lastViewedAt": "2026-09-16 05:11:21.123799+00",
+     "kb": 54
+    },
+    "日本語": {
+     "id": "upload-sanshiliuji-ja",
+     "slug": "sanshiliuji-ja",
+     "href": "/p/sanshiliuji-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:21.964534+00",
+     "kb": 33
+    }
+   }
+  },
+  {
+   "cn": "冰鉴",
+   "era": "清",
+   "readings": {
+    "简体": {
+     "id": "upload-bingjian-hans",
+     "slug": "bingjian-hans",
+     "href": "/p/bingjian-hans.html",
+     "publishedAt": "2026-09-12T11:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:59:52.66629+00",
+     "kb": 40
+    },
+    "繁體": {
+     "id": "upload-bingjian",
+     "slug": "bingjian",
+     "href": "/p/bingjian.html",
+     "publishedAt": "2026-09-12T11:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:59:47.099207+00",
+     "kb": 40
+    },
+    "English": {
+     "id": "upload-bingjian-en",
+     "slug": "bingjian-en",
+     "href": "/p/bingjian-en.html",
+     "publishedAt": "2026-09-12T11:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:59:45.787009+00",
+     "kb": 33
+    },
+    "日本語": {
+     "id": "upload-bingjian-ja",
+     "slug": "bingjian-ja",
+     "href": "/p/bingjian-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:59:42.076993+00",
+     "kb": 36
+    }
+   }
+  },
+  {
+   "cn": "道德经",
+   "era": "春秋",
+   "readings": {
+    "简体": {
+     "id": "upload-daodejing-hans",
+     "slug": "daodejing-hans",
+     "href": "/p/daodejing-hans.html",
+     "publishedAt": "2026-09-12T13:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:28:37.663748+00",
+     "kb": 75
+    },
+    "繁體": {
+     "id": "upload-daodejing",
+     "slug": "daodejing",
+     "href": "/p/daodejing.html",
+     "publishedAt": "2026-09-12T13:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:21.358385+00",
+     "kb": 75
+    },
+    "English": {
+     "id": "upload-daodejing-en",
+     "slug": "daodejing-en",
+     "href": "/p/daodejing-en.html",
+     "publishedAt": "2026-09-12T13:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:21.406879+00",
+     "kb": 64
+    },
+    "日本語": {
+     "id": "upload-daodejing-ja",
+     "slug": "daodejing-ja",
+     "href": "/p/daodejing-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:21.464007+00",
+     "kb": 76
+    }
+   }
+  },
+  {
+   "cn": "了凡四训",
+   "era": "明",
+   "readings": {
+    "简体": {
+     "id": "upload-liaofansixun-hans",
+     "slug": "liaofansixun-hans",
+     "href": "/p/liaofansixun-hans.html",
+     "publishedAt": "2026-09-12T15:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:16:01.270897+00",
+     "kb": 101
+    },
+    "繁體": {
+     "id": "upload-liaofansixun",
+     "slug": "liaofansixun",
+     "href": "/p/liaofansixun.html",
+     "publishedAt": "2026-09-12T15:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:21.512253+00",
+     "kb": 101
+    },
+    "English": {
+     "id": "upload-liaofansixun-en",
+     "slug": "liaofansixun-en",
+     "href": "/p/liaofansixun-en.html",
+     "publishedAt": "2026-09-12T15:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:21.570315+00",
+     "kb": 86
+    },
+    "日本語": {
+     "id": "upload-liaofansixun-ja",
+     "slug": "liaofansixun-ja",
+     "href": "/p/liaofansixun-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:21.708279+00",
+     "kb": 85
+    }
+   }
+  },
+  {
+   "cn": "素书",
+   "era": "秦汉",
+   "readings": {
+    "简体": {
+     "id": "upload-sushu-hans",
+     "slug": "sushu-hans",
+     "href": "/p/sushu-hans.html",
+     "publishedAt": "2026-09-12T17:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:21.616901+00",
+     "kb": 30
+    },
+    "繁體": {
+     "id": "upload-sushu",
+     "slug": "sushu",
+     "href": "/p/sushu.html",
+     "publishedAt": "2026-09-12T17:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:21.66479+00",
+     "kb": 30
+    },
+    "English": {
+     "id": "upload-sushu-en",
+     "slug": "sushu-en",
+     "href": "/p/sushu-en.html",
+     "publishedAt": "2026-09-12T17:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:16:19.890012+00",
+     "kb": 31
+    },
+    "日本語": {
+     "id": "upload-sushu-ja",
+     "slug": "sushu-ja",
+     "href": "/p/sushu-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:22.244867+00",
+     "kb": 33
+    }
+   }
+  },
+  {
+   "cn": "商君书",
+   "era": "战国",
+   "readings": {
+    "简体": {
+     "id": "upload-shangjunshu-hans",
+     "slug": "shangjunshu-hans",
+     "href": "/p/shangjunshu-hans.html",
+     "publishedAt": "2026-09-12T22:00:00.000Z",
+     "lastViewedAt": "2026-09-17 01:24:18.972392+00",
+     "kb": 240
+    },
+    "繁體": {
+     "id": "upload-shangjunshu",
+     "slug": "shangjunshu",
+     "href": "/p/shangjunshu.html",
+     "publishedAt": "2026-09-12T22:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:21.822251+00",
+     "kb": 240
+    },
+    "English": {
+     "id": "upload-shangjunshu-en",
+     "slug": "shangjunshu-en",
+     "href": "/p/shangjunshu-en.html",
+     "publishedAt": "2026-09-12T22:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:08:59.821427+00",
+     "kb": 205
+    },
+    "日本語": {
+     "id": "upload-shangjunshu-ja",
+     "slug": "shangjunshu-ja",
+     "href": "/p/shangjunshu-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:21.998943+00",
+     "kb": 191
+    }
+   }
+  },
+  {
+   "cn": "罗织经",
+   "era": "唐",
+   "readings": {
+    "简体": {
+     "id": "upload-luozhijing-hans",
+     "slug": "luozhijing-hans",
+     "href": "/p/luozhijing-hans.html",
+     "publishedAt": "2026-09-12T23:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:16:29.970612+00",
+     "kb": 48
+    },
+    "繁體": {
+     "id": "upload-luozhijing",
+     "slug": "luozhijing",
+     "href": "/p/luozhijing.html",
+     "publishedAt": "2026-09-12T23:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:16:31.251022+00",
+     "kb": 48
+    },
+    "English": {
+     "id": "upload-luozhijing-en",
+     "slug": "luozhijing-en",
+     "href": "/p/luozhijing-en.html",
+     "publishedAt": "2026-09-12T23:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:16:32.266545+00",
+     "kb": 46
+    },
+    "日本語": {
+     "id": "upload-luozhijing-ja",
+     "slug": "luozhijing-ja",
+     "href": "/p/luozhijing-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:21.919047+00",
+     "kb": 46
+    }
+   }
+  },
+  {
+   "cn": "小人经",
+   "era": "五代",
+   "readings": {
+    "简体": {
+     "id": "upload-xiaorenjing-hans",
+     "slug": "xiaorenjing-hans",
+     "href": "/p/xiaorenjing-hans.html",
+     "publishedAt": "2026-09-13T05:30:00.000Z",
+     "lastViewedAt": "2026-09-16 05:16:24.756882+00",
+     "kb": 40
+    },
+    "繁體": {
+     "id": "upload-xiaorenjing",
+     "slug": "xiaorenjing",
+     "href": "/p/xiaorenjing.html",
+     "publishedAt": "2026-09-13T05:30:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:22.159167+00",
+     "kb": 40
+    },
+    "English": {
+     "id": "upload-xiaorenjing-en",
+     "slug": "xiaorenjing-en",
+     "href": "/p/xiaorenjing-en.html",
+     "publishedAt": "2026-09-13T05:30:00.000Z",
+     "lastViewedAt": "2026-09-16 05:11:22.204018+00",
+     "kb": 40
+    },
+    "日本語": {
+     "id": "upload-xiaorenjing-ja",
+     "slug": "xiaorenjing-ja",
+     "href": "/p/xiaorenjing-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:22.28125+00",
+     "kb": 41
+    }
+   }
+  },
+  {
+   "cn": "菜根谭",
+   "era": "明",
+   "readings": {
+    "简体": {
+     "id": "upload-caigentan-hans",
+     "slug": "caigentan-hans",
+     "href": "/p/caigentan-hans.html",
+     "publishedAt": "2026-09-13T09:30:00.000Z",
+     "lastViewedAt": "2026-09-16 05:28:59.947056+00",
+     "kb": 210
+    },
+    "繁體": {
+     "id": "upload-caigentan",
+     "slug": "caigentan",
+     "href": "/p/caigentan.html",
+     "publishedAt": "2026-09-13T09:30:00.000Z",
+     "lastViewedAt": "2026-09-16 05:29:08.202387+00",
+     "kb": 210
+    },
+    "English": {
+     "id": "upload-caigentan-en",
+     "slug": "caigentan-en",
+     "href": "/p/caigentan-en.html",
+     "publishedAt": "2026-09-13T09:30:00.000Z",
+     "lastViewedAt": "2026-09-16 05:29:10.953261+00",
+     "kb": 164
+    },
+    "日本語": {
+     "id": "upload-caigentan-ja",
+     "slug": "caigentan-ja",
+     "href": "/p/caigentan-ja.html",
+     "publishedAt": "2026-09-16T10:00:00.000Z",
+     "lastViewedAt": "2026-09-16 05:52:21.258536+00",
+     "kb": 139
+    }
+   }
+  },
+  {
+   "cn": "反经",
+   "era": "唐",
+   "readings": {
+    "简体": {
+     "id": "upload-fanjing-hans",
+     "slug": "fanjing-hans",
+     "href": "/p/fanjing-hans.html",
+     "publishedAt": "2026-09-16T11:30:00.000Z",
+     "lastViewedAt": "2026-09-16 11:46:32.023993+00",
+     "kb": 799
+    },
+    "繁體": {
+     "id": "upload-fanjing",
+     "slug": "fanjing",
+     "href": "/p/fanjing.html",
+     "publishedAt": "2026-09-16T11:30:00.000Z",
+     "lastViewedAt": "2026-09-16 11:42:47.2388+00",
+     "kb": 799
+    },
+    "English": {
+     "id": "upload-fanjing-en",
+     "slug": "fanjing-en",
+     "href": "/p/fanjing-en.html",
+     "publishedAt": "2026-09-16T11:30:00.000Z",
+     "lastViewedAt": "2026-09-16 11:42:47.340172+00",
+     "kb": 158
+    },
+    "日本語": {
+     "id": "upload-fanjing-ja",
+     "slug": "fanjing-ja",
+     "href": "/p/fanjing-ja.html",
+     "publishedAt": "2026-09-16T11:30:00.000Z",
+     "lastViewedAt": "2026-09-16 11:42:47.377131+00",
+     "kb": 146
+    }
+   }
+  }
+ ],
+ "shelf": {
+  "id": "upload-dianji",
+  "href": "/p/dianji.html",
+  "publishedAt": "2026-09-12T07:58:23.306Z",
+  "lastViewedAt": "2026-09-17 02:38:08.111785+00"
+ }
+}
+const READINGS = ['简体','繁體','English','日本語']
+const DAY = 86400000
+const fmtInt = (n) => n.toLocaleString('en-US')
+const pad = (n) => String(n).padStart(2,'0')
+function fmtTs(s){
+  if(!s) return '—'
+  const t = String(s).replace(' ','T').replace(/\+00$/,'Z').replace(/(\.\d{3})\d+/,'$1')
+  const d = new Date(t)
+  if(isNaN(d)) return String(s).slice(0,16)
+  return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())+' '+pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())
+}
+function el(tag, attrs, ...kids){
+  const n = document.createElement(tag)
+  for(const [k,v] of Object.entries(attrs||{})){
+    if(k==='text') n.textContent = v
+    else if(k==='html') n.innerHTML = v
+    else if(v!=null) n.setAttribute(k, v)
+  }
+  for(const k of kids) if(k!=null) n.appendChild(typeof k==='string'?document.createTextNode(k):k)
+  return n
+}
+// A row's magnitude, as one bar in one hue. Single series -> no legend, no
+// second colour; the number is right next to it, so no label on the bar.
+function bar(value, max, title){
+  const track = el('div',{class:'bartrack', title})
+  track.appendChild(el('div',{class:'bar', style:'width:'+(max?Math.max(2,Math.round(value/max*100)):0)+'%'}))
+  return track
+}
+function cell(n, delta, cls){
+  const td = el('td',{class:(n===0?'zero ':'')+(cls||'')})
+  td.appendChild(document.createTextNode(fmtInt(n)))
+  if(delta>0) td.appendChild(el('span',{class:'delta', text:'+'+delta}))
+  return td
+}
+
+function render(counts, live){
+  const asof = new Date(BASE.asof)
+  document.getElementById('asof').textContent =
+    live ? '实时 · 基线 '+fmtTs(BASE.asof)+' UTC' : '基线快照 '+fmtTs(BASE.asof)+' UTC'
+  const get = (id) => counts[id] ?? 0
+  const base = (id) => BASE.counts[id] ?? 0
+  const now = new Date()
+
+  // ---- totals ----
+  let readingsTotal = 0, readingsBase = 0
+  const pages = []
+  for(const b of BASE.books){
+    for(const r of READINGS){
+      const x = b.readings[r]; if(!x) continue
+      const n = get(x.id)
+      readingsTotal += n; readingsBase += base(x.id)
+      pages.push({book:b.cn, lang:r, n, d:n-base(x.id), ...x})
+    }
+  }
+  const shelf = get(BASE.shelf.id)
+  const total = readingsTotal + shelf
+
+  const hero = document.getElementById('hero')
+  hero.textContent = ''
+  const tiles = [
+    ['典籍点击合计', total, total-(readingsBase+base(BASE.shelf.id)), '四十九个页面'],
+    ['书架页', shelf, shelf-base(BASE.shelf.id), '/p/dianji.html'],
+    ['十二部读本', readingsTotal, readingsTotal-readingsBase, '十二部 × 四读本'],
+    ['每部平均', Math.round(readingsTotal/BASE.books.length), null, '一部书四个读本合计'],
+  ]
+  for(const [k,n,d,sub] of tiles){
+    const t = el('div',{class:'tile'})
+    t.appendChild(el('div',{class:'n', text:fmtInt(n)}))
+    t.appendChild(el('div',{class:'k', text:k}))
+    t.appendChild(el('div',{class:'d', text:(d?('自基线 +'+d+' · '):'')+sub}))
+    hero.appendChild(t)
+  }
+
+  // ---- books ----
+  const tb = document.querySelector('#books tbody'); tb.textContent = ''
+  const rows = BASE.books.map(b => {
+    const per = READINGS.map(r => b.readings[r] ? get(b.readings[r].id) : null)
+    return {b, per, sum: per.reduce((a,x)=>a+(x||0),0)}
+  })
+  const max = Math.max(...rows.map(r=>r.sum), 1)
+  for(const {b, per, sum} of rows){
+    const tr = el('tr')
+    tr.appendChild(el('td',{class:'book'}, el('span',{text:'《'+b.cn+'》'}), el('small',{class:'muted', text:' '+b.era})))
+    READINGS.forEach((r,i) => {
+      const x = b.readings[r]
+      if(!x){ tr.appendChild(el('td',{class:'zero', text:'—'})); return }
+      const td = cell(per[i], per[i]-base(x.id))
+      td.textContent = ''
+      td.appendChild(el('a',{href:x.href, text:fmtInt(per[i])}))
+      const dd = per[i]-base(x.id)
+      if(dd>0) td.appendChild(el('span',{class:'delta', text:'+'+dd}))
+      tr.appendChild(td)
+    })
+    tr.appendChild(cell(sum, 0))
+    tr.appendChild(el('td',{class:'barcell'}, bar(sum, max, b.cn+'：'+sum)))
+    tb.appendChild(tr)
+  }
+  const tr = el('tr',{class:'total'})
+  tr.appendChild(el('td',{text:'合计'}))
+  READINGS.forEach(r => {
+    const n = BASE.books.reduce((a,b)=> a + (b.readings[r]?get(b.readings[r].id):0), 0)
+    tr.appendChild(el('td',{text:fmtInt(n)}))
+  })
+  tr.appendChild(el('td',{text:fmtInt(readingsTotal)}))
+  tr.appendChild(el('td',{class:'barcell'}))
+  tb.appendChild(tr)
+
+  // ---- languages ----
+  const lb = document.querySelector('#langs tbody'); lb.textContent = ''
+  const lang = READINGS.map(r => {
+    let n = 0, earliest = null
+    for(const b of BASE.books){
+      const x = b.readings[r]; if(!x) continue
+      n += get(x.id)
+      const p = x.publishedAt ? new Date(x.publishedAt) : null
+      if(p && (!earliest || p < earliest)) earliest = p
+    }
+    const days = earliest ? (now - earliest)/DAY : null
+    return {r, n, days, perDay: days ? n/days : null}
+  })
+  // Bar on the count, NOT on the per-day rate: 日本語 has been up for a day, so
+  // its rate is a publication-week artefact and a bar on it would put the
+  // least-read reading at the top of the chart.
+  const lmax = Math.max(...lang.map(l=>l.n), 1)
+  for(const l of lang){
+    const row = el('tr')
+    row.appendChild(el('td',{text:l.r}))
+    row.appendChild(el('td',{text:fmtInt(l.n)}))
+    row.appendChild(el('td',{text:(100*l.n/Math.max(readingsTotal,1)).toFixed(1)+'%'}))
+    row.appendChild(el('td',{text:l.days?l.days.toFixed(1):'—'}))
+    row.appendChild(el('td',{text:l.perDay?l.perDay.toFixed(2):'—'}))
+    row.appendChild(el('td',{class:'barcell'}, bar(l.n, lmax, l.r+'：'+l.n+' 次，日均 '+(l.perDay||0).toFixed(2))))
+    lb.appendChild(row)
+  }
+
+  // ---- top pages ----
+  const pb = document.querySelector('#top tbody'); pb.textContent = ''
+  const ranked = pages.concat([{book:'书架', lang:'—', n:shelf, ...BASE.shelf}])
+    .sort((a,b)=> b.n-a.n).slice(0,12)
+  for(const p of ranked){
+    const row = el('tr')
+    row.appendChild(el('td',{}, el('a',{href:p.href, text:(p.book==='书架'?'典籍书架':'《'+p.book+'》'+p.lang)})))
+    row.appendChild(el('td',{text:fmtInt(p.n)}))
+    row.appendChild(el('td',{text:(p.publishedAt||'').slice(5,10)}))
+    row.appendChild(el('td',{text:fmtTs(p.lastViewedAt)}))
+    pb.appendChild(row)
+  }
+
+  // ---- daily series, kept by this browser ----
+  if(live) recordToday(total)
+  drawSeries()
+
+  document.getElementById('stamp').textContent =
+    '基线 '+fmtTs(BASE.asof)+' UTC（任务 #421 生成）· 实时数取自 /api/docs/views'+
+    ' · 本页不在 docs-manifest 内，打开它不会给任何页面加一次点击。'
+}
+
+const KEY = 'dianji-stats:series'
+function recordToday(total){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY) || '{}')
+    const day = new Date().toISOString().slice(0,10)
+    if(s[day] == null){ s[day] = total; localStorage.setItem(KEY, JSON.stringify(s)) }
+  }catch{}
+}
+function drawSeries(){
+  const box = document.getElementById('series'); box.textContent = ''
+  let s = {}
+  try{ s = JSON.parse(localStorage.getItem(KEY) || '{}') }catch{}
+  const days = Object.keys(s).sort()
+  if(days.length < 2){
+    box.appendChild(el('p',{class:'muted', text:
+      days.length ? '已记下 '+days[0]+' 的一个点（'+s[days[0]]+'）。明天再打开一次，这里就会长出第一段增量。'
+                  : '还没有记录。'}))
+    return
+  }
+  const t = el('table')
+  t.appendChild(el('thead',{html:'<tr><th>日期</th><th>累计</th><th>当日增量</th></tr>'}))
+  const tb = el('tbody')
+  days.forEach((d,i) => {
+    const inc = i ? s[d]-s[days[i-1]] : null
+    tb.appendChild(el('tr',{html:'<td>'+d+'</td><td>'+s[d]+'</td><td>'+(inc==null?'—':(inc>0?'+'+inc:inc))+'</td>'}))
+  })
+  t.appendChild(tb); box.appendChild(t)
+}
+
+fetch('/api/docs/views', {headers:{'Accept':'application/json'}})
+  .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP '+r.status)))
+  .then(c => render(c, true))
+  .catch(e => {
+    const w = document.getElementById('live-warn')
+    w.hidden = false
+    w.textContent = '取实时数失败（'+e.message+'），下面显示的是基线快照。'
+    render(BASE.counts, false)
+  })
+</script>
+</body>
+</html>
