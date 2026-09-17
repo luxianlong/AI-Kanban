@@ -1,20 +1,5 @@
 [
   {
-    "id": "four-vocabularies-one-platform",
-    "title": "Four Vocabularies, One Platform",
-    "href": "/docs/four-vocabularies-one-platform.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/four-vocabularies-one-platform.md",
-    "updatedAt": "2026-09-17T09:13:35.806Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/four-vocabularies-one-platform.md",
-      "frontend/public/docs/four-vocabularies-one-platform.html"
-    ]
-  },
-  {
     "id": "upload-fanjing-ja",
     "title": "反経（長短経）— Fanjing（日本語）",
     "href": "/p/fanjing-ja.html",
