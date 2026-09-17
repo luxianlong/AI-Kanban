@@ -1,5 +1,20 @@
 [
   {
+    "id": "microsoft-integrated-data-security-resources",
+    "title": "Microsoft — Integrated Data Security Resources",
+    "href": "/docs/microsoft-integrated-data-security-resources.html",
+    "zone": "article",
+    "deletable": true,
+    "file": "docs/microsoft-integrated-data-security-resources.md",
+    "updatedAt": "2026-09-17T08:09:08.995Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/microsoft-integrated-data-security-resources.md",
+      "frontend/public/docs/microsoft-integrated-data-security-resources.html"
+    ]
+  },
+  {
     "id": "upload-fanjing-ja",
     "title": "反経（長短経）— Fanjing（日本語）",
     "href": "/p/fanjing-ja.html",
@@ -795,36 +810,6 @@
     ]
   },
   {
-    "id": "server-worker-split",
-    "title": "How the board runs work",
-    "href": "/docs/server-worker-split.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/server-worker-split.md",
-    "updatedAt": "2026-09-10T07:08:18.210Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "docs/server-worker-split.md",
-      "frontend/public/docs/server-worker-split.html"
-    ]
-  },
-  {
-    "id": "token",
-    "title": "Token",
-    "href": "/docs/token.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/token.md",
-    "updatedAt": "2026-09-10T07:02:52.559Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "docs/token.md",
-      "frontend/public/docs/token.html"
-    ]
-  },
-  {
     "id": "article-737d0a60",
     "title": "\"我在做自媒体\"：一个失业者如何在就业冰河期自我安慰",
     "href": "/docs/article-737d0a60.html",
@@ -915,6 +900,21 @@
     ]
   },
   {
+    "id": "server-worker-split",
+    "title": "How the board runs work",
+    "href": "/docs/server-worker-split.html",
+    "zone": "article",
+    "deletable": true,
+    "file": "docs/server-worker-split.md",
+    "updatedAt": "2026-09-10T07:08:18.210Z",
+    "isNew": false,
+    "private": true,
+    "paths": [
+      "docs/server-worker-split.md",
+      "frontend/public/docs/server-worker-split.html"
+    ]
+  },
+  {
     "id": "optiver-shanghai-senior-swe-research-platform-orp-the-real-requi",
     "title": "Optiver Shanghai — Senior SWE, Research Platform (ORP): The Real Requirements",
     "href": "/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html",
@@ -927,6 +927,21 @@
     "paths": [
       "docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.md",
       "frontend/public/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html"
+    ]
+  },
+  {
+    "id": "token",
+    "title": "Token",
+    "href": "/docs/token.html",
+    "zone": "article",
+    "deletable": true,
+    "file": "docs/token.md",
+    "updatedAt": "2026-09-10T07:02:52.559Z",
+    "isNew": false,
+    "private": true,
+    "paths": [
+      "docs/token.md",
+      "frontend/public/docs/token.html"
     ]
   },
   {
