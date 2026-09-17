@@ -1,20 +1,5 @@
 [
   {
-    "id": "microsoft-integrated-data-security-resources",
-    "title": "Microsoft — Integrated Data Security Resources",
-    "href": "/docs/microsoft-integrated-data-security-resources.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/microsoft-integrated-data-security-resources.md",
-    "updatedAt": "2026-09-17T08:09:08.995Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "docs/microsoft-integrated-data-security-resources.md",
-      "frontend/public/docs/microsoft-integrated-data-security-resources.html"
-    ]
-  },
-  {
     "id": "upload-fanjing-ja",
     "title": "反経（長短経）— Fanjing（日本語）",
     "href": "/p/fanjing-ja.html",
