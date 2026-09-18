@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-py-stage3-engineering",
+    "title": "阶段三：把工程素养接回来（6 小时，含全部可运行代码）",
+    "href": "/p/py-stage3-engineering.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:48:54.842Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/py-stage3-engineering.html",
+      "frontend/public/p/py-stage3-engineering.meta.json"
+    ]
+  },
+  {
     "id": "upload-py-stage2-python-model",
     "title": "阶段二：对象模型 + Java 没有的那些机制（6 小时，含全部可运行代码）",
     "href": "/p/py-stage2-python-model.html",

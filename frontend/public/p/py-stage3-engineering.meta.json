@@ -1,0 +1,7 @@
+{
+  "slug" : "py-stage3-engineering",
+  "title" : "阶段三：把工程素养接回来（6 小时，含全部可运行代码）",
+  "summary" : "pytest 夹具与参数化、uv 锁依赖与 CUDA 镜像、GIL 的自校准基准测试、asyncio 的取消与限流、cProfile/py-spy 剖析。含 28 个真实通过的测试用例。",
+  "createdAt" : "2026-09-18T04:48:54.843560204Z",
+  "bytes" : 192328
+}
