@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-why-python-matters-ai-stack",
+    "title": "把生态拿掉之后：Python 在 AI 栈里到底承担什么",
+    "href": "/p/why-python-matters-ai-stack.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T09:08:25.023Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/why-python-matters-ai-stack.html",
+      "frontend/public/p/why-python-matters-ai-stack.meta.json"
+    ]
+  },
+  {
     "id": "upload-ai-engineer-roles-by-layer",
     "title": "Under, Of, With, Around: The Seven Layers Hiding Inside the Job Title \"AI Engineer\"",
     "href": "/p/ai-engineer-roles-by-layer.html",
