@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-why-python-matters-ai-stack-2",
+    "title": "把生态拿掉之后：Python 在 AI 栈里到底承担什么",
+    "href": "/p/why-python-matters-ai-stack-2.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T09:08:49.582Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/why-python-matters-ai-stack-2.html",
+      "frontend/public/p/why-python-matters-ai-stack-2.meta.json"
+    ]
+  },
+  {
     "id": "upload-why-python-matters-ai-stack",
     "title": "把生态拿掉之后：Python 在 AI 栈里到底承担什么",
     "href": "/p/why-python-matters-ai-stack.html",
