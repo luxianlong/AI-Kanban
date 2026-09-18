@@ -1,17 +1,377 @@
 [
   {
+    "id": "upload-resume-summary-math-patents",
+    "title": "SUMMARY 里那半句：数学底子与 5 项专利怎么写",
+    "href": "/p/resume-summary-math-patents.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T05:25:28.459Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/resume-summary-math-patents.html",
+      "frontend/public/p/resume-summary-math-patents.meta.json"
+    ]
+  },
+  {
+    "id": "upload-xiaorenjing",
+    "title": "小人經 · 繁體版",
+    "href": "/p/xiaorenjing.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.573Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/xiaorenjing.html",
+      "frontend/public/p/xiaorenjing.meta.json"
+    ]
+  },
+  {
+    "id": "upload-xiaorenjing-ja",
+    "title": "小人経 — Shojinkyo（日本語）",
+    "href": "/p/xiaorenjing-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.572Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/xiaorenjing-ja.html",
+      "frontend/public/p/xiaorenjing-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-xiaorenjing-hans",
+    "title": "小人经 · 简体版",
+    "href": "/p/xiaorenjing-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.571Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/xiaorenjing-hans.html",
+      "frontend/public/p/xiaorenjing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-xiaorenjing-en",
+    "title": "The Classic of the Petty Man — Xiao Ren Jing (English)",
+    "href": "/p/xiaorenjing-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.570Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/xiaorenjing-en.html",
+      "frontend/public/p/xiaorenjing-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sushu",
+    "title": "素書 · 繁體版",
+    "href": "/p/sushu.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.569Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sushu.html",
+      "frontend/public/p/sushu.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sushu-ja",
+    "title": "素書 — Sosho（日本語）",
+    "href": "/p/sushu-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.568Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sushu-ja.html",
+      "frontend/public/p/sushu-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sushu-hans",
+    "title": "素书 · 简体版",
+    "href": "/p/sushu-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.567Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sushu-hans.html",
+      "frontend/public/p/sushu-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sushu-en",
+    "title": "Su Shu — The Plain Book (English)",
+    "href": "/p/sushu-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.566Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sushu-en.html",
+      "frontend/public/p/sushu-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sunzi",
+    "title": "孫子兵法 · 繁體版",
+    "href": "/p/sunzi.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.565Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi.html",
+      "frontend/public/p/sunzi.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sunzi-ja",
+    "title": "孫子兵法 — Sonshi heiho（日本語）",
+    "href": "/p/sunzi-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.563Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi-ja.html",
+      "frontend/public/p/sunzi-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sunzi-hans",
+    "title": "孙子兵法 · 简体版",
+    "href": "/p/sunzi-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.563Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi-hans.html",
+      "frontend/public/p/sunzi-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sunzi-en",
+    "title": "Sunzi — The Art of War (English)",
+    "href": "/p/sunzi-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.560Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sunzi-en.html",
+      "frontend/public/p/sunzi-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-shangjunshu",
+    "title": "商君書 · 繁體版",
+    "href": "/p/shangjunshu.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.559Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/shangjunshu.html",
+      "frontend/public/p/shangjunshu.meta.json"
+    ]
+  },
+  {
+    "id": "upload-shangjunshu-ja",
+    "title": "商君書 — Shokunsho（日本語）",
+    "href": "/p/shangjunshu-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.556Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/shangjunshu-ja.html",
+      "frontend/public/p/shangjunshu-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-shangjunshu-hans",
+    "title": "商君书 · 简体版",
+    "href": "/p/shangjunshu-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.555Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/shangjunshu-hans.html",
+      "frontend/public/p/shangjunshu-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-shangjunshu-en",
+    "title": "The Book of Lord Shang — Shangjunshu (English)",
+    "href": "/p/shangjunshu-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.551Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/shangjunshu-en.html",
+      "frontend/public/p/shangjunshu-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanshiliuji",
+    "title": "三十六計 · 繁體版",
+    "href": "/p/sanshiliuji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.475Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanshiliuji.html",
+      "frontend/public/p/sanshiliuji.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanshiliuji-ja",
+    "title": "三十六計 — Sanjuroku-kei（日本語）",
+    "href": "/p/sanshiliuji-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.469Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanshiliuji-ja.html",
+      "frontend/public/p/sanshiliuji-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanshiliuji-hans",
+    "title": "三十六计 · 简体版",
+    "href": "/p/sanshiliuji-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.468Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanshiliuji-hans.html",
+      "frontend/public/p/sanshiliuji-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanshiliuji-en",
+    "title": "The Thirty-Six Stratagems (English)",
+    "href": "/p/sanshiliuji-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.464Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanshiliuji-en.html",
+      "frontend/public/p/sanshiliuji-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-resume-pmf-staff-ai-infra",
+    "title": "这份简历的 PMF 诊断：为什么它卖不进 Staff AI Infrastructure",
+    "href": "/p/resume-pmf-staff-ai-infra.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.463Z",
+    "isNew": true,
+    "private": true,
+    "paths": [
+      "frontend/public/p/resume-pmf-staff-ai-infra.html",
+      "frontend/public/p/resume-pmf-staff-ai-infra.meta.json"
+    ]
+  },
+  {
+    "id": "upload-python-ai-infra-stages",
+    "title": "从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）",
+    "href": "/p/python-ai-infra-stages.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.462Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/python-ai-infra-stages.html",
+      "frontend/public/p/python-ai-infra-stages.meta.json"
+    ]
+  },
+  {
     "id": "upload-py-stage5-capstone",
     "title": "阶段五：Capstone —— LLM 推理网关（6 小时，完整源码 + 真实压测）",
     "href": "/p/py-stage5-capstone.html",
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T04:48:56.442Z",
+    "updatedAt": "2026-09-18T04:59:44.460Z",
     "isNew": true,
     "private": false,
     "paths": [
       "frontend/public/p/py-stage5-capstone.html",
       "frontend/public/p/py-stage5-capstone.meta.json"
+    ]
+  },
+  {
+    "id": "upload-python-ai-infra-40h",
+    "title": "从 Java 到 Python AI Infrastructure：40 小时学习路线",
+    "href": "/p/python-ai-infra-40h.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.460Z",
+    "isNew": true,
+    "private": true,
+    "paths": [
+      "frontend/public/p/python-ai-infra-40h.html",
+      "frontend/public/p/python-ai-infra-40h.meta.json"
     ]
   },
   {
@@ -21,7 +381,7 @@
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T04:48:55.641Z",
+    "updatedAt": "2026-09-18T04:59:44.458Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -36,7 +396,7 @@
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T04:48:54.842Z",
+    "updatedAt": "2026-09-18T04:59:44.455Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -51,7 +411,7 @@
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T04:48:54.051Z",
+    "updatedAt": "2026-09-18T04:59:44.451Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -66,7 +426,7 @@
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T04:48:53.303Z",
+    "updatedAt": "2026-09-18T04:59:44.448Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -75,33 +435,63 @@
     ]
   },
   {
-    "id": "upload-python-ai-infra-stages",
-    "title": "从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）",
-    "href": "/p/python-ai-infra-stages.html",
-    "zone": "article",
+    "id": "upload-luozhijing",
+    "title": "羅織經 · 繁體版",
+    "href": "/p/luozhijing.html",
+    "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T04:48:52.319Z",
+    "updatedAt": "2026-09-18T04:59:44.447Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/python-ai-infra-stages.html",
-      "frontend/public/p/python-ai-infra-stages.meta.json"
+      "frontend/public/p/luozhijing.html",
+      "frontend/public/p/luozhijing.meta.json"
     ]
   },
   {
-    "id": "upload-resume-pmf-staff-ai-infra",
-    "title": "这份简历的 PMF 诊断：为什么它卖不进 Staff AI Infrastructure",
-    "href": "/p/resume-pmf-staff-ai-infra.html",
-    "zone": "article",
+    "id": "upload-luozhijing-ja",
+    "title": "羅織経 — Rashokukei（日本語）",
+    "href": "/p/luozhijing-ja.html",
+    "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T04:05:31.805Z",
+    "updatedAt": "2026-09-18T04:59:44.446Z",
     "isNew": true,
-    "private": true,
+    "private": false,
     "paths": [
-      "frontend/public/p/resume-pmf-staff-ai-infra.html",
-      "frontend/public/p/resume-pmf-staff-ai-infra.meta.json"
+      "frontend/public/p/luozhijing-ja.html",
+      "frontend/public/p/luozhijing-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-luozhijing-hans",
+    "title": "罗织经 · 简体版",
+    "href": "/p/luozhijing-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.445Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/luozhijing-hans.html",
+      "frontend/public/p/luozhijing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-luozhijing-en",
+    "title": "The Classic of Netting — Luo Zhi Jing (English)",
+    "href": "/p/luozhijing-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.444Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/luozhijing-en.html",
+      "frontend/public/p/luozhijing-en.meta.json"
     ]
   },
   {
@@ -111,7 +501,7 @@
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T03:56:41.246Z",
+    "updatedAt": "2026-09-18T04:59:44.443Z",
     "isNew": true,
     "private": true,
     "paths": [
@@ -120,18 +510,363 @@
     ]
   },
   {
-    "id": "upload-python-ai-infra-40h",
-    "title": "从 Java 到 Python AI Infrastructure：40 小时学习路线",
-    "href": "/p/python-ai-infra-40h.html",
-    "zone": "article",
+    "id": "upload-liaofansixun",
+    "title": "了凡四訓 · 繁體版",
+    "href": "/p/liaofansixun.html",
+    "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T02:45:00.538Z",
+    "updatedAt": "2026-09-18T04:59:44.442Z",
     "isNew": true,
-    "private": true,
+    "private": false,
     "paths": [
-      "frontend/public/p/python-ai-infra-40h.html",
-      "frontend/public/p/python-ai-infra-40h.meta.json"
+      "frontend/public/p/liaofansixun.html",
+      "frontend/public/p/liaofansixun.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun-ja",
+    "title": "了凡四訓 — Ryobon shikun（日本語）",
+    "href": "/p/liaofansixun-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.441Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun-ja.html",
+      "frontend/public/p/liaofansixun-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun-hans",
+    "title": "了凡四训 · 简体版",
+    "href": "/p/liaofansixun-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.440Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun-hans.html",
+      "frontend/public/p/liaofansixun-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liaofansixun-en",
+    "title": "Liaofan’s Four Lessons (English)",
+    "href": "/p/liaofansixun-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.437Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liaofansixun-en.html",
+      "frontend/public/p/liaofansixun-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-guiguzi",
+    "title": "鬼谷子 · 繁體版",
+    "href": "/p/guiguzi.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.436Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi.html",
+      "frontend/public/p/guiguzi.meta.json"
+    ]
+  },
+  {
+    "id": "upload-guiguzi-ja",
+    "title": "鬼谷子 — Kikokushi（日本語）",
+    "href": "/p/guiguzi-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.431Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi-ja.html",
+      "frontend/public/p/guiguzi-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-guiguzi-hans",
+    "title": "鬼谷子 · 简体版",
+    "href": "/p/guiguzi-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.428Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi-hans.html",
+      "frontend/public/p/guiguzi-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-guiguzi-en",
+    "title": "Guiguzi — The Master of Ghost Valley (English)",
+    "href": "/p/guiguzi-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.422Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/guiguzi-en.html",
+      "frontend/public/p/guiguzi-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-fanjing",
+    "title": "反經（長短經）· 繁體版",
+    "href": "/p/fanjing.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.420Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/fanjing.html",
+      "frontend/public/p/fanjing.meta.json"
+    ]
+  },
+  {
+    "id": "upload-fanjing-ja",
+    "title": "反経（長短経）— Fanjing（日本語）",
+    "href": "/p/fanjing-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.412Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/fanjing-ja.html",
+      "frontend/public/p/fanjing-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-fanjing-hans",
+    "title": "反经（长短经）· 简体版",
+    "href": "/p/fanjing-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.409Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/fanjing-hans.html",
+      "frontend/public/p/fanjing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-fanjing-en",
+    "title": "The Classic of Reversal — Fanjing / Changduanjing (English)",
+    "href": "/p/fanjing-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.399Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/fanjing-en.html",
+      "frontend/public/p/fanjing-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-daodejing",
+    "title": "道德經 · 繁體版",
+    "href": "/p/daodejing.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.395Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daodejing.html",
+      "frontend/public/p/daodejing.meta.json"
+    ]
+  },
+  {
+    "id": "upload-daodejing-ja",
+    "title": "道徳経 — Dotokukyo（日本語）",
+    "href": "/p/daodejing-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.394Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daodejing-ja.html",
+      "frontend/public/p/daodejing-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-daodejing-hans",
+    "title": "道德经 · 简体版",
+    "href": "/p/daodejing-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.392Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daodejing-hans.html",
+      "frontend/public/p/daodejing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-daodejing-en",
+    "title": "The Daodejing (English)",
+    "href": "/p/daodejing-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.390Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/daodejing-en.html",
+      "frontend/public/p/daodejing-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-caigentan",
+    "title": "菜根譚 · 繁體版",
+    "href": "/p/caigentan.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.389Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/caigentan.html",
+      "frontend/public/p/caigentan.meta.json"
+    ]
+  },
+  {
+    "id": "upload-caigentan-ja",
+    "title": "菜根譚 — Saikontan（日本語）",
+    "href": "/p/caigentan-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.386Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/caigentan-ja.html",
+      "frontend/public/p/caigentan-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-caigentan-hans",
+    "title": "菜根谭 · 简体版",
+    "href": "/p/caigentan-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.384Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/caigentan-hans.html",
+      "frontend/public/p/caigentan-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-caigentan-en",
+    "title": "The Vegetable Root Discourses — Caigentan (English)",
+    "href": "/p/caigentan-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.381Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/caigentan-en.html",
+      "frontend/public/p/caigentan-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-bingjian",
+    "title": "冰鑑 · 繁體版",
+    "href": "/p/bingjian.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.379Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/bingjian.html",
+      "frontend/public/p/bingjian.meta.json"
+    ]
+  },
+  {
+    "id": "upload-bingjian-ja",
+    "title": "氷鑑 — Hyokan（日本語）",
+    "href": "/p/bingjian-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.378Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/bingjian-ja.html",
+      "frontend/public/p/bingjian-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-bingjian-hans",
+    "title": "冰鉴 · 简体版",
+    "href": "/p/bingjian-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.378Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/bingjian-hans.html",
+      "frontend/public/p/bingjian-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-bingjian-en",
+    "title": "The Ice Mirror (English)",
+    "href": "/p/bingjian-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:59:44.376Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/bingjian-en.html",
+      "frontend/public/p/bingjian-en.meta.json"
     ]
   },
   {
@@ -150,66 +885,6 @@
     ]
   },
   {
-    "id": "upload-fanjing-ja",
-    "title": "反経（長短経）— Fanjing（日本語）",
-    "href": "/p/fanjing-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T11:46:33.182Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/fanjing-ja.html",
-      "frontend/public/p/fanjing-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-fanjing-en",
-    "title": "The Classic of Reversal — Fanjing / Changduanjing (English)",
-    "href": "/p/fanjing-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T11:46:33.180Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/fanjing-en.html",
-      "frontend/public/p/fanjing-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-fanjing-hans",
-    "title": "反经（长短经）· 简体版",
-    "href": "/p/fanjing-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T11:46:33.177Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/fanjing-hans.html",
-      "frontend/public/p/fanjing-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-fanjing",
-    "title": "反經（長短經）· 繁體版",
-    "href": "/p/fanjing.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T11:46:33.163Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/fanjing.html",
-      "frontend/public/p/fanjing.meta.json"
-    ]
-  },
-  {
     "id": "upload-dianji",
     "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经",
     "href": "/p/dianji.html",
@@ -222,666 +897,6 @@
     "paths": [
       "frontend/public/p/dianji.html",
       "frontend/public/p/dianji.meta.json"
-    ]
-  },
-  {
-    "id": "upload-xiaorenjing",
-    "title": "小人經 · 繁體版",
-    "href": "/p/xiaorenjing.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.780Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/xiaorenjing.html",
-      "frontend/public/p/xiaorenjing.meta.json"
-    ]
-  },
-  {
-    "id": "upload-xiaorenjing-ja",
-    "title": "小人経 — Shojinkyo（日本語）",
-    "href": "/p/xiaorenjing-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.778Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/xiaorenjing-ja.html",
-      "frontend/public/p/xiaorenjing-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-xiaorenjing-hans",
-    "title": "小人经 · 简体版",
-    "href": "/p/xiaorenjing-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.778Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/xiaorenjing-hans.html",
-      "frontend/public/p/xiaorenjing-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-xiaorenjing-en",
-    "title": "The Classic of the Petty Man — Xiao Ren Jing (English)",
-    "href": "/p/xiaorenjing-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.776Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/xiaorenjing-en.html",
-      "frontend/public/p/xiaorenjing-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sushu",
-    "title": "素書 · 繁體版",
-    "href": "/p/sushu.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.775Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sushu.html",
-      "frontend/public/p/sushu.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sushu-ja",
-    "title": "素書 — Sosho（日本語）",
-    "href": "/p/sushu-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.773Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sushu-ja.html",
-      "frontend/public/p/sushu-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sushu-hans",
-    "title": "素书 · 简体版",
-    "href": "/p/sushu-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.771Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sushu-hans.html",
-      "frontend/public/p/sushu-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sushu-en",
-    "title": "Su Shu — The Plain Book (English)",
-    "href": "/p/sushu-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.770Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sushu-en.html",
-      "frontend/public/p/sushu-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sunzi",
-    "title": "孫子兵法 · 繁體版",
-    "href": "/p/sunzi.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.769Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sunzi.html",
-      "frontend/public/p/sunzi.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sunzi-ja",
-    "title": "孫子兵法 — Sonshi heiho（日本語）",
-    "href": "/p/sunzi-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.767Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sunzi-ja.html",
-      "frontend/public/p/sunzi-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sunzi-hans",
-    "title": "孙子兵法 · 简体版",
-    "href": "/p/sunzi-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.765Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sunzi-hans.html",
-      "frontend/public/p/sunzi-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sunzi-en",
-    "title": "Sunzi — The Art of War (English)",
-    "href": "/p/sunzi-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.765Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sunzi-en.html",
-      "frontend/public/p/sunzi-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-shangjunshu",
-    "title": "商君書 · 繁體版",
-    "href": "/p/shangjunshu.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.762Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/shangjunshu.html",
-      "frontend/public/p/shangjunshu.meta.json"
-    ]
-  },
-  {
-    "id": "upload-shangjunshu-ja",
-    "title": "商君書 — Shokunsho（日本語）",
-    "href": "/p/shangjunshu-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.760Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/shangjunshu-ja.html",
-      "frontend/public/p/shangjunshu-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-shangjunshu-hans",
-    "title": "商君书 · 简体版",
-    "href": "/p/shangjunshu-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.757Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/shangjunshu-hans.html",
-      "frontend/public/p/shangjunshu-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-shangjunshu-en",
-    "title": "The Book of Lord Shang — Shangjunshu (English)",
-    "href": "/p/shangjunshu-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.755Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/shangjunshu-en.html",
-      "frontend/public/p/shangjunshu-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sanshiliuji",
-    "title": "三十六計 · 繁體版",
-    "href": "/p/sanshiliuji.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.752Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sanshiliuji.html",
-      "frontend/public/p/sanshiliuji.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sanshiliuji-ja",
-    "title": "三十六計 — Sanjuroku-kei（日本語）",
-    "href": "/p/sanshiliuji-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.751Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sanshiliuji-ja.html",
-      "frontend/public/p/sanshiliuji-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sanshiliuji-hans",
-    "title": "三十六计 · 简体版",
-    "href": "/p/sanshiliuji-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.749Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sanshiliuji-hans.html",
-      "frontend/public/p/sanshiliuji-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-sanshiliuji-en",
-    "title": "The Thirty-Six Stratagems (English)",
-    "href": "/p/sanshiliuji-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.748Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sanshiliuji-en.html",
-      "frontend/public/p/sanshiliuji-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-luozhijing",
-    "title": "羅織經 · 繁體版",
-    "href": "/p/luozhijing.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.746Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/luozhijing.html",
-      "frontend/public/p/luozhijing.meta.json"
-    ]
-  },
-  {
-    "id": "upload-luozhijing-ja",
-    "title": "羅織経 — Rashokukei（日本語）",
-    "href": "/p/luozhijing-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.744Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/luozhijing-ja.html",
-      "frontend/public/p/luozhijing-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-luozhijing-hans",
-    "title": "罗织经 · 简体版",
-    "href": "/p/luozhijing-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.743Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/luozhijing-hans.html",
-      "frontend/public/p/luozhijing-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-luozhijing-en",
-    "title": "The Classic of Netting — Luo Zhi Jing (English)",
-    "href": "/p/luozhijing-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.742Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/luozhijing-en.html",
-      "frontend/public/p/luozhijing-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-liaofansixun",
-    "title": "了凡四訓 · 繁體版",
-    "href": "/p/liaofansixun.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.740Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/liaofansixun.html",
-      "frontend/public/p/liaofansixun.meta.json"
-    ]
-  },
-  {
-    "id": "upload-liaofansixun-ja",
-    "title": "了凡四訓 — Ryobon shikun（日本語）",
-    "href": "/p/liaofansixun-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.739Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/liaofansixun-ja.html",
-      "frontend/public/p/liaofansixun-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-liaofansixun-hans",
-    "title": "了凡四训 · 简体版",
-    "href": "/p/liaofansixun-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.736Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/liaofansixun-hans.html",
-      "frontend/public/p/liaofansixun-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-liaofansixun-en",
-    "title": "Liaofan’s Four Lessons (English)",
-    "href": "/p/liaofansixun-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.734Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/liaofansixun-en.html",
-      "frontend/public/p/liaofansixun-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-guiguzi",
-    "title": "鬼谷子 · 繁體版",
-    "href": "/p/guiguzi.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.733Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/guiguzi.html",
-      "frontend/public/p/guiguzi.meta.json"
-    ]
-  },
-  {
-    "id": "upload-guiguzi-ja",
-    "title": "鬼谷子 — Kikokushi（日本語）",
-    "href": "/p/guiguzi-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.731Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/guiguzi-ja.html",
-      "frontend/public/p/guiguzi-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-guiguzi-hans",
-    "title": "鬼谷子 · 简体版",
-    "href": "/p/guiguzi-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.727Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/guiguzi-hans.html",
-      "frontend/public/p/guiguzi-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-guiguzi-en",
-    "title": "Guiguzi — The Master of Ghost Valley (English)",
-    "href": "/p/guiguzi-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.725Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/guiguzi-en.html",
-      "frontend/public/p/guiguzi-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-daodejing",
-    "title": "道德經 · 繁體版",
-    "href": "/p/daodejing.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.723Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/daodejing.html",
-      "frontend/public/p/daodejing.meta.json"
-    ]
-  },
-  {
-    "id": "upload-daodejing-ja",
-    "title": "道徳経 — Dotokukyo（日本語）",
-    "href": "/p/daodejing-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.722Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/daodejing-ja.html",
-      "frontend/public/p/daodejing-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-daodejing-hans",
-    "title": "道德经 · 简体版",
-    "href": "/p/daodejing-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.721Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/daodejing-hans.html",
-      "frontend/public/p/daodejing-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-daodejing-en",
-    "title": "The Daodejing (English)",
-    "href": "/p/daodejing-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.719Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/daodejing-en.html",
-      "frontend/public/p/daodejing-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-caigentan",
-    "title": "菜根譚 · 繁體版",
-    "href": "/p/caigentan.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.716Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/caigentan.html",
-      "frontend/public/p/caigentan.meta.json"
-    ]
-  },
-  {
-    "id": "upload-caigentan-ja",
-    "title": "菜根譚 — Saikontan（日本語）",
-    "href": "/p/caigentan-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.714Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/caigentan-ja.html",
-      "frontend/public/p/caigentan-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-caigentan-hans",
-    "title": "菜根谭 · 简体版",
-    "href": "/p/caigentan-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.712Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/caigentan-hans.html",
-      "frontend/public/p/caigentan-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-caigentan-en",
-    "title": "The Vegetable Root Discourses — Caigentan (English)",
-    "href": "/p/caigentan-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.708Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/caigentan-en.html",
-      "frontend/public/p/caigentan-en.meta.json"
-    ]
-  },
-  {
-    "id": "upload-bingjian",
-    "title": "冰鑑 · 繁體版",
-    "href": "/p/bingjian.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.707Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/bingjian.html",
-      "frontend/public/p/bingjian.meta.json"
-    ]
-  },
-  {
-    "id": "upload-bingjian-ja",
-    "title": "氷鑑 — Hyokan（日本語）",
-    "href": "/p/bingjian-ja.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.705Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/bingjian-ja.html",
-      "frontend/public/p/bingjian-ja.meta.json"
-    ]
-  },
-  {
-    "id": "upload-bingjian-hans",
-    "title": "冰鉴 · 简体版",
-    "href": "/p/bingjian-hans.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.704Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/bingjian-hans.html",
-      "frontend/public/p/bingjian-hans.meta.json"
-    ]
-  },
-  {
-    "id": "upload-bingjian-en",
-    "title": "The Ice Mirror (English)",
-    "href": "/p/bingjian-en.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T06:14:31.703Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/bingjian-en.html",
-      "frontend/public/p/bingjian-en.meta.json"
     ]
   },
   {
