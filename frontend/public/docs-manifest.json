@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-py-stage5-capstone",
+    "title": "阶段五：Capstone —— LLM 推理网关（6 小时，完整源码 + 真实压测）",
+    "href": "/p/py-stage5-capstone.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:48:56.442Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/py-stage5-capstone.html",
+      "frontend/public/p/py-stage5-capstone.meta.json"
+    ]
+  },
+  {
     "id": "upload-py-stage4-ai-infra",
     "title": "阶段四：AI Infrastructure 核心栈（16 小时，含全部可运行代码）",
     "href": "/p/py-stage4-ai-infra.html",

@@ -1,0 +1,7 @@
+{
+  "slug" : "py-stage5-capstone",
+  "title" : "阶段五：Capstone —— LLM 推理网关（6 小时，完整源码 + 真实压测）",
+  "summary" : "1101 行完整源码（ruff + mypy 双绿，24 个测试全过）：准入控制、SSE 流式、取消传播、Prometheus 埋点、Dockerfile，外加一次真实压测画出吞吐-时延曲线并找到膝点。",
+  "createdAt" : "2026-09-18T04:48:56.442964279Z",
+  "bytes" : 294626
+}
