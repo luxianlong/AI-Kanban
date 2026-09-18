@@ -63,10 +63,24 @@
       '.toc-fold:hover{opacity:.7}' +
       '.toc-fold-caret{font-size:.8em;line-height:1;transition:transform .18s}' +
       '.toc.collapsed .toc-fold-caret{transform:rotate(-90deg)}' +
+      // Folded, the caret is the WHOLE control (task #457). Keeping the label
+      // left "目录" / "本页目录" standing in the margin — 41px on the 典籍
+      // readers, 68px on the uploaded articles — which is most of what a fold
+      // was supposed to give back. Hiding it takes the column to the glyph.
+      '.toc.collapsed .toc-fold-label{display:none}' +
+      // An 8px arrow is not a click target, so the button keeps padding of its
+      // own. It stays INSIDE the button: a negative margin would hang the hit
+      // area outside the nav, which is a scroll box on both page families and
+      // clips what leaves it.
+      '.toc.collapsed .toc-fold{width:auto;gap:0;padding:5px}' +
+      '.toc.collapsed .toc-fold-caret{font-size:13px}' +
+      // The host is the only survivor, so its spacing and any rule the page
+      // hung under it are now separating nothing. This has to out-shout the
+      // page's own `.toc h2 {…}`, which is why it is !important and not tidy.
+      '.toc.collapsed .toc-fold-head{margin:0!important;padding:0!important;border:0!important}' +
       // Only used for the no-heading family, where we supply the host element.
       '.toc-fold-head.toc-fold-synth{margin:0 0 10px;font-size:12px;letter-spacing:.14em;' +
-      'text-transform:uppercase;opacity:.75}' +
-      '.toc.collapsed .toc-fold-head.toc-fold-synth{margin:0}'
+      'text-transform:uppercase;opacity:.75}'
     var style = document.createElement('style')
     style.textContent = css
     document.head.appendChild(style)
@@ -87,24 +101,35 @@
   // Give the nav a clickable host for the caret. If the page wrote its own
   // heading ("本页目录"), the button moves *inside* it so the page's `.toc h2`
   // styling still lands; otherwise we supply a minimal one.
+  //
+  // The words always go in a .toc-fold-label wrapper, because folding hides
+  // them: a collapsed control is the caret alone, which is also why the button
+  // carries an aria-label — with the label gone and the caret aria-hidden it
+  // would otherwise have no accessible name at all.
   function mountControl(toc) {
     var btn = document.createElement('button')
     btn.className = 'toc-fold'
     btn.type = 'button'
     btn.setAttribute('aria-expanded', 'true')
 
+    var label = document.createElement('span')
+    label.className = 'toc-fold-label'
+
     var head = toc.firstElementChild
     if (head && /^H[1-6]$/.test(head.tagName)) {
-      while (head.firstChild) btn.appendChild(head.firstChild)
+      while (head.firstChild) label.appendChild(head.firstChild)
+      btn.appendChild(label)
       head.appendChild(btn)
     } else {
       head = document.createElement('div')
       head.className = 'toc-fold-synth'
-      btn.appendChild(document.createTextNode('目录'))
+      label.appendChild(document.createTextNode('目录'))
+      btn.appendChild(label)
       head.appendChild(btn)
       toc.insertBefore(head, toc.firstChild)
     }
     head.classList.add('toc-fold-head')
+    btn.setAttribute('aria-label', (label.textContent || '目录').trim() || '目录')
 
     var caret = document.createElement('span')
     caret.className = 'toc-fold-caret'
@@ -155,6 +180,8 @@
     function apply(collapsed) {
       toc.classList.toggle(COLLAPSED, collapsed)
       btn.setAttribute('aria-expanded', String(!collapsed))
+      // Folded there is no label left to say what the arrow is for.
+      btn.setAttribute('title', collapsed ? '展开目录' : '收起目录')
       reclaim(toc, collapsed)
     }
 

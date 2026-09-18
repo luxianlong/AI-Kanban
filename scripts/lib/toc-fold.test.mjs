@@ -302,6 +302,61 @@ const NARROW = { display: 'grid', gridTemplateColumns: '1120px' }
   )
 }
 
+// --- 2b. folded, the control is a caret and nothing else (task #457) --------
+// The first cut of the fold kept the heading visible, so a "collapsed" catalog
+// still held 41px (典籍) / 68px (uploaded) of margin open — several character
+// widths of chrome for a list nobody is reading. The words now live in their
+// own span so they can be hidden with the list.
+{
+  for (const [family, toc, words] of [
+    ['典籍 reader', classicToc(), '目录'],
+    ['uploaded article', articleToc(), '本页目录'],
+  ]) {
+    const page = run({ toc, wrapper: 'wrap', computed: WIDE })
+    const label = page.btn.querySelector('.toc-fold-label')
+    assert.ok(label, `${family}: the words must be wrapped so the fold can hide them`)
+    assert.equal(label.textContent, words, `${family}: and the wrapper must carry the page's own words`)
+    // Everything in the button is either the label or the caret: a stray text
+    // node outside the span survives the fold and re-widens the column.
+    for (const child of page.btn.childNodes) {
+      assert.ok(
+        child.tagName && (child === label || child.classList.contains('toc-fold-caret')),
+        `${family}: only the label span and the caret may sit in the control`,
+      )
+    }
+    // The caret is aria-hidden, so once the label is display:none the button
+    // would have no accessible name at all.
+    assert.equal(page.btn.getAttribute('aria-label'), words, `${family}: the bare caret still needs a name`)
+    assert.equal(page.btn.getAttribute('title'), '收起目录', `${family}: open, the control says what it does`)
+    page.click()
+    assert.equal(page.btn.getAttribute('title'), '展开目录', `${family}: folded, an arrow alone must explain itself`)
+    page.click()
+    assert.equal(page.btn.getAttribute('title'), '收起目录')
+  }
+}
+{
+  const page = run({ toc: articleToc(), computed: WIDE })
+  assert.match(
+    page.styles,
+    /\.toc\.collapsed \.toc-fold-label\{display:none\}/,
+    'the label must be hidden by the fold, or the column stays several characters wide',
+  )
+  // The page's own heading rules (`.toc h2 {margin:0 0 10px}`, and on other
+  // pages a border-bottom) are separating nothing once the list is gone, and
+  // they are more specific than an unqualified override would be.
+  assert.match(
+    page.styles,
+    /\.toc\.collapsed \.toc-fold-head\{margin:0!important;padding:0!important;border:0!important\}/,
+    "folded, the host must shed the page's own spacing and rule",
+  )
+  // A caret at the label's 0.8em is an ~8px hit target; folded, the button
+  // grows padding of its own. The padding must NOT be pulled back out with a
+  // negative margin — both page families make the nav a scroll box, which
+  // clips anything hanging outside it out of the hit region too.
+  assert.match(page.styles, /\.toc\.collapsed \.toc-fold\{width:auto;gap:0;padding:5px\}/)
+  assert.doesNotMatch(page.styles, /\.toc\.collapsed \.toc-fold-caret\{[^}]*margin:-/)
+}
+
 // --- 3. a single-column layout has no column to reclaim ----------------------
 // Below each page's own breakpoint the wrapper stacks; forcing two tracks there
 // would break the layout outright. The fold still hides the list.

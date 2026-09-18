@@ -118,12 +118,23 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
 }
 .toc-title:hover { color: var(--accent); }
-.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc-caret { font-size: 9px; line-height: 1; transition: transform 0.18s; }
 .toc.collapsed .toc-caret { transform: rotate(-90deg); }
 .toc.collapsed ul { display: none; }
-/* Folded, the heading is all that's left in the margin: nothing below it to
-   underline, so the rule goes too. */
-.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+/* Folded, the caret is the entire control (task #457). The word 目录 set in
+   11px/0.18em tracking was still holding ~45px of margin open — several
+   character widths of chrome for a list nobody is reading — so the label goes
+   with the list and only the arrow stays. The padding that makes the arrow a
+   real click target stays INSIDE the button rather than being pulled back with
+   a negative margin: the nav is a scroll box, and anything hanging outside it
+   is clipped out of the hit region as well as out of the paint. */
+.toc.collapsed .toc-label { display: none; }
+.toc.collapsed .toc-caret { font-size: 13px; }
+/* Nothing below it to separate any more, and no text to keep off the rule. */
+.toc.collapsed .toc-title { border-bottom: none; padding: 5px; margin: 0; width: auto; gap: 0; }
+/* One short line of content: the scroll box has nothing left to scroll, and
+   keeping it would only clip the control's own padding. */
+.toc.collapsed { padding-right: 0; overflow: visible; max-height: none; }
 .toc ul { list-style: none; margin: 0; padding: 0; }
 .toc li { margin: 0; }
 .toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
@@ -196,7 +207,13 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 /* Only wide layouts have a margin column to reclaim; narrow ones already stack
    (and their own rule below would lose to this more specific selector). */
 @media (min-width: 901px) {
-  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 26px; }
+  /* The prose is capped at 70ch, so it cannot spend the reclaimed column — left
+     alone it just slides left and leaves the whole gain as an empty right-hand
+     gutter, and the shift got worse once the margin shrank to a caret (#457).
+     Auto margins re-centre it; on a page whose prose really does fill the track
+     they resolve to zero. Same fix the /p/ fold applies in toc-fold.js. */
+  .layout.toc-collapsed .content { margin-inline: auto; }
 }
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
@@ -225,7 +242,7 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 <div class="layout">
 <button class="mobile-toc-toggle" type="button" aria-expanded="true" aria-controls="toc-list">☰ 目录</button>
 <nav class="toc" aria-label="目录">
-<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list" aria-label="目录"><span class="toc-caret" aria-hidden="true">▾</span><span class="toc-label">目录</span></button>
 <ul id="toc-list">
 <li class="lv2"><a href="#0-一张表看完">0. 一张表看完</a></li>
 <li class="lv2"><a href="#1-发布静态网页apipages">1. 发布静态网页：`/api/pages`</a></li>
