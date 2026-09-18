@@ -94,6 +94,34 @@ public class PageUploadService {
             "\n<script src=\"/vendor/mermaid.min.js\" defer></script>"
             + "\n<script src=\"/vendor/mermaid-init.js\" defer></script>\n";
 
+    /**
+     * Markup that means "this page has a contents list": a {@code class="toc"}
+     * element. Both families of published page use that class — the 典籍 readers
+     * ({@code <nav class="toc" id="toc">} over bare anchors) and the uploaded
+     * long-form articles ({@code <nav class="toc"><h2>本页目录</h2><ol>…}).
+     */
+    private static final Pattern TOC_BLOCK = Pattern.compile(
+            "class\\s*=\\s*[\"'][^\"']*\\btoc\\b", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * A page that can already fold its catalog is left alone: either it loads
+     * this script itself, or it is a {@code /docs/} article whose heading is the
+     * control ({@code .toc-title}, task #224). Injecting on top of either would
+     * put two controls on one piece of state.
+     */
+    private static final Pattern TOC_FOLD_PRESENT = Pattern.compile(
+            "<script[^>]*\\btoc-fold\\b[^>]*>|class\\s*=\\s*[\"'][^\"']*\\btoc-title\\b",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * What gets appended to a page with a contents list: the fold control
+     * (task #426). Same deal as the mermaid tags — a same-origin static file
+     * under /vendor/, which the docs gate serves without the site password, so
+     * it loads inside the CSP sandbox an uploaded page runs in.
+     */
+    static final String TOC_FOLD_TAG =
+            "\n<script src=\"/vendor/toc-fold.js\" defer></script>\n";
+
     private final Path pagesDir;
     private final PagesProperties props;
     private final ObjectMapper mapper = new ObjectMapper()
@@ -122,6 +150,7 @@ public class PageUploadService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No HTML content in the request");
         }
         html = withMermaidSupport(html);
+        html = withTocFold(html);
         byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
         if (bytes.length > props.getMaxBytes()) {
             throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
@@ -229,13 +258,42 @@ public class PageUploadService {
                 || MERMAID_SCRIPT.matcher(html).find()) {
             return html;
         }
+        return appendBeforeBodyEnd(html, MERMAID_TAGS);
+    }
+
+    /**
+     * Give a page that carries a contents list the control that folds it away
+     * (task #426 — "Docs 里的目录要支持可收起，一直打开占空间"). The published
+     * pages each hand-wrote their own sidebar and none of them wrote a fold, so
+     * on a wide screen the catalog holds a ~250px column open for the whole
+     * read. The behaviour lives entirely in the vendored script; all that is
+     * injected here is the tag that loads it, which is why an already-published
+     * page can be given the same fold by adding that one line.
+     *
+     * <p>Pages with no contents list, and pages that can already fold one, are
+     * returned untouched.
+     */
+    static String withTocFold(String html) {
+        if (html == null
+                || !TOC_BLOCK.matcher(html).find()
+                || TOC_FOLD_PRESENT.matcher(html).find()) {
+            return html;
+        }
+        return appendBeforeBodyEnd(html, TOC_FOLD_TAG);
+    }
+
+    /**
+     * Splice {@code tags} in just before the document's last {@code </body>} —
+     * last, not first, so a page that quotes the closing tag inside its own
+     * prose still gets the script at the real end of the document.
+     */
+    private static String appendBeforeBodyEnd(String html, String tags) {
         Matcher body = BODY_END.matcher(html);
         int at = -1;
         while (body.find()) {
             at = body.start();
         }
-        return at < 0 ? html + MERMAID_TAGS
-                : html.substring(0, at) + MERMAID_TAGS + html.substring(at);
+        return at < 0 ? html + tags : html.substring(0, at) + tags + html.substring(at);
     }
 
     // --- internals -----------------------------------------------------------
