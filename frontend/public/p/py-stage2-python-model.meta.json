@@ -1,0 +1,7 @@
+{
+  "slug" : "py-stage2-python-model",
+  "title" : "阶段二：对象模型 + Java 没有的那些机制（6 小时，含全部可运行代码）",
+  "summary" : "dataclass / Protocol / 生成器 / 装饰器 / 类型注解，五段可运行示例加一次真实重构：把阶段一的单文件脚本改成 6 模块的包，通过 mypy --strict。",
+  "createdAt" : "2026-09-18T04:48:54.052390820Z",
+  "bytes" : 230232
+}

@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-py-stage2-python-model",
+    "title": "阶段二：对象模型 + Java 没有的那些机制（6 小时，含全部可运行代码）",
+    "href": "/p/py-stage2-python-model.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:48:54.051Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/py-stage2-python-model.html",
+      "frontend/public/p/py-stage2-python-model.meta.json"
+    ]
+  },
+  {
     "id": "upload-py-stage1-java-to-python",
     "title": "阶段一：把 Java 翻译成 Python（6 小时，含全部可运行代码）",
     "href": "/p/py-stage1-java-to-python.html",
