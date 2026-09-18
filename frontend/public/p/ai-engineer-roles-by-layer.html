@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Under, Of, With, Around: The Seven Layers Hiding Inside the Job Title &quot;AI Engineer&quot;</title>
+<meta name="description" content="&quot;AI Engineer&quot; is at least nine different jobs in 2026. This article maps them onto seven layers of the AI stack plus two cross-cutting columns, explains why job titles are structurally orthogonal to layers, and gives decoders: a 60-second test to locate any job description, a translation table across five employer dialects, the asymmetry of moving up vs. down the stack, which roles are dissolving, and a self-location diagnostic."/>
+<style>
+:root{--bg:#fbfaf7;--fg:#22201c;--muted:#6b6660;--line:#e6e1d8;--accent:#8a5a2b;--code-bg:#f3f0ea;--card:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#16150f;--fg:#e9e5dc;--muted:#a49e94;--line:#2f2c25;--accent:#d7a468;--code-bg:#211f18;--card:#1c1a14}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.hero{padding:56px 24px 28px;border-bottom:1px solid var(--line);background:var(--card)}
+.hero-inner{max-width:1080px;margin:0 auto}
+.eyebrow{margin:0 0 8px;color:var(--accent);letter-spacing:.18em;font-size:12px;text-transform:uppercase}
+.hero h1{margin:0;font-size:clamp(26px,3.4vw,40px);line-height:1.25;letter-spacing:-.01em}
+.hero .sub{margin:12px 0 0;color:var(--muted);font-size:15px}
+.layout{max-width:1080px;margin:0 auto;padding:32px 24px 96px;display:grid;grid-template-columns:220px 1fr;gap:40px}
+@media(max-width:900px){.layout{grid-template-columns:1fr;gap:16px}.toc{position:static!important;max-height:none}}
+.toc{position:sticky;top:24px;align-self:start;max-height:80vh;overflow:auto;font-size:13.5px}
+.toc h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.toc ol{list-style:none;margin:0;padding:0}
+.toc li{margin:0 0 6px}
+.toc a{color:var(--muted);text-decoration:none;border-left:2px solid var(--line);padding-left:10px;display:block}
+.toc a:hover{color:var(--accent);border-left-color:var(--accent)}
+.content{min-width:0}
+.content .anchor{opacity:0;margin-left:8px;text-decoration:none;color:var(--muted);font-weight:400}
+.content h2:hover .anchor,.content h3:hover .anchor{opacity:.6}
+.content h2{margin:48px 0 14px;font-size:24px;padding-bottom:8px;border-bottom:1px solid var(--line);scroll-margin-top:20px}
+.content h3{margin:32px 0 10px;font-size:18.5px;color:var(--accent)}
+.content h4{margin:24px 0 8px;font-size:16px}
+.content p{margin:0 0 14px}
+.content ul,.content ol{padding-left:24px;margin:0 0 14px}
+.content li{margin:0 0 6px}
+.content a{color:var(--accent)}
+.content blockquote{margin:18px 0;padding:12px 18px;border-left:3px solid var(--accent);background:var(--code-bg);border-radius:0 8px 8px 0;color:var(--muted)}
+.content blockquote p:last-child{margin:0}
+.content code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.content pre{background:var(--code-bg);padding:16px 18px;border-radius:10px;overflow:auto;border:1px solid var(--line);line-height:1.6}
+.content pre code{background:none;padding:0;font-size:13.5px}
+.content table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.content th{background:var(--code-bg);font-weight:600;white-space:nowrap}
+.content tr:nth-child(even) td{background:color-mix(in srgb,var(--code-bg) 45%,transparent)}
+.content hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+.content input[type=checkbox]{margin-right:6px}
+.backtop{position:fixed;right:22px;bottom:22px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;opacity:0;transition:opacity .2s;font-size:17px}
+.backtop.show{opacity:.9}
+footer{max-width:1080px;margin:0 auto;padding:0 24px 60px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header class="hero"><div class="hero-inner">
+<p class="eyebrow">AI CAREERS · ROLE TAXONOMY</p>
+<h1>Under, Of, With, Around: The Seven Layers Hiding Inside the Job Title &quot;AI Engineer&quot;</h1>
+<p class="sub">Seven layers, two columns, five dialects — and why the title tells you nothing · September 2026</p>
+</div></header>
+<div class="layout">
+<nav class="toc"><h2>Contents</h2><ol>
+<li><a href="#0-the-answer-in-one-page">0. The answer in one page</a></li>
+<li><a href="#1-why-the-confusion-is-structural-not-sloppy">1. Why the confusion is structural, not sloppy</a></li>
+<li><a href="#2-the-first-cut-four-prepositions">2. The first cut: four prepositions</a></li>
+<li><a href="#3-the-stack-seven-layers-and-two-columns">3. The stack: seven layers and two columns</a></li>
+<li><a href="#4-l0-silicon-kernels-and-interconnect">4. L0 — Silicon, kernels and interconnect</a></li>
+<li><a href="#5-l1-fleet-and-capacity-control-plane">5. L1 — Fleet and capacity control plane</a></li>
+<li><a href="#6-l2-training-platform">6. L2 — Training platform</a></li>
+<li><a href="#7-l3-model-production">7. L3 — Model production</a></li>
+<li><a href="#8-l4-inference-and-serving">8. L4 — Inference and serving</a></li>
+<li><a href="#9-l5-the-model-consuming-platform">9. L5 — The model-consuming platform</a></li>
+<li><a href="#10-l6-agent-and-application-runtime">10. L6 — Agent and application runtime</a></li>
+<li><a href="#11-l7-the-product-surface">11. L7 — The product surface</a></li>
+<li><a href="#12-the-two-columns-data-and-trust">12. The two columns: Data and Trust</a></li>
+<li><a href="#13-the-60-second-layer-test">13. The 60-second layer test</a></li>
+<li><a href="#14-five-dialects-the-same-job-in-five-accents">14. Five dialects: the same job in five accents</a></li>
+<li><a href="#15-gravity-why-moving-up-is-easy-and-moving-down-is-hard">15. Gravity: why moving up is easy and moving down is hard</a></li>
+<li><a href="#16-where-the-money-is-and-why">16. Where the money is, and why</a></li>
+<li><a href="#17-the-escalator-which-roles-are-dissolving">17. The escalator: which roles are dissolving</a></li>
+<li><a href="#18-positioning-the-two-layer-rule">18. Positioning: the two-layer rule</a></li>
+<li><a href="#19-worked-example-locating-one-real-résumé">19. Worked example: locating one real résumé</a></li>
+<li><a href="#20-if-you-are-the-recruiter">20. If you are the recruiter</a></li>
+<li><a href="#21-a-self-location-diagnostic">21. A self-location diagnostic</a></li>
+<li><a href="#22-summary-the-nine-sentences-worth-keeping">22. Summary: the nine sentences worth keeping</a></li>
+<li><a href="#23-sources-and-further-reading">23. Sources and further reading</a></li>
+</ol></nav>
+<main class="content">
+<blockquote>
+<p><strong>What this page is for.</strong> In 2026 the phrase <em>AI Engineer</em> is attached to at least nine
+materially different jobs. They share a vocabulary and almost nothing else: different
+failure modes, different clocks, different interview questions, different hiring bars,
+different pay curves. Candidates apply across all of them with one résumé and lose.
+Recruiters screen across all of them with one keyword list and mis-sort.</p>
+<p>This article does three things: (1) explains why the confusion is <strong>structural</strong> rather
+than anyone's fault, (2) lays out the stack as <strong>seven layers plus two cross-cutting
+columns</strong>, with a concrete charter, failure mode and proof artifact for each, and
+(3) gives you decoders — a 60-second test for locating any job description on the stack,
+a translation table between the five naming dialects, and a self-location diagnostic.</p>
+<p>Time anchor: September 2026. Market observations are drawn from the job-description
+corpus read for <a href="/p/resume-pmf-staff-ai-infra.html">#424</a> — Together AI, OpenAI,
+Anthropic, LinkedIn, NVIDIA, Seekr, Databricks, Cloudera — plus the two follow-ups
+<a href="/p/control-plane-six-words.html">#453</a> and <a href="/p/skills-line-rewrite.html">#454</a>.
+Where I state a market judgment rather than a quoted requirement, I say so.</p>
+</blockquote>
+<hr />
+<h2 id="0-the-answer-in-one-page">0. The answer in one page<a class="anchor" href="#0-the-answer-in-one-page" aria-label="Link to this section">#</a></h2>
+<p><strong>The stack has layers. Job titles do not.</strong></p>
+<p>A layer is defined by <em>what you own when it breaks</em>. There are seven of them, from the
+silicon up to the product surface, plus two columns (data and trust) that cut across all
+seven. Each layer has its own clock — the time unit in which its characteristic failure
+happens and must be fixed — and that clock, more than any tool name, is what makes the
+layers genuinely different jobs.</p>
+<p>A <strong>title</strong>, by contrast, is assigned by the <em>hiring company's own position in the
+industry</em>, not by the work. The same job — &quot;wire an LLM into a product workflow, with
+retrieval, tools, evals and a budget&quot; — is called:</p>
+<ul>
+<li><em>Member of Technical Staff</em> at a frontier lab,</li>
+<li><em>AI Engineer</em> at a Series-B SaaS,</li>
+<li><em>Machine Learning Engineer</em> at a bank,</li>
+<li><em>Forward-Deployed Engineer</em> at an applied-AI vendor,</li>
+<li><em>Senior Full-Stack Engineer (AI)</em> at an agency.</li>
+</ul>
+<p>And the reverse: five jobs that are genuinely on five different layers all get posted as
+<strong>&quot;AI Infrastructure Engineer.&quot;</strong> That is the actual defect. Not that titles are vague —
+that titles are <strong>orthogonal to layers</strong>, so a title carries roughly zero bits of
+information about which job it is.</p>
+<p><strong>The practical consequences</strong>, which the rest of this article unpacks:</p>
+<ol>
+<li>You cannot target &quot;AI roles.&quot; You can only target a <strong>layer</strong>, and then translate your
+claim into that layer's dialect (§13).</li>
+<li>Mobility is <strong>asymmetric</strong>: it is easy to move up the stack, hard to move down (§14).
+Most candidates apply downward and get silently filtered.</li>
+<li>Pay tracks <strong>proximity to the binding constraint</strong> — which in 2026 is accelerator
+capacity, not code (§15). This explains the otherwise strange pay curve.</li>
+<li>Layers <strong>commoditize upward</strong> over time. Some of today's hottest titles are
+already dissolving into features (§16). Pick a layer by its durability, not its heat.</li>
+<li>You can credibly claim <strong>your home layer plus one adjacent layer</strong>. Claim two away and
+the phone screen catches you in the first ten minutes (§17).</li>
+</ol>
+<hr />
+<h2 id="1-why-the-confusion-is-structural-not-sloppy">1. Why the confusion is structural, not sloppy<a class="anchor" href="#1-why-the-confusion-is-structural-not-sloppy" aria-label="Link to this section">#</a></h2>
+<p>It is tempting to conclude that recruiters are careless. They mostly aren't. The
+incoherence is manufactured by the pipeline that produces a job posting, and it would
+survive replacing every recruiter in the industry tomorrow.</p>
+<p>Here is how a 2026 AI job posting actually gets assembled:</p>
+<pre class="mermaid">graph TD
+  HM["Hiring manager<br/>knows exactly ONE layer's pain"] -->|"writes 5 bullets<br/>in team dialect"| Draft
+  TB["Talent brand / comp team<br/>needs a title that exists<br/>in the levelling ladder"] -->|"picks nearest<br/>legacy title"| Draft
+  KW["Keyword list<br/>inherited from the 2023-24<br/>hiring wave"] -->|"appended wholesale"| Draft
+  Draft["Job description"] --> ATS["ATS / AI screener<br/>scores against a title-to-skill graph<br/>trained on older postings"]
+  ATS --> Rec["Recruiter<br/>reads the TITLE, not the bullets,<br/>then sources against it"]
+  Rec --> Cand["Candidate<br/>reads the BULLETS, applies,<br/>gets scored on the TITLE"]
+</pre>
+<p>Four independent sources of drift, each rational on its own:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Why it happens</th>
+<th>What it does to the posting</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Levelling ladders are older than the roles</strong></td>
+<td>Comp bands and titles are approved corporate objects; you cannot invent <em>Agent Runtime Engineer III</em> without an HR cycle</td>
+<td>Genuinely new work gets filed under the nearest pre-existing title, usually <em>ML Engineer</em> or <em>Software Engineer, AI</em></td>
+</tr>
+<tr>
+<td><strong>Keyword lists are inherited</strong></td>
+<td>The requisition is cloned from last year's, which was cloned from the MLOps wave</td>
+<td>Postings carry a tail of skills nobody on the team uses; L6 jobs ask for Kubernetes, L1 jobs ask for PyTorch</td>
+</tr>
+<tr>
+<td><strong>The screener has a lag</strong></td>
+<td>Any model scoring résumés learned the title→skill association from a corpus that predates the current split</td>
+<td>Titles that meant one thing in 2023 are scored as if they still do</td>
+</tr>
+<tr>
+<td><strong>The manager writes in team dialect</strong></td>
+<td>&quot;Reconciliation loop,&quot; &quot;span tree,&quot; &quot;continuous batching&quot; — each is a house word somewhere</td>
+<td>Bullets are precise and layer-specific; the title above them is generic. The two disagree</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>The single most useful reframe in this article:</strong> in a 2026 AI posting, the <strong>title is
+noise and the bullets are signal.</strong> Read the bullets, locate the layer (§12 gives you a
+60-second method), and <em>then</em> decide whether the title is one you can plausibly wear.
+Candidates do the reverse — they filter by title first — which is why the funnel is so
+lossy on both sides.</p>
+</blockquote>
+<p>There is a second, deeper reason, and it is worth saying plainly because it explains why
+this will not settle down soon: <strong>the layers themselves are only a few years old.</strong> In
+2019 &quot;ML Engineer&quot; was one job because the stack was one layer thick — you owned the
+model and everything around it. The 2023–2026 build-out split that single role along the
+seams where the <em>money and the failures</em> concentrate. Naming always lags splitting.</p>
+<hr />
+<h2 id="2-the-first-cut-four-prepositions">2. The first cut: four prepositions<a class="anchor" href="#2-the-first-cut-four-prepositions" aria-label="Link to this section">#</a></h2>
+<p>Before the seven layers, there is a coarser split that resolves maybe 70% of confusion in
+one move. Ask what the engineer's relationship to <em>the model</em> is. There are only four
+answers, and they are prepositions.</p>
+<table>
+<thead>
+<tr>
+<th>Preposition</th>
+<th>The work</th>
+<th>Model is...</th>
+<th>Typical layers</th>
+<th>Canonical question they answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Under</strong> the model</td>
+<td>Make the model <em>possible and fast</em> — silicon, fleet, training substrate, serving runtime</td>
+<td>a workload with a memory and interconnect profile</td>
+<td>L0, L1, L2, L4</td>
+<td>&quot;Why is this job getting 41% MFU instead of 55%?&quot;</td>
+</tr>
+<tr>
+<td><strong>Of</strong> the model</td>
+<td>Make the model <em>itself</em> — architecture, data mixture, fine-tuning, RL, evals of capability</td>
+<td>the artifact you are producing</td>
+<td>L3</td>
+<td>&quot;Did this data-mixture change actually improve the thing we care about?&quot;</td>
+</tr>
+<tr>
+<td><strong>With</strong> the model</td>
+<td>Build things that <em>call</em> the model — agents, retrieval, tools, workflows, UX</td>
+<td>a stochastic API with a price and a latency</td>
+<td>L6, L7</td>
+<td>&quot;Why did this agent take nine tool calls to do a three-call job?&quot;</td>
+</tr>
+<tr>
+<td><strong>Around</strong> the model</td>
+<td>Make everything above <em>governable</em> — registries, lineage, evals-as-infrastructure, cost, safety, access</td>
+<td>an artifact with a version, an owner, a cost and a blast radius</td>
+<td>L5, plus both columns</td>
+<td>&quot;Which prompt revision and model build produced this score?&quot;</td>
+</tr>
+</tbody>
+</table>
+<p>This cut matters because the four have almost <strong>disjoint hiring bars</strong>:</p>
+<ul>
+<li><em>Under</em> hires on systems depth and is gated by access to hardware you cannot buy at home.</li>
+<li><em>Of</em> hires on research taste and is gated by publication or model-shipping history.</li>
+<li><em>With</em> hires on product velocity and is gated by almost nothing — which is why it is the
+most crowded and the fastest-moving.</li>
+<li><em>Around</em> hires on distributed-systems maturity and is gated by having operated something
+real at multi-tenant scale — which is why it skews senior and is the least legible to
+recruiters.</li>
+</ul>
+<p>Most people who say &quot;I want to be an AI engineer&quot; mean <em>with</em>. Most people who say &quot;AI
+infrastructure&quot; mean <em>under</em>. Most companies that post &quot;AI Platform&quot; mean <em>around</em> but
+describe it in <em>under</em>'s vocabulary. That last mismatch is the single most common
+mis-sort in the market.</p>
+<hr />
+<h2 id="3-the-stack-seven-layers-and-two-columns">3. The stack: seven layers and two columns<a class="anchor" href="#3-the-stack-seven-layers-and-two-columns" aria-label="Link to this section">#</a></h2>
+<pre class="mermaid">graph BT
+  L0["L0 · Silicon and kernels<br/>CUDA, Triton, collectives, interconnect"]
+  L1["L1 · Fleet and capacity control plane<br/>node lifecycle, scheduling, self-healing"]
+  L2["L2 · Training platform<br/>distributed training, checkpoints, data loading"]
+  L3["L3 · Model production<br/>pretrain, finetune, RL, data mixture, capability evals"]
+  L4["L4 · Inference and serving<br/>batching, KV cache, quantization, routing"]
+  L5["L5 · Model-consuming platform<br/>registry, lineage, evals, cost, gateways"]
+  L6["L6 · Agent and application runtime<br/>orchestration, tools, memory, retrieval"]
+  L7["L7 · Product surface<br/>interaction design for probabilistic systems"]
+  L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7
+  DATA["Column D · Data<br/>acquisition, curation, labelling, contracts"]
+  TRUST["Column T · Trust<br/>safety, security, privacy, compliance"]
+  DATA -.-> L3
+  DATA -.-> L5
+  TRUST -.-> L5
+  TRUST -.-> L7
+</pre>
+<p>The ordering is <em>dependency</em>, not prestige. L7 depends on L6 depends on L4, and so on
+down. It is not a ladder to climb — a principal engineer at L7 and a principal engineer
+at L0 are peers who could not do each other's jobs.</p>
+<h3 id="31-the-master-table">3.1 The master table<a class="anchor" href="#31-the-master-table" aria-label="Link to this section">#</a></h3>
+<p>Read this table by column, not by row. Each column is one <em>discriminator</em>: any one of
+them separates the layers better than a tool list does.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Owns</strong></th>
+<th><strong>Fails like</strong></th>
+<th><strong>Clock</strong></th>
+<th><strong>Unit of work</strong></th>
+<th><strong>Proof artifact</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L0</strong></td>
+<td>kernels, collectives, the memory hierarchy</td>
+<td>30% slower than it should be, silently</td>
+<td><strong>µs–ms</strong></td>
+<td>a kernel, a fused op, a comms schedule</td>
+<td>a benchmark with a roofline and a before/after</td>
+</tr>
+<tr>
+<td><strong>L1</strong></td>
+<td>physical and virtual capacity, node lifecycle</td>
+<td>a rack of GPUs is <em>unavailable</em>, or worse, <em>quietly sick</em></td>
+<td><strong>seconds–hours</strong></td>
+<td>a state transition, a reconcile loop</td>
+<td>a provisioning state machine and its drain/repair path</td>
+</tr>
+<tr>
+<td><strong>L2</strong></td>
+<td>the training substrate</td>
+<td>a 5-day run dies on day 4 and cannot resume</td>
+<td><strong>hours–days</strong></td>
+<td>a run, a checkpoint, a restart</td>
+<td>a multi-node run that survived a node failure</td>
+</tr>
+<tr>
+<td><strong>L3</strong></td>
+<td>the model itself</td>
+<td>the new checkpoint is <em>worse</em> and nobody can say why</td>
+<td><strong>days–weeks</strong></td>
+<td>an experiment, an ablation</td>
+<td>an eval suite and a model that moved a number</td>
+</tr>
+<tr>
+<td><strong>L4</strong></td>
+<td>the serving runtime</td>
+<td>p99 triples at 2× traffic; cost per token doubles</td>
+<td><strong>ms</strong></td>
+<td>a request, a batch, a cache</td>
+<td>a load-test report with p50/p99 and $/1M tokens</td>
+</tr>
+<tr>
+<td><strong>L5</strong></td>
+<td>the layer that makes the above <em>governable</em></td>
+<td>nobody can reproduce a result, or the bill is unattributable</td>
+<td><strong>minutes–quarters</strong></td>
+<td>an artifact, a lineage edge, an eval run</td>
+<td>a registry/lineage/eval system with real tenants</td>
+</tr>
+<tr>
+<td><strong>L6</strong></td>
+<td>the runtime that calls models</td>
+<td>the agent loops, over-calls tools, or silently does the wrong thing</td>
+<td><strong>seconds</strong></td>
+<td>a run, a span tree, a tool call</td>
+<td>a traced agent with an offline+online eval harness</td>
+</tr>
+<tr>
+<td><strong>L7</strong></td>
+<td>what the user sees and trusts</td>
+<td>users stop believing the output</td>
+<td><strong>weeks (perception)</strong></td>
+<td>a flow, a fallback, an affordance</td>
+<td>a shipped surface with an accepted-suggestion rate</td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>the corpus</td>
+<td>garbage in, permanently</td>
+<td><strong>weeks</strong></td>
+<td>a dataset version, a contract</td>
+<td>a dataset card and a dedup/decontamination report</td>
+</tr>
+<tr>
+<td><strong>T</strong></td>
+<td>the blast radius</td>
+<td>a jailbreak, a leak, an audit finding</td>
+<td><strong>incident-driven</strong></td>
+<td>a policy, a control, a red-team finding</td>
+<td>a threat model and a mitigation that held</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>The clock column is the sharpest tool here.</strong> Two engineers who both say &quot;I work on
+inference&quot; but one thinks in microseconds (L0) and the other in milliseconds (L4) are
+not colleagues; they are supplier and customer. Ask anyone, in any AI job, <em>&quot;what is
+the time unit of the thing you get paged about?&quot;</em> and you have located them within one
+layer, without a single tool name changing hands.</p>
+</blockquote>
+<hr />
+<h2 id="4-l0-silicon-kernels-and-interconnect">4. L0 — Silicon, kernels and interconnect<a class="anchor" href="#4-l0-silicon-kernels-and-interconnect" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Make the arithmetic go as fast as the hardware allows.</p>
+<p><strong>What you own.</strong> Fused kernels, attention implementations, quantized matmuls, collective
+communication schedules, the memory hierarchy, occasionally the network fabric itself.</p>
+<p><strong>The characteristic failure.</strong> Nothing crashes. The job runs, produces correct results,
+and is 30% below what the hardware could do — and only someone at this layer can even
+<em>see</em> that. L0's defining feature is that its failures are invisible to every layer above.</p>
+<p><strong>Vocabulary.</strong> CUDA, Triton, ROCm, tensor cores, warp specialization, roofline, arithmetic
+intensity, MFU/HFU, NCCL, RCCL, all-reduce vs. all-gather, NVLink, InfiniBand, RoCE,
+memory-bound vs. compute-bound, register pressure, shared-memory bank conflicts.</p>
+<p><strong>Typical titles.</strong> <em>Performance Engineer, GPU</em> · <em>Kernel Engineer</em> · <em>Systems Engineer,
+ML Performance</em> · <em>Member of Technical Staff (Performance)</em> · sometimes, confusingly,
+<em>Inference Engineer</em>.</p>
+<p><strong>Who hires.</strong> Chip vendors, frontier labs, GPU clouds, a handful of inference startups.
+Small absolute number of roles.</p>
+<p><strong>The gate.</strong> You cannot practice this layer without the hardware, and you cannot rent
+enough of it casually to build a portfolio. This is the most hardware-gated layer in the
+stack and therefore the least penetrable from outside — but also the least crowded.</p>
+<p><strong>Proof artifact.</strong> A benchmark: baseline, change, measured speedup, and an explanation in
+terms of the roofline. One credible kernel writeup outweighs any amount of résumé prose.</p>
+<hr />
+<h2 id="5-l1-fleet-and-capacity-control-plane">5. L1 — Fleet and capacity control plane<a class="anchor" href="#5-l1-fleet-and-capacity-control-plane" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Keep the physical world continuously equal to the declared state: <em>this many
+healthy nodes, with this driver, in this pool, available to these tenants.</em></p>
+<p><strong>What you own.</strong> The lifecycle of a machine modelled as software — discovery, bring-up,
+driver and firmware installation, health validation, admission to a pool, drain, repair,
+retirement. Plus the self-service API on top of it, and the quota/scheduling policy that
+decides who gets the scarce thing.</p>
+<p><strong>The characteristic failure.</strong> Not &quot;it's down.&quot; It's <em>&quot;forty nodes are in the pool,
+accepting work, and quietly degraded&quot;</em> — an ECC error rate climbing, a NIC negotiating at
+half rate, a driver that rolled back on reboot. Detecting the gap between declared and
+actual — <strong>drift</strong> — is the whole job.</p>
+<p><strong>Vocabulary.</strong> Provisioning state machine, reconciliation, level-triggered vs.
+edge-triggered, idempotency, drift detection, self-healing, safe drain, cordon,
+durable workflow orchestration (Temporal/Cadence), event-driven over queues rather than
+polling, PXE/Redfish/IPMI, DCGM, node problem detector, bin-packing, preemption, quota,
+MIG partitioning, zero-downtime rollout.</p>
+<p><strong>Typical titles.</strong> <em>GPU Infrastructure Engineer</em> · <em>Compute Infrastructure Engineer</em> ·
+<em>Staff SWE, Inference/Compute Infrastructure</em> · <em>Cluster Engineer</em> · <em>Platform Engineer,
+AI Compute</em>. The Together AI and OpenAI postings in the corpus are canonical examples.</p>
+<p><strong>Who hires.</strong> GPU clouds, neoclouds, hyperscalers, any company that owns rather than
+rents its accelerators, and increasingly large enterprises building internal AI capacity.</p>
+<p><strong>The interesting property.</strong> This is the layer where <strong>classical distributed-systems
+skill transfers almost perfectly</strong> — Kubernetes controller patterns, reconcile loops,
+idempotent retries, queue-driven orchestration. A senior infrastructure engineer from a
+non-AI background can be productive here in weeks, which is not true of L0, L2 or L3.
+It is, in other words, <strong>the most permeable door into the &quot;under&quot; column</strong>, and it is
+consistently under-applied-to relative to L4, because it has less glamour and the JDs
+read as ops work.</p>
+<p><strong>Proof artifact.</strong> A state machine you designed with its failure transitions drawn, and a
+story about a repair path that ran without a human. See <a href="/p/control-plane-six-words.html">#453</a>
+for what an interviewer will actually probe here.</p>
+<hr />
+<h2 id="6-l2-training-platform">6. L2 — Training platform<a class="anchor" href="#6-l2-training-platform" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Make a large distributed training run <em>start, survive, and resume</em>.</p>
+<p><strong>What you own.</strong> Launcher and scheduler integration, parallelism strategy plumbing
+(data/tensor/pipeline/expert), checkpointing and restart, data loading throughput,
+determinism and reproducibility, run observability, the goodput number.</p>
+<p><strong>The characteristic failure.</strong> A run that costs six figures dies on day four, 80%
+through, and the checkpoint is either stale or corrupt. Or the run does not die but
+<em>goodput</em> quietly sits at 60% because of stragglers and restarts.</p>
+<p><strong>Vocabulary.</strong> DDP, FSDP, DeepSpeed/ZeRO, Megatron-style tensor/pipeline parallelism,
+activation checkpointing, gradient accumulation, elastic training, checkpoint sharding,
+async checkpoint offload, Slurm, Ray, goodput, straggler mitigation, NCCL timeouts,
+loss-spike forensics.</p>
+<p><strong>Typical titles.</strong> <em>Training Infrastructure Engineer</em> · <em>ML Systems Engineer</em> ·
+<em>Research Infrastructure Engineer</em> · <em>Member of Technical Staff (Training)</em>.</p>
+<p><strong>Who hires.</strong> Labs, model-training startups, a few hyperscaler research orgs. Fewest
+seats of any layer relative to applicant interest.</p>
+<p><strong>The gate.</strong> Multi-node, multi-GPU time. You cannot simulate the experience of a 512-GPU
+run failing in an interesting way. This is why candidates without prior lab or big-tech
+access essentially cannot enter here, and why the honest advice in
+<a href="/p/resume-pmf-staff-ai-infra.html">#424</a> was: <em>if you do not already have that time,
+do not target this layer.</em></p>
+<hr />
+<h2 id="7-l3-model-production">7. L3 — Model production<a class="anchor" href="#7-l3-model-production" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Produce a model that is measurably better at something that matters.</p>
+<p><strong>What you own.</strong> Architecture and objective choices, data mixture and curriculum,
+fine-tuning and preference optimization, RL environments and reward design, capability
+evaluation, ablation discipline.</p>
+<p><strong>The characteristic failure.</strong> The new checkpoint is worse, and the ablation you needed
+to explain why was never run. Or: the benchmark improved and the product did not.</p>
+<p><strong>Vocabulary.</strong> Pretraining, SFT, DPO/GRPO and friends, reward modelling, data mixture,
+decontamination, scaling laws, ablation, held-out eval, capability elicitation,
+distillation, LoRA and its limits.</p>
+<p><strong>Typical titles.</strong> <em>Research Engineer</em> · <em>Research Scientist</em> · <em>Member of Technical
+Staff</em> · <em>ML Engineer</em> (at companies that only have one AI title) · <em>Applied Scientist</em>.</p>
+<p><strong>Who hires.</strong> Labs and a shrinking middle of companies who still train their own models.
+Note the structural trend: <strong>as base models improve, fewer organizations do L3 at all</strong>;
+they move the work to L5/L6 (adapt and govern rather than train).</p>
+<p><strong>The gate.</strong> Research taste, demonstrated by shipped models or published work. This is the
+one layer where the credential — a paper, a model card with your name on it — is doing
+real work rather than signalling.</p>
+<hr />
+<h2 id="8-l4-inference-and-serving">8. L4 — Inference and serving<a class="anchor" href="#8-l4-inference-and-serving" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Serve tokens at a target latency for the lowest cost per token.</p>
+<p><strong>What you own.</strong> The serving runtime and its configuration, batching policy, KV-cache
+management, quantization strategy, speculative decoding, tensor-parallel sharding for
+serving, request routing and admission control, autoscaling against GPU utilization, the
+$/1M-token number.</p>
+<p><strong>The characteristic failure.</strong> Latency is fine at current traffic and catastrophic at 2×,
+because the batching policy was tuned for a load shape that changed. Or: the cost curve
+never bends, and the CFO notices.</p>
+<p><strong>Vocabulary.</strong> vLLM, SGLang, TensorRT-LLM, Triton Inference Server, Ray Serve, continuous
+(in-flight) batching, paged attention, KV cache and prefix caching, prefill/decode
+disaggregation, TTFT vs. TPOT, p50/p99, tokens/sec/GPU, INT8/FP8/AWQ/GPTQ, speculative
+decoding, structured output constraints.</p>
+<p><strong>Typical titles.</strong> <em>Inference Engineer</em> · <em>Staff AI Infrastructure Engineer</em> (very
+commonly this layer, despite the generic title) · <em>LLM Serving Engineer</em> · <em>Performance
+Engineer</em> (overlapping L0).</p>
+<p><strong>Who hires.</strong> Everyone who serves models at scale: inference providers, GPU clouds,
+labs, and the growing set of product companies that moved off vendor APIs for cost or
+latency reasons.</p>
+<p><strong>Market note (judgment, not quoted data).</strong> This is simultaneously the <strong>hottest and
+most crowded</strong> layer. It has the clearest vocabulary, the most public tooling, and the
+most self-taught applicants — which means the bar is set by people who have genuinely
+tuned a production fleet, and the filter question comes fast: <em>&quot;walk me through how you
+chose your batching policy, and what you do when the KV cache saturates.&quot;</em> Keyword-stuffing
+this layer is the most expensive mistake in the market, because the tell is immediate.</p>
+<hr />
+<h2 id="9-l5-the-model-consuming-platform">9. L5 — The model-consuming platform<a class="anchor" href="#9-l5-the-model-consuming-platform" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Make everything above and below <em>addressable, reproducible, attributable and
+governable</em> — so that an organization can run many models, many prompts and many teams
+without losing track of what produced what, and at what cost.</p>
+<p><strong>What you own.</strong> The artifact catalog and model/prompt/dataset registry; lineage and
+provenance; the evaluation system <em>as infrastructure</em> (not as a script); experiment
+tracking; the LLM gateway and its routing, quota and budget policy; cost attribution;
+access control over models and data; the rollout/flighting control plane for AI features.</p>
+<p><strong>The characteristic failure.</strong> Two failures, both slow and both expensive. First:
+<em>&quot;which prompt revision and model build produced this score?&quot;</em> and nobody can answer, so
+a regression cannot be localized. Second: a $400k monthly inference bill that cannot be
+attributed to a team, a feature or a customer.</p>
+<p><strong>Vocabulary.</strong> Model/artifact registry, provenance and lineage, dataset and prompt
+versioning, reproducibility, experiment tracking, offline and online evaluation,
+LLM-as-judge with human calibration, eval gating in CI, multi-tenancy, quota and budget
+governance, gateway/router, policy enforcement, drift detection between declared and live
+configuration, progressive rollout.</p>
+<p><strong>Typical titles.</strong> <em>AI Platform Engineer</em> · <em>ML Platform Engineer</em> · <em>MLOps Engineer</em>
+(legacy name, see §16) · <em>Staff SWE, AI Platform</em> · <em>Developer Productivity, AI</em>.
+LinkedIn's <em>Staff SWE, AI Platform</em> posting in the corpus is a clean example.</p>
+<p><strong>Who hires.</strong> Any organization with more than one team using models — which by 2026 is
+most large organizations. <strong>This is the largest layer by headcount and the least legible
+by title.</strong></p>
+<p><strong>Why it is chronically mis-sorted.</strong> L5's work is <em>distributed systems and metadata</em>, but
+the posting is written with AI vocabulary, so it attracts L6 applicants (who can write
+agents but have never operated a multi-tenant service) and repels the senior platform
+engineers who would be excellent at it (who read &quot;AI Platform&quot; and assume they need
+PyTorch). If you are a strong backend/data-platform engineer wondering where you fit,
+<strong>this is almost certainly your layer</strong>, and the mis-sort is in your favour.</p>
+<p><strong>Proof artifact.</strong> A registry, lineage graph or eval harness with real tenants and real
+numbers — artifacts/day, teams served, QPS, p99, cost attributed. The design spec in
+<a href="/p/llm-agent-eval-platform.html">#423</a> is an example of the shape.</p>
+<hr />
+<h2 id="10-l6-agent-and-application-runtime">10. L6 — Agent and application runtime<a class="anchor" href="#10-l6-agent-and-application-runtime" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Turn a stochastic API into a system that reliably completes tasks.</p>
+<p><strong>What you own.</strong> Orchestration and control flow, tool definitions and sandboxing, memory
+and context management, retrieval, structured output, retry and fallback policy, the span
+tree of a run, per-run cost and latency, guardrails at the call boundary.</p>
+<p><strong>The characteristic failure.</strong> The agent does not crash. It loops; it calls nine tools
+where three would do; it confidently returns something wrong; it costs $4 per run when
+the unit economics allow $0.40. <strong>Every L6 failure is a quality failure, not an
+availability failure</strong>, which is why L6 lives or dies on evaluation.</p>
+<p><strong>Vocabulary.</strong> Agent loop, tool binding, function calling, MCP, context window
+management, context compaction, RAG, chunking and reranking, hybrid search, span/trace
+tree, LangGraph and similar DAG runtimes, multi-agent orchestration, guardrails,
+deterministic checks vs. statistical metrics vs. LLM-as-judge, token budget per task.</p>
+<p><strong>Typical titles.</strong> <em>AI Engineer</em> (the modal usage of the bare term) · <em>Agent Engineer</em> ·
+<em>Applied AI Engineer</em> · <em>Forward-Deployed Engineer</em> · <em>Full-Stack Engineer, AI</em>.</p>
+<p><strong>Who hires.</strong> Nearly everyone. This is the largest and fastest-growing category of
+posting, and the one with the lowest formal barrier to entry.</p>
+<p><strong>The honest warning.</strong> Low barrier means the <em>entry</em> is crowded and the <em>senior</em> end is
+thin. What separates a senior L6 engineer from a hobbyist is never the framework — it is
+whether they can answer <em>&quot;how do you know it got better?&quot;</em> with an eval suite, a
+calibration procedure, a cost model and a regression gate. That answer is L5 thinking
+applied at L6, which is exactly why these two layers are the most natural adjacency pair
+in the whole stack.</p>
+<hr />
+<h2 id="11-l7-the-product-surface">11. L7 — The product surface<a class="anchor" href="#11-l7-the-product-surface" aria-label="Link to this section">#</a></h2>
+<p><strong>Charter.</strong> Make a probabilistic system trustworthy to a human being.</p>
+<p><strong>What you own.</strong> The interaction model — when to stream, when to show work, when to ask
+for confirmation, how to present uncertainty, how to fail gracefully, what the undo story
+is, how feedback gets captured and routed back into evaluation.</p>
+<p><strong>The characteristic failure.</strong> Everything is technically working and users stop trusting
+the feature. It is the slowest feedback loop in the stack (weeks of perception), and the
+only one where the metric is behavioural: acceptance rate, edit distance on suggestions,
+repeat usage after a bad output.</p>
+<p><strong>Vocabulary.</strong> Streaming UX, progressive disclosure, human-in-the-loop, confirmation
+boundaries, uncertainty display, graceful degradation, feedback capture, acceptance rate,
+prompt affordances, error recovery.</p>
+<p><strong>Typical titles.</strong> <em>AI Product Engineer</em> · <em>Product Engineer (AI)</em> · <em>Design Engineer</em> ·
+<em>Full-Stack Engineer</em> at companies that do not distinguish.</p>
+<p><strong>Underrated point.</strong> L7 is the layer most often dismissed as &quot;just frontend,&quot; and it is
+where a surprising share of realized AI value is won or lost. A 15% improvement in model
+quality and a 15% improvement in how failures are surfaced are worth about the same to the
+user; the second is far cheaper to obtain.</p>
+<hr />
+<h2 id="12-the-two-columns-data-and-trust">12. The two columns: Data and Trust<a class="anchor" href="#12-the-two-columns-data-and-trust" aria-label="Link to this section">#</a></h2>
+<p>These are not layers because they do not sit between other things — they touch everything.</p>
+<h3 id="column-d-data">Column D — Data<a class="anchor" href="#column-d-data" aria-label="Link to this section">#</a></h3>
+<p>Acquisition, licensing, curation, deduplication, decontamination, labelling operations,
+synthetic generation, dataset versioning and contracts, PII handling at the corpus level.</p>
+<p>Titles: <em>Data Engineer (AI)</em> · <em>Data Curation Engineer</em> · <em>Research Data Engineer</em> ·
+<em>Annotation/Ops Lead</em>. Historically undervalued, now increasingly recognized as the
+highest-leverage input at L3, and the most common root cause of a bad L6 system.</p>
+<p>The distinguishing question: <em>&quot;What is the version of the dataset, and can you reproduce
+the model from it?&quot;</em> If nobody can answer, there is no Column D function, regardless of
+how many data engineers are employed.</p>
+<h3 id="column-t-trust">Column T — Trust<a class="anchor" href="#column-t-trust" aria-label="Link to this section">#</a></h3>
+<p>Safety and alignment engineering, red-teaming, prompt-injection and agent security, tenant
+isolation, privacy and retention, model/vendor risk, audit and compliance (EU AI Act and
+successors), incident response for model behaviour.</p>
+<p>Titles: <em>AI Safety Engineer</em> · <em>AI Security Engineer</em> · <em>Responsible AI Engineer</em> ·
+<em>ML Governance Engineer</em>. Two very different flavours hide here: <strong>behavioural</strong> (does the
+model do harmful things?) and <strong>systems-security</strong> (can an attacker make the <em>agent</em> do
+harmful things?). The second is a genuine new discipline created by L6 — an agent with
+tool access is a remote-code-execution surface with a natural-language parser in front of
+it — and demand for it is outrunning supply faster than any other specialty.</p>
+<hr />
+<h2 id="13-the-60-second-layer-test">13. The 60-second layer test<a class="anchor" href="#13-the-60-second-layer-test" aria-label="Link to this section">#</a></h2>
+<p>Given any job description, ask these five questions <strong>in order</strong>. You will usually be
+done in two.</p>
+<pre class="mermaid">graph TD
+  Q1{"Who owns the GPUs?"} -->|"We do, physically"| A1["L0 / L1 / L2 live here"]
+  Q1 -->|"A vendor; we call an API"| A2["L5 / L6 / L7 live here"]
+  Q1 -->|"We rent instances and run our own serving"| A3["L4 is likely"]
+  A1 --> Q2{"Do we TRAIN models?"}
+  Q2 -->|"Yes, from scratch or heavy finetune"| B1["L2 / L3"]
+  Q2 -->|"No, we run other people's"| B2["L1 / L4"]
+  A2 --> Q3{"How many TEAMS consume this?"}
+  Q3 -->|"Many teams, we are their platform"| C1["L5"]
+  Q3 -->|"One product"| C2["L6 / L7"]
+  C2 --> Q4{"Does a user see the output directly?"}
+  Q4 -->|"Yes, and we design that moment"| D1["L7"]
+  Q4 -->|"It feeds another system"| D2["L6"]
+</pre>
+<p>The five questions in plain form, with what each one buys you:</p>
+<ol>
+<li><strong>&quot;Who owns the accelerators — you, or a vendor?&quot;</strong> Separates <em>under</em> from
+<em>with/around</em>. This is the highest-information single question in AI hiring.</li>
+<li><strong>&quot;Do you train, fine-tune, or call?&quot;</strong> Separates L2/L3 from everything else.</li>
+<li><strong>&quot;What is the time unit of the thing you get paged about?&quot;</strong> Microseconds → L0.
+Milliseconds → L4. Seconds → L6. Minutes to hours → L1. Days → L2/L3. Nothing pages
+you, it degrades over quarters → L5 or L7.</li>
+<li><strong>&quot;How many teams consume what you build?&quot;</strong> One → L6/L7. Many → L5. Nobody, it is the
+substrate → L1.</li>
+<li><strong>&quot;When the base model gets better, does your work get easier or harder?&quot;</strong> Easier →
+you are at L6/L7 (you inherit improvements). Harder → you are at L1/L4 (bigger models,
+tighter memory, more capacity pressure). Unchanged → L5 (governance need scales with
+usage, not quality).</li>
+</ol>
+<p>Question 5 is the one nobody asks, and it is the most predictive of <strong>how durable the role
+is</strong> — see §16.</p>
+<hr />
+<h2 id="14-five-dialects-the-same-job-in-five-accents">14. Five dialects: the same job in five accents<a class="anchor" href="#14-five-dialects-the-same-job-in-five-accents" aria-label="Link to this section">#</a></h2>
+<p>The same layer is described in radically different words depending on who is hiring. This
+table is the translation key. Rows are layers; columns are employer archetypes.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th><strong>Frontier lab</strong></th>
+<th><strong>GPU cloud / neocloud</strong></th>
+<th><strong>Big-tech platform org</strong></th>
+<th><strong>Enterprise (bank, pharma, telco)</strong></th>
+<th><strong>Startup / consultancy</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L0</strong></td>
+<td>Member of Technical Staff, Performance</td>
+<td>Performance Engineer, GPU</td>
+<td>Systems Engineer, ML Perf</td>
+<td>— (does not exist)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>L1</strong></td>
+<td>Cluster / Compute Infrastructure</td>
+<td><em>Staff SWE, Compute Infrastructure</em></td>
+<td>SRE, AI Compute</td>
+<td>Platform Engineer, GPU capacity</td>
+<td>DevOps (means something else)</td>
+</tr>
+<tr>
+<td><strong>L2</strong></td>
+<td>Research Infrastructure</td>
+<td>Training Platform Engineer</td>
+<td>ML Systems Engineer</td>
+<td>— (rents it)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>L3</strong></td>
+<td>Research Engineer / Scientist</td>
+<td>Applied Research</td>
+<td>Applied Scientist</td>
+<td>Data Scientist (often mislabelled)</td>
+<td>ML Engineer</td>
+</tr>
+<tr>
+<td><strong>L4</strong></td>
+<td>Inference Engineer</td>
+<td><em>Staff AI Infrastructure Engineer</em></td>
+<td>Serving Infrastructure Engineer</td>
+<td>MLOps Engineer (mislabelled)</td>
+<td>Backend Engineer, AI</td>
+</tr>
+<tr>
+<td><strong>L5</strong></td>
+<td>Research Platform / Tooling</td>
+<td>Control Plane Engineer</td>
+<td><em>Staff SWE, AI Platform</em></td>
+<td>ML Governance / MLOps Lead</td>
+<td>Platform Engineer</td>
+</tr>
+<tr>
+<td><strong>L6</strong></td>
+<td>Member of Technical Staff, Product</td>
+<td>Solutions Engineer</td>
+<td>Software Engineer, AI</td>
+<td>AI Solutions Engineer</td>
+<td><strong>AI Engineer</strong> / Forward-Deployed</td>
+</tr>
+<tr>
+<td><strong>L7</strong></td>
+<td>Product Engineer</td>
+<td>—</td>
+<td>Software Engineer, AI Experiences</td>
+<td>Digital Product Engineer</td>
+<td>Full-Stack Engineer</td>
+</tr>
+<tr>
+<td><strong>Col T</strong></td>
+<td>Alignment / Safety Engineer</td>
+<td>Security Engineer</td>
+<td>Responsible AI Engineer</td>
+<td>Model Risk / Compliance Engineer</td>
+<td>Security Engineer</td>
+</tr>
+</tbody>
+</table>
+<p>Three things fall out of this table:</p>
+<ol>
+<li><strong>&quot;AI Engineer&quot; unqualified means L6 at a startup and almost nothing anywhere else.</strong>
+If a big-tech posting says <em>AI Engineer</em>, read the bullets; the title was chosen by
+the ladder, not the manager.</li>
+<li><strong>&quot;AI Infrastructure Engineer&quot; is the most overloaded title in the market</strong> — it maps
+to L1, L2, L4 <em>and</em> L5 depending on employer. Four different jobs, one string. The
+corpus behind <a href="/p/resume-pmf-staff-ai-infra.html">#424</a> contains all four under that
+exact title.</li>
+<li><strong>&quot;MLOps Engineer&quot; is a legacy label</strong> covering what is now split between L1 and L5.
+When an enterprise posts it, it usually means L5 with some L4. When a startup posts
+it, it usually means &quot;please make our deploys work.&quot;</li>
+</ol>
+<hr />
+<h2 id="15-gravity-why-moving-up-is-easy-and-moving-down-is-hard">15. Gravity: why moving up is easy and moving down is hard<a class="anchor" href="#15-gravity-why-moving-up-is-easy-and-moving-down-is-hard" aria-label="Link to this section">#</a></h2>
+<pre class="mermaid">graph TD
+  subgraph Easy["Upward moves: weeks to months"]
+    U1["L1 to L5: same reconcile thinking,<br/>new vocabulary"]
+    U2["L5 to L6: you already own the evals"]
+    U3["L4 to L5: you already own the cost model"]
+  end
+  subgraph Hard["Downward moves: quarters to years, or blocked"]
+    D1["L6 to L4: needs a fleet you cannot rent casually"]
+    D2["L5 to L2: needs multi-node run time"]
+    D3["anything to L0: needs hardware plus a rewired intuition"]
+  end
+</pre>
+<p>The asymmetry has one clean cause: <strong>lower layers are gated by access to hardware and by
+knowledge that only accrues from operating it; upper layers are gated by judgment that
+transfers from ordinary software work.</strong></p>
+<p>More precisely, three gates compound as you go down:</p>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>L6–L7</th>
+<th>L5</th>
+<th>L4</th>
+<th>L1</th>
+<th>L2</th>
+<th>L0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Can you practice it at home?</td>
+<td>yes</td>
+<td>mostly</td>
+<td>partly</td>
+<td>barely</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Does non-AI experience transfer?</td>
+<td>some</td>
+<td><strong>almost fully</strong></td>
+<td>partly</td>
+<td><strong>almost fully</strong></td>
+<td>little</td>
+<td>little</td>
+</tr>
+<tr>
+<td>Is the failure mode learnable without production?</td>
+<td>yes</td>
+<td>partly</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<p>Note the two <strong>anomalies in the transfer row</strong>: L5 and L1. Both are, underneath the AI
+vocabulary, classical distributed-systems jobs — reconcile loops, idempotency,
+multi-tenancy, queue-driven orchestration, schema and state design. A strong
+infrastructure engineer with zero AI background is genuinely qualified for both and is
+usually screened out for lacking GPU keywords. <strong>That is the single largest arbitrage in
+the 2026 AI job market</strong>, and it is the reason <a href="/p/resume-pmf-staff-ai-infra.html">#424</a>
+concluded that the reachable targets for a data-platform engineer were L5 first and L1
+second — not L4, however loudly L4 is advertised.</p>
+<p><strong>Practical rule.</strong> Target your home layer plus one adjacent layer. Two layers away, the
+phone screen kills you — not on vocabulary, which you can learn in a weekend, but on
+<strong>failure stories</strong>, which you cannot fabricate. Every layer's real interview is
+&quot;tell me about a time this broke,&quot; and the shape of a true answer at L4 is nothing like
+the shape of a true answer at L6.</p>
+<hr />
+<h2 id="16-where-the-money-is-and-why">16. Where the money is, and why<a class="anchor" href="#16-where-the-money-is-and-why" aria-label="Link to this section">#</a></h2>
+<p>Pay in this market does not track difficulty, seniority, or even scarcity on its own. It
+tracks <strong>proximity to the binding constraint</strong>. In 2026 the binding constraint is
+accelerator capacity — not engineering talent, and not model quality.</p>
+<p>That gives a simple predictor: <em>the closer your work is to making scarce compute produce
+more value per hour, the better it is paid.</em> Which explains the otherwise odd shape of the
+curve:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Seats</th>
+<th>Competition</th>
+<th>Comp ceiling</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L0</strong></td>
+<td>very few</td>
+<td>low (hardware-gated)</td>
+<td>very high</td>
+<td>Directly multiplies the scarce resource</td>
+</tr>
+<tr>
+<td><strong>L1</strong></td>
+<td>moderate</td>
+<td><strong>moderate</strong></td>
+<td>high</td>
+<td>Owns whether the scarce resource is usable at all</td>
+</tr>
+<tr>
+<td><strong>L2</strong></td>
+<td>few</td>
+<td>very high</td>
+<td>very high</td>
+<td>Gated credential; labs bid against each other</td>
+</tr>
+<tr>
+<td><strong>L3</strong></td>
+<td>few</td>
+<td>extreme</td>
+<td>highest</td>
+<td>Winner-take-most on model quality</td>
+</tr>
+<tr>
+<td><strong>L4</strong></td>
+<td>many</td>
+<td><strong>highest</strong></td>
+<td>high</td>
+<td>Directly owns $/token; also the most self-taught entrants</td>
+</tr>
+<tr>
+<td><strong>L5</strong></td>
+<td><strong>most</strong></td>
+<td>moderate</td>
+<td>medium-high</td>
+<td>Cost <em>attribution</em> rather than cost <em>reduction</em> — one step removed</td>
+</tr>
+<tr>
+<td><strong>L6</strong></td>
+<td>most</td>
+<td>high at entry, <strong>thin at senior</strong></td>
+<td>medium</td>
+<td>Value is real but the work is the most substitutable</td>
+</tr>
+<tr>
+<td><strong>L7</strong></td>
+<td>many</td>
+<td>medium</td>
+<td>medium</td>
+<td>Mis-valued; see §11</td>
+</tr>
+<tr>
+<td><strong>Col T</strong></td>
+<td>growing fast</td>
+<td><strong>low</strong></td>
+<td>medium-high</td>
+<td>Demand created by L6 faster than supply exists</td>
+</tr>
+</tbody>
+</table>
+<p><em>(Seats/competition/ceiling are my qualitative read of the 2026 posting corpus, not survey
+data. Treat the ordering as the claim, not the levels.)</em></p>
+<p><strong>Two actionable readings:</strong></p>
+<ul>
+<li><strong>The best risk-adjusted target for an experienced systems engineer is L1 or L5</strong> —
+moderate competition, high transfer of existing skill, and both are structurally
+under-applied-to because their postings read as ops or platform work.</li>
+<li><strong>The best risk-adjusted target for a strong application engineer is L6 + Column T</strong> —
+agent security is a real discipline that barely has practitioners, and it is reachable
+from L6 rather than from a security background.</li>
+</ul>
+<hr />
+<h2 id="17-the-escalator-which-roles-are-dissolving">17. The escalator: which roles are dissolving<a class="anchor" href="#17-the-escalator-which-roles-are-dissolving" aria-label="Link to this section">#</a></h2>
+<p>Layers commoditize <strong>upward</strong>. Work that is a specialty at one moment becomes a feature of
+the layer below it, and the specialists either move up or get absorbed.</p>
+<pre class="mermaid">graph LR
+  P2023["2023: Prompt Engineer"] --> P2026["2026: a skill inside L6/L7,<br/>not a job"]
+  R2024["2024: RAG Engineer"] --> R2026["2026: a component of L6;<br/>much of it is now a product feature"]
+  M2021["2021: MLOps Engineer"] --> M2026["2026: split into L1 and L5"]
+  S2024["2024: per-company serving team"] --> S2026["2026: increasingly a vendor;<br/>survives only where cost or latency justifies it"]
+  E2026["2026: Evaluation Engineer"] --> E2028["next: absorbed into L5 as infrastructure,<br/>the way CI absorbed 'build engineer'"]
+</pre>
+<p>The pattern is consistent enough to use as a forecasting tool. A role is <strong>dissolving</strong>
+when: (a) its core artifact ships as a product feature by a vendor, (b) its distinguishing
+knowledge becomes a paragraph in documentation, and (c) the base model improving makes it
+<em>easier</em> rather than harder. That last is question 5 from §13, and it is the early warning.</p>
+<p>A role is <strong>durable</strong> when it sits on top of a constraint that does not go away:</p>
+<ul>
+<li><strong>L1</strong> — physical capacity is permanently scarce and permanently messy. Durable.</li>
+<li><strong>L5</strong> — governance load grows with <em>usage</em>, not with model quality. Better models
+create <em>more</em> artifacts to track, not fewer. Structurally durable.</li>
+<li><strong>Column T</strong> — adversaries adapt; compliance ratchets. Durable.</li>
+<li><strong>L6</strong> — durable as a <em>function</em>, substitutable as a <em>person</em>, unless you own the
+evaluation and cost discipline that makes it engineering rather than assembly.</li>
+<li><strong>L7</strong> — durable; human trust does not commoditize.</li>
+</ul>
+<blockquote>
+<p><strong>The counterintuitive conclusion:</strong> the loudest roles (L4, L6 entry) are the ones most
+exposed to commoditization, and the quietest ones (L1, L5, Column T) are the most
+durable. Heat and durability are close to anti-correlated in this market, because heat
+is generated by how easy a role is to <em>talk about</em>, and ease of talking about it is
+exactly what makes it easy to productize.</p>
+</blockquote>
+<hr />
+<h2 id="18-positioning-the-two-layer-rule">18. Positioning: the two-layer rule<a class="anchor" href="#18-positioning-the-two-layer-rule" aria-label="Link to this section">#</a></h2>
+<p>Everything above converges on one practical procedure.</p>
+<p><strong>Step 1 — Find your home layer honestly.</strong> Not the layer you want; the layer whose
+<em>failure stories you actually own</em>. Use the clock test on yourself: what is the time unit
+of the thing that has woken you up?</p>
+<p><strong>Step 2 — Pick exactly one adjacent layer to reach for.</strong> Adjacent means one step on the
+stack diagram, or one step across into a column. Your résumé then makes a two-layer claim:
+home layer with evidence, adjacent layer with <em>one</em> credible artifact.</p>
+<p><strong>Step 3 — Translate into the target employer's dialect</strong> using §14. Same evidence,
+different words. This is not spin; it is the fact that L5 at LinkedIn and L5 at a bank
+genuinely use different house vocabulary for the same machine.</p>
+<p><strong>Step 4 — Say your layer out loud in the first line.</strong> The single highest-value edit
+available to most AI-adjacent résumés is replacing a generic summary opener with a
+sentence that names the layer and the artifact. Recruiters cannot infer your layer, and
+the screener will not try.</p>
+<p><strong>What breaks this:</strong></p>
+<ul>
+<li><strong>Claiming a layer whose vocabulary you have but whose failures you don't.</strong> The tell is
+instant and unrecoverable. Better to say &quot;I have not run this, here is the nearest thing
+I have run&quot; — which is a credible senior answer — than to be caught.</li>
+<li><strong>Claiming two layers away</strong>, hoping the adjacent one carries you. It doesn't; the
+interviewer probes the far claim first, because it is the interesting one.</li>
+<li><strong>Listing tools instead of failures.</strong> Every layer's skills section looks the same from
+outside. The failure story is what is layer-specific and non-fakeable.</li>
+</ul>
+<hr />
+<h2 id="19-worked-example-locating-one-real-résumé">19. Worked example: locating one real résumé<a class="anchor" href="#19-worked-example-locating-one-real-résumé" aria-label="Link to this section">#</a></h2>
+<p>The three pages preceding this one worked on a single concrete case. It is a good
+illustration because it contains the two most common mis-sorts in the market at once.</p>
+<p><strong>The profile.</strong> Eleven years of distributed systems; seven at Microsoft, on data
+governance and provenance; tech lead of a self-built multi-tenant graph database; owned
+lineage in Microsoft Purview end to end; recently extended the same provenance layer to
+models, prompts, agents and evaluation runs; built an agent evaluation harness with span
+trees and LLM-as-judge scoring; built a rollout/flighting control plane and an AI-assisted
+tool that inventories and retires stale rollout configuration.</p>
+<p><strong>Layer location:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Evidence</th>
+<th>Layer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Artifact catalog, lineage, provenance, multi-tenancy, experiment tracking</td>
+<td><strong>L5, strong</strong></td>
+</tr>
+<tr>
+<td>Agent eval harness, span-tree tracing, LLM-judge calibration</td>
+<td><strong>L6, real but recent</strong></td>
+</tr>
+<tr>
+<td>Feature-flight rollout control plane, drift detection, zero-downtime rebuild</td>
+<td><strong>L1-shaped, adjacent</strong></td>
+</tr>
+<tr>
+<td>Online feature retrieval for model serving (2016)</td>
+<td>L5/L4 border, dated</td>
+</tr>
+<tr>
+<td>GPU, CUDA, batching, KV cache</td>
+<td><strong>nothing</strong></td>
+</tr>
+</tbody>
+</table>
+<p>So: <strong>home layer L5, adjacent reach L6, second adjacency L1.</strong> Exactly the &quot;moderate
+competition, high transfer, structurally under-applied-to&quot; profile from §15 — and exactly
+<em>not</em> L4, which is what a résumé aimed at the phrase &quot;AI Infrastructure&quot; would be scored
+against.</p>
+<p><strong>The two mis-sorts this case demonstrates:</strong></p>
+<ol>
+<li><strong>Aiming at the loud layer.</strong> &quot;Staff AI Infrastructure Engineer&quot; reads as L4 in most
+markets; the evidence here is L5. Same title, three layers apart. The fix is not to
+learn L4 vocabulary — it is to target the postings under that title that are actually
+L5, which §14's table lets you identify from the bullets.</li>
+<li><strong>Labelling evidence with the wrong layer's vocabulary.</strong> <a href="/p/control-plane-six-words.html">#453</a>
+examined six control-plane terms on the skills line and found the underlying skills
+genuinely present; <a href="/p/skills-line-rewrite.html">#454</a> then found that the <em>label</em> was
+claiming an L1 job (&quot;I keep a machine converged, forever&quot;) while the <em>evidence</em> was an
+L5 migration story (&quot;I moved a large stateful system without downtime, once&quot;). Both
+are respectable. They are different layers, they get different interview questions, and
+the mismatch was costing more than the keywords were earning.</li>
+</ol>
+<p>Note what this example is really showing: <strong>the layer model is not just a taxonomy of the
+market — it is a consistency check on your own document.</strong> A résumé is coherent when the
+title, the summary, the skills line and the bullets all point at the same layer. Most
+aren't, and the incoherence is invisible to the author because they know what they meant.</p>
+<hr />
+<h2 id="20-if-you-are-the-recruiter">20. If you are the recruiter<a class="anchor" href="#20-if-you-are-the-recruiter" aria-label="Link to this section">#</a></h2>
+<p>The premise of the question this article answers was that recruiters often are not clear
+on the distinction. Fair — but as §1 argues, the pipeline produces that. Three changes
+fix most of it, and they are cheap:</p>
+<ol>
+<li><strong>Put the clock in the posting.</strong> One sentence: <em>&quot;You will be paged about p99 latency
+on token generation&quot;</em> or <em>&quot;You will own whether 4,000 GPUs are healthy&quot;</em> or <em>&quot;You will
+own why an evaluation score cannot be reproduced.&quot;</em> This does more sorting than the
+entire requirements list, and it costs one line.</li>
+<li><strong>State who owns the accelerators.</strong> <em>&quot;We operate our own fleet&quot;</em> vs. <em>&quot;we consume
+vendor APIs&quot;</em> is the highest-information fact about an AI engineering job and it is
+almost never stated.</li>
+<li><strong>Screen on failure stories, not tool names.</strong> Ask <em>&quot;tell me about a time the system
+you owned degraded&quot;</em> and listen for the <strong>time unit and blast radius</strong> in the answer.
+A candidate who answers in milliseconds and a candidate who answers in quarters are
+both possibly excellent, and only one of them fits the role.</li>
+</ol>
+<p>A useful diagnostic for a posting you already have: if you deleted the title and the tool
+names, could an engineer still tell which layer it is? If not, the posting is going to
+produce a mis-sorted funnel no matter how many applicants it attracts.</p>
+<hr />
+<h2 id="21-a-self-location-diagnostic">21. A self-location diagnostic<a class="anchor" href="#21-a-self-location-diagnostic" aria-label="Link to this section">#</a></h2>
+<p>Ten questions. Answer from what you have <em>done</em>, not what you have read.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Question</th>
+<th>If yes, points to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Have you made something measurably faster by changing how memory is accessed?</td>
+<td>L0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Have you written the code that decides when a machine is healthy enough to receive work?</td>
+<td>L1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Have you resumed a distributed job from a checkpoint after a hardware failure?</td>
+<td>L2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Have you run an ablation that changed a decision about a model?</td>
+<td>L3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Have you tuned a batching or caching policy and watched p99 and $/token move?</td>
+<td>L4</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Have you built something that many other teams depend on and file bugs against?</td>
+<td>L5</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Can you answer &quot;how do you know it got better?&quot; with a suite rather than a vibe?</td>
+<td>L5 or L6 (senior)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Have you debugged an agent that did the wrong thing confidently?</td>
+<td>L6</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Have you changed how a model's output is <em>presented</em> and seen behaviour change?</td>
+<td>L7</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Have you found a way to make a system with tool access do something it shouldn't?</td>
+<td>Column T</td>
+</tr>
+</tbody>
+</table>
+<p>Your <strong>home layer</strong> is where you have two or more yeses with production stories behind
+them. Your <strong>reach layer</strong> is where you have exactly one. Anything with zero is not a
+target this year — it is a project plan.</p>
+<p>If you got yeses scattered across 1, 5 and 8 with nothing in between, you have a common
+and awkward profile: broad exposure, no home. The fix is to pick the one with the best
+story and deepen it until it has two more; breadth without a home layer reads as junior
+regardless of years served.</p>
+<hr />
+<h2 id="22-summary-the-nine-sentences-worth-keeping">22. Summary: the nine sentences worth keeping<a class="anchor" href="#22-summary-the-nine-sentences-worth-keeping" aria-label="Link to this section">#</a></h2>
+<ol>
+<li><strong>The stack has layers; titles don't.</strong> A title tells you about the employer, not the job.</li>
+<li><strong>A layer is defined by what breaks and how fast</strong>, not by which tools are installed.</li>
+<li><strong>Four prepositions do most of the sorting</strong>: under, of, with, around the model.</li>
+<li><strong>&quot;AI Infrastructure Engineer&quot; covers four different layers</strong>; &quot;AI Engineer&quot; unqualified
+means L6 at a startup; &quot;MLOps&quot; is a legacy label for what is now L1 plus L5.</li>
+<li><strong>Read the bullets, not the title</strong> — then use the clock test to place them.</li>
+<li><strong>Mobility is asymmetric</strong>: up the stack is weeks, down the stack is quarters or blocked.</li>
+<li><strong>L1 and L5 are the arbitrage</strong>: classical distributed-systems jobs wearing AI
+vocabulary, systematically under-applied-to by exactly the people qualified for them.</li>
+<li><strong>Heat and durability are anti-correlated</strong>: the easiest roles to talk about are the
+easiest to productize.</li>
+<li><strong>Claim your home layer plus one.</strong> Vocabulary is free; failure stories are not.</li>
+</ol>
+<hr />
+<h2 id="23-sources-and-further-reading">23. Sources and further reading<a class="anchor" href="#23-sources-and-further-reading" aria-label="Link to this section">#</a></h2>
+<p>Job-description corpus (read September 2026 for <a href="/p/resume-pmf-staff-ai-infra.html">#424</a>;
+layer labels below are mine):</p>
+<ul>
+<li><a href="https://job-boards.greenhouse.io/togetherai/jobs/5214645007" target="_blank" rel="noopener noreferrer">Staff Software Engineer, Inference / Compute Infrastructure — Together AI</a> — L1 with L4 adjacency; the provisioning-state-machine language quoted in §5</li>
+<li><a href="https://openai.com/careers/software-engineer-gpu-infrastructure-hpc-san-francisco/" target="_blank" rel="noopener noreferrer">Software Engineer, GPU Infrastructure - HPC — OpenAI</a> — L1/L2</li>
+<li><a href="https://job-boards.greenhouse.io/anthropic/jobs/4926227008" target="_blank" rel="noopener noreferrer">Performance Engineer, GPU — Anthropic</a> — L0</li>
+<li><a href="https://freehire.me/jobs/sr-staff-software-engineer-ai-infrastructure-linkedin-hekeswlr" target="_blank" rel="noopener noreferrer">Sr. Staff Software Engineer, AI Infrastructure — LinkedIn</a> — L5 with L4 language</li>
+<li><a href="https://freehire.me/jobs/staff-software-engineer-ai-platform-linkedin-d4q25ibg" target="_blank" rel="noopener noreferrer">Staff Software Engineer, AI Platform — LinkedIn</a> — L5</li>
+<li><a href="https://freehire.me/jobs/staff-ai-infrastructure-engineer-seekr-2ahcyj3a" target="_blank" rel="noopener noreferrer">Staff AI Infrastructure Engineer — Seekr</a> — L4</li>
+<li><a href="https://freehire.me/jobs/staff-system-engineer-ai-infrastructure-cloudera-c6zjaxe4" target="_blank" rel="noopener noreferrer">Staff System Engineer, AI Infrastructure — Cloudera</a> — L1/L5</li>
+<li><a href="https://freehire.me/jobs/gpu-infrastructure-engineer-talentstoday-dtmoxwrt" target="_blank" rel="noopener noreferrer">GPU Infrastructure Engineer — TalentsToday</a> — L1</li>
+</ul>
+<p>Note the four distinct layers appearing under variations of one title. That single
+observation is the empirical basis for this whole article.</p>
+<p>Market-commentary sources:</p>
+<ul>
+<li><a href="https://blog.kudoswall.com/agentic-forward-deployed-ai-resume/" target="_blank" rel="noopener noreferrer">The Resume Blueprint for 2026 AI Infrastructure Roles</a></li>
+<li><a href="https://www.ssipeople.com/2026-resume-trends-how-to-get-past-ai-screening-before-a-human-ever-sees-your-application/" target="_blank" rel="noopener noreferrer">2026 Resume Trends: How to Get Past AI Screening</a></li>
+<li><a href="https://thenewstack.io/in-2026-ai-is-merging-with-platform-engineering-are-you-ready/" target="_blank" rel="noopener noreferrer">In 2026, AI Is Merging With Platform Engineering — The New Stack</a></li>
+<li><a href="https://remotestack.in/blog/remote-ai-engineer-jobs-2026" target="_blank" rel="noopener noreferrer">Remote AI Engineer Jobs in 2026: LLM, MLOps and Infrastructure Roles</a></li>
+</ul>
+<p>Companion pages on this board:</p>
+<ul>
+<li><a href="/p/resume-pmf-staff-ai-infra.html">#424 — Résumé PMF: why it doesn't sell into Staff AI Infrastructure</a> — the five archetypes that became L1/L4/L2-L3/L5/L6 here</li>
+<li><a href="/p/control-plane-six-words.html">#453 — Control Plane in six words, one machine</a> — what an L1 interview actually probes</li>
+<li><a href="/p/skills-line-rewrite.html">#454 — That line shouldn't be called &quot;Control Plane&quot;</a> — the L1-label / L5-evidence mismatch, fixed</li>
+<li><a href="/p/llm-agent-eval-platform.html">#423 — LLM agent experiment platform: a reviewable design spec</a> — an L5/L6 proof artifact in the shape §9 describes</li>
+<li><a href="/p/python-ai-infra-40h.html">#422 — From Java to Python AI Infrastructure in 40 hours</a> — the cheapest credible step toward L4</li>
+</ul>
+
+</main>
+</div>
+<footer>Written for kanban task #455 &ldquo;Career Design&rdquo; &mdash; the third page in a series that began with <a href="/p/resume-pmf-staff-ai-infra.html">#424 the r&eacute;sum&eacute; PMF diagnosis</a> and continued through <a href="/p/control-plane-six-words.html">#453 six words, one machine</a> and <a href="/p/skills-line-rewrite.html">#454 the skills-line rewrite</a>.</footer>
+<button class="backtop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&uarr;</button>
+<script>
+var bt=document.querySelector('.backtop');
+window.addEventListener('scroll',function(){if(window.scrollY>400)bt.classList.add('show');else bt.classList.remove('show')});
+</script>
+
+<script src="/vendor/mermaid.min.js" defer></script>
+<script src="/vendor/mermaid-init.js" defer></script>
+
+<script src="/vendor/toc-fold.js" defer></script>
+</body>
+</html>

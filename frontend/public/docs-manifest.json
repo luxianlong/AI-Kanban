@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-ai-engineer-roles-by-layer",
+    "title": "Under, Of, With, Around: The Seven Layers Hiding Inside the Job Title \"AI Engineer\"",
+    "href": "/p/ai-engineer-roles-by-layer.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T08:55:59.848Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-engineer-roles-by-layer.html",
+      "frontend/public/p/ai-engineer-roles-by-layer.meta.json"
+    ]
+  },
+  {
     "id": "upload-skills-line-rewrite",
     "title": "那一行不该叫「控制面」：给 CORE SKILLS 换一句话",
     "href": "/p/skills-line-rewrite.html",
