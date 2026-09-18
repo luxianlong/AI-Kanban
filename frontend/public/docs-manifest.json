@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-resume-pmf-staff-ai-infra",
+    "title": "这份简历的 PMF 诊断：为什么它卖不进 Staff AI Infrastructure",
+    "href": "/p/resume-pmf-staff-ai-infra.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:05:31.805Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/resume-pmf-staff-ai-infra.html",
+      "frontend/public/p/resume-pmf-staff-ai-infra.meta.json"
+    ]
+  },
+  {
     "id": "upload-llm-agent-eval-platform",
     "title": "LLM Agent 实验平台设计说明书：把一句简历 bullet 拆成可落地的系统",
     "href": "/p/llm-agent-eval-platform.html",
