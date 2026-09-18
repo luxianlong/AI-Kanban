@@ -96,6 +96,50 @@ class PageUploadServiceTest {
     }
 
     @Test
+    void injectsTheFoldControlIntoAPageThatCarriesAContentsList() throws IOException {
+        Path repo = Files.createTempDirectory("pages-toc");
+        PageUploadService service = service(repo, new PagesProperties());
+
+        service.store("<html><body><div class=\"layout\">"
+                + "<nav class=\"toc\"><h2>本页目录</h2><ol><li><a href=\"#a\">A</a></li></ol></nav>"
+                + "<main>text</main></div></body></html>", "guide", null, null, "1.2.3.4");
+
+        String stored = Files.readString(repo.resolve("frontend/public/p/guide.html"));
+        assertThat(stored).contains("/vendor/toc-fold.js");
+        // Before </body>, so the nav exists by the time the deferred script runs.
+        assertThat(stored.indexOf("toc-fold.js")).isLessThan(stored.indexOf("</body>"));
+        // The page's own contents markup is handed through untouched — the fold
+        // is built at runtime, nothing is rewritten on the way in.
+        assertThat(stored).contains("<nav class=\"toc\"><h2>本页目录</h2>");
+    }
+
+    @Test
+    void leavesPagesWithoutAContentsListOrWithTheirOwnFoldUntouched() {
+        String plain = "<html><body><p>Just prose.</p></body></html>";
+        assertThat(PageUploadService.withTocFold(plain)).isEqualTo(plain);
+
+        // A /docs/ article already folds from its heading (task #224); a second
+        // control would be two widgets driving one piece of state.
+        String generated = "<body><nav class=\"toc\"><button class=\"toc-title\" "
+                + "aria-controls=\"toc-list\">目录</button><ul id=\"toc-list\">"
+                + "<li><a href=\"#a\">A</a></li></ul></nav></body>";
+        assertThat(PageUploadService.withTocFold(generated)).isEqualTo(generated);
+
+        // Re-uploading a page that already carries the tag must not stack a
+        // second copy of it.
+        String already = "<body><nav class=\"toc\"><a href=\"#a\">A</a></nav>"
+                + "<script src=\"/vendor/toc-fold.js\" defer></script></body>";
+        assertThat(PageUploadService.withTocFold(already)).isEqualTo(already);
+
+        // The 典籍 readers' shape — bare anchors, no heading — is a contents
+        // list too, and a page with no </body> still gets the tag appended.
+        String classic = "<nav class=\"toc\" id=\"toc\"><a class=\"l2\" href=\"#ch1\">一</a></nav>";
+        assertThat(PageUploadService.withTocFold(classic))
+                .startsWith(classic)
+                .contains("/vendor/toc-fold.js");
+    }
+
+    @Test
     void reportsTheFilesBackingAPageSoTheDocsDeleteCanRemoveThem() throws IOException {
         Path repo = Files.createTempDirectory("pages-paths");
         PageUploadService service = service(repo, new PagesProperties());
