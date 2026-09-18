@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-control-plane-six-words",
+    "title": "控制面那一行到底在说什么：六个词，一台机器",
+    "href": "/p/control-plane-six-words.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T07:26:51.512Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/control-plane-six-words.html",
+      "frontend/public/p/control-plane-six-words.meta.json"
+    ]
+  },
+  {
     "id": "upload-xiaorenjing",
     "title": "小人經 · 繁體版",
     "href": "/p/xiaorenjing.html",
@@ -323,7 +338,7 @@
     "file": null,
     "updatedAt": "2026-09-18T04:59:44.462Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/python-ai-infra-stages.html",
       "frontend/public/p/python-ai-infra-stages.meta.json"
@@ -338,7 +353,7 @@
     "file": null,
     "updatedAt": "2026-09-18T04:59:44.460Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/py-stage5-capstone.html",
       "frontend/public/p/py-stage5-capstone.meta.json"
