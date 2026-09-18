@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-python-ai-infra-40h",
+    "title": "从 Java 到 Python AI Infrastructure：40 小时学习路线",
+    "href": "/p/python-ai-infra-40h.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T02:44:30.611Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/python-ai-infra-40h.html",
+      "frontend/public/p/python-ai-infra-40h.meta.json"
+    ]
+  },
+  {
     "id": "four-vocabularies-one-platform-2",
     "title": "Four Vocabularies, One Platform",
     "href": "/docs/four-vocabularies-one-platform-2.html",
@@ -765,51 +780,6 @@
     ]
   },
   {
-    "id": "upload-manus",
-    "title": "Manus团队测模型一点微小的经验",
-    "href": "/p/manus.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-11T02:12:19.693Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/manus.html",
-      "frontend/public/p/manus.meta.json"
-    ]
-  },
-  {
-    "id": "upload-ai",
-    "title": "验证的单价：我判断 AI 未来十年唯一用的尺子",
-    "href": "/p/ai.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-10T12:57:42.671Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ai.html",
-      "frontend/public/p/ai.meta.json"
-    ]
-  },
-  {
-    "id": "upload-page-87d36ee6",
-    "title": "草稿-人类（修订）：模型什么时候能把今天写回权重里",
-    "href": "/p/page-87d36ee6.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-10T12:53:41.920Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/page-87d36ee6.html",
-      "frontend/public/p/page-87d36ee6.meta.json"
-    ]
-  },
-  {
     "id": "article-737d0a60",
     "title": "\"我在做自媒体\"：一个失业者如何在就业冰河期自我安慰",
     "href": "/docs/article-737d0a60.html",
@@ -912,6 +882,21 @@
     "paths": [
       "docs/server-worker-split.md",
       "frontend/public/docs/server-worker-split.html"
+    ]
+  },
+  {
+    "id": "upload-manus",
+    "title": "Manus团队测模型一点微小的经验",
+    "href": "/p/manus.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-11T02:12:19.693Z",
+    "isNew": false,
+    "private": true,
+    "paths": [
+      "frontend/public/p/manus.html",
+      "frontend/public/p/manus.meta.json"
     ]
   },
   {
@@ -1125,6 +1110,21 @@
     ]
   },
   {
+    "id": "upload-page-87d36ee6",
+    "title": "草稿-人类（修订）：模型什么时候能把今天写回权重里",
+    "href": "/p/page-87d36ee6.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-10T12:53:41.920Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "frontend/public/p/page-87d36ee6.html",
+      "frontend/public/p/page-87d36ee6.meta.json"
+    ]
+  },
+  {
     "id": "upload-alibaba-one-point",
     "title": "装着外卖的那个分部,只跌了百分之一",
     "href": "/p/alibaba-one-point.html",
@@ -1167,6 +1167,21 @@
     "paths": [
       "frontend/public/p/why-cz-could-stop-sun.html",
       "frontend/public/p/why-cz-could-stop-sun.meta.json"
+    ]
+  },
+  {
+    "id": "upload-ai",
+    "title": "验证的单价：我判断 AI 未来十年唯一用的尺子",
+    "href": "/p/ai.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-10T12:57:42.671Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai.html",
+      "frontend/public/p/ai.meta.json"
     ]
   }
 ]

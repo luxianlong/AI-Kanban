@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>从 Java 到 Python AI Infrastructure：40 小时学习路线</title>
+<meta name="description" content="面向有 Java 基础的工程师的 40 小时 Python + AI Infrastructure 学习路线：语法平移、工程化、张量与显存、推理服务与可观测性，含可验收产出与 Capstone。"/>
+<style>
+:root{--bg:#fbfaf7;--fg:#22201c;--muted:#6b6660;--line:#e6e1d8;--accent:#8a5a2b;--code-bg:#f3f0ea;--card:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#16150f;--fg:#e9e5dc;--muted:#a49e94;--line:#2f2c25;--accent:#d7a468;--code-bg:#211f18;--card:#1c1a14}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.hero{padding:56px 24px 28px;border-bottom:1px solid var(--line);background:var(--card)}
+.hero-inner{max-width:1080px;margin:0 auto}
+.eyebrow{margin:0 0 8px;color:var(--accent);letter-spacing:.18em;font-size:12px;text-transform:uppercase}
+.hero h1{margin:0;font-size:clamp(26px,3.4vw,40px);line-height:1.25;letter-spacing:-.01em}
+.hero .sub{margin:12px 0 0;color:var(--muted);font-size:15px}
+.layout{max-width:1080px;margin:0 auto;padding:32px 24px 96px;display:grid;grid-template-columns:220px 1fr;gap:40px}
+@media(max-width:900px){.layout{grid-template-columns:1fr;gap:16px}.toc{position:static!important;max-height:none}}
+.toc{position:sticky;top:24px;align-self:start;max-height:80vh;overflow:auto;font-size:13.5px}
+.toc h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.toc ol{list-style:none;margin:0;padding:0}
+.toc li{margin:0 0 6px}
+.toc a{color:var(--muted);text-decoration:none;border-left:2px solid var(--line);padding-left:10px;display:block}
+.toc a:hover{color:var(--accent);border-left-color:var(--accent)}
+.content{min-width:0}
+.content .anchor{opacity:0;margin-left:8px;text-decoration:none;color:var(--muted);font-weight:400}
+.content h2:hover .anchor,.content h3:hover .anchor{opacity:.6}
+.content h2{margin:48px 0 14px;font-size:24px;padding-bottom:8px;border-bottom:1px solid var(--line);scroll-margin-top:20px}
+.content h3{margin:32px 0 10px;font-size:18.5px;color:var(--accent)}
+.content h4{margin:24px 0 8px;font-size:16px}
+.content p{margin:0 0 14px}
+.content ul,.content ol{padding-left:24px;margin:0 0 14px}
+.content li{margin:0 0 6px}
+.content a{color:var(--accent)}
+.content blockquote{margin:18px 0;padding:12px 18px;border-left:3px solid var(--accent);background:var(--code-bg);border-radius:0 8px 8px 0;color:var(--muted)}
+.content blockquote p:last-child{margin:0}
+.content code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.content pre{background:var(--code-bg);padding:16px 18px;border-radius:10px;overflow:auto;border:1px solid var(--line);line-height:1.6}
+.content pre code{background:none;padding:0;font-size:13.5px}
+.content table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.content th{background:var(--code-bg);font-weight:600;white-space:nowrap}
+.content tr:nth-child(even) td{background:color-mix(in srgb,var(--code-bg) 45%,transparent)}
+.content hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+.content input[type=checkbox]{margin-right:6px}
+.backtop{position:fixed;right:22px;bottom:22px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;opacity:0;transition:opacity .2s;font-size:17px}
+.backtop.show{opacity:.9}
+footer{max-width:1080px;margin:0 auto;padding:0 24px 60px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header class="hero"><div class="hero-inner">
+<p class="eyebrow">学习路线 · Learning Plan</p>
+<h1>从 Java 到 Python AI Infrastructure：40 小时学习路线</h1>
+<p class="sub">40 小时 · 5 个阶段 · 每阶段都有可验收产出 · 2026-09</p>
+</div></header>
+<div class="layout">
+<nav class="toc"><h2>目录</h2><ol>
+<li><a href="#0-开始之前先记住三句话">0. 开始之前，先记住三句话</a></li>
+<li><a href="#1-40-小时怎么切">1. 40 小时怎么切</a></li>
+<li><a href="#2-阶段一6-小时把-java-翻译成-python">2. 阶段一（6 小时）：把 Java 翻译成 Python</a></li>
+<li><a href="#3-阶段二6-小时对象模型--java-没有的那些机制">3. 阶段二（6 小时）：对象模型 + Java 没有的那些机制</a></li>
+<li><a href="#4-阶段三6-小时把工程素养接回来">4. 阶段三（6 小时）：把工程素养接回来</a></li>
+<li><a href="#5-阶段四16-小时ai-infrastructure-核心栈">5. 阶段四（16 小时）：AI Infrastructure 核心栈</a></li>
+<li><a href="#6-阶段五6-小时capstone--llm-推理网关">6. 阶段五（6 小时）：Capstone —— LLM 推理网关</a></li>
+<li><a href="#7-java-老手最容易踩的十个坑">7. Java 老手最容易踩的十个坑</a></li>
+<li><a href="#8-这-40-小时里不要学的东西">8. 这 40 小时里**不要**学的东西</a></li>
+<li><a href="#9-资源清单按用途不贪多">9. 资源清单（按用途，不贪多）</a></li>
+<li><a href="#10-结业自检清单">10. 结业自检清单</a></li>
+<li><a href="#11-40-小时之后延伸方向供下一轮规划">11. 40 小时之后（延伸方向，供下一轮规划）</a></li>
+</ol></nav>
+<main class="content">
+<blockquote class="quote"><p><strong>读者画像</strong>：有扎实 Java 工程经验（Spring / 并发 / JVM 调优都熟），Python 接近零基础，目标是进入 <strong>AI Infrastructure</strong> 方向 —— 推理服务、训练平台、GPU 调度、数据与模型工件管线。</p>
+<p><strong>总时长 40 小时 · 5 个阶段 · 每阶段都有可验收的产出</strong>。时间锚点：2026 年 9 月。</p></blockquote>
+<hr />
+<h2 id="0-开始之前先记住三句话">0. 开始之前，先记住三句话<a class="anchor" href="#0-开始之前先记住三句话" aria-label="链接到本节">#</a></h2>
+<ol>
+<li><strong>你不需要"学 Python"，你需要把 Java 的工程直觉平移过来，同时卸掉三个会害你的直觉</strong>：类型靠编译器保证、并发靠线程池、性能靠 JVM 帮你兜底 —— 这三条在 Python 里全部失效，而且失效方式各不相同。</li>
+<li><strong>AI Infra 里 90% 的 Python 代码只用到语言的一个子集</strong>：函数、<code>dataclass</code>、装饰器、生成器、<code>asyncio</code>、类型注解。元类、描述符、<code>__slots__</code> 这些现在一律不学，遇到了再查。</li>
+<li><strong>真正的难点不在语法，在四个心智模型</strong>：张量（shape/dtype/broadcast）、显存（分配/碎片/OOM）、批处理（吞吐 vs 时延）、GIL（为什么你的多线程不加速）。40 小时里有 16 小时是花在它们身上的，语法只占 6 小时。</li>
+</ol>
+<p>一句话版路线：<strong>6 小时把 Java 翻译成 Python → 6 小时补上 Python 特有的机制 → 6 小时把工程素养接回来 → 16 小时啃 AI Infra 技术栈 → 6 小时做一个能压测的推理服务</strong>。</p>
+<hr />
+<h2 id="1-40-小时怎么切">1. 40 小时怎么切<a class="anchor" href="#1-40-小时怎么切" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>阶段</th><th>主题</th><th>时长</th><th>可验收的产出</th></tr></thead>
+<tbody>
+<tr><td><strong>一</strong></td><td>Java → Python 语法平移</td><td>6 h</td><td>一个纯 Python 重写的小工具（原来你用 Java 写过的那种）</td></tr>
+<tr><td><strong>二</strong></td><td>对象模型 + Python 特有机制</td><td>6 h</td><td>一个带类型注解、通过 <code>mypy</code> 的数据处理模块</td></tr>
+<tr><td><strong>三</strong></td><td>工程化：测试 / 打包 / 并发 / 性能</td><td>6 h</td><td>一个 <code>pyproject.toml</code> 管理、有 pytest 用例、能打 Docker 镜像的包</td></tr>
+<tr><td><strong>四</strong></td><td>AI Infrastructure 核心栈</td><td>16 h</td><td>能跑通：张量操作 → 加载模型 → 起推理服务 → 出指标</td></tr>
+<tr><td><strong>五</strong></td><td>Capstone：LLM 推理网关</td><td>6 h</td><td>FastAPI + vLLM + 流式 + Prometheus + 压测报告</td></tr>
+<tr><td></td><td><strong>合计</strong></td><td><strong>40 h</strong></td><td></td></tr>
+</tbody>
+</table></div>
+<p><strong>排期建议</strong>：每周 8 小时 × 5 周（工作日晚 1.5 h × 4 + 周末 2 h），或每天 2 h × 20 天。<br /><strong>不建议压到两周内</strong> —— 阶段四必须留出反复踩显存和批处理坑的时间，那些坑是靠等待和重试学会的，不是靠读文档。</p>
+<pre class="mermaid">graph LR
+  A["阶段一 6h&lt;br/&gt;语法平移"] --&gt; B["阶段二 6h&lt;br/&gt;对象模型 / 生成器 / 装饰器 / 类型"]
+  B --&gt; C["阶段三 6h&lt;br/&gt;pytest / uv / GIL / 性能剖析"]
+  C --&gt; D["阶段四 16h&lt;br/&gt;NumPy · PyTorch · HF · 服务 · 分布式 · 可观测"]
+  D --&gt; E["阶段五 6h&lt;br/&gt;Capstone 推理网关"]
+  C -.-&gt;|"随时回查"| F["Java↔Python 对照表"]</pre>
+<hr />
+<h2 id="2-阶段一6-小时把-java-翻译成-python">2. 阶段一（6 小时）：把 Java 翻译成 Python<a class="anchor" href="#2-阶段一6-小时把-java-翻译成-python" aria-label="链接到本节">#</a></h2>
+<p>目标不是"入门编程"，是<strong>在 6 小时内让你写 Python 不再需要查"这个在 Java 里怎么写"</strong>。</p>
+<h3 id="11-环境与工具链1-h">1.1 环境与工具链（1 h）<a class="anchor" href="#11-环境与工具链1-h" aria-label="链接到本节">#</a></h3>
+<p>2026 年的正确答案很短：<strong>用 <code>uv</code></strong>。它同时替代了 pyenv / pip / virtualenv / poetry，用 Rust 写的，快到不需要等。</p>
+<pre class="code"><code class="language-bash">curl -LsSf https://astral.sh/uv/install.sh | sh   # 装 uv
+uv python install 3.12                            # 装解释器（AI 栈兼容性最好的版本）
+uv init myproj &amp;&amp; cd myproj                       # 建项目，生成 pyproject.toml
+uv add numpy torch fastapi                        # 加依赖（自动建虚拟环境 + 写 lock）
+uv run python -c "import torch; print(torch.__version__)"</code></pre>
+<p><strong>Java 对照</strong>：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Java</th><th>Python（2026 推荐）</th></tr></thead>
+<tbody>
+<tr><td>JDK 版本管理（sdkman）</td><td><code>uv python install</code></td></tr>
+<tr><td>Maven / Gradle</td><td><code>uv</code>（<code>pyproject.toml</code> + <code>uv.lock</code>）</td></tr>
+<tr><td><code>pom.xml</code></td><td><code>pyproject.toml</code></td></tr>
+<tr><td><code>~/.m2</code> 本地仓库</td><td>虚拟环境 <code>.venv/</code>（<strong>每个项目一份</strong>，不共享）</td></tr>
+<tr><td>Checkstyle + SpotBugs</td><td><code>ruff check</code>（linter，一个工具顶十个）</td></tr>
+<tr><td>google-java-format</td><td><code>ruff format</code></td></tr>
+<tr><td>编译期类型检查</td><td><code>mypy</code> 或 <code>pyright</code>（<strong>可选、事后、不阻塞运行</strong>）</td></tr>
+<tr><td>JUnit</td><td><code>pytest</code></td></tr>
+</tbody>
+</table></div>
+<blockquote class="quote"><p>⚠️ <strong>版本选择</strong>：AI 栈优先 <strong>Python 3.12</strong>；3.13/3.14 的 free-threaded（无 GIL）构建虽已可用，但 CUDA/编译型轮子的生态支持还不整齐，别拿它当生产基线。</p></blockquote>
+<p><strong>练习</strong>：用 <code>uv</code> 建一个空项目，装上 <code>ruff</code> + <code>pytest</code>，跑通 <code>uv run ruff check .</code>。</p>
+<h3 id="12-语法差异速查2-h">1.2 语法差异速查（2 h）<a class="anchor" href="#12-语法差异速查2-h" aria-label="链接到本节">#</a></h3>
+<p>不用通读教程，把下面这张表过一遍，然后<strong>用 Python 重写一段你熟悉的 Java 代码</strong>（建议：一个读 CSV、聚合、输出报表的小工具）。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>主题</th><th>Java</th><th>Python</th><th>踩坑提醒</th></tr></thead>
+<tbody>
+<tr><td>语句块</td><td><code>{ }</code> + <code>;</code></td><td><strong>缩进</strong>（4 空格）</td><td>混用 tab/空格直接报错；编辑器设死 4 空格</td></tr>
+<tr><td>声明变量</td><td><code>int x = 1;</code></td><td><code>x = 1</code></td><td>没有声明关键字，拼错变量名 = 新建变量</td></tr>
+<tr><td>空值</td><td><code>null</code></td><td><code>None</code></td><td>判空用 <code>if x is None</code>，<strong>不要</strong>用 <code>== None</code></td></tr>
+<tr><td>相等</td><td><code>equals()</code> vs <code>==</code></td><td><code>==</code>（值） vs <code>is</code>（同一对象）</td><td><code>is</code> ≈ Java 的 <code>==</code>；日常几乎只用 <code>==</code></td></tr>
+<tr><td>真值</td><td>只有 <code>boolean</code></td><td>空容器/0/""/None 都是假</td><td><code>if not items:</code> 是地道写法，但小心 <code>0</code> 被当假</td></tr>
+<tr><td>字符串</td><td><code>String.format</code></td><td>f-string：<code>f"{name}: {x:.2f}"</code></td><td>f-string 是默认选择，性能也最好</td></tr>
+<tr><td>三元</td><td><code>c ? a : b</code></td><td><code>a if c else b</code></td><td>顺序不同，别读反</td></tr>
+<tr><td>常量</td><td><code>final</code></td><td>没有，靠 <code>UPPER_CASE</code> 约定</td><td>语言不拦你，靠 review 和 linter</td></tr>
+<tr><td>switch</td><td><code>switch</code></td><td><code>match/case</code>（3.10+）</td><td>结构化模式匹配，比 switch 强</td></tr>
+<tr><td>循环</td><td><code>for (int i...)</code></td><td><code>for i in range(n)</code> / <code>for x in xs</code></td><td>几乎永远用 <code>for x in xs</code>，不用下标</td></tr>
+<tr><td>索引遍历</td><td><code>for (i)</code> 取下标</td><td><code>for i, x in enumerate(xs)</code></td><td>需要下标就用 <code>enumerate</code></td></tr>
+<tr><td>并行遍历</td><td>手写下标</td><td><code>for a, b in zip(xs, ys)</code></td><td></td></tr>
+<tr><td>切片</td><td><code>subList</code></td><td><code>xs[1:5]</code>、<code>xs[::-1]</code>、<code>xs[-1]</code></td><td><strong>负索引从尾部数</strong>，Java 没有</td></tr>
+<tr><td>多返回值</td><td>返回对象/数组</td><td><code>return a, b</code> + <code>x, y = f()</code></td><td>元组解包，非常常用</td></tr>
+<tr><td>异常</td><td>checked + unchecked</td><td><strong>全是 unchecked</strong></td><td>没有 <code>throws</code> 声明，靠文档和类型注解</td></tr>
+<tr><td>try-catch</td><td><code>catch (E e)</code></td><td><code>except E as e:</code></td><td>还有 <code>else:</code>（无异常时）和 <code>finally:</code></td></tr>
+<tr><td>资源关闭</td><td>try-with-resources</td><td><code>with open(p) as f:</code></td><td><code>with</code> ≈ AutoCloseable，用法更泛化</td></tr>
+<tr><td>泛型</td><td><code>List&lt;String&gt;</code></td><td><code>list[str]</code>（注解，<strong>运行时不生效</strong>）</td><td>注解只给工具看，不做检查</td></tr>
+<tr><td>接口</td><td><code>interface</code></td><td><code>Protocol</code> / <code>ABC</code> / 鸭子类型</td><td>见 §3.1</td></tr>
+<tr><td>包导入</td><td><code>import com.x.Y</code></td><td><code>from x import Y</code></td><td>导入的是<strong>模块对象</strong>，会执行模块顶层代码</td></tr>
+<tr><td>main</td><td><code>public static void main</code></td><td><code>if __name__ == "__main__":</code></td><td>脚本与库两用的惯例写法</td></tr>
+<tr><td>注释/文档</td><td><code>/*<em> javadoc </em>/</code></td><td><code>"""docstring"""</code></td><td>docstring 是运行时可读的字符串</td></tr>
+</tbody>
+</table></div>
+<h3 id="13-数据结构与stream-api-的替代品15-h">1.3 数据结构与"Stream API 的替代品"（1.5 h）<a class="anchor" href="#13-数据结构与stream-api-的替代品15-h" aria-label="链接到本节">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Java</th><th>Python</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><code>ArrayList&lt;T&gt;</code></td><td><code>list</code></td><td><code>[1,2,3]</code>，可变、可混类型</td></tr>
+<tr><td>不可变序列</td><td><code>tuple</code></td><td><code>(1,2)</code>，可作 dict key</td></tr>
+<tr><td><code>HashMap&lt;K,V&gt;</code></td><td><code>dict</code></td><td><strong>保持插入顺序</strong>（3.7+ 语言保证）</td></tr>
+<tr><td><code>HashSet&lt;T&gt;</code></td><td><code>set</code></td><td><code>{1,2}</code>；<code>{}</code> 是空 <strong>dict</strong> 不是空 set</td></tr>
+<tr><td><code>ArrayDeque</code></td><td><code>collections.deque</code></td><td>双端队列</td></tr>
+<tr><td><code>Map.computeIfAbsent</code></td><td><code>collections.defaultdict</code></td><td></td></tr>
+<tr><td>手写计数 Map</td><td><code>collections.Counter</code></td><td><code>Counter(words).most_common(10)</code></td></tr>
+<tr><td><code>record</code> / Lombok <code>@Data</code></td><td><code>@dataclass</code></td><td>见 §3.1</td></tr>
+</tbody>
+</table></div>
+<p><strong>Stream API 对照</strong>（这是 Java 人最快的提效点）：</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Java Stream</th><th>Python</th></tr></thead>
+<tbody>
+<tr><td><code>.map(f)</code></td><td><code>[f(x) for x in xs]</code></td></tr>
+<tr><td><code>.filter(p)</code></td><td><code>[x for x in xs if p(x)]</code></td></tr>
+<tr><td><code>.map().filter()</code></td><td><code>[f(x) for x in xs if p(x)]</code>（一行搞定）</td></tr>
+<tr><td><code>.collect(toMap(...))</code></td><td><code>{k(x): v(x) for x in xs}</code></td></tr>
+<tr><td><code>.collect(toSet())</code></td><td><code>{f(x) for x in xs}</code></td></tr>
+<tr><td>惰性无限流</td><td><strong>生成器表达式</strong> <code>(f(x) for x in xs)</code>（圆括号）</td></tr>
+<tr><td><code>.sorted(cmp)</code></td><td><code>sorted(xs, key=lambda x: x.age, reverse=True)</code></td></tr>
+<tr><td><code>.anyMatch/.allMatch</code></td><td><code>any(...)</code> / <code>all(...)</code></td></tr>
+<tr><td><code>.reduce</code></td><td><code>functools.reduce</code>（但通常有更直白的写法）</td></tr>
+<tr><td><code>.flatMap</code></td><td>双重推导 <code>[y for x in xs for y in x]</code></td></tr>
+<tr><td><code>.groupingBy</code></td><td><code>itertools.groupby</code>（<strong>要先排序</strong>）或 <code>defaultdict(list)</code></td></tr>
+</tbody>
+</table></div>
+<blockquote class="quote"><p>💡 关键差别：<strong>方括号推导式立即求值（吃内存），圆括号生成器惰性求值（省内存）</strong>。处理几百万行日志时这个差别就是 OOM 与不 OOM。</p></blockquote>
+<h3 id="14-函数与作用域15-h">1.4 函数与作用域（1.5 h）<a class="anchor" href="#14-函数与作用域15-h" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>函数是一等公民</strong>：可以赋值、传参、返回、嵌套定义闭包。Java 8 之后你已经熟悉这套思路了。</li>
+<li><strong>关键字参数</strong>：<code>connect(host="a", port=1)</code> —— 调用处自带可读性，AI 库里到处都是（<code>model.generate(max_tokens=512, temperature=0.7)</code>）。</li>
+<li><strong>默认参数</strong>：<code>def f(x, retries=3)</code>。⚠️ <strong>头号陷阱</strong>：默认值在函数<strong>定义时</strong>求值一次。<code>def f(items=[])</code> 会让所有调用共享同一个 list。正确写法：<code>def f(items=None): items = items or []</code>。</li>
+<li>*<em><code></em>args</code> / <code><strong>kwargs</code></strong>：可变参数与关键字透传，等价于 Java 的 varargs + Map，但用得频繁得多（装饰器、配置透传全靠它）。</li>
+<li><strong><code>lambda</code> 很弱</strong>：只能写单个表达式，没有语句。需要多行就用具名函数（Python 不鼓励把逻辑塞进 lambda）。</li>
+<li><strong>LEGB 作用域</strong>：Local → Enclosing → Global → Builtin。函数内给外层变量赋值需要 <code>nonlocal</code> / <code>global</code>，否则会静默新建局部变量。</li>
+</ul>
+<p><strong>阶段一验收</strong>：能不查 Java 对照，独立写出一个 150 行左右的命令行工具（读文件 → 解析 → 聚合 → 格式化输出），<code>ruff check</code> 零告警。</p>
+<hr />
+<h2 id="3-阶段二6-小时对象模型--java-没有的那些机制">3. 阶段二（6 小时）：对象模型 + Java 没有的那些机制<a class="anchor" href="#3-阶段二6-小时对象模型--java-没有的那些机制" aria-label="链接到本节">#</a></h2>
+<h3 id="21-类与接口15-h">2.1 类与"接口"（1.5 h）<a class="anchor" href="#21-类与接口15-h" aria-label="链接到本节">#</a></h3>
+<pre class="code"><code class="language-python">from dataclasses import dataclass, field
+
+@dataclass(slots=True, frozen=True)
+class ModelSpec:
+    name: str
+    dtype: str = "bfloat16"
+    tags: list[str] = field(default_factory=list)   # 可变默认值必须用 factory</code></pre>
+<div class="table-wrap"><table>
+<thead><tr><th>Java</th><th>Python</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><code>record</code> / Lombok <code>@Data</code></td><td><code>@dataclass</code></td><td>自动生成 <code>__init__</code>/<code>__eq__</code>/<code>__repr__</code>；<code>frozen=True</code> ≈ record</td></tr>
+<tr><td><code>private</code> 字段</td><td><code>_name</code>（约定）/ <code>__name</code>（名称改写）</td><td><strong>没有真正的访问控制</strong>，靠约定</td></tr>
+<tr><td>构造器</td><td><code>__init__(self, ...)</code></td><td><code>self</code> 必须显式写；<code>__new__</code> 才是真构造，用不上</td></tr>
+<tr><td><code>this</code></td><td><code>self</code></td><td>显式传入，不是关键字</td></tr>
+<tr><td><code>static</code> 方法</td><td><code>@staticmethod</code></td><td></td></tr>
+<tr><td>工厂方法</td><td><code>@classmethod def from_config(cls, ...)</code></td><td>Python 只有一个 <code>__init__</code>，<strong>重载靠 classmethod</strong></td></tr>
+<tr><td>getter/setter</td><td><code>@property</code></td><td>默认直接暴露属性，需要时再用 property 包装（不破坏调用方）</td></tr>
+<tr><td><code>toString()</code></td><td><code>__repr__</code> / <code>__str__</code></td><td></td></tr>
+<tr><td><code>equals</code>/<code>hashCode</code></td><td><code>__eq__</code>/<code>__hash__</code></td><td>dataclass 自动生成</td></tr>
+<tr><td><code>Comparable</code></td><td><code>__lt__</code> 或 <code>sorted(key=...)</code></td><td></td></tr>
+<tr><td><code>interface</code></td><td><code>typing.Protocol</code></td><td><strong>结构化类型</strong>：不需要 <code>implements</code>，长得像就算</td></tr>
+<tr><td><code>abstract class</code></td><td><code>abc.ABC</code> + <code>@abstractmethod</code></td><td>需要强制继承时才用</td></tr>
+<tr><td>单继承 + 接口</td><td>多继承 + MRO（C3 线性化）</td><td>能用组合就别用多继承</td></tr>
+</tbody>
+</table></div>
+<blockquote class="quote"><p>💡 <strong>心智切换</strong>：Java 的"面向接口编程"在 Python 里是<strong>鸭子类型 + Protocol</strong>。你不需要提前定义接口再实现；先写具体类，需要抽象时再补一个 <code>Protocol</code> 给类型检查器看。</p></blockquote>
+<h3 id="22-模块包与导入1-h">2.2 模块、包与导入（1 h）<a class="anchor" href="#22-模块包与导入1-h" aria-label="链接到本节">#</a></h3>
+<ul>
+<li>一个 <code>.py</code> 文件 = 一个模块；一个目录（含 <code>__init__.py</code>）= 一个包。<strong>导入会执行模块顶层代码</strong>，所以顶层不要放重活。</li>
+<li>推荐 <strong>src layout</strong>：<code>src/myproj/__init__.py</code>，避免"在项目根目录能 import、装包后 import 不到"的经典事故。</li>
+<li>循环导入是真实问题（Java 靠编译器解决，Python 不行）：拆公共模块，或把 import 挪进函数内部。</li>
+<li><code>if __name__ == "__main__":</code> —— 让文件既能被 import 又能直接跑。</li>
+</ul>
+<h3 id="23-迭代器与生成器15-h-重点">2.3 迭代器与生成器（1.5 h）★ 重点<a class="anchor" href="#23-迭代器与生成器15-h-重点" aria-label="链接到本节">#</a></h3>
+<p>这是 Python 相对 Java 的<strong>真实增益</strong>，也是数据管道的地基。</p>
+<pre class="code"><code class="language-python">def read_batches(path, batch_size=64):
+    batch = []
+    with open(path) as f:
+        for line in f:              # 文件本身就是迭代器，不会一次读进内存
+            batch.append(parse(line))
+            if len(batch) == batch_size:
+                yield batch         # 交出一批，函数在这里"暂停"
+                batch = []
+    if batch:
+        yield batch</code></pre>
+<ul>
+<li><code>yield</code> 让函数变成<strong>惰性流</strong>。上面这个函数处理 100 GB 文件的内存占用是 O(batch_size)。</li>
+<li>消费方只是 <code>for b in read_batches(p):</code> —— 调用方完全不知道数据是懒加载的。</li>
+<li>记住 <code>itertools</code>：<code>islice</code>（取前 N）、<code>chain</code>（拼接）、<code>groupby</code>（分组，<strong>需先排序</strong>）、<code>batched</code>（3.12+ 直接分批）。</li>
+<li><strong>AI Infra 场景</strong>：数据集流式读取、日志回放、SSE 流式响应、DataLoader 的底层全是这套协议。</li>
+</ul>
+<h3 id="24-装饰器1-h">2.4 装饰器（1 h）<a class="anchor" href="#24-装饰器1-h" aria-label="链接到本节">#</a></h3>
+<p>装饰器 ≈ <strong>Java 注解 + 动态代理</strong>，但<strong>在纯 Python 里就能写完</strong>，不需要 APT / AOP 框架。</p>
+<pre class="code"><code class="language-python">import functools, time
+
+def timed(fn):
+    @functools.wraps(fn)                  # 保留原函数名/docstring，别漏
+    def wrapper(*args, **kwargs):
+        t0 = time.perf_counter()
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            print(f"{fn.__name__} took {time.perf_counter()-t0:.3f}s")
+    return wrapper
+
+@timed
+def load_model(name): ...</code></pre>
+<p>你在 AI Infra 里会天天见到它们：<code>@app.post("/v1/chat")</code>（FastAPI 路由）、<code>@torch.no_grad()</code>（关梯度）、<code>@ray.remote</code>（分布式任务）、<code>@functools.lru_cache</code>（缓存）、<code>@pytest.fixture</code>（测试夹具）。<strong>能读懂 + 能写简单的，就够了</strong>。</p>
+<h3 id="25-类型注解1-h">2.5 类型注解（1 h）<a class="anchor" href="#25-类型注解1-h" aria-label="链接到本节">#</a></h3>
+<p>对 Java 人来说这是最舒服的一层 —— 把静态类型的安全感找回来一部分。</p>
+<pre class="code"><code class="language-python">from typing import Protocol, Iterable
+
+class Tokenizer(Protocol):
+    def encode(self, text: str) -&gt; list[int]: ...
+
+def count_tokens(texts: Iterable[str], tok: Tokenizer) -&gt; dict[str, int]:
+    return {t: len(tok.encode(t)) for t in texts}</code></pre>
+<ul>
+<li>现代写法：<code>list[str]</code>、<code>dict[str, int]</code>、<code>int | None</code>（不再用 <code>List</code>/<code>Optional</code>）。</li>
+<li><strong>注解在运行时不做检查</strong>，要靠 <code>mypy</code> / <code>pyright</code> 在 CI 里跑。唯一例外：<strong>pydantic 会真的按注解做运行时校验</strong>（FastAPI 靠它，见 §5.4）。</li>
+<li>团队规约建议：<strong>公开函数签名必须有注解，内部实现随意</strong>。</li>
+</ul>
+<p><strong>阶段二验收</strong>：把阶段一的工具重构成一个包（src layout + dataclass + Protocol + 生成器流式处理），<code>mypy --strict</code> 基本通过。</p>
+<hr />
+<h2 id="4-阶段三6-小时把工程素养接回来">4. 阶段三（6 小时）：把工程素养接回来<a class="anchor" href="#4-阶段三6-小时把工程素养接回来" aria-label="链接到本节">#</a></h2>
+<h3 id="31-测试pytest15-h">3.1 测试：pytest（1.5 h）<a class="anchor" href="#31-测试pytest15-h" aria-label="链接到本节">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>JUnit</th><th>pytest</th></tr></thead>
+<tbody>
+<tr><td><code>@Test</code></td><td>函数名以 <code>test_</code> 开头即可</td></tr>
+<tr><td><code>assertEquals(a,b)</code></td><td>裸 <code>assert a == b</code>（失败时自动展开差异）</td></tr>
+<tr><td><code>@BeforeEach</code></td><td><code>@pytest.fixture</code></td></tr>
+<tr><td><code>@ParameterizedTest</code></td><td><code>@pytest.mark.parametrize</code></td></tr>
+<tr><td>Mockito</td><td><code>unittest.mock</code> / <code>monkeypatch</code> fixture</td></tr>
+<tr><td><code>@Disabled</code></td><td><code>@pytest.mark.skip</code> / <code>skipif</code></td></tr>
+</tbody>
+</table></div>
+<p>fixture 比 <code>@BeforeEach</code> 强的地方：它是<strong>依赖注入</strong> —— 测试函数声明参数名，pytest 按名字注入，还能设 <code>scope="session"</code> 让重资源（比如加载一次模型）只建一次。</p>
+<h3 id="32-打包与依赖15-h">3.2 打包与依赖（1.5 h）<a class="anchor" href="#32-打包与依赖15-h" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><code>pyproject.toml</code> 声明依赖 → <code>uv.lock</code> 锁定精确版本（≈ Maven 的 dependency management + lock）。<strong>lock 文件必须提交</strong>。</li>
+<li><code>uv sync</code> 复现环境；<code>uv add --dev pytest ruff</code> 管开发依赖。</li>
+<li>装包形态：<code>wheel</code>（≈ jar，预编译）vs <code>sdist</code>（源码包）。AI 依赖几乎都是<strong>带原生扩展的 wheel</strong>（torch 里是 CUDA 二进制），所以 wheel 和你的 Python 版本 / OS / CUDA 版本强绑定 —— 这就是"换台机器装不上"的根因。</li>
+<li>Docker 里的 Python 基线（AI 场景直接从 CUDA 或 vendor 镜像起，不要从 <code>python:slim</code> 自己装驱动）：</li>
+</ul>
+<pre class="code"><code class="language-dockerfile">FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev      # 依赖层单独缓存
+COPY src/ src/
+CMD ["uv", "run", "python", "-m", "myproj.serve"]</code></pre>
+<h3 id="33-并发模型2-h-最需要重装大脑的一节">3.3 并发模型（2 h）★★ 最需要重装大脑的一节<a class="anchor" href="#33-并发模型2-h-最需要重装大脑的一节" aria-label="链接到本节">#</a></h3>
+<p><strong>GIL（全局解释器锁）</strong>：CPython 同一时刻只有一个线程执行 Python 字节码。后果：<strong>多线程无法加速纯 Python 的 CPU 计算</strong>。你在 Java 里"开线程池打满 CPU"的直觉在这里是错的。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>场景</th><th>该用什么</th><th>Java 类比</th></tr></thead>
+<tbody>
+<tr><td>IO 密集（HTTP、DB、文件）</td><td><code>asyncio</code>（首选）或 <code>threading</code></td><td>Netty / Reactor / WebFlux</td></tr>
+<tr><td>CPU 密集（纯 Python 计算）</td><td><code>multiprocessing</code> / <code>ProcessPoolExecutor</code></td><td>多进程，靠序列化传数据</td></tr>
+<tr><td>CPU 密集（数值计算）</td><td><strong>NumPy / PyTorch</strong>（底层 C/CUDA <strong>会释放 GIL</strong>）</td><td>把热点下沉到原生代码</td></tr>
+<tr><td>高吞吐 Web 服务</td><td><code>asyncio</code> + 多 worker 进程（uvicorn <code>--workers</code>）</td><td>多实例 + 负载均衡</td></tr>
+</tbody>
+</table></div>
+<pre class="code"><code class="language-python">import asyncio, httpx
+
+async def fetch_all(urls: list[str]) -&gt; list[str]:
+    async with httpx.AsyncClient() as client:
+        tasks = [client.get(u) for u in urls]
+        resps = await asyncio.gather(*tasks)     # 并发发起，不是并行计算
+    return [r.text for r in resps]</code></pre>
+<ul>
+<li><code>async def</code> 定义协程，<code>await</code> 让出事件循环，<code>asyncio.gather</code> 并发等待 —— 心智模型与 <code>CompletableFuture</code> / Reactor 很像，但<strong>是单线程事件循环</strong>。</li>
+<li>⚠️ <strong>最常见事故</strong>：在 <code>async</code> 函数里调用阻塞库（<code>requests</code>、同步 DB 驱动、<code>time.sleep</code>），整个事件循环被卡死。要么换 async 客户端（<code>httpx</code>/<code>asyncpg</code>），要么 <code>await asyncio.to_thread(blocking_fn, ...)</code>。</li>
+<li>关于 free-threaded Python（PEP 703，3.13 实验 / 3.14 起正式支持）：方向正确，但 2026 年 AI 生态的 CUDA 轮子支持仍不整齐 —— <strong>了解即可，别作为架构前提</strong>。</li>
+</ul>
+<h3 id="34-性能与调试1-h">3.4 性能与调试（1 h）<a class="anchor" href="#34-性能与调试1-h" aria-label="链接到本节">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>需求</th><th>Java</th><th>Python</th></tr></thead>
+<tbody>
+<tr><td>采样剖析（线上可用）</td><td>async-profiler</td><td><strong><code>py-spy</code></strong>（不改代码、可 attach 到运行中进程）</td></tr>
+<tr><td>函数级剖析</td><td>JFR</td><td><code>cProfile</code> + <code>snakeviz</code></td></tr>
+<tr><td>行级耗时</td><td>—</td><td><code>line_profiler</code></td></tr>
+<tr><td>内存</td><td>MAT / heap dump</td><td><code>tracemalloc</code>、<code>memray</code></td></tr>
+<tr><td>断点调试</td><td>IDE debugger</td><td><code>breakpoint()</code>（内置，直接进 pdb）</td></tr>
+</tbody>
+</table></div>
+<p>核心心法：<strong>Python 慢 30-100 倍是正常的，解决方案不是优化 Python 循环，而是把热点交给 NumPy / PyTorch / Polars / Rust 扩展</strong>。判断标准很简单 —— 如果你在写"对几百万个元素做 for 循环"，那就是写错了。</p>
+<p><strong>阶段三验收</strong>：项目有 <code>pyproject.toml</code> + lock + ≥10 个 pytest 用例 + Dockerfile；能说清楚"什么时候该用 asyncio、什么时候该用多进程"。</p>
+<hr />
+<h2 id="5-阶段四16-小时ai-infrastructure-核心栈">5. 阶段四（16 小时）：AI Infrastructure 核心栈<a class="anchor" href="#5-阶段四16-小时ai-infrastructure-核心栈" aria-label="链接到本节">#</a></h2>
+<p>这是重头戏。<strong>你的定位是 infra 工程师，不是算法工程师</strong> —— 不需要会推导反向传播，需要会让模型跑得稳、快、省。</p>
+<h3 id="41-numpy-与张量思维2-h">4.1 NumPy 与张量思维（2 h）<a class="anchor" href="#41-numpy-与张量思维2-h" aria-label="链接到本节">#</a></h3>
+<p>一切 AI 的地基。张量 = 多维数组 + dtype + shape + 内存布局。</p>
+<pre class="code"><code class="language-python">import numpy as np
+x = np.random.randn(32, 128).astype(np.float32)   # (batch, dim)
+w = np.random.randn(128, 512).astype(np.float32)
+y = x @ w                                          # (32, 512) 矩阵乘
+print(y.shape, y.dtype, y.nbytes / 1024, "KB")</code></pre>
+<p>必须掌握的五件事：</p>
+<ol>
+<li><strong>shape 与维度语义</strong> —— 读错 shape 是所有 bug 的源头。养成习惯：每个张量在注释里写 <code># (batch, seq, hidden)</code>。</li>
+<li><strong>dtype 与显存</strong> —— <code>float32</code>=4 字节、<code>bfloat16</code>=2 字节、<code>fp8</code>=1 字节。<strong>参数量 × 字节数 = 权重显存下界</strong>（7B 模型 bf16 ≈ 14 GB），这个口算能力你天天要用。</li>
+<li><strong>broadcasting（广播）</strong> —— 形状不同的张量如何自动对齐；不懂广播就会写出静默错误的代码。</li>
+<li><strong>向量化替代循环</strong> —— 同样的计算，向量化通常快 10-100 倍。</li>
+<li><strong>view vs copy / contiguous</strong> —— 切片和 <code>reshape</code> 常常只是视图，改视图会改原数据；<code>transpose</code> 后往往需要 <code>.contiguous()</code>。</li>
+</ol>
+<h3 id="42-pytorchinfra-视角3-h">4.2 PyTorch（infra 视角）（3 h）<a class="anchor" href="#42-pytorchinfra-视角3-h" aria-label="链接到本节">#</a></h3>
+<p><strong>不学炼丹，学运行时</strong>：</p>
+<ul>
+<li><strong>张量与设备</strong>：<code>t.to("cuda")</code>、<code>t.dtype</code>、<code>t.device</code>；CPU↔GPU 拷贝是显式且昂贵的。</li>
+<li><strong>autograd 概念层</strong>：知道计算图、<code>requires_grad</code>、<code>loss.backward()</code> 大致在做什么；推理侧一律 <code>with torch.inference_mode():</code> —— 省显存也省时间。</li>
+<li><strong><code>nn.Module</code> 与 <code>state_dict</code></strong>：模型 = 结构（代码）+ 权重（state_dict）。<strong>checkpoint 只是一个张量字典</strong>，理解这点后模型加载/转换/分片就都不神秘了。</li>
+<li><strong>CUDA 语义 ★</strong>：GPU 调用是<strong>异步</strong>的 —— 计时必须 <code>torch.cuda.synchronize()</code>，否则你测出来的是"提交耗时"不是"执行耗时"。了解 stream、<code>pin_memory</code>、H2D/D2H 拷贝开销。</li>
+<li><strong>显存管理 ★</strong>：<code>torch.cuda.memory_allocated()</code> vs <code>memory_reserved()</code>（PyTorch 有自己的缓存分配器，<code>nvidia-smi</code> 显示的是 reserved）；OOM 的常见原因（batch 过大、KV cache、碎片、忘了 <code>inference_mode</code>、日志里留了张量引用）。</li>
+<li><strong>加速手段的名字</strong>：<code>torch.compile</code>、混合精度（AMP/bf16）、FlashAttention、CUDA Graphs —— 至少知道每个解决什么问题。</li>
+<li><strong><code>torch.profiler</code></strong>：看 kernel 级耗时，判断瓶颈在算力还是访存还是数据加载。</li>
+</ul>
+<blockquote class="quote"><p>🎯 本节练习：加载一个小模型（如 0.5B），测出<strong>单次前向的 P50 延迟</strong>（记得 synchronize），再测 batch=1/8/32 的<strong>吞吐曲线</strong>，画出来。这张图会让你对"吞吐 vs 时延"的取舍有身体记忆。</p></blockquote>
+<h3 id="43-模型与数据工件层2-h">4.3 模型与数据工件层（2 h）<a class="anchor" href="#43-模型与数据工件层2-h" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>HuggingFace 三件套</strong>：<code>transformers</code>（模型代码）、<code>tokenizers</code>（分词）、<code>huggingface_hub</code>（下载与缓存，<code>HF_HOME</code> 指向大盘）。</li>
+<li><strong>权重格式</strong>：<code>safetensors</code>（现在的标准，零拷贝 mmap、<strong>安全</strong>）vs <code>.bin</code>/pickle（<strong>能执行任意代码，是真实的供应链攻击面</strong> —— infra 侧应当禁止加载不可信 pickle）。</li>
+<li><strong>量化概念</strong>：bf16 → fp8 / int8 / int4（AWQ、GPTQ、GGUF）。你要能回答"降精度省多少显存、掉多少质量、在哪种硬件上才有加速"。</li>
+<li><strong>数据侧</strong>：Arrow / Parquet 列存（<code>datasets</code>、<code>polars</code>、<code>duckdb</code>）。<strong>Java 人的优势</strong>：这套列存 + 谓词下推的思路和你熟悉的大数据栈是一脉相承的，<code>polars</code> 的 lazy API 读起来像 Spark DataFrame。</li>
+</ul>
+<h3 id="44-推理服务3-h-最贴近你-java-经验的一节">4.4 推理服务（3 h）★★ 最贴近你 Java 经验的一节<a class="anchor" href="#44-推理服务3-h-最贴近你-java-经验的一节" aria-label="链接到本节">#</a></h3>
+<p><strong>FastAPI ≈ Spring Boot + Bean Validation，但更轻</strong>：</p>
+<pre class="code"><code class="language-python">from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+class ChatRequest(BaseModel):                     # ≈ DTO + @Valid，运行时真校验
+    prompt: str = Field(min_length=1, max_length=8192)
+    max_tokens: int = 256
+    stream: bool = False
+
+app = FastAPI()
+
+@app.post("/v1/chat")                             # ≈ @PostMapping
+async def chat(req: ChatRequest):
+    if req.stream:
+        return StreamingResponse(token_stream(req), media_type="text/event-stream")
+    return {"text": await generate(req)}</code></pre>
+<div class="table-wrap"><table>
+<thead><tr><th>Spring</th><th>Python</th></tr></thead>
+<tbody>
+<tr><td><code>@RestController</code> / <code>@PostMapping</code></td><td><code>@app.post</code></td></tr>
+<tr><td>DTO + <code>@Valid</code></td><td>pydantic <code>BaseModel</code>（<strong>运行时强校验</strong>，v2 内核是 Rust）</td></tr>
+<tr><td>Tomcat / Netty</td><td><code>uvicorn</code>（ASGI）；多进程用 <code>--workers</code></td></tr>
+<tr><td>Springdoc / Swagger</td><td><strong>自动生成</strong>，访问 <code>/docs</code></td></tr>
+<tr><td><code>@ControllerAdvice</code></td><td>异常处理器 / 中间件</td></tr>
+<tr><td>Spring DI</td><td>FastAPI <code>Depends()</code></td></tr>
+</tbody>
+</table></div>
+<p><strong>然后是真正的 AI Infra 部分 —— LLM 推理引擎</strong>：</p>
+<ul>
+<li><strong>为什么不能自己拿 <code>transformers</code> 裸跑服务</strong>：没有 continuous batching、没有 paged KV cache，GPU 利用率个位数。</li>
+<li><strong>vLLM</strong>：PagedAttention（把 KV cache 当虚拟内存分页管理，消灭碎片）+ continuous batching（请求级动态组批，不等整批结束）。提供 <strong>OpenAI 兼容 API</strong>，起服务基本一行命令。SGLang 是同赛道的另一个主流选择。</li>
+<li><strong>必须内化的指标口径</strong>：<strong>TTFT</strong>（首 token 时延）、<strong>TPOT/ITL</strong>（每 token 间隔）、端到端时延、吞吐（tokens/s）、并发数、KV cache 命中率。prefill 阶段是<strong>算力瓶颈</strong>，decode 阶段是<strong>访存瓶颈</strong> —— 这一句解释了几乎所有 LLM 服务的性能现象。</li>
+<li><strong>取舍直觉</strong>：增大批 → 吞吐↑、单请求时延↑；这与你在 Java 服务里调线程池/连接池的权衡同构，只是代价曲线陡峭得多。</li>
+</ul>
+<h3 id="45-分布式与编排2-h">4.5 分布式与编排（2 h）<a class="anchor" href="#45-分布式与编排2-h" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>Ray</strong>：<code>@ray.remote</code> 把函数/类变成集群任务/actor；Ray Serve 做多模型编排。心智模型接近"分布式的 Executor + Actor"。</li>
+<li><strong>多卡/多机训练的名词</strong>：DDP（数据并行）、张量并行 / 流水并行、<code>torchrun</code> 启动器、NCCL 集合通信（all-reduce / all-gather）。<strong>infra 侧要能定位"卡在 all-reduce"这类问题</strong>，不必自己写训练循环。</li>
+<li><strong>Kubernetes + GPU</strong>：NVIDIA device plugin、<code>nvidia.com/gpu</code> 资源请求、节点亲和与污点、镜像巨大导致的冷启动、<code>Pod</code> 里跑 vLLM 的实际配置（共享内存 <code>/dev/shm</code>、健康检查要区分"进程活着"和"模型加载完"）。KubeRay / Kubeflow 了解轮廓即可。</li>
+</ul>
+<h3 id="46-数据与工作流2-h">4.6 数据与工作流（2 h）<a class="anchor" href="#46-数据与工作流2-h" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>Polars / DuckDB</strong>：本地就能处理几十 GB 的列存引擎，比 pandas 快且内存友好。<strong>infra 场景优先它们，不要从 pandas 深挖起步</strong>。</li>
+<li><strong>编排器</strong>：Airflow（最普及）/ Prefect / Dagster —— <strong>选一个了解 DAG、重试、回填、幂等</strong>这几个概念即可，它们与你熟悉的调度系统同构。</li>
+<li><strong>向量检索</strong>：faiss / pgvector 的基本概念（索引类型、召回 vs 延迟的取舍），RAG 场景绕不开。</li>
+</ul>
+<h3 id="47-可观测性与可靠性2-h">4.7 可观测性与可靠性（2 h）<a class="anchor" href="#47-可观测性与可靠性2-h" aria-label="链接到本节">#</a></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>需求</th><th>Java</th><th>Python</th></tr></thead>
+<tbody>
+<tr><td>日志</td><td>slf4j + logback</td><td><code>logging</code>（标准库）或 <code>structlog</code>（结构化）</td></tr>
+<tr><td>指标</td><td>Micrometer</td><td><code>prometheus-client</code></td></tr>
+<tr><td>链路追踪</td><td>OpenTelemetry Java Agent</td><td><code>opentelemetry-python</code>（FastAPI 有自动埋点）</td></tr>
+<tr><td>压测</td><td>JMeter / Gatling</td><td><code>locust</code>、<code>k6</code>，LLM 专用可用 vLLM 自带的 benchmark 脚本</td></tr>
+</tbody>
+</table></div>
+<p><strong>AI 服务该埋的指标</strong>（与普通 Web 服务不同的部分）：GPU 利用率与显存占用、<strong>排队时延</strong>（请求在批调度器里等了多久）、running/waiting 请求数、KV cache 使用率、TTFT/TPOT 分位数、每请求 token 数与<strong>每千 token 成本</strong>。</p>
+<p><strong>阶段四验收</strong>：能独立起一个 OpenAI 兼容的推理服务，跑一次压测，并用一页纸解释"并发从 1 加到 64 时 TTFT 和吞吐分别怎么变、为什么"。</p>
+<hr />
+<h2 id="6-阶段五6-小时capstone--llm-推理网关">6. 阶段五（6 小时）：Capstone —— LLM 推理网关<a class="anchor" href="#6-阶段五6-小时capstone--llm-推理网关" aria-label="链接到本节">#</a></h2>
+<p>一个能写进简历、也能直接当工作样例的项目。<strong>分三个 milestone，每个 2 小时</strong>。</p>
+<h3 id="m12-h能跑通的服务">M1（2 h）：能跑通的服务<a class="anchor" href="#m12-h能跑通的服务" aria-label="链接到本节">#</a></h3>
+<ul>
+<li>FastAPI 网关 + pydantic 请求/响应模型 + <code>/healthz</code>（区分 liveness 与 "模型已就绪"）。</li>
+<li>后端接 vLLM（或本地小模型），实现 <code>/v1/chat/completions</code>，支持 <strong>SSE 流式输出</strong>。</li>
+<li><code>uv</code> 管依赖，<code>ruff</code> + <code>mypy</code> 干净，关键路径有 pytest 用例（用 fake 后端，别在单测里加载真模型）。</li>
+</ul>
+<h3 id="m22-h像个生产服务">M2（2 h）：像个生产服务<a class="anchor" href="#m22-h像个生产服务" aria-label="链接到本节">#</a></h3>
+<ul>
+<li><strong>准入控制</strong>：并发信号量 + 队列上限 + 超时；超载返回 429 而不是把 GPU 拖垮（≈ 你在 Java 里做的限流/舱壁）。</li>
+<li><strong>超时与取消</strong>：客户端断连时<strong>真正取消</strong>下游生成（省 GPU，最容易被忽略的一点）。</li>
+<li>结构化日志（带 request_id）+ Prometheus <code>/metrics</code>：TTFT、端到端时延、队列深度、in-flight 请求数、token 计数。</li>
+<li>Dockerfile（CUDA 基础镜像 + <code>uv sync --frozen</code>）。</li>
+</ul>
+<h3 id="m32-h量化与成文">M3（2 h）：量化与成文<a class="anchor" href="#m32-h量化与成文" aria-label="链接到本节">#</a></h3>
+<ul>
+<li>用 <code>locust</code> 或 benchmark 脚本，跑 <strong>并发 1 / 4 / 16 / 64</strong> 四档，记录 TTFT P50/P95、吞吐 tokens/s、GPU 利用率。</li>
+<li>画出<strong>吞吐-时延曲线</strong>，找出膝点（knee point），给出"这台卡上的推荐并发上限"。</li>
+<li>写一页 <code>README</code>：架构图（mermaid）、指标定义、压测结论、已知限制。</li>
+</ul>
+<blockquote class="quote"><p>这个项目同时证明三件事：你会写 Python、你懂 LLM 服务的性能模型、你把 Java 时代的生产意识（限流、超时、可观测）带了过来。<strong>第三条是你相对纯算法背景候选人的最大优势</strong>。</p></blockquote>
+<hr />
+<h2 id="7-java-老手最容易踩的十个坑">7. Java 老手最容易踩的十个坑<a class="anchor" href="#7-java-老手最容易踩的十个坑" aria-label="链接到本节">#</a></h2>
+<ol>
+<li><strong>可变默认参数</strong>：<code>def f(x=[])</code> 所有调用共享同一个 list。用 <code>None</code> 哨兵。</li>
+<li><strong>以为类型注解会检查</strong>：不会。不跑 <code>mypy</code> 等于没写。</li>
+<li><strong><code>is</code> 与 <code>==</code> 混用</strong>：<code>is</code> 比较身份。只对 <code>None</code>/<code>True</code>/<code>False</code> 用 <code>is</code>。</li>
+<li><strong>在 async 函数里做阻塞调用</strong>：一个 <code>requests.get</code> 卡死整个事件循环。</li>
+<li><strong>指望多线程加速 CPU 计算</strong>：GIL 在。用多进程，或把计算下沉到 NumPy/Torch。</li>
+<li><strong>浅拷贝当深拷贝</strong>：<code>list(b)</code> 只拷一层；嵌套结构要 <code>copy.deepcopy</code>。</li>
+<li><strong>循环里做标量运算</strong>：几百万次 Python 循环 = 性能灾难。向量化。</li>
+<li><strong>在 GPU 上不 synchronize 就计时</strong>：测出来的数字是假的。</li>
+<li><strong>全局可变状态 + 多 worker</strong>：uvicorn <code>--workers 4</code> 是<strong>四个进程</strong>，进程内的缓存/计数器不共享 —— 状态要放 Redis 或外部存储。</li>
+<li><strong>不锁依赖版本</strong>：AI 生态的 torch/CUDA/transformers 版本组合极其脆弱，<code>uv.lock</code> 必须提交，镜像必须固定基础镜像 tag。</li>
+</ol>
+<hr />
+<h2 id="8-这-40-小时里不要学的东西">8. 这 40 小时里<strong>不要</strong>学的东西<a class="anchor" href="#8-这-40-小时里不要学的东西" aria-label="链接到本节">#</a></h2>
+<p>明确排除，省下来的时间才够学阶段四：</p>
+<ul>
+<li>❌ <strong>Django / Flask 老教程</strong> —— AI 服务栈是 FastAPI，学它。</li>
+<li>❌ <strong>conda / Anaconda 环境地狱</strong> —— 2026 年用 <code>uv</code>，除非公司强制。</li>
+<li>❌ <strong>pandas 深挖</strong> —— 知道基本用法即可，infra 侧优先 Polars / DuckDB / Arrow。</li>
+<li>❌ <strong>元类、描述符、<code>__slots__</code> 微优化</strong> —— 读到再查，不专门学。</li>
+<li>❌ <strong>从零实现反向传播 / 手写 Transformer</strong> —— 有意思，但不是 infra 岗的考点，会占掉你 10 小时。</li>
+<li>❌ <strong>爬虫、自动化办公、数据可视化</strong> —— 与目标无关。</li>
+<li>❌ <strong>Python 2 相关的一切</strong>。</li>
+</ul>
+<hr />
+<h2 id="9-资源清单按用途不贪多">9. 资源清单（按用途，不贪多）<a class="anchor" href="#9-资源清单按用途不贪多" aria-label="链接到本节">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>用途</th><th>首选资源</th></tr></thead>
+<tbody>
+<tr><td>语法速查（Java 背景）</td><td>官方 Tutorial 只读 3/4/5/8/9 章 + 本文的对照表</td></tr>
+<tr><td>地道写法</td><td><em>Effective Python</em>（Brett Slatkin，第 3 版）—— 条目式，随翻随用</td></tr>
+<tr><td>类型注解</td><td>mypy 官方 cheat sheet</td></tr>
+<tr><td>工具链</td><td><code>uv</code> 官方文档（很短）、<code>ruff</code> 规则说明</td></tr>
+<tr><td>异步</td><td>FastAPI 官方教程的 async 章节（最实用的入门角度）</td></tr>
+<tr><td>NumPy</td><td>官方 "NumPy: the absolute basics" + broadcasting 章</td></tr>
+<tr><td>PyTorch</td><td>官方 "Learn the Basics" + <strong>CUDA semantics</strong> 与 <strong>memory management</strong> 两篇文档（infra 必读）</td></tr>
+<tr><td>LLM 推理</td><td>vLLM 官方文档（PagedAttention / continuous batching / 性能调优）+ 一篇 TTFT-TPOT 指标解析</td></tr>
+<tr><td>服务化</td><td>FastAPI 官方教程（从头到 Bigger Applications）</td></tr>
+<tr><td>K8s + GPU</td><td>NVIDIA device plugin 文档 + 一份 vLLM on K8s 的部署示例</td></tr>
+</tbody>
+</table></div>
+<blockquote class="quote"><p>📌 原则：<strong>每个主题只读一份主资源，剩下时间全部用来敲代码</strong>。40 小时里至少 24 小时应该是手在键盘上。</p></blockquote>
+<hr />
+<h2 id="10-结业自检清单">10. 结业自检清单<a class="anchor" href="#10-结业自检清单" aria-label="链接到本节">#</a></h2>
+<p>能全部答"是"，这 40 小时就没白花：</p>
+<ul>
+<li>☐ 能不查 Java 对照写出地道的 Python（推导式、生成器、dataclass、with、f-string）</li>
+<li>☐ 能解释类型注解为什么不检查、以及 pydantic 为什么例外</li>
+<li>☐ 能说清 GIL 的影响，并在 asyncio / 多进程 / 向量化之间正确选型</li>
+<li>☐ 能用 <code>uv</code> 从零建项目、锁依赖、打出能跑的 CUDA 镜像</li>
+<li>☐ 能口算 "7B 模型 bf16 权重要多少显存"，并说出 KV cache 为什么还要额外一大块</li>
+<li>☐ 能读懂一段 PyTorch 推理代码，指出 shape 错误和显存浪费点</li>
+<li>☐ 能起一个 OpenAI 兼容服务，支持流式，并解释 continuous batching 解决了什么</li>
+<li>☐ 能定义并采集 TTFT / TPOT / 吞吐 / 队列深度，画出吞吐-时延曲线并指出膝点</li>
+<li>☐ 能把 Java 时代的限流、超时、取消、可观测实践迁移到这个服务上</li>
+</ul>
+<hr />
+<h2 id="11-40-小时之后延伸方向供下一轮规划">11. 40 小时之后（延伸方向，供下一轮规划）<a class="anchor" href="#11-40-小时之后延伸方向供下一轮规划" aria-label="链接到本节">#</a></h2>
+<p>学完这条线，下一步按岗位分叉：</p>
+<ul>
+<li><strong>推理性能方向</strong>：CUDA 基础、算子融合、投机解码、PD 分离（prefill/decode 拆分部署）、多机推理。</li>
+<li><strong>训练平台方向</strong>：DDP/FSDP、checkpoint 分片与容错、作业调度（Volcano/Slurm）、数据加载吞吐优化。</li>
+<li><strong>平台与成本方向</strong>：多租户 GPU 池化、MIG / 时分复用、弹性伸缩、每千 token 成本核算与容量规划。</li>
+<li><strong>Agent/应用基础设施</strong>：工具调用协议、上下文管理、缓存与路由、评测流水线。</li>
+</ul>
+<p>选哪一支取决于你的团队缺口；但无论哪一支，上面 40 小时打的地基（张量 / 显存 / 批处理 / 服务化 / 可观测）都是复用的。</p>
+</main>
+</div>
+<footer>本页由看板任务 #422「Python学习计划路线」生成。</footer>
+<button class="backtop" aria-label="回到顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>
+var bt=document.querySelector('.backtop');
+window.addEventListener('scroll',function(){if(window.scrollY>400)bt.classList.add('show');else bt.classList.remove('show')});
+</script>
+
+<script src="/vendor/mermaid.min.js" defer></script>
+<script src="/vendor/mermaid-init.js" defer></script>
+</body>
+</html>
