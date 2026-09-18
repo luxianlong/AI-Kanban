@@ -360,21 +360,6 @@
     ]
   },
   {
-    "id": "upload-python-ai-infra-40h",
-    "title": "从 Java 到 Python AI Infrastructure：40 小时学习路线",
-    "href": "/p/python-ai-infra-40h.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-18T04:59:44.460Z",
-    "isNew": true,
-    "private": true,
-    "paths": [
-      "frontend/public/p/python-ai-infra-40h.html",
-      "frontend/public/p/python-ai-infra-40h.meta.json"
-    ]
-  },
-  {
     "id": "upload-py-stage4-ai-infra",
     "title": "阶段四：AI Infrastructure 核心栈（16 小时，含全部可运行代码）",
     "href": "/p/py-stage4-ai-infra.html",
