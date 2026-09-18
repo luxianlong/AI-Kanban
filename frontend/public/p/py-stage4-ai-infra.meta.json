@@ -1,0 +1,7 @@
+{
+  "slug" : "py-stage4-ai-infra",
+  "title" : "阶段四：AI Infrastructure 核心栈（16 小时，含全部可运行代码）",
+  "summary" : "张量思维、显存口算器、safetensors 与 pickle 的攻击面、不需要 GPU 的 OpenAI 兼容推理服务、Ray/K8s GPU 编排、Prometheus 埋点。四个心智模型全部配可运行代码。",
+  "createdAt" : "2026-09-18T04:48:55.642487637Z",
+  "bytes" : 235108
+}
