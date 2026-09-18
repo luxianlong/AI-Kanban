@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-llm-agent-eval-platform",
+    "title": "LLM Agent 实验平台设计说明书：把一句简历 bullet 拆成可落地的系统",
+    "href": "/p/llm-agent-eval-platform.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T03:56:41.246Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/llm-agent-eval-platform.html",
+      "frontend/public/p/llm-agent-eval-platform.meta.json"
+    ]
+  },
+  {
     "id": "upload-python-ai-infra-40h",
     "title": "从 Java 到 Python AI Infrastructure：40 小时学习路线",
     "href": "/p/python-ai-infra-40h.html",

@@ -1,0 +1,7 @@
+{
+  "slug" : "llm-agent-eval-platform",
+  "title" : "LLM Agent 实验平台设计说明书：把一句简历 bullet 拆成可落地的系统",
+  "summary" : "从 “Built LLM-agent tooling for experiment tracking and evaluation” 这句话出发：知识地图 + 一份可评审的设计说明书（数据模型、12 条 ADR、judge 校准、CI 门禁、容量估算、里程碑、面试追问）",
+  "createdAt" : "2026-09-18T03:56:41.247373158Z",
+  "bytes" : 83364
+}
