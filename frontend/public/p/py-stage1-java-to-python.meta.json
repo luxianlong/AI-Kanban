@@ -1,0 +1,7 @@
+{
+  "slug" : "py-stage1-java-to-python",
+  "title" : "阶段一：把 Java 翻译成 Python（6 小时，含全部可运行代码）",
+  "summary" : "Java 工程师的 Python 语法平移：对照表 + 10 段可运行示例 + 6 个坑的复现 + 一个 167 行的 CLI 工具，每段代码都在 Python 3.12 上跑过并附真实输出。",
+  "createdAt" : "2026-09-18T04:48:53.304276292Z",
+  "bytes" : 172184
+}

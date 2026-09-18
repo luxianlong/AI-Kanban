@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-py-stage1-java-to-python",
+    "title": "阶段一：把 Java 翻译成 Python（6 小时，含全部可运行代码）",
+    "href": "/p/py-stage1-java-to-python.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:48:53.303Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/py-stage1-java-to-python.html",
+      "frontend/public/p/py-stage1-java-to-python.meta.json"
+    ]
+  },
+  {
     "id": "upload-python-ai-infra-stages",
     "title": "从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）",
     "href": "/p/python-ai-infra-stages.html",
