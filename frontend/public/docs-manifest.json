@@ -15,21 +15,6 @@
     ]
   },
   {
-    "id": "upload-skills-line-rewrite",
-    "title": "那一行不该叫「控制面」：给 CORE SKILLS 换一句话",
-    "href": "/p/skills-line-rewrite.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-18T08:30:42.694Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/skills-line-rewrite.html",
-      "frontend/public/p/skills-line-rewrite.meta.json"
-    ]
-  },
-  {
     "id": "upload-control-plane-six-words",
     "title": "控制面那一行到底在说什么：六个词，一台机器",
     "href": "/p/control-plane-six-words.html",
@@ -368,7 +353,7 @@
     "file": null,
     "updatedAt": "2026-09-18T04:59:44.462Z",
     "isNew": true,
-    "private": true,
+    "private": false,
     "paths": [
       "frontend/public/p/python-ai-infra-stages.html",
       "frontend/public/p/python-ai-infra-stages.meta.json"
@@ -383,7 +368,7 @@
     "file": null,
     "updatedAt": "2026-09-18T04:59:44.460Z",
     "isNew": true,
-    "private": true,
+    "private": false,
     "paths": [
       "frontend/public/p/py-stage5-capstone.html",
       "frontend/public/p/py-stage5-capstone.meta.json"
