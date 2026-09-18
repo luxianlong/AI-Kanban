@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）</title>
+<meta name="description" content="把 40 小时学习路线拆成五张实操网页，每页都有可运行的示例、真实输出和带参考答案的练习。全部代码在 Python 3.12 上实测，含一个 1101 行的推理网关 Capstone 与真实压测曲线。"/>
+<style>
+:root{--bg:#fbfaf7;--fg:#22201c;--muted:#6b6660;--line:#e6e1d8;--accent:#8a5a2b;--code-bg:#f3f0ea;--card:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#16150f;--fg:#e9e5dc;--muted:#a49e94;--line:#2f2c25;--accent:#d7a468;--code-bg:#211f18;--card:#1c1a14}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.hero{padding:52px 24px 28px;border-bottom:1px solid var(--line);background:var(--card)}
+.hero-inner{max-width:1120px;margin:0 auto}
+.eyebrow{margin:0 0 8px;color:var(--accent);letter-spacing:.18em;font-size:12px;text-transform:uppercase}
+.hero h1{margin:0;font-size:clamp(25px,3.2vw,38px);line-height:1.25;letter-spacing:-.01em}
+.hero .sub{margin:12px 0 0;color:var(--muted);font-size:15px;max-width:78ch}
+.layout{max-width:1120px;margin:0 auto;padding:32px 24px 96px;display:grid;grid-template-columns:236px 1fr;gap:44px}
+@media(max-width:940px){.layout{grid-template-columns:1fr;gap:16px}.toc{position:static!important;max-height:none}}
+.toc{position:sticky;top:24px;align-self:start;max-height:84vh;overflow:auto;font-size:13.5px}
+.toc h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.toc ol{list-style:none;margin:0;padding:0}
+.toc li{margin:0 0 6px}
+.toc a{color:var(--muted);text-decoration:none;border-left:2px solid var(--line);padding-left:10px;display:block}
+.toc a:hover{color:var(--accent);border-left-color:var(--accent)}
+.content{min-width:0}
+.content .anchor{opacity:0;margin-left:8px;text-decoration:none;color:var(--muted);font-weight:400}
+.content h2:hover .anchor,.content h3:hover .anchor{opacity:.6}
+.content h2{margin:48px 0 14px;font-size:23px;padding-bottom:8px;border-bottom:1px solid var(--line);scroll-margin-top:20px}
+.content h3{margin:34px 0 10px;font-size:18px;color:var(--accent);scroll-margin-top:20px}
+.content h4{margin:24px 0 8px;font-size:15.5px}
+.content p{margin:0 0 14px}
+.content ul,.content ol{padding-left:24px;margin:0 0 14px}
+.content li{margin:0 0 6px}
+.content a{color:var(--accent)}
+.content blockquote{margin:18px 0;padding:12px 18px;border-left:3px solid var(--accent);background:var(--code-bg);border-radius:0 8px 8px 0;color:var(--muted)}
+.content blockquote p:last-child{margin:0}
+.content code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.content pre{background:var(--code-bg);padding:15px 18px;border-radius:10px;overflow:auto;border:1px solid var(--line);line-height:1.62}
+.content pre code{background:none;padding:0;font-size:13px}
+.content table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.content th{background:var(--code-bg);font-weight:600;white-space:nowrap}
+.content li.task{list-style:none;margin-left:-20px}
+.content li.task input{margin-right:8px;accent-color:var(--accent);width:15px;height:15px;vertical-align:-2px;cursor:pointer}
+.content tr:nth-child(even) td{background:color-mix(in srgb,var(--code-bg) 45%,transparent)}
+.content hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+.backtop{position:fixed;right:22px;bottom:22px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;opacity:0;transition:opacity .2s;font-size:17px;z-index:9}
+.backtop.show{opacity:.9}
+footer{max-width:1120px;margin:0 auto;padding:0 24px 60px;color:var(--muted);font-size:13px}
+footer a{color:var(--accent)}
+@media(prefers-color-scheme:light){pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.hl .hll { background-color: #ffffcc }
+.hl .c { color: #60A0B0; font-style: italic } /* Comment */
+.hl .err { border: 1px solid #F00 } /* Error */
+.hl .k { color: #007020; font-weight: bold } /* Keyword */
+.hl .o { color: #666 } /* Operator */
+.hl .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.hl .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.hl .cp { color: #007020 } /* Comment.Preproc */
+.hl .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.hl .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.hl .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.hl .gd { color: #A00000 } /* Generic.Deleted */
+.hl .ge { font-style: italic } /* Generic.Emph */
+.hl .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.hl .gr { color: #F00 } /* Generic.Error */
+.hl .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.hl .gi { color: #00A000 } /* Generic.Inserted */
+.hl .go { color: #888 } /* Generic.Output */
+.hl .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.hl .gs { font-weight: bold } /* Generic.Strong */
+.hl .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.hl .gt { color: #04D } /* Generic.Traceback */
+.hl .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.hl .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.hl .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.hl .kp { color: #007020 } /* Keyword.Pseudo */
+.hl .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.hl .kt { color: #902000 } /* Keyword.Type */
+.hl .m { color: #40A070 } /* Literal.Number */
+.hl .s { color: #4070A0 } /* Literal.String */
+.hl .na { color: #4070A0 } /* Name.Attribute */
+.hl .nb { color: #007020 } /* Name.Builtin */
+.hl .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.hl .no { color: #60ADD5 } /* Name.Constant */
+.hl .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.hl .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.hl .ne { color: #007020 } /* Name.Exception */
+.hl .nf { color: #06287E } /* Name.Function */
+.hl .nl { color: #002070; font-weight: bold } /* Name.Label */
+.hl .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.hl .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.hl .nv { color: #BB60D5 } /* Name.Variable */
+.hl .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.hl .w { color: #BBB } /* Text.Whitespace */
+.hl .mb { color: #40A070 } /* Literal.Number.Bin */
+.hl .mf { color: #40A070 } /* Literal.Number.Float */
+.hl .mh { color: #40A070 } /* Literal.Number.Hex */
+.hl .mi { color: #40A070 } /* Literal.Number.Integer */
+.hl .mo { color: #40A070 } /* Literal.Number.Oct */
+.hl .sa { color: #4070A0 } /* Literal.String.Affix */
+.hl .sb { color: #4070A0 } /* Literal.String.Backtick */
+.hl .sc { color: #4070A0 } /* Literal.String.Char */
+.hl .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.hl .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.hl .s2 { color: #4070A0 } /* Literal.String.Double */
+.hl .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.hl .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.hl .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.hl .sx { color: #C65D09 } /* Literal.String.Other */
+.hl .sr { color: #235388 } /* Literal.String.Regex */
+.hl .s1 { color: #4070A0 } /* Literal.String.Single */
+.hl .ss { color: #517918 } /* Literal.String.Symbol */
+.hl .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.hl .fm { color: #06287E } /* Name.Function.Magic */
+.hl .vc { color: #BB60D5 } /* Name.Variable.Class */
+.hl .vg { color: #BB60D5 } /* Name.Variable.Global */
+.hl .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.hl .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.hl .il { color: #40A070 } /* Literal.Number.Integer.Long */}@media(prefers-color-scheme:dark){pre { line-height: 125%; }
+td.linenos .normal { color: #aaaaaa; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #aaaaaa; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.hl .hll { background-color: #404040 }
+.hl .c { color: #ABABAB; font-style: italic } /* Comment */
+.hl .err { color: #A61717; background-color: #E3D2D2 } /* Error */
+.hl .esc { color: #D0D0D0 } /* Escape */
+.hl .g { color: #D0D0D0 } /* Generic */
+.hl .k { color: #6EBF26; font-weight: bold } /* Keyword */
+.hl .l { color: #D0D0D0 } /* Literal */
+.hl .n { color: #D0D0D0 } /* Name */
+.hl .o { color: #D0D0D0 } /* Operator */
+.hl .x { color: #D0D0D0 } /* Other */
+.hl .p { color: #D0D0D0 } /* Punctuation */
+.hl .ch { color: #ABABAB; font-style: italic } /* Comment.Hashbang */
+.hl .cm { color: #ABABAB; font-style: italic } /* Comment.Multiline */
+.hl .cp { color: #FF3A3A; font-weight: bold } /* Comment.Preproc */
+.hl .cpf { color: #ABABAB; font-style: italic } /* Comment.PreprocFile */
+.hl .c1 { color: #ABABAB; font-style: italic } /* Comment.Single */
+.hl .cs { color: #E50808; font-weight: bold; background-color: #520000 } /* Comment.Special */
+.hl .gd { color: #FF3A3A } /* Generic.Deleted */
+.hl .ge { color: #D0D0D0; font-style: italic } /* Generic.Emph */
+.hl .ges { color: #D0D0D0; font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.hl .gr { color: #FF3A3A } /* Generic.Error */
+.hl .gh { color: #FFF; font-weight: bold } /* Generic.Heading */
+.hl .gi { color: #589819 } /* Generic.Inserted */
+.hl .go { color: #CCC } /* Generic.Output */
+.hl .gp { color: #AAA } /* Generic.Prompt */
+.hl .gs { color: #D0D0D0; font-weight: bold } /* Generic.Strong */
+.hl .gu { color: #FFF; text-decoration: underline } /* Generic.Subheading */
+.hl .gt { color: #FF3A3A } /* Generic.Traceback */
+.hl .kc { color: #6EBF26; font-weight: bold } /* Keyword.Constant */
+.hl .kd { color: #6EBF26; font-weight: bold } /* Keyword.Declaration */
+.hl .kn { color: #6EBF26; font-weight: bold } /* Keyword.Namespace */
+.hl .kp { color: #6EBF26 } /* Keyword.Pseudo */
+.hl .kr { color: #6EBF26; font-weight: bold } /* Keyword.Reserved */
+.hl .kt { color: #6EBF26; font-weight: bold } /* Keyword.Type */
+.hl .ld { color: #D0D0D0 } /* Literal.Date */
+.hl .m { color: #51B2FD } /* Literal.Number */
+.hl .s { color: #ED9D13 } /* Literal.String */
+.hl .na { color: #BBB } /* Name.Attribute */
+.hl .nb { color: #2FBCCD } /* Name.Builtin */
+.hl .nc { color: #71ADFF; text-decoration: underline } /* Name.Class */
+.hl .no { color: #40FFFF } /* Name.Constant */
+.hl .nd { color: #FFA500 } /* Name.Decorator */
+.hl .ni { color: #D0D0D0 } /* Name.Entity */
+.hl .ne { color: #BBB } /* Name.Exception */
+.hl .nf { color: #71ADFF } /* Name.Function */
+.hl .nl { color: #D0D0D0 } /* Name.Label */
+.hl .nn { color: #71ADFF; text-decoration: underline } /* Name.Namespace */
+.hl .nx { color: #D0D0D0 } /* Name.Other */
+.hl .py { color: #D0D0D0 } /* Name.Property */
+.hl .nt { color: #6EBF26; font-weight: bold } /* Name.Tag */
+.hl .nv { color: #40FFFF } /* Name.Variable */
+.hl .ow { color: #6EBF26; font-weight: bold } /* Operator.Word */
+.hl .pm { color: #D0D0D0 } /* Punctuation.Marker */
+.hl .w { color: #666 } /* Text.Whitespace */
+.hl .mb { color: #51B2FD } /* Literal.Number.Bin */
+.hl .mf { color: #51B2FD } /* Literal.Number.Float */
+.hl .mh { color: #51B2FD } /* Literal.Number.Hex */
+.hl .mi { color: #51B2FD } /* Literal.Number.Integer */
+.hl .mo { color: #51B2FD } /* Literal.Number.Oct */
+.hl .sa { color: #ED9D13 } /* Literal.String.Affix */
+.hl .sb { color: #ED9D13 } /* Literal.String.Backtick */
+.hl .sc { color: #ED9D13 } /* Literal.String.Char */
+.hl .dl { color: #ED9D13 } /* Literal.String.Delimiter */
+.hl .sd { color: #ED9D13 } /* Literal.String.Doc */
+.hl .s2 { color: #ED9D13 } /* Literal.String.Double */
+.hl .se { color: #ED9D13 } /* Literal.String.Escape */
+.hl .sh { color: #ED9D13 } /* Literal.String.Heredoc */
+.hl .si { color: #ED9D13 } /* Literal.String.Interpol */
+.hl .sx { color: #FFA500 } /* Literal.String.Other */
+.hl .sr { color: #ED9D13 } /* Literal.String.Regex */
+.hl .s1 { color: #ED9D13 } /* Literal.String.Single */
+.hl .ss { color: #ED9D13 } /* Literal.String.Symbol */
+.hl .bp { color: #2FBCCD } /* Name.Builtin.Pseudo */
+.hl .fm { color: #71ADFF } /* Name.Function.Magic */
+.hl .vc { color: #40FFFF } /* Name.Variable.Class */
+.hl .vg { color: #40FFFF } /* Name.Variable.Global */
+.hl .vi { color: #40FFFF } /* Name.Variable.Instance */
+.hl .vm { color: #40FFFF } /* Name.Variable.Magic */
+.hl .il { color: #51B2FD } /* Literal.Number.Integer.Long */}
+.stagebar{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+.stagebar a,.stagebar span{font-size:12.5px;padding:5px 11px;border-radius:99px;border:1px solid var(--line);text-decoration:none;color:var(--muted);background:var(--bg)}
+.stagebar a:hover{border-color:var(--accent);color:var(--accent)}
+.stagebar .cur{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:16px;margin:16px 0 0;font-size:13px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+.box{margin:20px 0;padding:14px 18px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.box-h{font-weight:700;font-size:14px;margin:0 0 8px;letter-spacing:.02em}
+.box>*:last-child{margin-bottom:0}
+.box-ex{border-left:3px solid var(--accent)}
+.box-ex .box-h{color:var(--accent)}
+.box-lab{border-left:3px solid #3a8f6a}.box-lab .box-h{color:#3a8f6a}
+.box-note{border-left:3px solid #4a7fb5}.box-note .box-h{color:#4a7fb5}
+.box-warn{border-left:3px solid #c1682c}.box-warn .box-h{color:#c1682c}
+.box-goal{border-left:3px solid var(--accent);background:var(--code-bg)}
+.box-goal .box-h{color:var(--accent)}
+details.sol{margin:12px 0;border:1px solid var(--line);border-radius:10px;background:var(--code-bg);overflow:hidden}
+details.sol>summary{cursor:pointer;padding:10px 16px;font-weight:600;font-size:14px;color:var(--accent);user-select:none;list-style:none}
+details.sol>summary::-webkit-details-marker{display:none}
+details.sol>summary::before{content:"\25B8\00a0\00a0";display:inline-block;transition:transform .15s}
+details.sol[open]>summary::before{transform:rotate(90deg)}
+details.sol[open]>summary{border-bottom:1px solid var(--line)}
+details.sol>*:not(summary){margin-left:16px;margin-right:16px}
+details.sol>.codewrap{margin-left:16px;margin-right:16px}
+.out{margin:14px 0;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.out-h{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--code-bg);padding:6px 14px;border-bottom:1px solid var(--line)}
+.out .codewrap{margin:0}
+.out pre{margin:0!important;border:0!important;border-radius:0!important;background:#15140f!important}
+.out pre,.out pre *{color:#d5d0c3!important;background:transparent!important}
+.out pre{background:#15140f!important}
+.codewrap{position:relative;margin:16px 0}
+.codewrap pre{margin:0}
+.copybtn{position:absolute;top:8px;right:8px;font:500 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s}
+.codewrap:hover .copybtn{opacity:1}
+.copybtn:hover{color:var(--accent);border-color:var(--accent)}
+.copybtn.done{color:#3a8f6a;border-color:#3a8f6a}
+.content h2{margin-top:56px}
+.pager{display:flex;justify-content:space-between;gap:16px;margin:56px 0 0;padding-top:24px;border-top:1px solid var(--line);font-size:14px}
+.pager a{display:block;max-width:46%;color:var(--accent);text-decoration:none}
+.pager a:hover{text-decoration:underline}
+.pager .lbl{display:block;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin:24px 0}
+.card{display:block;padding:18px 20px;border:1px solid var(--line);border-radius:12px;background:var(--card);text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card .k{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.card .t{font-size:17px;font-weight:650;margin:6px 0 6px;line-height:1.35}
+.card .d{font-size:13.5px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+<header class="hero"><div class="hero-inner">
+<p class="eyebrow">总览 · Overview</p>
+<h1>从 Java 到 Python AI Infrastructure</h1>
+<p class="sub">40 小时 · 5 个阶段 · 每个阶段一张网页。不是讲义，是实验手册 —— 每段代码都跑过，每个输出都是真的，每道练习都有参考答案。</p>
+<div class="meta"><span><b>40 小时</b> · 5 阶段</span><span>练习 <b>24 个</b>（23 个带答案）</span><span>代码 <b>全部实测</b></span><span>大部分<b>不需要 GPU</b></span></div>
+<nav class="stagebar"><span class="cur">总览</span><a href="/p/py-stage1-java-to-python.html">阶段一</a><a href="/p/py-stage2-python-model.html">阶段二</a><a href="/p/py-stage3-engineering.html">阶段三</a><a href="/p/py-stage4-ai-infra.html">阶段四</a><a href="/p/py-stage5-capstone.html">阶段五</a><a href="/p/python-ai-infra-40h.html">原始路线 #422 &#8599;</a></nav>
+</div></header>
+<div class="layout">
+<nav class="toc"><h2>本页目录</h2><ol><li><a href="#sec-1-五个阶段">1. 五个阶段</a></li><li><a href="#sec-2-开始之前-三句话">2. 开始之前，三句话</a></li><li><a href="#sec-3-这五页里最值得先看的六段">3. 这五页里最值得先看的六段</a></li><li><a href="#sec-4-这-40-小时里不要学的东西">4. 这 40 小时里不要学的东西</a></li><li><a href="#sec-5-资源清单-每个主题只给一份">5. 资源清单（每个主题只给一份）</a></li><li><a href="#sec-6-总的结业自检">6. 总的结业自检</a></li><li><a href="#sec-7-相关文档">7. 相关文档</a></li></ol></nav>
+<main class="content">
+<div class="box box-goal">
+<div class="box-h">这套页面是什么</div>
+<p><a href="/p/python-ai-infra-40h.html">#422 那份路线</a> 回答的是<strong>学什么、为什么、按什么顺序</strong>。</p>
+<p>这五张页面回答的是<strong>照着敲什么</strong> —— 每个阶段一页，每页包含：</p>
+<ul>
+<li><strong>可运行的示例</strong>（每个代码块右上角有复制按钮），配<strong>真实跑出来的输出</strong></li>
+<li><strong>可复现的坑</strong>：不是"注意 XX"，而是"跑这段，看它错给你看"</li>
+<li><strong>24 道练习</strong>，其中 23 道带参考答案 —— 答案全部实际跑过验证</li>
+<li><strong>结业自检清单</strong>（可勾选）</li>
+</ul>
+<p>读者画像：有扎实 Java 工程经验（Spring / 并发 / JVM 调优都熟），Python 接近零基础，目标是 <strong>AI Infrastructure</strong>。</p>
+</div>
+<hr />
+<h2 id="sec-1-五个阶段">1. 五个阶段<a class="anchor" href="#sec-1-五个阶段" aria-label="链接到本节">#</a></h2>
+<div class="cards">
+<a class="card" href="/p/py-stage1-java-to-python.html">
+  <div class="k">阶段一 · 6 小时</div>
+  <div class="t">把 Java 翻译成 Python</div>
+  <div class="d">语法对照表 · 10 段可运行对照 · 6 个坑的复现 · Stream API 逐条映射 · 产出一个 167 行的 CLI 工具</div>
+</a>
+<a class="card" href="/p/py-stage2-python-model.html">
+  <div class="k">阶段二 · 6 小时</div>
+  <div class="t">对象模型 + Java 没有的那些机制</div>
+  <div class="d">dataclass 的边界 · Protocol vs ABC · 生成器流水线 · 装饰器 · 把脚本重构成 6 模块的包，mypy --strict 通过</div>
+</a>
+<a class="card" href="/p/py-stage3-engineering.html">
+  <div class="k">阶段三 · 6 小时</div>
+  <div class="t">把工程素养接回来</div>
+  <div class="d">pytest 夹具与性质测试 · uv 锁依赖与 CUDA 镜像 · <b>GIL 自校准基准</b> · asyncio 取消与限流 · cProfile / py-spy</div>
+</a>
+<a class="card" href="/p/py-stage4-ai-infra.html">
+  <div class="k">阶段四 · 16 小时 · 重头戏</div>
+  <div class="t">AI Infrastructure 核心栈</div>
+  <div class="d">张量思维 · <b>显存口算器</b> · safetensors 与 pickle 攻击面 · 不需要 GPU 的推理服务 · Ray / K8s GPU · Prometheus 埋点</div>
+</a>
+<a class="card" href="/p/py-stage5-capstone.html">
+  <div class="k">阶段五 · 6 小时</div>
+  <div class="t">Capstone：LLM 推理网关</div>
+  <div class="d">1101 行完整源码 · 准入控制 · 取消传播 · 24 个测试全过 · <b>真实压测曲线与膝点分析</b> · 面试怎么讲</div>
+</a>
+</div>
+
+<pre class="mermaid">flowchart LR
+  S1[&quot;阶段一 6h&lt;br/&gt;语法平移&lt;br/&gt;&lt;br/&gt;产出：CLI 工具&quot;] --&gt; S2[&quot;阶段二 6h&lt;br/&gt;对象模型 / 生成器&lt;br/&gt;&lt;br/&gt;产出：包 + mypy&quot;]
+  S2 --&gt; S3[&quot;阶段三 6h&lt;br/&gt;测试 / 打包 / GIL&lt;br/&gt;&lt;br/&gt;产出：28 测试 + 镜像&quot;]
+  S3 --&gt; S4[&quot;阶段四 16h&lt;br/&gt;张量 / 显存 / 推理&lt;br/&gt;&lt;br/&gt;产出：显存口算器 + 服务&quot;]
+  S4 --&gt; S5[&quot;阶段五 6h&lt;br/&gt;Capstone 网关&lt;br/&gt;&lt;br/&gt;产出：压测报告&quot;]
+  S1 -.-&gt;|&quot;随时回查&quot;| T[&quot;Java ↔ Python&lt;br/&gt;对照表&quot;]
+</pre>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时长</th>
+<th>核心难点</th>
+<th>可验收的产出</th>
+<th>需要 GPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/p/py-stage1-java-to-python.html">阶段一</a></td>
+<td>6 h</td>
+<td>卸掉三个 Java 直觉</td>
+<td>167 行 CLI 工具，ruff 零告警</td>
+<td>否</td>
+</tr>
+<tr>
+<td><a href="/p/py-stage2-python-model.html">阶段二</a></td>
+<td>6 h</td>
+<td>生成器 · 结构化类型</td>
+<td>6 模块的包，<code>mypy --strict</code> 通过</td>
+<td>否</td>
+</tr>
+<tr>
+<td><a href="/p/py-stage3-engineering.html">阶段三</a></td>
+<td>6 h</td>
+<td><strong>GIL</strong></td>
+<td>28 个测试 + 可打镜像的包</td>
+<td>否</td>
+</tr>
+<tr>
+<td><a href="/p/py-stage4-ai-infra.html">阶段四</a></td>
+<td>16 h</td>
+<td><strong>显存 · 批处理</strong></td>
+<td>显存口算器 + 推理服务</td>
+<td>大部分不需要</td>
+</tr>
+<tr>
+<td><a href="/p/py-stage5-capstone.html">阶段五</a></td>
+<td>6 h</td>
+<td>准入 · 取消 · 容量</td>
+<td>网关 + 压测报告</td>
+<td>否（假后端）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>排期建议</strong>：每周 8 小时 × 5 周，或每天 2 小时 × 20 天。<strong>不建议压到两周内</strong> —— 阶段四需要反复踩显存和批处理的坑，那些坑是靠等待和重试学会的。</p>
+<hr />
+<h2 id="sec-2-开始之前-三句话">2. 开始之前，三句话<a class="anchor" href="#sec-2-开始之前-三句话" aria-label="链接到本节">#</a></h2>
+<ol>
+<li>
+<p><strong>你不需要"学 Python"，你需要把 Java 的工程直觉平移过来，同时卸掉三个会害你的直觉</strong>：类型靠编译器保证、并发靠线程池、性能靠 JVM 兜底 —— 这三条在 Python 里全部失效，而且失效方式各不相同。</p>
+</li>
+<li>
+<p><strong>AI Infra 里 90% 的 Python 代码只用到语言的一个子集</strong>：函数、<code>dataclass</code>、装饰器、生成器、<code>asyncio</code>、类型注解。元类、描述符、<code>__slots__</code> 微优化一律不学，遇到了再查。</p>
+</li>
+<li>
+<p><strong>真正的难点不在语法，在四个心智模型</strong>：张量（shape / dtype / broadcast）、显存（分配 / 碎片 / OOM）、批处理（吞吐 vs 时延）、GIL（为什么你的多线程不加速）。40 小时里有 16 小时花在它们身上，语法只占 6 小时。</p>
+</li>
+</ol>
+<hr />
+<h2 id="sec-3-这五页里最值得先看的六段">3. 这五页里最值得先看的六段<a class="anchor" href="#sec-3-这五页里最值得先看的六段" aria-label="链接到本节">#</a></h2>
+<p>即使你不打算按顺序走完，下面六段也值得单独挑出来读 —— 它们是<strong>实测出来的、能改变判断的东西</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>在哪</th>
+<th>是什么</th>
+<th>为什么值钱</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="/p/py-stage3-engineering.html#sec-3-gil-最需要重装大脑的一节">阶段三 §3</a></td>
+<td><strong>GIL 自校准基准</strong></td>
+<td>在你自己的机器上量出：线程池对 CPU 任务的加速比 ≈ 1.00；以及容器里 <code>os.cpu_count()</code> 为什么会骗你</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="/p/py-stage4-ai-infra.html#sec-3-显存口算器-不需要-gpu">阶段四 §3</a></td>
+<td><strong>显存口算器</strong></td>
+<td>用数据推翻"int4 量化能让并发翻 4 倍"；给出真正该拧的旋钮</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="/p/py-stage4-ai-infra.html#sec-4-模型工件层-safetensors-与-pickle-的攻击面">阶段四 §4</a></td>
+<td><strong>105 字节的 pickle 攻击</strong></td>
+<td>无害地演示"加载权重 = 执行代码"，以及三条防线</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="/p/py-stage5-capstone.html#sec-4-m3-2-小时-压测与量化">阶段五 §4</a></td>
+<td><strong>真实吞吐-时延曲线</strong></td>
+<td>并发 8→64：吞吐涨 0%，TTFT 涨 2592%。排队论最直白的样子</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="/p/py-stage2-python-model.html#sec-3-生成器-python-相对-java-的真实增益">阶段二 §3</a></td>
+<td><strong>生成器的 16 万倍内存差</strong></td>
+<td>77.4 MiB vs 0.48 KiB，一对括号的区别</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="/p/py-stage1-java-to-python.html#sec-4-函数-参数与作用域-六个坑的复现">阶段一 §4</a></td>
+<td><strong>六个坑的可复现版本</strong></td>
+<td>不是"注意可变默认参数"，是跑给你看它怎么错</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sec-4-这-40-小时里不要学的东西">4. 这 40 小时里<strong>不要</strong>学的东西<a class="anchor" href="#sec-4-这-40-小时里不要学的东西" aria-label="链接到本节">#</a></h2>
+<p>明确排除，省下来的时间才够学阶段四：</p>
+<table>
+<thead>
+<tr>
+<th>不学</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>❌ Django / Flask 老教程</td>
+<td>AI 服务栈是 FastAPI</td>
+</tr>
+<tr>
+<td>❌ conda / Anaconda 环境地狱</td>
+<td>2026 年用 <code>uv</code>，除非公司强制</td>
+</tr>
+<tr>
+<td>❌ pandas 深挖</td>
+<td>infra 侧优先 Polars / DuckDB / Arrow</td>
+</tr>
+<tr>
+<td>❌ 元类、描述符、<code>__slots__</code> 微优化</td>
+<td>读到再查，不专门学</td>
+</tr>
+<tr>
+<td>❌ 从零实现反向传播 / 手写 Transformer</td>
+<td>有意思，但不是 infra 岗的考点，会占掉 10 小时</td>
+</tr>
+<tr>
+<td>❌ 爬虫、自动化办公、数据可视化</td>
+<td>与目标无关</td>
+</tr>
+<tr>
+<td>❌ Python 2 相关的一切</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sec-5-资源清单-每个主题只给一份">5. 资源清单（每个主题只给一份）<a class="anchor" href="#sec-5-资源清单-每个主题只给一份" aria-label="链接到本节">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>首选资源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语法速查（Java 背景）</td>
+<td>官方 Tutorial 只读 3/4/5/8/9 章 + <a href="/p/py-stage1-java-to-python.html">阶段一</a>的对照表</td>
+</tr>
+<tr>
+<td>地道写法</td>
+<td><em>Effective Python</em>（Brett Slatkin，第 3 版）—— 条目式，随翻随用</td>
+</tr>
+<tr>
+<td>类型注解</td>
+<td>mypy 官方 cheat sheet</td>
+</tr>
+<tr>
+<td>工具链</td>
+<td><code>uv</code> 官方文档（很短）、<code>ruff</code> 规则说明</td>
+</tr>
+<tr>
+<td>异步</td>
+<td>FastAPI 官方教程的 async 章节</td>
+</tr>
+<tr>
+<td>NumPy</td>
+<td>官方 "NumPy: the absolute basics" + broadcasting 章</td>
+</tr>
+<tr>
+<td>PyTorch</td>
+<td>官方 "Learn the Basics" + <strong>CUDA semantics</strong> 与 <strong>memory management</strong> 两篇（infra 必读）</td>
+</tr>
+<tr>
+<td>LLM 推理</td>
+<td>vLLM 官方文档（PagedAttention / continuous batching / 性能调优）</td>
+</tr>
+<tr>
+<td>K8s + GPU</td>
+<td>NVIDIA device plugin 文档 + 一份 vLLM on K8s 部署示例</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>📌 原则：<strong>每个主题只读一份主资源，剩下时间全部用来敲代码。</strong> 40 小时里至少 24 小时应该是手在键盘上 —— 这也是这五页存在的理由。</p>
+</blockquote>
+<hr />
+<h2 id="sec-6-总的结业自检">6. 总的结业自检<a class="anchor" href="#sec-6-总的结业自检" aria-label="链接到本节">#</a></h2>
+<p>走完五个阶段，下面每一条都应该能答"是"：</p>
+<ul>
+<li class="task"><input type="checkbox"/> 能不查 Java 对照写出地道的 Python（推导式、生成器、dataclass、<code>with</code>、f-string）</li>
+<li class="task"><input type="checkbox"/> 能解释类型注解为什么不检查、以及 pydantic 为什么例外</li>
+<li class="task"><input type="checkbox"/> 能说清 GIL 的影响，并在 asyncio / 多进程 / 向量化之间正确选型</li>
+<li class="task"><input type="checkbox"/> 知道容器里 <code>os.cpu_count()</code> 会骗人，能说出怎么读 cgroup 配额</li>
+<li class="task"><input type="checkbox"/> 能用 <code>uv</code> 从零建项目、锁依赖、打出能跑的 CUDA 镜像</li>
+<li class="task"><input type="checkbox"/> 能口算 "7B 模型 bf16 权重要多少显存"，并说出 KV cache 为什么还要额外一大块</li>
+<li class="task"><input type="checkbox"/> 能解释为什么 int4 量化对 8B 模型几乎不增加并发，对 32B 模型却增加 4 倍</li>
+<li class="task"><input type="checkbox"/> 能读懂一段 PyTorch 推理代码，指出 shape 错误和显存浪费点</li>
+<li class="task"><input type="checkbox"/> 能起一个 OpenAI 兼容服务，支持流式，并解释 continuous batching 解决了什么</li>
+<li class="task"><input type="checkbox"/> 能定义并采集 TTFT / TPOT / 排队时延 / 吞吐，画出吞吐-时延曲线并指出膝点</li>
+<li class="task"><input type="checkbox"/> 能把 Java 时代的限流、超时、取消、可观测实践迁移到这个服务上</li>
+<li class="task"><input type="checkbox"/> 能用"讲判断"而不是"列框架"的方式讲完 Capstone 项目</li>
+</ul>
+<div class="box box-note">
+<div class="box-h">最后一条是重点</div>
+<p>前 11 条是技能，第 12 条是<strong>如何把技能变成 offer</strong>。</p>
+<p><a href="/p/py-stage5-capstone.html#sec-5-这个项目怎么讲">阶段五 §5</a> 给了一张"别说 / 说这个"的对照表。核心判断是：<strong>你相对纯算法背景候选人的最大优势，是把 Java 时代的生产意识带了过来</strong> —— 限流、超时、取消、可观测、优雅降级。</p>
+<p>很多 AI 背景的候选人能把模型跑起来，但不会想到"客户端断开要取消下游生成"、"429 必须在第一个字节前返回"、"liveness 和 readiness 不能是同一个接口"。这些恰恰是你做了很多年的事。</p>
+<p><strong>你不需要学它，只需要把它翻译过来。</strong> 这条路线的全部设计，就是围绕这个判断。</p>
+</div>
+<hr />
+<h2 id="sec-7-相关文档">7. 相关文档<a class="anchor" href="#sec-7-相关文档" aria-label="链接到本节">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>文档</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/p/python-ai-infra-40h.html">#422 · 40 小时学习路线</a></td>
+<td>本系列的<strong>原始规划</strong>：学什么、为什么、按什么顺序、以及不要学什么</td>
+</tr>
+<tr>
+<td><a href="/p/llm-agent-eval-platform.html">#423 · LLM Agent 实验平台设计说明书</a></td>
+<td>把一句简历 bullet 拆成可评审的 spec：12 条 ADR、评估体系、judge 校准。<strong>做完阶段五的 M3 之后接着做它的 M1</strong></td>
+</tr>
+</tbody>
+</table>
+<nav class="pager"><span></span><a href="/p/py-stage1-java-to-python.html" style="text-align:right"><span class="lbl">下一页 &#8594;</span>阶段一 · 语法平移</a></nav>
+</main>
+</div>
+<footer>看板任务 #425「Python学习」· 这五页是<a href="/p/python-ai-infra-40h.html">《从 Java 到 Python AI Infrastructure：40 小时学习路线》(#422)</a> 的实操展开版。原路线给的是「学什么、为什么、按什么顺序」；这五页给的是「照着敲什么」。</footer>
+<button class="backtop" aria-label="回到顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+<script>
+var bt=document.querySelector('.backtop');
+window.addEventListener('scroll',function(){if(window.scrollY>400)bt.classList.add('show');else bt.classList.remove('show')});
+function fallbackCopy(t,ok){var a=document.createElement('textarea');a.value=t;
+  a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();
+  try{document.execCommand('copy');ok()}catch(e){}document.body.removeChild(a)}
+document.querySelectorAll('.content pre').forEach(function(pre){
+  if(pre.classList.contains('mermaid'))return;
+  var w=document.createElement('div');w.className='codewrap';
+  pre.parentNode.insertBefore(w,pre);w.appendChild(pre);
+  var b=document.createElement('button');b.className='copybtn';b.textContent='\u590d\u5236';
+  b.addEventListener('click',function(){
+    var t=pre.innerText;
+    var ok=function(){b.textContent='\u5df2\u590d\u5236';b.classList.add('done');
+      setTimeout(function(){b.textContent='\u590d\u5236';b.classList.remove('done')},1400)};
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(ok,function(){fallbackCopy(t,ok)});
+    }else{fallbackCopy(t,ok)}
+  });
+  w.appendChild(b);
+});
+</script>
+<script src="/vendor/mermaid.min.js" defer></script>
+<script src="/vendor/mermaid-init.js" defer></script>
+</body>
+</html>

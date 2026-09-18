@@ -1,0 +1,7 @@
+{
+  "slug" : "python-ai-infra-stages",
+  "title" : "从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）",
+  "summary" : "把 40 小时学习路线拆成五张实操网页，每页都有可运行的示例、真实输出和带参考答案的练习。全部代码在 Python 3.12 上实测，含一个 1101 行的推理网关 Capstone 与真实压测曲线。",
+  "createdAt" : "2026-09-18T04:48:52.319813488Z",
+  "bytes" : 34966
+}

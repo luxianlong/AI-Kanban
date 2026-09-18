@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-python-ai-infra-stages",
+    "title": "从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）",
+    "href": "/p/python-ai-infra-stages.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T04:48:52.319Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/python-ai-infra-stages.html",
+      "frontend/public/p/python-ai-infra-stages.meta.json"
+    ]
+  },
+  {
     "id": "upload-resume-pmf-staff-ai-infra",
     "title": "这份简历的 PMF 诊断：为什么它卖不进 Staff AI Infrastructure",
     "href": "/p/resume-pmf-staff-ai-infra.html",
@@ -8,7 +23,7 @@
     "file": null,
     "updatedAt": "2026-09-18T04:05:31.805Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/resume-pmf-staff-ai-infra.html",
       "frontend/public/p/resume-pmf-staff-ai-infra.meta.json"
@@ -23,7 +38,7 @@
     "file": null,
     "updatedAt": "2026-09-18T03:56:41.246Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/llm-agent-eval-platform.html",
       "frontend/public/p/llm-agent-eval-platform.meta.json"
@@ -38,7 +53,7 @@
     "file": null,
     "updatedAt": "2026-09-18T02:45:00.538Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/python-ai-infra-40h.html",
       "frontend/public/p/python-ai-infra-40h.meta.json"
