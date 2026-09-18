@@ -1,17 +1,17 @@
 [
   {
-    "id": "upload-why-python-matters-ai-stack-2",
-    "title": "把生态拿掉之后：Python 在 AI 栈里到底承担什么",
-    "href": "/p/why-python-matters-ai-stack-2.html",
+    "id": "upload-python-description-language-ai-stack",
+    "title": "The Description Language: What Python Actually Does in the AI Stack",
+    "href": "/p/python-description-language-ai-stack.html",
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T09:08:49.582Z",
+    "updatedAt": "2026-09-18T16:21:05.975Z",
     "isNew": true,
     "private": false,
     "paths": [
-      "frontend/public/p/why-python-matters-ai-stack-2.html",
-      "frontend/public/p/why-python-matters-ai-stack-2.meta.json"
+      "frontend/public/p/python-description-language-ai-stack.html",
+      "frontend/public/p/python-description-language-ai-stack.meta.json"
     ]
   },
   {
@@ -21,7 +21,7 @@
     "zone": "article",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-18T09:08:25.023Z",
+    "updatedAt": "2026-09-18T09:09:31.982Z",
     "isNew": true,
     "private": false,
     "paths": [
