@@ -1,20 +1,5 @@
 [
   {
-    "id": "upload-resume-summary-math-patents",
-    "title": "SUMMARY 里那半句：数学底子与 5 项专利怎么写",
-    "href": "/p/resume-summary-math-patents.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-18T05:25:28.459Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/resume-summary-math-patents.html",
-      "frontend/public/p/resume-summary-math-patents.meta.json"
-    ]
-  },
-  {
     "id": "upload-xiaorenjing",
     "title": "小人經 · 繁體版",
     "href": "/p/xiaorenjing.html",
