@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-skills-line-rewrite",
+    "title": "那一行不该叫「控制面」：给 CORE SKILLS 换一句话",
+    "href": "/p/skills-line-rewrite.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-18T08:30:42.694Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/skills-line-rewrite.html",
+      "frontend/public/p/skills-line-rewrite.meta.json"
+    ]
+  },
+  {
     "id": "upload-control-plane-six-words",
     "title": "控制面那一行到底在说什么：六个词，一台机器",
     "href": "/p/control-plane-six-words.html",
@@ -8,7 +23,7 @@
     "file": null,
     "updatedAt": "2026-09-18T07:27:44.103Z",
     "isNew": true,
-    "private": false,
+    "private": true,
     "paths": [
       "frontend/public/p/control-plane-six-words.html",
       "frontend/public/p/control-plane-six-words.meta.json"
@@ -900,21 +915,6 @@
     ]
   },
   {
-    "id": "upload-page-89f133c0",
-    "title": "苹果发布会（配图版）",
-    "href": "/p/page-89f133c0.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-11T07:36:46.225Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/page-89f133c0.html",
-      "frontend/public/p/page-89f133c0.meta.json"
-    ]
-  },
-  {
     "id": "article-737d0a60",
     "title": "\"我在做自媒体\"：一个失业者如何在就业冰河期自我安慰",
     "href": "/docs/article-737d0a60.html",
@@ -1242,6 +1242,21 @@
     "paths": [
       "frontend/public/p/2.html",
       "frontend/public/p/2.meta.json"
+    ]
+  },
+  {
+    "id": "upload-page-89f133c0",
+    "title": "苹果发布会（配图版）",
+    "href": "/p/page-89f133c0.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-11T07:36:46.225Z",
+    "isNew": false,
+    "private": false,
+    "paths": [
+      "frontend/public/p/page-89f133c0.html",
+      "frontend/public/p/page-89f133c0.meta.json"
     ]
   },
   {
