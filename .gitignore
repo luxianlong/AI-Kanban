@@ -31,3 +31,7 @@ backups/
 
 # Local script overrides (per-machine, per-session state)
 scripts/local.env
+
+# 20MB 的《鬼谷子》秦恩复刻本扫描 PDF：做封面时的取材，站上没有任何页面引用它，
+# 需要时从 archive.org 重新下载即可，不入库。
+frontend/public/img/guiguzi-qinenfu-1805.pdf

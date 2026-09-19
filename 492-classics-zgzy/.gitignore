@@ -1,0 +1,5 @@
+raw/
+var/
+__pycache__/
+*.json
+!package.json
