@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>典籍收罗 · 候选</title>
+<style>
+:root{
+  --paper:#f6f1e6; --paper-2:#fbf7ef; --ink:#23201c; --ink-soft:#5d564c;
+  --rule:#d8cdb8; --seal:#9c3d2e; --accent:#3f5a4e;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#16150f; --paper-2:#1d1b14; --ink:#e6dfd0; --ink-soft:#a79d8c;
+         --rule:#3a3528; --seal:#d97a63; --accent:#8fb3a1; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Noto Serif CJK SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  line-height:1.9; font-size:16px; text-rendering:optimizeLegibility;}
+a{color:var(--accent)}
+header.mast{border-bottom:1px solid var(--rule); background:var(--paper-2);
+  padding:54px 24px 30px; text-align:center; position:relative; overflow:hidden;}
+header.mast::after{content:""; position:absolute; inset:auto 0 0 0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--seal),transparent); opacity:.5;}
+.mast h1{margin:0; font-size:clamp(30px,6vw,48px); letter-spacing:.3em; text-indent:.3em; font-weight:600}
+.mast .cross{margin:18px 0 0; font-size:.78rem; letter-spacing:.14em; color:var(--ink-soft)}
+.mast .cross a{text-decoration:none; border-bottom:1px solid var(--rule); padding-bottom:2px}
+main{max-width:1000px; margin:0 auto; padding:52px 26px 96px}
+@media (max-width:640px){ main{padding:36px 16px 64px} }
+h2{font-size:1.12rem; letter-spacing:.14em; margin:56px 0 18px; font-weight:600;
+  border-bottom:1px solid var(--rule); padding-bottom:10px;}
+h2:first-of-type{margin-top:0}
+h3{font-size:1rem; margin:30px 0 8px; letter-spacing:.06em}
+p{margin:0 0 14px}
+.muted{color:var(--ink-soft)}
+small{font-size:.8rem}
+.hero{display:flex; flex-wrap:wrap; gap:14px 40px; align-items:flex-end;
+  padding:26px 28px; border:1px solid var(--rule); background:var(--paper-2);}
+.tile .n{font-size:clamp(26px,5vw,40px); line-height:1.1; font-variant-numeric:tabular-nums; font-weight:600}
+.tile .k{font-size:.76rem; letter-spacing:.14em; color:var(--ink-soft); margin-top:6px}
+table{border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; margin:6px 0 4px}
+th,td{padding:7px 8px; text-align:right; border-bottom:1px solid var(--rule); font-size:.9rem}
+th{font-weight:600; font-size:.74rem; letter-spacing:.1em; color:var(--ink-soft); white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td.t,th.t{text-align:left}
+td.book{white-space:nowrap}
+tr.hl td{background:color-mix(in srgb, var(--seal) 7%, transparent)}
+tr.rule td{border-top:2px solid var(--rule)}
+td.zero,.zero{color:var(--ink-soft)}
+.no{color:var(--seal); font-weight:600}
+.yes{color:var(--ink-soft)}
+.note{border-left:3px solid var(--rule); padding:2px 0 2px 16px; margin:18px 0; color:var(--ink-soft); font-size:.9rem}
+.stamp{margin-top:56px; padding-top:18px; border-top:1px solid var(--rule); font-size:.78rem; color:var(--ink-soft)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.85em; background:var(--paper-2); padding:1px 4px; border:1px solid var(--rule)}
+@media (max-width:700px){
+  th,td{padding:6px 4px; font-size:.82rem}
+  .drop{display:none}
+  .hero{padding:20px 18px; gap:12px 26px}
+}
+</style>
+</head>
+<body>
+<header class="mast">
+  <h1>典籍收罗</h1>
+  <p class="cross"><a href="/p/dianji.html">书架</a> · <a href="/stats/dianji.html">点击量</a> · 任务 #484 · 2026-09-19</p>
+</header>
+
+<main>
+
+<p>问题：<b>有什么中国古代典籍是欧美人或日本人喜欢的，但还没有免费译文网页？</b>
+需求用 Wikipedia 十二个月浏览量（<code>2025-09-01 → 2026-08-31</code>，<code>agent=user</code>）加两个市场证据量；
+「有没有免费译文」逐部查 en.wikisource、Project Gutenberg、Internet Archive、sacred-texts，再用 chinaknowledge.de 的译本书目复核。</p>
+
+<section class="hero">
+  <div class="tile"><div class="n">44,195</div><div class="k">武经七书余下六部 · 合计字数</div></div>
+  <div class="tile"><div class="n">19.5%</div><div class="k">＝《反经》一本的体量</div></div>
+  <div class="tile"><div class="n">61,243</div><div class="k">这六部的日文年浏览</div></div>
+  <div class="tile"><div class="n">0</div><div class="k">其中有免费全译的部数（除《吴子》）</div></div>
+</section>
+
+<h2>结论</h2>
+<p><b>有，而且最大的一块是现成的。</b>书架上已有《孙子兵法》，而「武经七书」余下六部——<b>六韬、三略、尉缭子、司马法、吴子、唐李问对</b>——合计只有 44,195 字（《反经》的五分之一），
+日文年浏览 61,243、英文 30,280；英文唯一完整译本是 1993 年 Sawyer 的付费书（Goodreads 613 人评分、4.20），
+日文唯一全译是守屋洋・守屋淳『全訳「武経七書」』三卷（付费）。免费站点只有原文和書き下し文，没有译文。</p>
+<p>另外三个独立的空白：</p>
+<table>
+<thead><tr><th class="t">方向</th><th class="t">书</th><th class="t">空白在哪</th><th>字数</th></tr></thead>
+<tbody>
+<tr><td class="t">欧美向</td><td class="t book">茶经</td><td class="t">唯一全译 Carpenter 1974（331 人评分）是纸书。<b>Gutenberg 上那本「茶經」是汉文原文，不是译文</b></td><td>12,469</td></tr>
+<tr><td class="t">日本向</td><td class="t book">贞观政要</td><td class="t">日文年浏览 36,055＝《菜根谭》的两倍；三种日文全译全部付费；英文剑桥 2021 才有第一个可靠译本，7 人评分</td><td>72,202</td></tr>
+<tr><td class="t">配套</td><td class="t book">围炉夜话 · 小窗幽记 · 人物志</td><td class="t">前两部与在架《菜根谭》合称「处世三大奇书」，一字英译也没有；《人物志》是《冰鉴》相人术的祖本</td><td>7,589 / 46,341 / 12,124</td></tr>
+</tbody>
+</table>
+
+<h2>一、候选榜</h2>
+<p class="muted"><small>字数＝从 zh.wikisource 取原文 wikitext、剥掉模板与注释标记后数的 CJK 字符。「无条目」＝该语种维基百科没有这部书的条目（浏览量无从谈起，不等于没人要——本站已有四部这样的书）。「¥」＝付费或借阅，不是免费网页。</small></p>
+<table>
+<thead><tr><th class="t">书</th><th>字数</th><th>en 年浏览</th><th>ja 年浏览</th><th class="t drop">免费英译</th><th class="t drop">免费日译</th><th class="t drop">标准译本</th></tr></thead>
+<tbody>
+<tr class="hl"><td class="t book">六韬</td><td>17,015</td><td>12,501</td><td>26,544</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Sawyer 1993 ¥</td></tr>
+<tr class="hl"><td class="t book">三略</td><td>3,827</td><td>4,824</td><td>9,894</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Sawyer 1993 ¥</td></tr>
+<tr class="hl"><td class="t book">尉缭子</td><td>4,811</td><td>5,242</td><td>11,282</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Sawyer 1993 ¥</td></tr>
+<tr class="hl"><td class="t book">司马法</td><td>3,472</td><td>4,835</td><td>5,362</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Sawyer 1993 ¥（唯一全译）</td></tr>
+<tr class="hl"><td class="t book">唐李问对</td><td>10,310</td><td>2,878</td><td class="zero">无条目</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Sawyer 1993 ¥</td></tr>
+<tr class="hl"><td class="t book">吴子</td><td>4,760</td><td class="zero">无条目</td><td>8,161</td><td class="t drop yes">有：Calthrop 1908（Gutenberg #44024）</td><td class="t drop no">无</td><td class="t drop">Calthrop 免费 / Sawyer ¥</td></tr>
+<tr class="hl rule"><td class="t book">茶经</td><td>12,469</td><td>12,539</td><td>3,645</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Carpenter 1974 ¥</td></tr>
+<tr class="hl"><td class="t book">贞观政要</td><td>72,202</td><td class="zero">无条目</td><td>36,055</td><td class="t drop no">无（剑桥 2021 ¥）</td><td class="t drop no">无（讲谈社 / 筑摩 / 能文社 ¥）</td><td class="t drop">De Weerdt 2021・石見清裕 2021</td></tr>
+<tr class="hl"><td class="t book">围炉夜话</td><td>7,589</td><td class="zero">无条目</td><td class="zero">无条目</td><td class="t drop no">无（无任何英译）</td><td class="t drop no">无</td><td class="t drop">—</td></tr>
+<tr class="hl"><td class="t book">小窗幽记<br><small class="muted">底本＝醉古堂剑扫</small></td><td>46,341</td><td class="zero">无条目</td><td class="zero">无条目</td><td class="t drop no">无（无任何英译）</td><td class="t drop no">无</td><td class="t drop">—</td></tr>
+<tr class="hl"><td class="t book">人物志</td><td>12,124</td><td class="zero">无条目</td><td>364</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Shryock 1937 ¥</td></tr>
+<tr class="hl"><td class="t book">呻吟语</td><td>133,124</td><td class="zero">无条目</td><td>2,128</td><td class="t drop no">无（无任何英译）</td><td class="t drop no">无（角川・致知 ¥）</td><td class="t drop">—</td></tr>
+<tr class="rule"><td class="t book">蒙求</td><td>2,383</td><td class="zero">无条目</td><td>5,985</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">—</td></tr>
+<tr><td class="t book">十八史略</td><td class="zero">文库无</td><td class="zero">无条目</td><td>16,044</td><td class="t drop no">无（无任何英译）</td><td class="t drop no">无（角川・致知 ¥）</td><td class="t drop">—</td></tr>
+<tr><td class="t book">忍经</td><td>10,657</td><td class="zero">无条目</td><td class="zero">无条目</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">—</td></tr>
+<tr><td class="t book">百战奇略</td><td>25,399</td><td class="zero">无条目</td><td class="zero">无条目</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Sawyer 1996 ¥</td></tr>
+<tr><td class="t book">洗冤集录</td><td>24,017</td><td>9,690</td><td class="zero">无条目</td><td class="t drop">部分：Giles 1924 公版，仅 PDF 扫描</td><td class="t drop no">无</td><td class="t drop">McKnight 1981 ¥</td></tr>
+<tr><td class="t book">淮南子</td><td>132,089</td><td>24,731</td><td>20,158</td><td class="t drop">部分：Morgan 1934 译 21 篇中的 8 篇</td><td class="t drop no">无</td><td class="t drop">Major 等 2010 ¥</td></tr>
+<tr><td class="t book">吕氏春秋</td><td>120,282</td><td>15,951</td><td>16,979</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Knoblock & Riegel 2000 ¥</td></tr>
+<tr><td class="t book">管子</td><td>131,297</td><td>14,555</td><td>6,643</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Rickett ¥</td></tr>
+<tr><td class="t book">梦溪笔谈</td><td>102,254</td><td>14,643</td><td>3,215</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Wang & Zhao 2008 ¥</td></tr>
+<tr><td class="t book">世说新语</td><td>91,318</td><td>5,404</td><td>9,090</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">Mather 1976 ¥（1 人评分）</td></tr>
+<tr><td class="t book">说苑</td><td>107,948</td><td>2,021</td><td>2,905</td><td class="t drop no">无</td><td class="t drop no">无</td><td class="t drop">无全译</td></tr>
+<tr><td class="t book">天工开物</td><td>66,785</td><td>8,595</td><td>3,244</td><td class="t drop no">无（archive 上是盗版上传）</td><td class="t drop no">无</td><td class="t drop">E-tu Zen Sun 1966 ¥</td></tr>
+<tr><td class="t book">齐民要术</td><td>72,049*</td><td>5,764</td><td>3,568</td><td class="t drop no">无（无完整英译）</td><td class="t drop no">无</td><td class="t drop">—</td></tr>
+<tr class="rule"><td class="t book muted"><i>（标尺）反经</i></td><td class="muted"><i>226,900</i></td><td class="zero"><i>无条目</i></td><td class="zero"><i>无条目</i></td><td class="t drop muted"><i>已在架</i></td><td class="t drop muted"><i>已在架</i></td><td class="t drop">—</td></tr>
+<tr><td class="t book muted"><i>（标尺）菜根谭</i></td><td class="muted"><i>约 28,000</i></td><td class="muted"><i>3,452</i></td><td class="muted"><i>17,756</i></td><td class="t drop muted"><i>已在架</i></td><td class="t drop muted"><i>已在架</i></td><td class="t drop">—</td></tr>
+</tbody>
+</table>
+<p class="muted"><small>* 齐民要术的维基文库只有十五页，疑不全，真实字数应在 12 万上下。红底行＝建议做的。</small></p>
+
+<h2>二、四件该做的事</h2>
+
+<h3>1. 补全武经七书（六部，44,195 字）</h3>
+<p>需求两侧都在（ja 61,243 / en 30,280），字数只有《反经》的 19.5%，底本六部全在 zh.wikisource（含《唐李问对》上中下三卷），四库本可作通校。
+唯一的例外要说清：<b>《吴子》1908 年已有 Calthrop 的公版英译</b>（与《孙子》合为 <i>The Book of War</i>，Gutenberg #44024），所以英文一侧它不是空白，只是那个译本一百一十八年前的措辞；为凑齐「七书」仍该做。
+额外好处：七书成套是一个真实的检索簇，英文 "Seven Military Classics"、日文「武経七書」都有人搜，而目前没有任何地方能免费成套读到。</p>
+
+<h3>2. 茶经（12,469 字）</h3>
+<p>英文年浏览 12,539，Carpenter 译本 331 人评分，而免费英译为零。文本极短（本文约 7,000 字），十章，术语（二十四器、煮水三沸、水品）正需要注释层。封面可取宋《百川学海》本或明刻本书影。</p>
+
+<h3>3. 贞观政要（72,202 字）</h3>
+<p>日文年浏览 36,055，是《菜根谭》的两倍多；<b>这本书的读者在日本，不在欧美</b>（剑桥译本 7 人评分）。所以日本語读本是主推，英文读本反倒会是世上第一个免费英文全文。字数只有《反经》的三分之一。</p>
+
+<h3>4. 两个已有系列的补丁（66,054 字）</h3>
+<p>《围炉夜话》（7,589）＋《小窗幽记》（46,341）与在架的《菜根谭》合称「处世三大奇书」，两部都一字英译也没有。
+另有一个该写进凡例的考据：<b>《小窗幽记》的真身是明陆绍珩《醉古堂剑扫》</b>（1624，十二卷），清乾隆间改题《小窗幽记》并误系于陈继儒名下——底本就该用《醉古堂剑扫》。
+《人物志》（12,124）是在架《冰鉴》那门相人术的祖本，唯一英译是 Shryock 1937，字数与《冰鉴》同级，最省。</p>
+
+<p class="note">《呻吟语》（133,124 字）建议排在这四件之后：它在日本的地位很硬（角川入门文库一册、安岡正篤《呻吟語を読む》、致知长销），一字英译也没有；但字数近《反经》六成，且是零散语录体，注释工作量与正文成正比，不像武经七书能一气拿下六本。</p>
+
+<h2>三、劝退清单：看着像空白，其实已经有免费全译</h2>
+<p class="muted"><small>下面每一部都曾在候选里，查过之后删掉。这一节和推荐同样重要。</small></p>
+<table>
+<thead><tr><th class="t">书</th><th>en 年浏览</th><th>ja 年浏览</th><th class="t">已有的免费译文</th></tr></thead>
+<tbody>
+<tr><td class="t book">颜氏家训</td><td class="zero">无条目</td><td>2,983</td><td class="t">Xiaofei Tian 全译，2021，Library of Chinese Humanities／De Gruyter，<b>开放获取</b>（CC BY-NC-ND），PDF 直接下载</td></tr>
+<tr><td class="t book">太乙金华宗旨</td><td>36,770</td><td class="zero">无条目</td><td class="t">Wilhelm／Baynes 译本（含荣格序）在 archive.org 等处免费流通。en 需求是本轮最高的，但入口已存在</td></tr>
+<tr><td class="t book">千字文</td><td>28,393</td><td>21,889</td><td class="t">Nathan Sturman 全译，免费 PDF（camcc.org 等）</td></tr>
+<tr><td class="t book">韩非子</td><td>26,441</td><td>67,525</td><td class="t">W. K. Liao 全译（1939/59），ctext 与 archive 都有</td></tr>
+<tr><td class="t book">荀子</td><td>7,862</td><td>45,843</td><td class="t">Dubs 1928 <i>The Works of Hsüntze</i> 公版，archive.org 两个可读副本</td></tr>
+<tr><td class="t book">三字经</td><td>27,193</td><td>2,809</td><td class="t">Giles 1900 公版译本</td></tr>
+<tr><td class="t book">论语・孟子・大学・中庸・孝经・易经・书经・诗经・礼记・庄子・列子・墨子</td><td colspan="2" class="muted">—</td><td class="t">Legge／Giles 一族公版全译，en.wikisource 与 ctext 都有。<b>这些书不该再做英文，需求再大也不该</b></td></tr>
+</tbody>
+</table>
+
+<h2>四、需求最大的空白，但现在不该碰</h2>
+<table>
+<thead><tr><th class="t">书</th><th>en 年浏览</th><th>ja 年浏览</th><th class="t">为什么不碰</th></tr></thead>
+<tbody>
+<tr><td class="t book">三国志（陈寿）</td><td>49,989</td><td>187,678</td><td class="t"><b>确实没有完整英译</b>（Cutter & Crowell、DeWoskin 只译了几卷）。但本文约 36 万字，加裴松之注约 32 万——《反经》的三倍</td></tr>
+<tr><td class="t book">史记</td><td>62,683</td><td>108,721</td><td class="t">Watson 付费选译、Nienhauser 未完；全书约 52 万字</td></tr>
+<tr><td class="t book">资治通鉴</td><td>18,417</td><td>22,172</td><td class="t">300 万字，不可能</td></tr>
+<tr><td class="t book">黄帝内经・伤寒论</td><td>36,273 / 4,714</td><td>11,735 / 9,365</td><td class="t">需求很高（欧美针灸、日本汉方），但一是百万字级，二是<b>医疗内容</b>——业余译注页面给出药方剂量，风险与收益不对称</td></tr>
+<tr><td class="t book">本草纲目</td><td>15,752</td><td>26,885</td><td class="t">190 万字的药典</td></tr>
+</tbody>
+</table>
+
+<h2>五、一个方向性发现：日语的缺口比英语大</h2>
+<table>
+<thead><tr><th class="t">书</th><th>en 年浏览</th><th>ja 年浏览</th><th class="t">免费英译</th><th class="t">免费日译</th></tr></thead>
+<tbody>
+<tr><td class="t book">韩非子</td><td>26,441</td><td><b>67,525</b></td><td class="t yes">有（Liao 全译）</td><td class="t no">无（讲谈社学术文库《韓非子 全現代語訳》¥）</td></tr>
+<tr><td class="t book">荀子</td><td>7,862</td><td><b>45,843</b></td><td class="t yes">有（Dubs 全译）</td><td class="t no">无</td></tr>
+<tr><td class="t book">墨子</td><td>74,897</td><td>30,471</td><td class="t yes">有</td><td class="t no">无</td></tr>
+<tr><td class="t book">史记</td><td>62,683</td><td><b>108,721</b></td><td class="t">部分</td><td class="t no">无</td></tr>
+</tbody>
+</table>
+<p>日本的免费汉文网站给的是<b>「書き下し文＋語釈」，不是现代语訳</b>——Web漢文大系的凡例自己写着「原文は原則として正字体、書き下し文は新字体・現代仮名遣いとした」，六韬、三略都在站内，都没有现代语訳；国立国会図書館的检索指南也把「古典哲学の現代語訳」指向纸本。
+在英语里公版译文已经覆盖了大部分先秦典籍，在日语里几乎一部都没有免费全文现代语訳。所以若目标是日本读者，还有第二条路：给那些「英文早有免费全译、日文完全没有」的高需求书做日本語读本。代价是这些书都很长，且要面对讲谈社学术文库这种硬对手。</p>
+
+<h2>六、这套判定的洞</h2>
+<p><b>不能证明「不存在」</b>，只能证明「查过的这几处没有」。每部推荐书都另用 chinaknowledge.de 的译本书目复核过，但仍可能有某个小出版社或个人网站的译文没被搜到。</p>
+<p><b>ctext.org 这一处没能逐页确认</b>：它挂着 Cloudflare Turnstile，并在页面上明确请研究者走订阅而不要抓取，我没有绕。做了一个替代对照：Wayback 里 <code>ctext.org/art-of-war/laying-plans/ens</code> 有完整的 Giles 英译，而 <code>ctext.org/liu-tao/…</code> 根本没有 <code>/ens</code> 双语页的快照——这支持「六韬在 ctext 只有汉文」，但是推断，不是直接观察。</p>
+<p><b>字数不是工作量。</b>《反经》22.7 万字里五成六是赵蕤自注，而《呻吟语》十三万字全是需要逐条理解的语录——同样字数，后者更费。</p>
+<p><b>浏览量不是阅读需求</b>，且书架上已有四部书（素书、了凡四训、罗织经、小人经）在 en/ja 维基根本没有条目、浏览量为 0——0 只等于「没有条目」。本轮只判英文与日文的免费译文；中文白话译文到处都有，不是有效筛选条件。窗口是固定的十二个月，<b>没有做趋势</b>。</p>
+
+<div class="stamp">
+数据与脚本：<code>484-dianji-shoulo/</code>（<code>demand.tsv</code> 100 部书全表、<code>candidates.tsv</code>、三个取数脚本、<code>report.md</code>）。
+浏览量来自 <code>wikimedia.org/api/rest_v1/metrics/pageviews</code>，窗口 2025-09-01 → 2026-08-31，<code>agent=user</code>。
+本页在 <code>/stats/</code> 下，不进 <code>p/</code>，故不被 <code>build-docs-site.mjs</code> 收成文章卡片、不进 sitemap、不给自己记点击。
+</div>
+
+</main>
+</body>
+</html>
