@@ -1,5 +1,80 @@
 [
   {
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略 · 司马法 · 吴子 · 唐李问对 · 尉缭子 · 茶经",
+    "href": "/p/dianji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T16:25:09.393Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
+    ]
+  },
+  {
+    "id": "upload-chajing-ja",
+    "title": "茶經 — Chakyō（日本語）",
+    "href": "/p/chajing-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T16:24:24.177Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/chajing-ja.html",
+      "frontend/public/p/chajing-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-chajing-en",
+    "title": "The Classic of Tea (English)",
+    "href": "/p/chajing-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T16:24:24.174Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/chajing-en.html",
+      "frontend/public/p/chajing-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-chajing-hans",
+    "title": "茶经 · 简体版",
+    "href": "/p/chajing-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T16:24:24.171Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/chajing-hans.html",
+      "frontend/public/p/chajing-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-chajing",
+    "title": "茶經 · 繁體版",
+    "href": "/p/chajing.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T16:24:24.169Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/chajing.html",
+      "frontend/public/p/chajing.meta.json"
+    ]
+  },
+  {
     "id": "upload-weiliaozi-ja",
     "title": "尉繚子 — Utsuryōshi（日本語）",
     "href": "/p/weiliaozi-ja.html",
@@ -57,21 +132,6 @@
     "paths": [
       "frontend/public/p/weiliaozi.html",
       "frontend/public/p/weiliaozi.meta.json"
-    ]
-  },
-  {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略 · 司马法 · 吴子 · 唐李问对 · 尉缭子",
-    "href": "/p/dianji.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-19T15:55:17.236Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
     ]
   },
   {

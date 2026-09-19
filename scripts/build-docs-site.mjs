@@ -654,6 +654,50 @@ const CLASSICS = [
       },
     ],
   },
+  {
+    key: 'chajing',
+    cover: '/img/classics/chajing-cover.jpg',
+    // The opening leaf of Scroll One in the National Diet Library's Ming
+    // printing of the Baichuan xuehai, ninth collection (shelfmark 特1-2229,
+    // Wikimedia Commons, PD-scan). The Baichuan xuehai was compiled by Zuo Gui
+    // in the Song, and the earliest surviving line of the Chajing runs through
+    // it; this copy belongs to no Siku line, and the reading pages were checked
+    // against it leaf by leaf. Right to left the leaf gives 「茶經卷上」,
+    // 「一之源」, 「唐　竟陵陸羽」 and the first sentence of the book, with three
+    // collector's seals below. The chapter title 「一之源」 on this leaf is why
+    // the pages keep the base text's titles rather than the Siku text's
+    // 「一茶之源」, and the author line 「唐　竟陵陸羽」 differs from the Siku
+    // text's 「唐　陸羽　撰」 in the same way. The PDF page is a two-leaf opening
+    // (5847x5047) whose left half is the opening leaf; 491-classics-chajing
+    // lifts the embedded JPEG out whole with pdfjpg.py, and inkscan.js puts the
+    // ink of that half-leaf at x 317..2967 and y 614..3990, so the cut is
+    // x 300..2990, y 590..4020, scaled to 560 wide — the JPEG fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.7843',
+    coverAlt:
+      '国立国会图书馆藏明刊《百川學海》壬集《茶經》卷上卷端叶，题「茶經卷上」「一之源」，撰者行作「唐　竟陵陸羽」，正文起「茶者，南方之嘉木也。一尺、二尺，迺至數十尺」，钤朱文藏书印三方',
+    editions: [
+      {
+        label: '简体',
+        id: 'upload-chajing-hans',
+        title: '茶经',
+        imprint: ['唐 · 三卷十篇'],
+      },
+      { label: '繁體', id: 'upload-chajing', title: '茶經', imprint: ['唐 · 三卷十篇'] },
+      {
+        label: 'English',
+        id: 'upload-chajing-en',
+        title: 'The Classic of Tea',
+        imprint: ['Tang · three scrolls, 10 chapters'],
+      },
+      {
+        label: '日本語',
+        id: 'upload-chajing-ja',
+        title: '茶經',
+        imprint: ['唐 · 全三巻十篇'],
+      },
+    ],
+  },
 ]
 
 // A label that isn't one of LANGS would drop that edition off the switch without
