@@ -207,12 +207,18 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 /* Only wide layouts have a margin column to reclaim; narrow ones already stack
    (and their own rule below would lose to this more specific selector). */
 @media (min-width: 901px) {
-  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 26px; }
   /* The prose is capped at 70ch, so it cannot spend the reclaimed column — left
      alone it just slides left and leaves the whole gain as an empty right-hand
      gutter, and the shift got worse once the margin shrank to a caret (#457).
-     Auto margins re-centre it; on a page whose prose really does fill the track
-     they resolve to zero. Same fix the /p/ fold applies in toc-fold.js. */
+     Auto margins re-centre it — but only within whatever track is left beside
+     the arrow, which still put the text ~30px right of centre and shaved the
+     right-hand margin (#459). So the nav's track and the gap after it go to
+     zero and the caret overhangs into the margin instead: the prose then sits
+     exactly where it would on a page with no sidebar at all. The overhang is
+     ~20px against a gutter of half of 190+46, so it never reaches the text,
+     and .toc is sticky — positioned — so it still paints over .content.
+     Same fix the /p/ fold applies in toc-fold.js. */
+  .layout.toc-collapsed { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
   .layout.toc-collapsed .content { margin-inline: auto; }
 }
 @media (max-width: 900px) {

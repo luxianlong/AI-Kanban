@@ -25,7 +25,15 @@ const generator = fs.readFileSync(path.join(ROOT, 'scripts', 'build-docs-site.mj
   assert.match(generator, /<ul id="toc-list">/, 'the list needs the id that aria-controls points at')
   // Folding must actually hide the list and hand the freed column to the prose.
   assert.match(generator, /\.toc\.collapsed ul \{ display: none; \}/)
-  assert.match(generator, /\.layout\.toc-collapsed \{ grid-template-columns: max-content/)
+  // Task #459: the freed column becomes MARGIN, not measure. The nav's track
+  // and the gap after it both go to zero — anything left there re-centres the
+  // prose beside the caret instead of on the page, which is what made the
+  // right-hand margin the narrow one.
+  assert.match(
+    generator,
+    /\.layout\.toc-collapsed \{ grid-template-columns: 0 minmax\(0, 1fr\); column-gap: 0; \}/,
+  )
+  assert.match(generator, /\.layout\.toc-collapsed \.content \{ margin-inline: auto; \}/)
 
   // Task #457: folded, the control is the caret and nothing else. The word 目录
   // is in its own span precisely so it can be hidden; if it leaks back out of
