@@ -1,5 +1,80 @@
 [
   {
+    "id": "upload-wuzi-ja",
+    "title": "呉子 — Goshi（日本語）",
+    "href": "/p/wuzi-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:49:33.417Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/wuzi-ja.html",
+      "frontend/public/p/wuzi-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-wuzi-en",
+    "title": "The Wuzi — Wu Qi’s Art of War (English)",
+    "href": "/p/wuzi-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:49:33.414Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/wuzi-en.html",
+      "frontend/public/p/wuzi-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-wuzi-hans",
+    "title": "吴子 · 简体版",
+    "href": "/p/wuzi-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:49:33.413Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/wuzi-hans.html",
+      "frontend/public/p/wuzi-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-wuzi",
+    "title": "吳子 · 繁體版",
+    "href": "/p/wuzi.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:49:33.411Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/wuzi.html",
+      "frontend/public/p/wuzi.meta.json"
+    ]
+  },
+  {
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略 · 司马法 · 吴子",
+    "href": "/p/dianji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:41:01.694Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
+    ]
+  },
+  {
     "id": "upload-simafa-ja",
     "title": "司馬法 — Shiba hō（日本語）",
     "href": "/p/simafa-ja.html",
@@ -57,21 +132,6 @@
     "paths": [
       "frontend/public/p/simafa.html",
       "frontend/public/p/simafa.meta.json"
-    ]
-  },
-  {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略 · 司马法",
-    "href": "/p/dianji.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-19T14:22:53.395Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
     ]
   },
   {
