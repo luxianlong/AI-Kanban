@@ -1,0 +1,40 @@
+# 一份能直接用的 vLLM + 网关部署骨架。四个 GPU 服务特有的坑都标出来了。
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llmgw
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: llmgw}}
+  template:
+    metadata: {labels: {app: llmgw}}
+    spec:
+      containers:
+        - name: gateway
+          image: your-registry/llmgw:1.0.0
+          ports: [{containerPort: 8000}]
+          env:
+            - {name: LLMGW_BACKEND,   value: "vllm"}
+            - {name: VLLM_URL,        value: "http://vllm:8001"}
+            - {name: MAX_CONCURRENCY, value: "8"}   # ← 用 #422 的显存公式算出来的
+            - {name: MAX_QUEUE,       value: "32"}
+          resources:
+            requests: {nvidia.com/gpu: 1, memory: 8Gi}   # 坑1：GPU 只能整数申请
+            limits:   {nvidia.com/gpu: 1, memory: 16Gi}
+          livenessProbe:                                  # 坑2：liveness 只查进程
+            httpGet: {path: /healthz, port: 8000}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:                                 # 坑3：readiness 才查模型
+            httpGet: {path: /readyz, port: 8000}
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 60      # 权重加载慢，给足 5 分钟，别让它被判死刑
+          volumeMounts:
+            - {name: models, mountPath: /models}
+            - {name: dshm,   mountPath: /dev/shm}         # 坑4：默认 64MB，NCCL 会挂
+      volumes:
+        - name: models
+          persistentVolumeClaim: {claimName: model-cache} # 权重放共享卷，不进镜像
+        - name: dshm
+          emptyDir: {medium: Memory, sizeLimit: 8Gi}
