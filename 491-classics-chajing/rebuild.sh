@@ -8,8 +8,8 @@ python3 base.py          # 底本の wiki → base.json（十篇・百二十四�
 python3 canon.py         # 句讀の正規化・字形の統一・改字十六處 → canon.json
 python3 collate.py       # 底本 × 四庫本 の逐字對校 → collate.json
 python3 text.py          # canon.json → text.json（三卷・十篇・百二十四段）
-node to_hans.js          # 繁 → 簡（要 opencc-js）
 python3 notes_merge.py   # notes/zh1..zh3 → notes.json
+node to_hans.js          # 繁 → 簡（notes.json を讀むので notes_merge.py の後）
 python3 en_merge.py      # notes/en1..en3 → en.json
 python3 ja_merge.py      # notes/ja1..ja3 → ja.json
 python3 build.py         # 四つの頁を書き出す

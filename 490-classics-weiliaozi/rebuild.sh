@@ -8,8 +8,8 @@ python3 base.py          # punct/ の句讀つき本文 → base.json（四庫�
 python3 canon.py         # 改字二處 → canon.json
 python3 qszy.py          # 《羣書治要》の抄と逐字對校 → qszy.json
 python3 text.py          # canon.json → text.json
-node to_hans.js          # 繁 → 簡（要 opencc-js）
 python3 notes_merge.py   # notes/zh1..zh5 → notes.json
+node to_hans.js          # 繁 → 簡（notes.json を讀むので notes_merge.py の後）
 python3 en_merge.py      # notes/en1..en5 → en.json
 python3 ja_merge.py      # notes/ja1..ja5 → ja.json
 python3 build.py         # 四つの頁を書き出す
