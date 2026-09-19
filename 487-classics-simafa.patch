@@ -1,0 +1,44 @@
+diff --git a/scripts/build-docs-site.mjs b/scripts/build-docs-site.mjs
+index 20412f5..4668e12 100644
+--- a/scripts/build-docs-site.mjs
++++ b/scripts/build-docs-site.mjs
+@@ -497,6 +497,39 @@ const CLASSICS = [
+       { label: '日本語', id: 'upload-sanlue-ja', title: '三略', imprint: ['秦 · 上中下三巻'] },
+     ],
+   },
++  {
++    key: 'simafa',
++    cover: '/img/classics/simafa-cover.jpg',
++    // Once more the book's own opening leaf, and this time it is one of the two
++    // witnesses the reading pages were collated against: the Sibu congkan
++    // facsimile of the Song-copied manuscript of the 司馬法 from the Tieqin
++    // Tongjian lou library of the Qu family of Changshu — the same library the
++    // 六韜 cover comes from — leaf one of scroll one (Wikimedia Commons, Sibu
++    // Congkan 0343, page 138; public domain, and the same djvu Chinese
++    // Wikisource transcribes). The leaf carries 「司馬法卷上」, the chapter
++    // heading 「仁本第一」, the first sentence of the book 「古者以仁爲本，
++    // 以義治之之謂正」, and two vermilion collectors' seals at the right.
++    // One djvu leaf is 2600x4578; taken at 1920 wide, the ink measures the frame
++    // at y 300..2638 and the right rule at x 1630, the left rule faintly near
++    // x 114 (column/row luminance, see 487-classics-simafa/meas.js). Cut a little
++    // wider at x 70..1680, y 250..2690 to leave a margin of paper, and scaled to
++    // 560 wide — so the JPEG simply fills the box.
++    crop: 'background-size:100% 100%;background-position:0% 0%',
++    ar: '.6596',
++    coverAlt:
++      '《四部丛刊》影印常熟瞿氏铁琴铜剑楼藏景宋钞本《司马法》卷上卷端叶，题「司馬法卷上　仁本第一」，正文起「古者以仁爲本，以義治之之謂正」，右侧钤朱文藏书印二颗',
++    editions: [
++      { label: '简体', id: 'upload-simafa-hans', title: '司马法', imprint: ['先秦 · 全五篇'] },
++      { label: '繁體', id: 'upload-simafa', title: '司馬法', imprint: ['先秦 · 全五篇'] },
++      {
++        label: 'English',
++        id: 'upload-simafa-en',
++        title: 'The Methods of the Sima',
++        imprint: ['pre-Qin · five chapters'],
++      },
++      { label: '日本語', id: 'upload-simafa-ja', title: '司馬法', imprint: ['先秦 · 全五篇'] },
++    ],
++  },
+ ]
+ 
+ // A label that isn't one of LANGS would drop that edition off the switch without

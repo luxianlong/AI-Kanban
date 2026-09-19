@@ -1,0 +1,62 @@
+diff --git a/scripts/build-docs-site.mjs b/scripts/build-docs-site.mjs
+index b405c70..ed31d7b 100644
+--- a/scripts/build-docs-site.mjs
++++ b/scripts/build-docs-site.mjs
+@@ -435,6 +435,36 @@ const CLASSICS = [
+       { label: '日本語', id: 'upload-fanjing-ja', title: '反経', imprint: ['唐 · 全九巻六十四篇'] },
+     ],
+   },
++  {
++    key: 'liutao',
++    cover: '/img/classics/liutao-cover.jpg',
++    // The cover is the book's own opening leaf, and the oldest one there is: the
++    // Sibu congkan facsimile of the Song printing held in the Tieqin Tongjian lou
++    // of the Qu family of Changshu (Wikimedia Commons, public domain), leaf 10 of
++    // the djvu — the head of scroll one. It carries 「六韜卷第一」, the scroll
++    // heading 「文韜」, the chapter title 「文師」, the opening sentence of the
++    // book, and four collectors' seals. That same printing is one of the two
++    // witnesses the reading pages are collated against. The djvu renders at most
++    // 960x1351 per page; the ink measures x 1..802, y 98..1262 (column/row
++    // luminance, see 485-classics-liutao/meas.js), cut a few pixels wider at
++    // x 0..811, y 90..1271 so the frame is not flush, and scaled to 560 wide —
++    // so the JPEG simply fills the box.
++    crop: 'background-size:100% 100%;background-position:0% 0%',
++    ar: '.6871',
++    coverAlt:
++      '四部丛刊影印常熟瞿氏铁琴铜剑楼藏景宋刊本《六韬》卷第一卷端叶，题「六韜卷第一　文韜　文師」，正文起「文王將田，史編布卜」，钤藏书印四颗',
++    editions: [
++      { label: '简体', id: 'upload-liutao-hans', title: '六韬', imprint: ['先秦 · 六卷六十篇'] },
++      { label: '繁體', id: 'upload-liutao', title: '六韜', imprint: ['先秦 · 六卷六十篇'] },
++      {
++        label: 'English',
++        id: 'upload-liutao-en',
++        title: 'The Six Secret Teachings',
++        imprint: ['pre-Qin · six scrolls, 60 chapters'],
++      },
++      { label: '日本語', id: 'upload-liutao-ja', title: '六韜', imprint: ['先秦 · 全六巻六十篇'] },
++    ],
++  },
+ ]
+ 
+ // A label that isn't one of LANGS would drop that edition off the switch without
+@@ -471,7 +501,19 @@ for (const book of CLASSICS) {
+ // The book list is READ OFF `CLASSICS`, never typed out again: the hand-written
+ // version in p/dianji.meta.json already went stale once — it still listed ten
+ // books after 菜根谭 was shelved.
+-const INDEX_TITLE = '文章存档 · 典籍：十二部中文经典全文，免费在线阅读'
++// The COUNT in the title is read off `CLASSICS` for the same reason the book
++// list below is: it was typed out by hand and had already gone stale — the page
++// still said 十二部 with thirteen books on the shelf. 十/二十 are the only cases
++// the shelf will plausibly reach, and a number past 九十九 throws rather than
++// printing something wrong.
++function cnCount(n) {
++  const d = '一二三四五六七八九'
++  if (n < 1 || n > 99) throw new Error(`CLASSICS: ${n} books — cnCount() needs extending`)
++  if (n < 10) return d[n - 1]
++  const tens = n < 20 ? '十' : d[Math.floor(n / 10) - 1] + '十'
++  return tens + (n % 10 ? d[(n % 10) - 1] : '')
++}
++const INDEX_TITLE = `文章存档 · 典籍：${cnCount(CLASSICS.length)}部中文经典全文，免费在线阅读`
+ function indexDescription() {
+   const names = CLASSICS.map((b) => `《${b.editions[0].title}》`).join('')
+   return (

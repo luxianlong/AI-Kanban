@@ -1,0 +1,55 @@
+diff --git a/scripts/build-docs-site.mjs b/scripts/build-docs-site.mjs
+index 49e5bc1..867097c 100644
+--- a/scripts/build-docs-site.mjs
++++ b/scripts/build-docs-site.mjs
+@@ -565,6 +565,50 @@ const CLASSICS = [
+       { label: '日本語', id: 'upload-wuzi-ja', title: '呉子', imprint: ['先秦 · 全六篇'] },
+     ],
+   },
++  {
++    key: 'tangliwendui',
++    cover: '/img/classics/tangliwendui-cover.jpg',
++    // The third witness's own opening leaf. The reading pages were collated
++    // against the Wenyuan ge Siku quanshu text, but every one of the twelve
++    // emendations was then checked by eye against this edition: the plain-text
++    // woodblock 唐太宗李衞公問對三卷 held by the Shanghai Library (Wikimedia
++    // Commons, PD-scan), eight columns to the half-leaf and twenty characters to
++    // the column, belonging to no Siku line and carrying no commentary. The leaf
++    // gives, right to left, 「唐太宗李衞公問對卷上」 and the first sentence of the
++    // book, with two collector's seals below the title, the lower one reading
++    // 「上海圖書館藏」. Column seven has 「太宗曰：晉馬隆討涼州」 — the base text
++    // has 計 there, and the first of this page's twelve corrections is legible on
++    // its own cover. Commons caps PDF thumbnails at 1280 wide, so the page's
++    // embedded JPEG (1652x1211) is lifted out whole by
++    // 489-classics-tangliwendui/pdfjpg.py; column/row luminance puts the frame at
++    // y 262..1147 with side rules at x 620..636 and x 25, so the cut is x 0..656,
++    // y 243..1168, scaled to 560 wide — the JPEG simply fills the box.
++    crop: 'background-size:100% 100%;background-position:0% 0%',
++    ar: '.7089',
++    coverAlt:
++      '上海图书馆藏《唐太宗李衞公問對三卷》白文刊本卷上卷端叶，半叶八行、行二十字，题「唐太宗李衞公問對卷上」，正文起「太宗曰：高麗數侵新羅」，题下钤朱文藏书印二方，下一方作「上海圖書館藏」',
++    editions: [
++      {
++        label: '简体',
++        id: 'upload-tangliwendui-hans',
++        title: '唐李问对',
++        imprint: ['唐 · 全三卷'],
++      },
++      { label: '繁體', id: 'upload-tangliwendui', title: '唐李問對', imprint: ['唐 · 全三卷'] },
++      {
++        label: 'English',
++        id: 'upload-tangliwendui-en',
++        title: 'Questions and Replies',
++        imprint: ['Tang · three scrolls'],
++      },
++      {
++        label: '日本語',
++        id: 'upload-tangliwendui-ja',
++        title: '李衛公問対',
++        imprint: ['唐 · 全三巻'],
++      },
++    ],
++  },
+ ]
+ 
+ // A label that isn't one of LANGS would drop that edition off the switch without

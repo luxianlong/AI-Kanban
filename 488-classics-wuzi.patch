@@ -1,0 +1,46 @@
+diff --git a/scripts/build-docs-site.mjs b/scripts/build-docs-site.mjs
+index 4668e12..49e5bc1 100644
+--- a/scripts/build-docs-site.mjs
++++ b/scripts/build-docs-site.mjs
+@@ -530,6 +530,41 @@ const CLASSICS = [
+       { label: '日本語', id: 'upload-simafa-ja', title: '司馬法', imprint: ['先秦 · 全五篇'] },
+     ],
+   },
++  {
++    key: 'wuzi',
++    cover: '/img/classics/wuzi-cover.jpg',
++    // The book's own opening leaf again, and again one of the two witnesses the
++    // reading pages were collated against — but this time the leaf carries the
++    // finding: the Wenyuan ge manuscript of the Siku quanshu heads the first half
++    // of 圖國 as a chapter of its own, 「吳起初見文侯章句」, and numbers none of
++    // the six chapters. The cover is that head-of-scroll leaf, from the
++    // photolithographic reprint of the Wenyuan ge Siku quanshu, volume 726 (the
++    // military writers), page 62 of the djvu (Wikimedia Commons, PD-scan). It
++    // carries, right to left, 「欽定四庫全書」, 「吳子」, 「吳起初見文侯章句」,
++    // 「周　吳起　撰」 and the first sentence of the book; the narrow column on
++    // the left is the centre fold, 「欽定四庫全書　吳子　一」. The reprint sets
++    // two leaves per page, one above the other. Taken at 3840 wide, the upper
++    // leaf's frame measures y 295..2488 with side rules at x 360 and x 3427, and
++    // the centre fold at x 1837..1957 (column/row luminance, see
++    // 488-classics-wuzi/meas.js). Only the right half-leaf is used, cut a little
++    // wider at x 1820..3450, y 270..2520 to leave a margin of paper, and scaled
++    // to 560 wide — so the JPEG simply fills the box.
++    crop: 'background-size:100% 100%;background-position:0% 0%',
++    ar: '.7244',
++    coverAlt:
++      '《景印文渊阁四库全书》第七二六册《吴子》卷端叶，题「欽定四庫全書　吳子　吳起初見文侯章句　周　吳起　撰」，正文起「吳起儒服以兵機見魏文侯」，左侧版心作「欽定四庫全書　吳子　一」',
++    editions: [
++      { label: '简体', id: 'upload-wuzi-hans', title: '吴子', imprint: ['先秦 · 全六篇'] },
++      { label: '繁體', id: 'upload-wuzi', title: '吳子', imprint: ['先秦 · 全六篇'] },
++      {
++        label: 'English',
++        id: 'upload-wuzi-en',
++        title: 'The Wuzi',
++        imprint: ['pre-Qin · six chapters'],
++      },
++      { label: '日本語', id: 'upload-wuzi-ja', title: '呉子', imprint: ['先秦 · 全六篇'] },
++    ],
++  },
+ ]
+ 
+ // A label that isn't one of LANGS would drop that edition off the switch without

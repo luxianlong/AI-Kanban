@@ -435,6 +435,269 @@ const CLASSICS = [
       { label: '日本語', id: 'upload-fanjing-ja', title: '反経', imprint: ['唐 · 全九巻六十四篇'] },
     ],
   },
+  {
+    key: 'liutao',
+    cover: '/img/classics/liutao-cover.jpg',
+    // The cover is the book's own opening leaf, and the oldest one there is: the
+    // Sibu congkan facsimile of the Song printing held in the Tieqin Tongjian lou
+    // of the Qu family of Changshu (Wikimedia Commons, public domain), leaf 10 of
+    // the djvu — the head of scroll one. It carries 「六韜卷第一」, the scroll
+    // heading 「文韜」, the chapter title 「文師」, the opening sentence of the
+    // book, and four collectors' seals. That same printing is one of the two
+    // witnesses the reading pages are collated against. The djvu renders at most
+    // 960x1351 per page; the ink measures x 1..802, y 98..1262 (column/row
+    // luminance, see 485-classics-liutao/meas.js), cut a few pixels wider at
+    // x 0..811, y 90..1271 so the frame is not flush, and scaled to 560 wide —
+    // so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.6871',
+    coverAlt:
+      '四部丛刊影印常熟瞿氏铁琴铜剑楼藏景宋刊本《六韬》卷第一卷端叶，题「六韜卷第一　文韜　文師」，正文起「文王將田，史編布卜」，钤藏书印四颗',
+    editions: [
+      { label: '简体', id: 'upload-liutao-hans', title: '六韬', imprint: ['先秦 · 六卷六十篇'] },
+      { label: '繁體', id: 'upload-liutao', title: '六韜', imprint: ['先秦 · 六卷六十篇'] },
+      {
+        label: 'English',
+        id: 'upload-liutao-en',
+        title: 'The Six Secret Teachings',
+        imprint: ['pre-Qin · six scrolls, 60 chapters'],
+      },
+      { label: '日本語', id: 'upload-liutao-ja', title: '六韜', imprint: ['先秦 · 全六巻六十篇'] },
+    ],
+  },
+  {
+    key: 'sanlue',
+    cover: '/img/classics/sanlue-cover.jpg',
+    // Again the book's own opening leaf, and this one has a name, a patron and a
+    // date: the Fushimi movable-type printing of 1604, held at the National Diet
+    // Library of Japan (shelfmark WA7-22; Wikimedia Commons, public domain),
+    // page 2 of the PDF — the head of the upper scroll. It carries
+    // 「黃石公三略卷之上」, the heading 「上略」, the first sentence of the book,
+    // two red seals, and a later hand's marginal collation note 「講作怨／直作人」.
+    // The printing was cut by order of Tokugawa Ieyasu and its colophon says it
+    // was corrected from the Exposition and the Direct Explanation — it is the
+    // third witness the reading pages were checked against by eye. The PDF is
+    // 10150x8693; rendered at 4200 wide, the ink measures x 200..1975,
+    // y 435..2840 (column/row luminance, see 486-classics-sanlue/meas.js), cut a
+    // little wider at x 175..1995, y 345..2930 to leave a margin of paper, and
+    // scaled to 560 wide — so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.7044',
+    coverAlt:
+      '日本国立国会图书馆藏庆长九年（1604）伏见版古活字本《黄石公三略》卷之上卷端叶，题「黃石公三略卷之上　上略」，正文起「夫主將之法，務擥英雄之心」，钤朱印二颗',
+    editions: [
+      { label: '简体', id: 'upload-sanlue-hans', title: '三略', imprint: ['秦 · 上中下三卷'] },
+      { label: '繁體', id: 'upload-sanlue', title: '三略', imprint: ['秦 · 上中下三卷'] },
+      {
+        label: 'English',
+        id: 'upload-sanlue-en',
+        title: 'The Three Strategies',
+        imprint: ['Qin · three books'],
+      },
+      { label: '日本語', id: 'upload-sanlue-ja', title: '三略', imprint: ['秦 · 上中下三巻'] },
+    ],
+  },
+  {
+    key: 'simafa',
+    cover: '/img/classics/simafa-cover.jpg',
+    // Once more the book's own opening leaf, and this time it is one of the two
+    // witnesses the reading pages were collated against: the Sibu congkan
+    // facsimile of the Song-copied manuscript of the 司馬法 from the Tieqin
+    // Tongjian lou library of the Qu family of Changshu — the same library the
+    // 六韜 cover comes from — leaf one of scroll one (Wikimedia Commons, Sibu
+    // Congkan 0343, page 138; public domain, and the same djvu Chinese
+    // Wikisource transcribes). The leaf carries 「司馬法卷上」, the chapter
+    // heading 「仁本第一」, the first sentence of the book 「古者以仁爲本，
+    // 以義治之之謂正」, and two vermilion collectors' seals at the right.
+    // One djvu leaf is 2600x4578; taken at 1920 wide, the ink measures the frame
+    // at y 300..2638 and the right rule at x 1630, the left rule faintly near
+    // x 114 (column/row luminance, see 487-classics-simafa/meas.js). Cut a little
+    // wider at x 70..1680, y 250..2690 to leave a margin of paper, and scaled to
+    // 560 wide — so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.6596',
+    coverAlt:
+      '《四部丛刊》影印常熟瞿氏铁琴铜剑楼藏景宋钞本《司马法》卷上卷端叶，题「司馬法卷上　仁本第一」，正文起「古者以仁爲本，以義治之之謂正」，右侧钤朱文藏书印二颗',
+    editions: [
+      { label: '简体', id: 'upload-simafa-hans', title: '司马法', imprint: ['先秦 · 全五篇'] },
+      { label: '繁體', id: 'upload-simafa', title: '司馬法', imprint: ['先秦 · 全五篇'] },
+      {
+        label: 'English',
+        id: 'upload-simafa-en',
+        title: 'The Methods of the Sima',
+        imprint: ['pre-Qin · five chapters'],
+      },
+      { label: '日本語', id: 'upload-simafa-ja', title: '司馬法', imprint: ['先秦 · 全五篇'] },
+    ],
+  },
+  {
+    key: 'wuzi',
+    cover: '/img/classics/wuzi-cover.jpg',
+    // The book's own opening leaf again, and again one of the two witnesses the
+    // reading pages were collated against — but this time the leaf carries the
+    // finding: the Wenyuan ge manuscript of the Siku quanshu heads the first half
+    // of 圖國 as a chapter of its own, 「吳起初見文侯章句」, and numbers none of
+    // the six chapters. The cover is that head-of-scroll leaf, from the
+    // photolithographic reprint of the Wenyuan ge Siku quanshu, volume 726 (the
+    // military writers), page 62 of the djvu (Wikimedia Commons, PD-scan). It
+    // carries, right to left, 「欽定四庫全書」, 「吳子」, 「吳起初見文侯章句」,
+    // 「周　吳起　撰」 and the first sentence of the book; the narrow column on
+    // the left is the centre fold, 「欽定四庫全書　吳子　一」. The reprint sets
+    // two leaves per page, one above the other. Taken at 3840 wide, the upper
+    // leaf's frame measures y 295..2488 with side rules at x 360 and x 3427, and
+    // the centre fold at x 1837..1957 (column/row luminance, see
+    // 488-classics-wuzi/meas.js). Only the right half-leaf is used, cut a little
+    // wider at x 1820..3450, y 270..2520 to leave a margin of paper, and scaled
+    // to 560 wide — so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.7244',
+    coverAlt:
+      '《景印文渊阁四库全书》第七二六册《吴子》卷端叶，题「欽定四庫全書　吳子　吳起初見文侯章句　周　吳起　撰」，正文起「吳起儒服以兵機見魏文侯」，左侧版心作「欽定四庫全書　吳子　一」',
+    editions: [
+      { label: '简体', id: 'upload-wuzi-hans', title: '吴子', imprint: ['先秦 · 全六篇'] },
+      { label: '繁體', id: 'upload-wuzi', title: '吳子', imprint: ['先秦 · 全六篇'] },
+      {
+        label: 'English',
+        id: 'upload-wuzi-en',
+        title: 'The Wuzi',
+        imprint: ['pre-Qin · six chapters'],
+      },
+      { label: '日本語', id: 'upload-wuzi-ja', title: '呉子', imprint: ['先秦 · 全六篇'] },
+    ],
+  },
+  {
+    key: 'tangliwendui',
+    cover: '/img/classics/tangliwendui-cover.jpg',
+    // The third witness's own opening leaf. The reading pages were collated
+    // against the Wenyuan ge Siku quanshu text, but every one of the twelve
+    // emendations was then checked by eye against this edition: the plain-text
+    // woodblock 唐太宗李衞公問對三卷 held by the Shanghai Library (Wikimedia
+    // Commons, PD-scan), eight columns to the half-leaf and twenty characters to
+    // the column, belonging to no Siku line and carrying no commentary. The leaf
+    // gives, right to left, 「唐太宗李衞公問對卷上」 and the first sentence of the
+    // book, with two collector's seals below the title, the lower one reading
+    // 「上海圖書館藏」. Column seven has 「太宗曰：晉馬隆討涼州」 — the base text
+    // has 計 there, and the first of this page's twelve corrections is legible on
+    // its own cover. Commons caps PDF thumbnails at 1280 wide, so the page's
+    // embedded JPEG (1652x1211) is lifted out whole by
+    // 489-classics-tangliwendui/pdfjpg.py; column/row luminance puts the frame at
+    // y 262..1147 with side rules at x 620..636 and x 25, so the cut is x 0..656,
+    // y 243..1168, scaled to 560 wide — the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.7089',
+    coverAlt:
+      '上海图书馆藏《唐太宗李衞公問對三卷》白文刊本卷上卷端叶，半叶八行、行二十字，题「唐太宗李衞公問對卷上」，正文起「太宗曰：高麗數侵新羅」，题下钤朱文藏书印二方，下一方作「上海圖書館藏」',
+    editions: [
+      {
+        label: '简体',
+        id: 'upload-tangliwendui-hans',
+        title: '唐李问对',
+        imprint: ['唐 · 全三卷'],
+      },
+      { label: '繁體', id: 'upload-tangliwendui', title: '唐李問對', imprint: ['唐 · 全三卷'] },
+      {
+        label: 'English',
+        id: 'upload-tangliwendui-en',
+        title: 'Questions and Replies',
+        imprint: ['Tang · three scrolls'],
+      },
+      {
+        label: '日本語',
+        id: 'upload-tangliwendui-ja',
+        title: '李衛公問対',
+        imprint: ['唐 · 全三巻'],
+      },
+    ],
+  },
+  {
+    key: 'weiliaozi',
+    cover: '/img/classics/weiliaozi-cover.jpg',
+    // Another plain-text woodblock from the Shanghai Library (Wikimedia Commons,
+    // PD-scan), eight columns to the half-leaf and twenty characters to the
+    // column, single border, belonging to no Siku line and carrying no
+    // commentary. The reading pages take their text from the Wenyuan ge Siku
+    // quanshu edition — the Weiliaozi is the one book of the Seven Military
+    // Classics with no usable punctuated text online — and both of the page's
+    // two emendations were checked by eye against this edition. The leaf gives,
+    // right to left, 「尉繚子卷一」, 「天官第一」 and the first sentence of the
+    // book, with two collector's seals below the title. Column three reads
+    // 「黃帝刑德」 where the Siku text has 形德: the first character corrected on
+    // this page is legible on its own cover. The PDF page is a two-leaf opening
+    // (1503x1134) whose right half is blank paper; 490-classics-weiliaozi/pdfjpg.py
+    // lifts the embedded JPEG out whole, and column/row luminance puts the
+    // half-leaf's right rule at x 633..644 and its horizontals at y 180..189 and
+    // y 1062..1073, so the cut is x 0..656, y 160..1092, scaled to 560 wide —
+    // the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.7035',
+    coverAlt:
+      '上海图书馆藏《尉繚子》白文刊本卷一卷端叶，半叶八行、行二十字，题「尉繚子卷一　天官第一」，正文起「梁惠王問尉繚子曰：黃帝刑德可以百勝，有之乎」，题下钤朱文藏书印二方',
+    editions: [
+      {
+        label: '简体',
+        id: 'upload-weiliaozi-hans',
+        title: '尉缭子',
+        imprint: ['先秦 · 五卷二十四篇'],
+      },
+      { label: '繁體', id: 'upload-weiliaozi', title: '尉繚子', imprint: ['先秦 · 五卷二十四篇'] },
+      {
+        label: 'English',
+        id: 'upload-weiliaozi-en',
+        title: 'Weiliaozi',
+        imprint: ['pre-Qin · five scrolls, 24 chapters'],
+      },
+      {
+        label: '日本語',
+        id: 'upload-weiliaozi-ja',
+        title: '尉繚子',
+        imprint: ['先秦 · 全五巻二十四篇'],
+      },
+    ],
+  },
+  {
+    key: 'chajing',
+    cover: '/img/classics/chajing-cover.jpg',
+    // The opening leaf of Scroll One in the National Diet Library's Ming
+    // printing of the Baichuan xuehai, ninth collection (shelfmark 特1-2229,
+    // Wikimedia Commons, PD-scan). The Baichuan xuehai was compiled by Zuo Gui
+    // in the Song, and the earliest surviving line of the Chajing runs through
+    // it; this copy belongs to no Siku line, and the reading pages were checked
+    // against it leaf by leaf. Right to left the leaf gives 「茶經卷上」,
+    // 「一之源」, 「唐　竟陵陸羽」 and the first sentence of the book, with three
+    // collector's seals below. The chapter title 「一之源」 on this leaf is why
+    // the pages keep the base text's titles rather than the Siku text's
+    // 「一茶之源」, and the author line 「唐　竟陵陸羽」 differs from the Siku
+    // text's 「唐　陸羽　撰」 in the same way. The PDF page is a two-leaf opening
+    // (5847x5047) whose left half is the opening leaf; 491-classics-chajing
+    // lifts the embedded JPEG out whole with pdfjpg.py, and inkscan.js puts the
+    // ink of that half-leaf at x 317..2967 and y 614..3990, so the cut is
+    // x 300..2990, y 590..4020, scaled to 560 wide — the JPEG fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.7843',
+    coverAlt:
+      '国立国会图书馆藏明刊《百川學海》壬集《茶經》卷上卷端叶，题「茶經卷上」「一之源」，撰者行作「唐　竟陵陸羽」，正文起「茶者，南方之嘉木也。一尺、二尺，迺至數十尺」，钤朱文藏书印三方',
+    editions: [
+      {
+        label: '简体',
+        id: 'upload-chajing-hans',
+        title: '茶经',
+        imprint: ['唐 · 三卷十篇'],
+      },
+      { label: '繁體', id: 'upload-chajing', title: '茶經', imprint: ['唐 · 三卷十篇'] },
+      {
+        label: 'English',
+        id: 'upload-chajing-en',
+        title: 'The Classic of Tea',
+        imprint: ['Tang · three scrolls, 10 chapters'],
+      },
+      {
+        label: '日本語',
+        id: 'upload-chajing-ja',
+        title: '茶經',
+        imprint: ['唐 · 全三巻十篇'],
+      },
+    ],
+  },
 ]
 
 // A label that isn't one of LANGS would drop that edition off the switch without
@@ -471,7 +734,19 @@ for (const book of CLASSICS) {
 // The book list is READ OFF `CLASSICS`, never typed out again: the hand-written
 // version in p/dianji.meta.json already went stale once — it still listed ten
 // books after 菜根谭 was shelved.
-const INDEX_TITLE = '文章存档 · 典籍：十二部中文经典全文，免费在线阅读'
+// The COUNT in the title is read off `CLASSICS` for the same reason the book
+// list below is: it was typed out by hand and had already gone stale — the page
+// still said 十二部 with thirteen books on the shelf. 十/二十 are the only cases
+// the shelf will plausibly reach, and a number past 九十九 throws rather than
+// printing something wrong.
+function cnCount(n) {
+  const d = '一二三四五六七八九'
+  if (n < 1 || n > 99) throw new Error(`CLASSICS: ${n} books — cnCount() needs extending`)
+  if (n < 10) return d[n - 1]
+  const tens = n < 20 ? '十' : d[Math.floor(n / 10) - 1] + '十'
+  return tens + (n % 10 ? d[(n % 10) - 1] : '')
+}
+const INDEX_TITLE = `文章存档 · 典籍：${cnCount(CLASSICS.length)}部中文经典全文，免费在线阅读`
 function indexDescription() {
   const names = CLASSICS.map((b) => `《${b.editions[0].title}》`).join('')
   return (
@@ -749,12 +1024,23 @@ const CONTENT_CSS = `
   color: var(--muted);
 }
 .toc-title:hover { color: var(--accent); }
-.toc-caret { font-size: 9px; transition: transform 0.18s; }
+.toc-caret { font-size: 9px; line-height: 1; transition: transform 0.18s; }
 .toc.collapsed .toc-caret { transform: rotate(-90deg); }
 .toc.collapsed ul { display: none; }
-/* Folded, the heading is all that's left in the margin: nothing below it to
-   underline, so the rule goes too. */
-.toc.collapsed .toc-title { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+/* Folded, the caret is the entire control (task #457). The word 目录 set in
+   11px/0.18em tracking was still holding ~45px of margin open — several
+   character widths of chrome for a list nobody is reading — so the label goes
+   with the list and only the arrow stays. The padding that makes the arrow a
+   real click target stays INSIDE the button rather than being pulled back with
+   a negative margin: the nav is a scroll box, and anything hanging outside it
+   is clipped out of the hit region as well as out of the paint. */
+.toc.collapsed .toc-label { display: none; }
+.toc.collapsed .toc-caret { font-size: 13px; }
+/* Nothing below it to separate any more, and no text to keep off the rule. */
+.toc.collapsed .toc-title { border-bottom: none; padding: 5px; margin: 0; width: auto; gap: 0; }
+/* One short line of content: the scroll box has nothing left to scroll, and
+   keeping it would only clip the control's own padding. */
+.toc.collapsed { padding-right: 0; overflow: visible; max-height: none; }
 .toc ul { list-style: none; margin: 0; padding: 0; }
 .toc li { margin: 0; }
 .toc li a { display: block; padding: 4px 0; color: var(--muted); overflow-wrap: anywhere; }
@@ -827,7 +1113,19 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 /* Only wide layouts have a margin column to reclaim; narrow ones already stack
    (and their own rule below would lose to this more specific selector). */
 @media (min-width: 901px) {
-  .layout.toc-collapsed { grid-template-columns: max-content minmax(0, 1fr); gap: 30px; }
+  /* The prose is capped at 70ch, so it cannot spend the reclaimed column — left
+     alone it just slides left and leaves the whole gain as an empty right-hand
+     gutter, and the shift got worse once the margin shrank to a caret (#457).
+     Auto margins re-centre it — but only within whatever track is left beside
+     the arrow, which still put the text ~30px right of centre and shaved the
+     right-hand margin (#459). So the nav's track and the gap after it go to
+     zero and the caret overhangs into the margin instead: the prose then sits
+     exactly where it would on a page with no sidebar at all. The overhang is
+     ~20px against a gutter of half of 190+46, so it never reaches the text,
+     and .toc is sticky — positioned — so it still paints over .content.
+     Same fix the /p/ fold applies in toc-fold.js. */
+  .layout.toc-collapsed { grid-template-columns: 0 minmax(0, 1fr); column-gap: 0; }
+  .layout.toc-collapsed .content { margin-inline: auto; }
 }
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; gap: 12px; padding: 22px 20px 70px; }
@@ -894,7 +1192,7 @@ function metaDescription(bodyHtml) {
 function renderDocPage({ id, title, body, toc, hasMermaid }) {
   const sidebar = toc.length
     ? `<nav class="toc" aria-label="目录">
-<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list"><span class="toc-caret" aria-hidden="true">▾</span>目录</button>
+<button class="toc-title" type="button" aria-expanded="true" aria-controls="toc-list" aria-label="目录"><span class="toc-caret" aria-hidden="true">▾</span><span class="toc-label">目录</span></button>
 <ul id="toc-list">
 ${toc.map((h) => `<li class="lv${h.level}"><a href="#${h.id}">${esc(h.text)}</a></li>`).join('\n')}
 </ul>

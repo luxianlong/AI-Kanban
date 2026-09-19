@@ -63,10 +63,24 @@
       '.toc-fold:hover{opacity:.7}' +
       '.toc-fold-caret{font-size:.8em;line-height:1;transition:transform .18s}' +
       '.toc.collapsed .toc-fold-caret{transform:rotate(-90deg)}' +
+      // Folded, the caret is the WHOLE control (task #457). Keeping the label
+      // left "目录" / "本页目录" standing in the margin — 41px on the 典籍
+      // readers, 68px on the uploaded articles — which is most of what a fold
+      // was supposed to give back. Hiding it takes the column to the glyph.
+      '.toc.collapsed .toc-fold-label{display:none}' +
+      // An 8px arrow is not a click target, so the button keeps padding of its
+      // own. It stays INSIDE the button: a negative margin would hang the hit
+      // area outside the nav, which is a scroll box on both page families and
+      // clips what leaves it.
+      '.toc.collapsed .toc-fold{width:auto;gap:0;padding:5px}' +
+      '.toc.collapsed .toc-fold-caret{font-size:13px}' +
+      // The host is the only survivor, so its spacing and any rule the page
+      // hung under it are now separating nothing. This has to out-shout the
+      // page's own `.toc h2 {…}`, which is why it is !important and not tidy.
+      '.toc.collapsed .toc-fold-head{margin:0!important;padding:0!important;border:0!important}' +
       // Only used for the no-heading family, where we supply the host element.
       '.toc-fold-head.toc-fold-synth{margin:0 0 10px;font-size:12px;letter-spacing:.14em;' +
-      'text-transform:uppercase;opacity:.75}' +
-      '.toc.collapsed .toc-fold-head.toc-fold-synth{margin:0}'
+      'text-transform:uppercase;opacity:.75}'
     var style = document.createElement('style')
     style.textContent = css
     document.head.appendChild(style)
@@ -87,24 +101,35 @@
   // Give the nav a clickable host for the caret. If the page wrote its own
   // heading ("本页目录"), the button moves *inside* it so the page's `.toc h2`
   // styling still lands; otherwise we supply a minimal one.
+  //
+  // The words always go in a .toc-fold-label wrapper, because folding hides
+  // them: a collapsed control is the caret alone, which is also why the button
+  // carries an aria-label — with the label gone and the caret aria-hidden it
+  // would otherwise have no accessible name at all.
   function mountControl(toc) {
     var btn = document.createElement('button')
     btn.className = 'toc-fold'
     btn.type = 'button'
     btn.setAttribute('aria-expanded', 'true')
 
+    var label = document.createElement('span')
+    label.className = 'toc-fold-label'
+
     var head = toc.firstElementChild
     if (head && /^H[1-6]$/.test(head.tagName)) {
-      while (head.firstChild) btn.appendChild(head.firstChild)
+      while (head.firstChild) label.appendChild(head.firstChild)
+      btn.appendChild(label)
       head.appendChild(btn)
     } else {
       head = document.createElement('div')
       head.className = 'toc-fold-synth'
-      btn.appendChild(document.createTextNode('目录'))
+      label.appendChild(document.createTextNode('目录'))
+      btn.appendChild(label)
       head.appendChild(btn)
       toc.insertBefore(head, toc.firstChild)
     }
     head.classList.add('toc-fold-head')
+    btn.setAttribute('aria-label', (label.textContent || '目录').trim() || '目录')
 
     var caret = document.createElement('span')
     caret.className = 'toc-fold-caret'
@@ -117,7 +142,16 @@
     return btn
   }
 
-  // Hand the freed column back to the prose.
+  // Hand the freed column back to the page — as MARGIN, not as measure.
+  //
+  // Task #426 stopped at "widen the prose track". On the 典籍 readers that was
+  // invisible (`main` is pinned to 756px, so the extra went to auto margins),
+  // but the uploaded articles' `main.content` has no max-width: folding pulled
+  // the line from 792px out to 1010px and slid the block sideways, leaving
+  // 219px of margin on the left against 172px on the right (task #459). A fold
+  // is a decluttering, not a re-typesetting — so the prose keeps exactly the
+  // measure it was being read at and re-centres on the page, landing where it
+  // would have sat had the page never carried a sidebar.
   //
   // The width lives on the *parent* grid, and each page sizes it differently,
   // so instead of guessing we clear any override, ask the browser what it
@@ -130,20 +164,45 @@
     if (!parent || parent.firstElementChild !== toc) return
     var prose = toc.nextElementSibling
     parent.style.removeProperty('grid-template-columns')
-    if (prose) prose.style.removeProperty('margin-inline')
-    if (!collapsed) return
+    parent.style.removeProperty('column-gap')
+    if (prose) {
+      prose.style.removeProperty('max-width')
+      prose.style.removeProperty('margin-inline')
+    }
+    if (!collapsed || !prose) return
     var cs = window.getComputedStyle(parent)
     if (cs.display.indexOf('grid') < 0) return
     // A computed template is resolved to used values ("236px 796px"), so a
     // plain split counts the tracks. minmax()/repeat() never survive to here.
     if (cs.gridTemplateColumns.split(/\s+/).filter(Boolean).length < 2) return
-    parent.style.gridTemplateColumns = 'max-content minmax(0, 1fr)'
-    // These pages cap their measure (the 典籍 readers pin `main` to 756px), so a
-    // widened track would not widen the prose — it would strand it against the
-    // left edge with the reclaimed space as an empty right-hand gutter. Auto
-    // side margins re-centre it, and are a no-op on a page whose prose has no
-    // max-width and really does fill the track.
-    if (prose) prose.style.marginInline = 'auto'
+    // Measured with the page's own template still in force — the nav has
+    // already shrunk to a caret but its track has not — so this is the measure
+    // the reader was just reading. `max-width` is a border-box cap only when
+    // the page says so, and the box is not ours to assume.
+    var ps = window.getComputedStyle(prose)
+    var measure = prose.getBoundingClientRect().width
+    if (ps.boxSizing !== 'border-box') {
+      measure -= (parseFloat(ps.paddingLeft) || 0) + (parseFloat(ps.paddingRight) || 0)
+    }
+    if (!(measure > 0)) return
+    prose.style.maxWidth = measure + 'px'
+    prose.style.marginInline = 'auto'
+    // Taking the nav's track *and the gap after it* to zero is what actually
+    // centres the prose on the page: left at `max-content` the auto margins
+    // would only centre it in what is left beside the caret, i.e. half a
+    // column right of true centre. The caret overhangs into the margin the
+    // prose just gave back; it is the sticky — positioned — box on both page
+    // families, so it keeps painting and taking clicks above the prose.
+    parent.style.gridTemplateColumns = '0 minmax(0, 1fr)'
+    parent.style.columnGap = '0'
+    // Unless that margin is too thin to hold it, in which case the arrow would
+    // come down on the text. Give it a real column back and accept a result
+    // that is off-centre by half a caret rather than one that overlaps.
+    var ctl = toc.querySelector('.toc-fold')
+    if (ctl && ctl.getBoundingClientRect().right > prose.getBoundingClientRect().left) {
+      parent.style.gridTemplateColumns = 'max-content minmax(0, 1fr)'
+      parent.style.removeProperty('column-gap')
+    }
   }
 
   function start() {
@@ -155,6 +214,8 @@
     function apply(collapsed) {
       toc.classList.toggle(COLLAPSED, collapsed)
       btn.setAttribute('aria-expanded', String(!collapsed))
+      // Folded there is no label left to say what the arrow is for.
+      btn.setAttribute('title', collapsed ? '展开目录' : '收起目录')
       reclaim(toc, collapsed)
     }
 
