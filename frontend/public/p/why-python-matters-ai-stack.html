@@ -260,10 +260,10 @@ details.sol>.codewrap{margin-left:16px;margin-right:16px}
 <p class="eyebrow">Career Design · 任务 #456</p>
 <h1>把生态拿掉之后：Python 在 AI 栈里到底承担什么</h1>
 <p class="sub">你说「除了生态」—— 那正好，因为「因为生态」本来就不是答案，是把问题换了个说法。这篇给出六个语言级的机制、一张收费清单、一个反事实法庭，和三条可以证伪的预测。</p>
-<div class="meta"><span>任务 <b>#456</b></span><span>时间锚点 <b>2026 年 9 月</b></span><span>全文 <b>15 节</b></span><span>承接 <b>#422 / #424 / #453 / #454 / #455</b></span></div>
+<div class="meta"><span>任务 <b>#456</b></span><span>时间锚点 <b>2026 年 9 月</b></span><span>全文 <b>16 节</b>（§0–§15）</span><span>承接 <b>#422 / #424 / #453 / #454 / #455</b></span></div>
 </div></header>
 <div class="layout">
-<nav class="toc"><h2>本页目录</h2><ol><li><a href="#sec-0-一页版答案">0. 一页版答案</a></li><li><a href="#sec-1-为什么-因为生态-不算答案">1. 为什么「因为生态」不算答案</a></li><li><a href="#sec-2-换个问题-ai-栈为什么必须是两语言系统">2. 换个问题：AI 栈为什么必须是两语言系统</a></li><li><a href="#sec-3-机制一-摊销比-python-只需要跑赢-gpu-排空队列">3. 机制一：摊销比 —— Python 只需要跑赢「GPU 排空队列」</a></li><li><a href="#sec-4-机制二-python-的-慢-是它当选的原因">4. 机制二：Python 的「慢」是它当选的原因</a></li><li><a href="#sec-5-机制三-库可以改写语言本身">5. 机制三：库可以改写语言本身</a></li><li><a href="#sec-6-机制四-它粘的不是代码-是内存">6. 机制四：它粘的不是代码，是内存</a></li><li><a href="#sec-7-机制五-一个活着的进程">7. 机制五：一个活着的进程</a></li><li><a href="#sec-8-机制六-一份不用重写的工件">8. 机制六：一份不用重写的工件</a></li><li><a href="#sec-9-记账-python-收的费">9. 记账：Python 收的费</a></li><li><a href="#sec-10-反事实法庭-为什么不是它们">10. 反事实法庭：为什么不是它们</a></li><li><a href="#sec-11-什么会取代它-三条可以证伪的预测">11. 什么会取代它：三条可以证伪的预测</a></li><li><a href="#sec-12-这对你的职业设计意味着什么">12. 这对你的职业设计意味着什么</a></li><li><a href="#sec-454-把那一行换成了-online-migration-consistency-python-这块不该再开一行技能-而">454 把那一行换成了 Online Migration &amp;amp; Consistency。Python 这块不该再开一行技能，而应该混进已有的行——因为「会 Python」不是一个可信的差异化声明，「治理 Python 交付物」才是。</a></li><li><a href="#sec-422-的路线把-16-小时放在张量-显存-批处理-gil-这四个心智模型上-只给语法-6-小时-当时给的理由是-难点不">422 的路线把 16 小时放在张量 / 显存 / 批处理 / GIL 这四个心智模型上，只给语法 6 小时。当时给的理由是「难点不在语法」。本文给出了更硬的理由：</a></li></ol></nav>
+<nav class="toc"><h2>本页目录</h2><ol><li><a href="#sec-0-一页版答案">0. 一页版答案</a></li><li><a href="#sec-1-为什么-因为生态-不算答案">1. 为什么「因为生态」不算答案</a></li><li><a href="#sec-2-换个问题-ai-栈为什么必须是两语言系统">2. 换个问题：AI 栈为什么必须是两语言系统</a></li><li><a href="#sec-3-机制一-摊销比-python-只需要跑赢-gpu-排空队列">3. 机制一：摊销比 —— Python 只需要跑赢「GPU 排空队列」</a></li><li><a href="#sec-4-机制二-python-的-慢-是它当选的原因">4. 机制二：Python 的「慢」是它当选的原因</a></li><li><a href="#sec-5-机制三-库可以改写语言本身">5. 机制三：库可以改写语言本身</a></li><li><a href="#sec-6-机制四-它粘的不是代码-是内存">6. 机制四：它粘的不是代码，是内存</a></li><li><a href="#sec-7-机制五-一个活着的进程">7. 机制五：一个活着的进程</a></li><li><a href="#sec-8-机制六-一份不用重写的工件">8. 机制六：一份不用重写的工件</a></li><li><a href="#sec-9-记账-python-收的费">9. 记账：Python 收的费</a></li><li><a href="#sec-10-反事实法庭-为什么不是它们">10. 反事实法庭：为什么不是它们</a></li><li><a href="#sec-11-什么会取代它-三条可以证伪的预测">11. 什么会取代它：三条可以证伪的预测</a></li><li><a href="#sec-12-这对你的职业设计意味着什么">12. 这对你的职业设计意味着什么</a></li><li><a href="#sec-13-60-秒版答案-一页速查">13. 60 秒版答案 + 一页速查</a></li><li><a href="#sec-14-仍然悬着的问题">14. 仍然悬着的问题</a></li><li><a href="#sec-15-参考坐标">15. 参考坐标</a></li></ol></nav>
 <main class="content">
 <blockquote>
 <p><strong>这页回答什么。</strong> 你的原话是：<em>「我就是好奇 Python 在 AI 技术栈里到底为什么重要，</em><em>除了生态</em><em>。它真正的意义 / 好处是什么？」</em></p>
@@ -462,13 +462,13 @@ details.sol>.codewrap{margin-left:16px;margin-right:16px}
   participant P as Python 主线程（CPU）
   participant Q as CUDA Stream 队列
   participant G as GPU
-  P-&gt;&gt;Q: 入队 kernel #1（耗时 5 µs）
-  Q-&gt;&gt;G: 开始执行 #1（300 µs）
-  P-&gt;&gt;Q: 入队 kernel #2（5 µs）
-  P-&gt;&gt;Q: 入队 kernel #3（5 µs）
-  P-&gt;&gt;Q: 入队 kernel #4（5 µs）
-  Note over P,G: CPU 已经跑到 #4，GPU 还在算 #1&lt;br/&gt;Python 的 15 µs 完全被 300 µs 盖住
-  G-&gt;&gt;G: 依次执行 #2 #3 #4
+  P-&gt;&gt;Q: 入队 kernel 1（耗时 5 µs）
+  Q-&gt;&gt;G: 开始执行 kernel 1（300 µs）
+  P-&gt;&gt;Q: 入队 kernel 2（5 µs）
+  P-&gt;&gt;Q: 入队 kernel 3（5 µs）
+  P-&gt;&gt;Q: 入队 kernel 4（5 µs）
+  Note over P,G: CPU 已经跑到 kernel 4，GPU 还在算 kernel 1&lt;br/&gt;Python 的 15 µs 完全被 300 µs 盖住
+  G-&gt;&gt;G: 依次执行 kernel 2、3、4
   Note over P: 只有 .item() / .cpu() / print(loss)&lt;br/&gt;才会真的同步等待
 </pre>
 <p>结论可以说得非常精确：</p>
@@ -965,7 +965,7 @@ TF1 做的事情是：在 Python 里嵌一门<strong>自己的语言</strong>—
 <p><strong>「我不写模型。我的工作是让别人写的 Python 在机群上可复现、可重启、可回滚地跑起来——而 Python 的每一个设计选择，都会变成平台的一个 SLO 问题。」</strong></p>
 </blockquote>
 <h3 id="sec-12-2-简历上该怎么说-承接-454">12.2 简历上该怎么说（承接 #454）<a class="anchor" href="#sec-12-2-简历上该怎么说-承接-454" aria-label="链接到本节">#</a></h3>
-<h1 id="sec-454-把那一行换成了-online-migration-consistency-python-这块不该再开一行技能-而">454 把那一行换成了 <code>Online Migration &amp; Consistency</code>。Python 这块<strong>不该</strong>再开一行技能，而应该<strong>混进已有的行</strong>——因为「会 Python」不是一个可信的差异化声明，「治理 Python 交付物」才是。</h1>
+<p>任务 #454 把那一行换成了 <code>Online Migration &amp; Consistency</code>。Python 这块<strong>不该</strong>再开一行技能，而应该<strong>混进已有的行</strong>——因为「会 Python」不是一个可信的差异化声明，「治理 Python 交付物」才是。</p>
 <p>具体建议（可选，视你实际做过的事而定）：</p>
 <div class="hl"><pre><span></span><code>Python Delivery at Fleet Scale
     Reproducible CUDA/Python environments (lockfiles, wheel/ABI matrix, image
@@ -978,7 +978,7 @@ TF1 做的事情是：在 Python 里嵌一门<strong>自己的语言</strong>—
 <p>⚠️ 这里要非常小心。#453 §8、#454 §8 的整个教训就是「别把没撑住三层追问的词放进技能栏」。上面这一行如果你只有「用过 pip」的经历，面试官问第二个问题（「那你们的 CUDA 版本是怎么钉住的？驱动升级怎么滚？」）就穿了。<strong>宁可不写。</strong></p>
 </blockquote>
 <h3 id="sec-12-3-重新解释-422-那-40-小时的排布">12.3 重新解释 #422 那 40 小时的排布<a class="anchor" href="#sec-12-3-重新解释-422-那-40-小时的排布" aria-label="链接到本节">#</a></h3>
-<h1 id="sec-422-的路线把-16-小时放在张量-显存-批处理-gil-这四个心智模型上-只给语法-6-小时-当时给的理由是-难点不">422 的路线把 16 小时放在张量 / 显存 / 批处理 / GIL 这四个心智模型上，只给语法 6 小时。当时给的理由是「难点不在语法」。本文给出了<strong>更硬的理由</strong>：</h1>
+<p>任务 #422 的路线把 16 小时放在张量 / 显存 / 批处理 / GIL 这四个心智模型上，只给语法 6 小时。当时给的理由是「难点不在语法」。本文给出了<strong>更硬的理由</strong>：</p>
 <table>
 <thead>
 <tr>
