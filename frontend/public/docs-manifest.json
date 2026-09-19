@@ -1,5 +1,80 @@
 [
   {
+    "id": "upload-liutao-ja",
+    "title": "六韜 — Rikutō（日本語）",
+    "href": "/p/liutao-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T13:35:55.849Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liutao-ja.html",
+      "frontend/public/p/liutao-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liutao-en",
+    "title": "The Six Secret Teachings — Liutao (English)",
+    "href": "/p/liutao-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T13:35:55.846Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liutao-en.html",
+      "frontend/public/p/liutao-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liutao-hans",
+    "title": "六韬 · 简体版",
+    "href": "/p/liutao-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T13:35:55.840Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liutao-hans.html",
+      "frontend/public/p/liutao-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-liutao",
+    "title": "六韜 · 繁體版",
+    "href": "/p/liutao.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T13:35:55.835Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/liutao.html",
+      "frontend/public/p/liutao.meta.json"
+    ]
+  },
+  {
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬",
+    "href": "/p/dianji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T13:34:47.889Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
+    ]
+  },
+  {
     "id": "upload-python-description-language-ai-stack",
     "title": "The Description Language: What Python Actually Does in the AI Stack",
     "href": "/p/python-description-language-ai-stack.html",
@@ -897,21 +972,6 @@
     "paths": [
       "docs/four-vocabularies-one-platform-2.md",
       "frontend/public/docs/four-vocabularies-one-platform-2.html"
-    ]
-  },
-  {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经",
-    "href": "/p/dianji.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-16T11:41:56.850Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
     ]
   },
   {

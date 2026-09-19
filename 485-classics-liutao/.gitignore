@@ -1,0 +1,7 @@
+# 取得物と中間生成物は入庫しない。fetch.sh / cover.sh で取り直し、
+# rebuild.sh で全部作り直せる。
+raw/
+var/
+*.json
+!package.json
+__pycache__/
