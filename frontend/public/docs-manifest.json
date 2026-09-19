@@ -1,12 +1,72 @@
 [
   {
+    "id": "upload-weiliaozi-ja",
+    "title": "尉繚子 — Utsuryōshi（日本語）",
+    "href": "/p/weiliaozi-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T15:58:06.002Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/weiliaozi-ja.html",
+      "frontend/public/p/weiliaozi-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-weiliaozi-en",
+    "title": "Weiliaozi (English)",
+    "href": "/p/weiliaozi-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T15:58:05.999Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/weiliaozi-en.html",
+      "frontend/public/p/weiliaozi-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-weiliaozi-hans",
+    "title": "尉缭子 · 简体版",
+    "href": "/p/weiliaozi-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T15:58:05.997Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/weiliaozi-hans.html",
+      "frontend/public/p/weiliaozi-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-weiliaozi",
+    "title": "尉繚子 · 繁體版",
+    "href": "/p/weiliaozi.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T15:58:05.995Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/weiliaozi.html",
+      "frontend/public/p/weiliaozi.meta.json"
+    ]
+  },
+  {
     "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略 · 司马法 · 吴子 · 唐李问对",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略 · 司马法 · 吴子 · 唐李问对 · 尉缭子",
     "href": "/p/dianji.html",
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T15:16:15.127Z",
+    "updatedAt": "2026-09-19T15:55:17.236Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -21,7 +81,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T15:15:47.940Z",
+    "updatedAt": "2026-09-19T15:26:26.368Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -36,7 +96,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T15:15:47.938Z",
+    "updatedAt": "2026-09-19T15:26:26.366Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -51,7 +111,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T15:15:47.937Z",
+    "updatedAt": "2026-09-19T15:26:26.365Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -66,7 +126,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T15:15:47.934Z",
+    "updatedAt": "2026-09-19T15:26:26.362Z",
     "isNew": true,
     "private": false,
     "paths": [

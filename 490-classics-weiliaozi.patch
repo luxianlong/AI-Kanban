@@ -1,0 +1,56 @@
+diff --git a/scripts/build-docs-site.mjs b/scripts/build-docs-site.mjs
+index 867097c..8135244 100644
+--- a/scripts/build-docs-site.mjs
++++ b/scripts/build-docs-site.mjs
+@@ -609,6 +609,51 @@ const CLASSICS = [
+       },
+     ],
+   },
++  {
++    key: 'weiliaozi',
++    cover: '/img/classics/weiliaozi-cover.jpg',
++    // Another plain-text woodblock from the Shanghai Library (Wikimedia Commons,
++    // PD-scan), eight columns to the half-leaf and twenty characters to the
++    // column, single border, belonging to no Siku line and carrying no
++    // commentary. The reading pages take their text from the Wenyuan ge Siku
++    // quanshu edition — the Weiliaozi is the one book of the Seven Military
++    // Classics with no usable punctuated text online — and both of the page's
++    // two emendations were checked by eye against this edition. The leaf gives,
++    // right to left, 「尉繚子卷一」, 「天官第一」 and the first sentence of the
++    // book, with two collector's seals below the title. Column three reads
++    // 「黃帝刑德」 where the Siku text has 形德: the first character corrected on
++    // this page is legible on its own cover. The PDF page is a two-leaf opening
++    // (1503x1134) whose right half is blank paper; 490-classics-weiliaozi/pdfjpg.py
++    // lifts the embedded JPEG out whole, and column/row luminance puts the
++    // half-leaf's right rule at x 633..644 and its horizontals at y 180..189 and
++    // y 1062..1073, so the cut is x 0..656, y 160..1092, scaled to 560 wide —
++    // the JPEG simply fills the box.
++    crop: 'background-size:100% 100%;background-position:0% 0%',
++    ar: '.7035',
++    coverAlt:
++      '上海图书馆藏《尉繚子》白文刊本卷一卷端叶，半叶八行、行二十字，题「尉繚子卷一　天官第一」，正文起「梁惠王問尉繚子曰：黃帝刑德可以百勝，有之乎」，题下钤朱文藏书印二方',
++    editions: [
++      {
++        label: '简体',
++        id: 'upload-weiliaozi-hans',
++        title: '尉缭子',
++        imprint: ['先秦 · 五卷二十四篇'],
++      },
++      { label: '繁體', id: 'upload-weiliaozi', title: '尉繚子', imprint: ['先秦 · 五卷二十四篇'] },
++      {
++        label: 'English',
++        id: 'upload-weiliaozi-en',
++        title: 'Weiliaozi',
++        imprint: ['pre-Qin · five scrolls, 24 chapters'],
++      },
++      {
++        label: '日本語',
++        id: 'upload-weiliaozi-ja',
++        title: '尉繚子',
++        imprint: ['先秦 · 全五巻二十四篇'],
++      },
++    ],
++  },
+ ]
+ 
+ // A label that isn't one of LANGS would drop that edition off the switch without
