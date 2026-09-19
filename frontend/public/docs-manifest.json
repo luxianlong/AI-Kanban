@@ -1,12 +1,87 @@
 [
   {
+    "id": "upload-sanlue-ja",
+    "title": "三略 — Sanryaku（日本語）",
+    "href": "/p/sanlue-ja.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:02:06.892Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanlue-ja.html",
+      "frontend/public/p/sanlue-ja.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanlue-en",
+    "title": "The Three Strategies of Huang Shigong — Sanlüe (English)",
+    "href": "/p/sanlue-en.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:02:06.890Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanlue-en.html",
+      "frontend/public/p/sanlue-en.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanlue-hans",
+    "title": "三略 · 简体版",
+    "href": "/p/sanlue-hans.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:02:06.889Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanlue-hans.html",
+      "frontend/public/p/sanlue-hans.meta.json"
+    ]
+  },
+  {
+    "id": "upload-sanlue",
+    "title": "三略 · 繁體版",
+    "href": "/p/sanlue.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T14:02:06.887Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/sanlue.html",
+      "frontend/public/p/sanlue.meta.json"
+    ]
+  },
+  {
+    "id": "upload-dianji",
+    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略",
+    "href": "/p/dianji.html",
+    "zone": "classic",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-19T13:59:06.185Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/dianji.html",
+      "frontend/public/p/dianji.meta.json"
+    ]
+  },
+  {
     "id": "upload-liutao-ja",
     "title": "六韜 — Rikutō（日本語）",
     "href": "/p/liutao-ja.html",
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T13:35:55.849Z",
+    "updatedAt": "2026-09-19T13:38:34.709Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -21,7 +96,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T13:35:55.846Z",
+    "updatedAt": "2026-09-19T13:38:34.706Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -36,7 +111,7 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T13:35:55.840Z",
+    "updatedAt": "2026-09-19T13:38:34.702Z",
     "isNew": true,
     "private": false,
     "paths": [
@@ -51,27 +126,12 @@
     "zone": "classic",
     "deletable": true,
     "file": null,
-    "updatedAt": "2026-09-19T13:35:55.835Z",
+    "updatedAt": "2026-09-19T13:38:34.696Z",
     "isNew": true,
     "private": false,
     "paths": [
       "frontend/public/p/liutao.html",
       "frontend/public/p/liutao.meta.json"
-    ]
-  },
-  {
-    "id": "upload-dianji",
-    "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬",
-    "href": "/p/dianji.html",
-    "zone": "classic",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-19T13:34:47.889Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/dianji.html",
-      "frontend/public/p/dianji.meta.json"
     ]
   },
   {

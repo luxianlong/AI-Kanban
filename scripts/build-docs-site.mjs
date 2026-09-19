@@ -465,6 +465,38 @@ const CLASSICS = [
       { label: '日本語', id: 'upload-liutao-ja', title: '六韜', imprint: ['先秦 · 全六巻六十篇'] },
     ],
   },
+  {
+    key: 'sanlue',
+    cover: '/img/classics/sanlue-cover.jpg',
+    // Again the book's own opening leaf, and this one has a name, a patron and a
+    // date: the Fushimi movable-type printing of 1604, held at the National Diet
+    // Library of Japan (shelfmark WA7-22; Wikimedia Commons, public domain),
+    // page 2 of the PDF — the head of the upper scroll. It carries
+    // 「黃石公三略卷之上」, the heading 「上略」, the first sentence of the book,
+    // two red seals, and a later hand's marginal collation note 「講作怨／直作人」.
+    // The printing was cut by order of Tokugawa Ieyasu and its colophon says it
+    // was corrected from the Exposition and the Direct Explanation — it is the
+    // third witness the reading pages were checked against by eye. The PDF is
+    // 10150x8693; rendered at 4200 wide, the ink measures x 200..1975,
+    // y 435..2840 (column/row luminance, see 486-classics-sanlue/meas.js), cut a
+    // little wider at x 175..1995, y 345..2930 to leave a margin of paper, and
+    // scaled to 560 wide — so the JPEG simply fills the box.
+    crop: 'background-size:100% 100%;background-position:0% 0%',
+    ar: '.7044',
+    coverAlt:
+      '日本国立国会图书馆藏庆长九年（1604）伏见版古活字本《黄石公三略》卷之上卷端叶，题「黃石公三略卷之上　上略」，正文起「夫主將之法，務擥英雄之心」，钤朱印二颗',
+    editions: [
+      { label: '简体', id: 'upload-sanlue-hans', title: '三略', imprint: ['秦 · 上中下三卷'] },
+      { label: '繁體', id: 'upload-sanlue', title: '三略', imprint: ['秦 · 上中下三卷'] },
+      {
+        label: 'English',
+        id: 'upload-sanlue-en',
+        title: 'The Three Strategies',
+        imprint: ['Qin · three books'],
+      },
+      { label: '日本語', id: 'upload-sanlue-ja', title: '三略', imprint: ['秦 · 上中下三巻'] },
+    ],
+  },
 ]
 
 // A label that isn't one of LANGS would drop that edition off the switch without
