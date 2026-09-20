@@ -94,7 +94,14 @@ export const RESULT_PAGE_CSS = `
 
 .rp-head { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--hair, #e3e7ee); }
 .rp-head > * { max-width: var(--rp-measure); }
-.rp-title { margin-block: 0; font-size: 1.9rem; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; }
+/* Sized off --rp-font like the content headings are, because it has to stay
+   bigger than the largest of them. A fixed rem here did not: at the narrow
+   breakpoint the title shrank to 24px while an h2 in the result stayed 25.6,
+   and the page was announced by a smaller word than the section under it. */
+.rp-title {
+  margin-block: 0; font-size: calc(var(--rp-font) * 1.7);
+  line-height: 1.25; font-weight: 700; letter-spacing: -0.01em;
+}
 .rp-sub { margin-block: 9px 0; font-size: 1rem; line-height: 1.45; color: var(--muted, #6b7280); }
 .rp-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-block: 16px 0; padding: 0; list-style: none; }
 .rp-meta li {
@@ -146,7 +153,7 @@ export const RESULT_PAGE_CSS = `
 @media (max-width: 720px) {
   .rp { --rp-gutter: 10px; --rp-pad: 17px; }
   .rp-page { margin-bottom: 48px; padding-top: 26px; padding-bottom: 30px; border-radius: 10px; }
-  .rp-title { font-size: 1.5rem; }
+  .rp-title { font-size: calc(var(--rp-font) * 1.5); }
   .rp-head { margin-bottom: 22px; padding-bottom: 16px; }
 }
 /* Saving or printing the page is half of why you would want it on its own, and
