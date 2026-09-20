@@ -95,14 +95,14 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.85em; b
 
 <section class="hero" id="hero"></section>
 
-<h2>一、十二部书</h2>
+<h2>一、<span id="nbooks">十九</span>部书</h2>
 <p class="muted"><small>「合计」是四个读本相加，不含书架页。括号里的红字是自基线以来的新增。</small></p>
 <table id="books"><thead><tr>
   <th>书</th><th>简体</th><th>繁體</th><th>English</th><th>日本語</th><th>合计</th><th class="barcell">&nbsp;</th>
 </tr></thead><tbody></tbody></table>
 
 <h2>二、四个读本</h2>
-<p class="muted"><small>四种读本不是同时上架的：简体 / 繁體 / English 自 9 月 12–16 日陆续入库，日本語 全部生于 9 月 16 日 05:52。语言之间直接比总数并不公平，「日均」按各自实际在线天数折算。<b>但日本語 的日均是一天的窗口除出来的</b>——那一天恰好是上架当天，验收把四十四个读本逐个打开过，所以这个数是上架动静，不是读者；横条画的是点击数，不是日均。</small></p>
+<p class="muted"><small>四种读本不是同时上架的：最早的十二部书 简体 / 繁體 / English 自 9 月 12–16 日陆续入库，日本語 是 9 月 16 日 05:52 一次补齐的；9 月 19 日起入库的七部（六韬・三略・司马法・吴子・唐李问对・尉缭子・茶经）四读本同日上架。所以语言之间直接比总数并不公平，「日均」按各自实际在线天数折算——<b>但那个天数是从各语种最早的一页算起的</b>，日本語 的分母因此比它多数页面的实际在线时间长。横条画的是点击数，不是日均。</small></p>
 <table id="langs"><thead><tr>
   <th>读本</th><th>点击</th><th>占比</th><th>在线天数</th><th>日均</th><th class="barcell">&nbsp;</th>
 </tr></thead><tbody></tbody></table>
@@ -112,14 +112,20 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.85em; b
   <th>页面</th><th>点击</th><th>上架</th><th>最近一次（基线时）</th>
 </tr></thead><tbody></tbody></table>
 
-<h2>四、逐日增量</h2>
+<h2>四、基线历程</h2>
+<p class="muted"><small>后端只存累计数，所以「涨了多少」只能靠快照相减。每一次重跑 <code>build-page.mjs</code> 就把当时的全表存进 <code>baselines.json</code> 并接在这张表后面——<b>旧基线不再被覆盖</b>。<br>「新页」是这一段里新上架的页面自己带来的点击（上架当天的验收就占掉大部分），「旧页」是上一次就已经在架的页面涨的数——<b>读者只可能出现在后一列</b>。</small></p>
+<table id="chain"><thead><tr>
+  <th>基线</th><th>页数</th><th>累计</th><th>较上次</th><th>其中新页</th><th>其中旧页</th>
+</tr></thead><tbody></tbody></table>
+
+<h2>五、逐日增量</h2>
 <p class="muted"><small>后端只存一个累计数，不存历史。这一节由本页在浏览器里自己补：每天第一次打开时把当天的总数记进 <code>localStorage</code>，于是日子一久就有了真正的时间序列。它只记录在你这台机器上，清掉浏览器数据即归零。</small></p>
 <div id="series"></div>
 
-<h2>五、这些数字是怎么来的，能回答什么</h2>
+<h2>六、这些数字是怎么来的，能回答什么</h2>
 <p><b>怎么计数。</b>不是页面里的脚本，是服务器：Vite 的门（<code>frontend/vite.config.js</code> 的 <code>recordDocView</code>）每送出一个在册文档的 HTML，就往后端 <code>POST /api/docs/views</code> 记一笔。所以没有 JavaScript 的读者照样计数，沙箱里的上传页也照样计数。同一个 IP 对同一页三十分钟之内只算一次（<code>VIEW_DEDUPE_MS</code>）；<code>HEAD</code> 请求不算。</p>
 <p><b>能回答的只有一件事：每页累计被送出过多少次。</b>库里一页只有两列——累计数和最近一次的时刻。没有来访时刻的流水，没有 IP、没有 UA、没有来路、没有停留时长。所以「上周有多少人」「读者从哪来」「他们读完了吗」这三个最想问的问题，<b>现有数据一个都答不了</b>，本页也不会假装能答。</p>
-<p><b>计数分不清人和机器。</b>爬虫、我们自己的验收脚本、用 Googlebot UA 做的抓取复核，与真人一样计一次。上架一部书要把四个读本逐个打开核对，一轮 SEO 复核要把四十五个典籍页全部取一遍——这些都在下面的数里。</p>
+<p><b>计数分不清人和机器。</b>爬虫、我们自己的验收脚本、用 Googlebot UA 做的抓取复核，与真人一样计一次。上架一部书要把四个读本逐个打开核对，一轮 SEO 复核要把七十七个典籍页全部取一遍——这些都在下面的数里。</p>
 <p class="note">判读的办法：看「最近一次」。若一页最近一次被打开的时刻，正落在某次提交前后几十秒、且同一分钟里有另外十几页也被打开，那是机器扫的；若它孤零零落在没有任何任务在跑的时段，那才更像是人。</p>
 
 <p class="stamp" id="stamp"></p>
@@ -128,6 +134,12 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.85em; b
 <script>
 const BASE = /*__BASELINE__*/null
 const READINGS = ['简体','繁體','English','日本語']
+const CN_NUM = ['零','一','二','三','四','五','六','七','八','九']
+function cnNum(n){
+  if(n < 10) return CN_NUM[n]
+  if(n < 20) return '十'+(n%10?CN_NUM[n%10]:'')
+  return CN_NUM[Math.floor(n/10)]+'十'+(n%10?CN_NUM[n%10]:'')
+}
 const DAY = 86400000
 const fmtInt = (n) => n.toLocaleString('en-US')
 const pad = (n) => String(n).padStart(2,'0')
@@ -186,11 +198,13 @@ function render(counts, live){
 
   const hero = document.getElementById('hero')
   hero.textContent = ''
+  const nb = BASE.books.length
+  document.getElementById('nbooks').textContent = cnNum(nb)
   const tiles = [
-    ['典籍点击合计', total, total-(readingsBase+base(BASE.shelf.id)), '四十九个页面'],
+    ['典籍点击合计', total, total-(readingsBase+base(BASE.shelf.id)), cnNum(pages.length+1)+'个页面'],
     ['书架页', shelf, shelf-base(BASE.shelf.id), '/p/dianji.html'],
-    ['十二部读本', readingsTotal, readingsTotal-readingsBase, '十二部 × 四读本'],
-    ['每部平均', Math.round(readingsTotal/BASE.books.length), null, '一部书四个读本合计'],
+    [cnNum(nb)+'部读本', readingsTotal, readingsTotal-readingsBase, cnNum(nb)+'部 × 四读本'],
+    ['每部平均', Math.round(readingsTotal/nb), null, '一部书四个读本合计'],
   ]
   for(const [k,n,d,sub] of tiles){
     const t = el('div',{class:'tile'})
@@ -275,12 +289,41 @@ function render(counts, live){
     pb.appendChild(row)
   }
 
+  // ---- the chain of baselines ----
+  // Snapshot minus snapshot is the only true growth this counter can yield; the
+  // live row at the bottom is the same subtraction against the newest baseline.
+  const cb = document.querySelector('#chain tbody'); cb.textContent = ''
+  const num = (n) => n==null ? '—' : (n>0?'+':'')+fmtInt(n)
+  for(const h of (BASE.history||[])){
+    const row = el('tr')
+    row.appendChild(el('td',{}, el('span',{text:fmtTs(h.asof)}), h.note?el('small',{class:'muted',text:' '+h.note}):null))
+    row.appendChild(el('td',{text:fmtInt(h.pages)}))
+    row.appendChild(el('td',{text:fmtInt(h.total)}))
+    row.appendChild(el('td',{text:num(h.delta)}))
+    row.appendChild(el('td',{text:h.freshViews==null?'—':'+'+fmtInt(h.freshViews)+'（'+h.freshPages+' 页）'}))
+    row.appendChild(el('td',{text:num(h.carried)}))
+    cb.appendChild(row)
+  }
+  if(live){
+    const ids = Object.keys(BASE.counts)
+    const nowTotal = ids.reduce((a,id)=>a+get(id),0)
+    const baseTotal = ids.reduce((a,id)=>a+base(id),0)
+    const row = el('tr',{class:'total'})
+    row.appendChild(el('td',{}, el('span',{text:'实时'}), el('small',{class:'muted', text:' 此刻，对最近一次基线'})))
+    row.appendChild(el('td',{text:fmtInt(ids.length)}))
+    row.appendChild(el('td',{text:fmtInt(nowTotal)}))
+    row.appendChild(el('td',{text:num(nowTotal-baseTotal)}))
+    row.appendChild(el('td',{text:'—'}))
+    row.appendChild(el('td',{text:num(nowTotal-baseTotal)}))
+    cb.appendChild(row)
+  }
+
   // ---- daily series, kept by this browser ----
   if(live) recordToday(total)
   drawSeries()
 
   document.getElementById('stamp').textContent =
-    '基线 '+fmtTs(BASE.asof)+' UTC（任务 #421 生成）· 实时数取自 /api/docs/views'+
+    '基线 '+fmtTs(BASE.asof)+' UTC（#421 立，#497 续）· 实时数取自 /api/docs/views'+
     ' · 本页不在 docs-manifest 内，打开它不会给任何页面加一次点击。'
 }
 

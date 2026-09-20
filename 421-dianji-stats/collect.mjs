@@ -23,6 +23,8 @@ const entries = Object.values(manifest)
 const rows = fs.readFileSync(process.argv[2], 'utf8').trim().split('\n').slice(1)
 const views = new Map()
 for (const line of rows) {
+  // The H2 shell prints a "(313 rows, 38 ms)" trailer; it is not a tally row.
+  if (/^\(\d+ rows?,/.test(line)) continue
   const [id, n, ts] = line.split('\t')
   if (!id) continue
   views.set(id.trim(), { count: Number(n), lastViewedAt: (ts || '').trim() })
@@ -42,6 +44,14 @@ const BOOKS = [
   ['xiaorenjing', '小人经', '五代', 950],
   ['caigentan', '菜根谭', '明', 1600],
   ['fanjing', '反经', '唐', 716],
+  // 武经七书补全一路（#485–#490）与 #491，接在书架的次序之后。
+  ['liutao', '六韬', '先秦', -300],
+  ['sanlue', '三略', '秦', -210],
+  ['simafa', '司马法', '先秦', -400],
+  ['wuzi', '吴子', '先秦', -380],
+  ['tangliwendui', '唐李问对', '唐', 700],
+  ['weiliaozi', '尉缭子', '先秦', -320],
+  ['chajing', '茶经', '唐', 760],
 ]
 const READINGS = [
   ['hans', '简体'],
@@ -99,6 +109,18 @@ for (const [book, cn, era, year] of BOOKS) {
 }
 
 out.shelf = record('dianji')
+
+// The reason this file needed touching at task #497: seven books went up between
+// #485 and #491 and BOOKS still listed twelve, so the dashboard silently left
+// them out. Fail loudly instead of undercounting: every classic-zone entry in
+// the manifest must be claimed by BOOKS (or be the shelf itself).
+const claimed = new Set(
+  BOOKS.flatMap(([b]) => READINGS.map(([r]) => `/p/${slugOf(b, r)}.html`)).concat(['/p/dianji.html'])
+)
+const missed = entries.filter((e) => e.zone === 'classic' && !claimed.has(e.href)).map((e) => e.href)
+if (missed.length) {
+  throw new Error(`BOOKS is out of date — classic pages not covered:\n  ${missed.join('\n  ')}`)
+}
 
 // Everything else in the manifest, for the comparison the report needs.
 for (const e of entries) {

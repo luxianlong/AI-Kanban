@@ -1,12 +1,12 @@
 {
- "asof": "2026-09-17T02:41:52.853Z",
+ "asof": "2026-09-20T04:38:57.814Z",
  "books": [
   {
    "book": "sunzi",
    "cn": "孙子兵法",
    "era": "春秋",
    "year": -500,
-   "total": 59,
+   "total": 65,
    "firstPublishedAt": "2026-09-12T07:31:18.845Z",
    "readings": {
     "简体": {
@@ -16,10 +16,10 @@
      "title": "孙子兵法 · 简体版",
      "bytes": 95230,
      "publishedAt": "2026-09-12T07:32:19.955Z",
-     "days": 4.8,
-     "views": 23,
-     "lastViewedAt": "2026-09-16 07:11:55.221965+00",
-     "perDay": 4.793
+     "days": 7.88,
+     "views": 24,
+     "lastViewedAt": "2026-09-19 13:40:20.620686+00",
+     "perDay": 3.046
     },
     "繁體": {
      "slug": "sunzi",
@@ -28,10 +28,10 @@
      "title": "孫子兵法 · 繁體版",
      "bytes": 95245,
      "publishedAt": "2026-09-12T07:31:18.845Z",
-     "days": 4.8,
-     "views": 15,
-     "lastViewedAt": "2026-09-16 05:59:21.545557+00",
-     "perDay": 3.126
+     "days": 7.88,
+     "views": 17,
+     "lastViewedAt": "2026-09-18 05:02:33.075151+00",
+     "perDay": 2.157
     },
     "English": {
      "slug": "sunzi-en",
@@ -40,10 +40,10 @@
      "title": "Sunzi — The Art of War (English)",
      "bytes": 86837,
      "publishedAt": "2026-09-12T07:56:51.194Z",
-     "days": 4.78,
-     "views": 15,
-     "lastViewedAt": "2026-09-16 05:59:19.924195+00",
-     "perDay": 3.137
+     "days": 7.86,
+     "views": 16,
+     "lastViewedAt": "2026-09-17 14:21:45.306842+00",
+     "perDay": 2.035
     },
     "日本語": {
      "slug": "sunzi-ja",
@@ -52,10 +52,10 @@
      "title": "孫子兵法 — Sonshi heiho（日本語）",
      "bytes": 86410,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
-     "views": 6,
-     "lastViewedAt": "2026-09-16 07:11:58.920156+00",
-     "perDay": 8.624
+     "days": 3.78,
+     "views": 8,
+     "lastViewedAt": "2026-09-17 14:23:40.887714+00",
+     "perDay": 2.118
     }
    }
   },
@@ -64,7 +64,7 @@
    "cn": "鬼谷子",
    "era": "战国",
    "year": -300,
-   "total": 52,
+   "total": 53,
    "firstPublishedAt": "2026-09-12T07:56:50.151Z",
    "readings": {
     "简体": {
@@ -74,10 +74,10 @@
      "title": "鬼谷子 · 简体版",
      "bytes": 145150,
      "publishedAt": "2026-09-12T07:56:50.499Z",
-     "days": 4.78,
-     "views": 20,
-     "lastViewedAt": "2026-09-17 02:38:46.898729+00",
-     "perDay": 4.183
+     "days": 7.86,
+     "views": 21,
+     "lastViewedAt": "2026-09-19 06:42:50.572164+00",
+     "perDay": 2.671
     },
     "繁體": {
      "slug": "guiguzi",
@@ -86,10 +86,10 @@
      "title": "鬼谷子 · 繁體版",
      "bytes": 145183,
      "publishedAt": "2026-09-12T07:56:50.151Z",
-     "days": 4.78,
+     "days": 7.86,
      "views": 14,
      "lastViewedAt": "2026-09-16 05:11:20.724566+00",
-     "perDay": 2.928
+     "perDay": 1.781
     },
     "English": {
      "slug": "guiguzi-en",
@@ -98,10 +98,10 @@
      "title": "Guiguzi — The Master of Ghost Valley (English)",
      "bytes": 121465,
      "publishedAt": "2026-09-12T07:56:50.866Z",
-     "days": 4.78,
+     "days": 7.86,
      "views": 13,
      "lastViewedAt": "2026-09-17 02:38:16.480125+00",
-     "perDay": 2.719
+     "perDay": 1.653
     },
     "日本語": {
      "slug": "guiguzi-ja",
@@ -110,10 +110,10 @@
      "title": "鬼谷子 — Kikokushi（日本語）",
      "bytes": 128433,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 5,
      "lastViewedAt": "2026-09-17 02:38:49.497525+00",
-     "perDay": 7.186
+     "perDay": 1.324
     }
    }
   },
@@ -132,10 +132,10 @@
      "title": "三十六计 · 简体版",
      "bytes": 68400,
      "publishedAt": "2026-09-12T10:17:13.627Z",
-     "days": 4.68,
+     "days": 7.77,
      "views": 8,
      "lastViewedAt": "2026-09-16 05:28:45.688415+00",
-     "perDay": 1.708
+     "perDay": 1.03
     },
     "繁體": {
      "slug": "sanshiliuji",
@@ -144,10 +144,10 @@
      "title": "三十六計 · 繁體版",
      "bytes": 68408,
      "publishedAt": "2026-09-12T10:17:13.627Z",
-     "days": 4.68,
+     "days": 7.77,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:11:21.072005+00",
-     "perDay": 0.854
+     "perDay": 0.515
     },
     "English": {
      "slug": "sanshiliuji-en",
@@ -156,10 +156,10 @@
      "title": "The Thirty-Six Stratagems (English)",
      "bytes": 55341,
      "publishedAt": "2026-09-12T10:17:13.627Z",
-     "days": 4.68,
+     "days": 7.77,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:11:21.123799+00",
-     "perDay": 0.854
+     "perDay": 0.515
     },
     "日本語": {
      "slug": "sanshiliuji-ja",
@@ -168,10 +168,10 @@
      "title": "三十六計 — Sanjuroku-kei（日本語）",
      "bytes": 33789,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 1,
      "lastViewedAt": "2026-09-16 05:52:21.964534+00",
-     "perDay": 1.437
+     "perDay": 0.265
     }
    }
   },
@@ -180,7 +180,7 @@
    "cn": "冰鉴",
    "era": "清",
    "year": 1850,
-   "total": 22,
+   "total": 28,
    "firstPublishedAt": "2026-09-12T11:00:00.000Z",
    "readings": {
     "简体": {
@@ -190,10 +190,10 @@
      "title": "冰鉴 · 简体版",
      "bytes": 40896,
      "publishedAt": "2026-09-12T11:00:00.000Z",
-     "days": 4.65,
-     "views": 11,
-     "lastViewedAt": "2026-09-16 05:59:52.66629+00",
-     "perDay": 2.364
+     "days": 7.74,
+     "views": 12,
+     "lastViewedAt": "2026-09-19 01:45:33.582383+00",
+     "perDay": 1.551
     },
     "繁體": {
      "slug": "bingjian",
@@ -202,10 +202,10 @@
      "title": "冰鑑 · 繁體版",
      "bytes": 40904,
      "publishedAt": "2026-09-12T11:00:00.000Z",
-     "days": 4.65,
+     "days": 7.74,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:59:47.099207+00",
-     "perDay": 0.859
+     "perDay": 0.517
     },
     "English": {
      "slug": "bingjian-en",
@@ -214,10 +214,10 @@
      "title": "The Ice Mirror (English)",
      "bytes": 34242,
      "publishedAt": "2026-09-12T11:00:00.000Z",
-     "days": 4.65,
-     "views": 5,
-     "lastViewedAt": "2026-09-16 05:59:45.787009+00",
-     "perDay": 1.074
+     "days": 7.74,
+     "views": 7,
+     "lastViewedAt": "2026-09-17 09:46:01.407036+00",
+     "perDay": 0.905
     },
     "日本語": {
      "slug": "bingjian-ja",
@@ -226,10 +226,10 @@
      "title": "氷鑑 — Hyokan（日本語）",
      "bytes": 37246,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
-     "views": 2,
-     "lastViewedAt": "2026-09-16 05:59:42.076993+00",
-     "perDay": 2.875
+     "days": 3.78,
+     "views": 5,
+     "lastViewedAt": "2026-09-17 05:35:45.356718+00",
+     "perDay": 1.324
     }
    }
   },
@@ -248,10 +248,10 @@
      "title": "道德经 · 简体版",
      "bytes": 76698,
      "publishedAt": "2026-09-12T13:00:00.000Z",
-     "days": 4.57,
+     "days": 7.65,
      "views": 8,
      "lastViewedAt": "2026-09-16 05:28:37.663748+00",
-     "perDay": 1.75
+     "perDay": 1.045
     },
     "繁體": {
      "slug": "daodejing",
@@ -260,10 +260,10 @@
      "title": "道德經 · 繁體版",
      "bytes": 76703,
      "publishedAt": "2026-09-12T13:00:00.000Z",
-     "days": 4.57,
+     "days": 7.65,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:11:21.358385+00",
-     "perDay": 0.875
+     "perDay": 0.523
     },
     "English": {
      "slug": "daodejing-en",
@@ -272,10 +272,10 @@
      "title": "The Daodejing (English)",
      "bytes": 65261,
      "publishedAt": "2026-09-12T13:00:00.000Z",
-     "days": 4.57,
+     "days": 7.65,
      "views": 3,
      "lastViewedAt": "2026-09-16 05:11:21.406879+00",
-     "perDay": 0.656
+     "perDay": 0.392
     },
     "日本語": {
      "slug": "daodejing-ja",
@@ -284,10 +284,10 @@
      "title": "道徳経 — Dotokukyo（日本語）",
      "bytes": 78050,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 1,
      "lastViewedAt": "2026-09-16 05:52:21.464007+00",
-     "perDay": 1.437
+     "perDay": 0.265
     }
    }
   },
@@ -296,7 +296,7 @@
    "cn": "了凡四训",
    "era": "明",
    "year": 1600,
-   "total": 28,
+   "total": 29,
    "firstPublishedAt": "2026-09-12T15:00:00.000Z",
    "readings": {
     "简体": {
@@ -306,10 +306,10 @@
      "title": "了凡四训 · 简体版",
      "bytes": 103816,
      "publishedAt": "2026-09-12T15:00:00.000Z",
-     "days": 4.49,
-     "views": 15,
-     "lastViewedAt": "2026-09-16 05:16:01.270897+00",
-     "perDay": 3.343
+     "days": 7.57,
+     "views": 16,
+     "lastViewedAt": "2026-09-18 14:18:40.136653+00",
+     "perDay": 2.114
     },
     "繁體": {
      "slug": "liaofansixun",
@@ -318,10 +318,10 @@
      "title": "了凡四訓 · 繁體版",
      "bytes": 103821,
      "publishedAt": "2026-09-12T15:00:00.000Z",
-     "days": 4.49,
+     "days": 7.57,
      "views": 6,
      "lastViewedAt": "2026-09-16 05:11:21.512253+00",
-     "perDay": 1.337
+     "perDay": 0.793
     },
     "English": {
      "slug": "liaofansixun-en",
@@ -330,10 +330,10 @@
      "title": "Liaofan’s Four Lessons (English)",
      "bytes": 88527,
      "publishedAt": "2026-09-12T15:00:00.000Z",
-     "days": 4.49,
+     "days": 7.57,
      "views": 6,
      "lastViewedAt": "2026-09-16 05:11:21.570315+00",
-     "perDay": 1.337
+     "perDay": 0.793
     },
     "日本語": {
      "slug": "liaofansixun-ja",
@@ -342,10 +342,10 @@
      "title": "了凡四訓 — Ryobon shikun（日本語）",
      "bytes": 87359,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 1,
      "lastViewedAt": "2026-09-16 05:52:21.708279+00",
-     "perDay": 1.437
+     "perDay": 0.265
     }
    }
   },
@@ -364,10 +364,10 @@
      "title": "素书 · 简体版",
      "bytes": 30975,
      "publishedAt": "2026-09-12T17:00:00.000Z",
-     "days": 4.4,
+     "days": 7.49,
      "views": 8,
      "lastViewedAt": "2026-09-16 05:11:21.616901+00",
-     "perDay": 1.816
+     "perDay": 1.069
     },
     "繁體": {
      "slug": "sushu",
@@ -376,10 +376,10 @@
      "title": "素書 · 繁體版",
      "bytes": 30980,
      "publishedAt": "2026-09-12T17:00:00.000Z",
-     "days": 4.4,
+     "days": 7.49,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:11:21.66479+00",
-     "perDay": 0.908
+     "perDay": 0.534
     },
     "English": {
      "slug": "sushu-en",
@@ -388,10 +388,10 @@
      "title": "Su Shu — The Plain Book (English)",
      "bytes": 31599,
      "publishedAt": "2026-09-12T17:00:00.000Z",
-     "days": 4.4,
+     "days": 7.49,
      "views": 6,
      "lastViewedAt": "2026-09-16 05:16:19.890012+00",
-     "perDay": 1.362
+     "perDay": 0.802
     },
     "日本語": {
      "slug": "sushu-ja",
@@ -400,10 +400,10 @@
      "title": "素書 — Sosho（日本語）",
      "bytes": 33530,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 1,
      "lastViewedAt": "2026-09-16 05:52:22.244867+00",
-     "perDay": 1.437
+     "perDay": 0.265
     }
    }
   },
@@ -412,7 +412,7 @@
    "cn": "商君书",
    "era": "战国",
    "year": -340,
-   "total": 20,
+   "total": 21,
    "firstPublishedAt": "2026-09-12T22:00:00.000Z",
    "readings": {
     "简体": {
@@ -422,10 +422,10 @@
      "title": "商君书 · 简体版",
      "bytes": 245574,
      "publishedAt": "2026-09-12T22:00:00.000Z",
-     "days": 4.2,
+     "days": 7.28,
      "views": 10,
      "lastViewedAt": "2026-09-17 01:24:18.972392+00",
-     "perDay": 2.383
+     "perDay": 1.374
     },
     "繁體": {
      "slug": "shangjunshu",
@@ -434,10 +434,10 @@
      "title": "商君書 · 繁體版",
      "bytes": 245566,
      "publishedAt": "2026-09-12T22:00:00.000Z",
-     "days": 4.2,
+     "days": 7.28,
      "views": 5,
      "lastViewedAt": "2026-09-16 05:11:21.822251+00",
-     "perDay": 1.192
+     "perDay": 0.687
     },
     "English": {
      "slug": "shangjunshu-en",
@@ -446,10 +446,10 @@
      "title": "The Book of Lord Shang — Shangjunshu (English)",
      "bytes": 209700,
      "publishedAt": "2026-09-12T22:00:00.000Z",
-     "days": 4.2,
-     "views": 4,
-     "lastViewedAt": "2026-09-16 05:08:59.821427+00",
-     "perDay": 0.953
+     "days": 7.28,
+     "views": 5,
+     "lastViewedAt": "2026-09-19 13:38:06.610658+00",
+     "perDay": 0.687
     },
     "日本語": {
      "slug": "shangjunshu-ja",
@@ -458,10 +458,10 @@
      "title": "商君書 — Shokunsho（日本語）",
      "bytes": 196035,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 1,
      "lastViewedAt": "2026-09-16 05:52:21.998943+00",
-     "perDay": 1.437
+     "perDay": 0.265
     }
    }
   },
@@ -470,7 +470,7 @@
    "cn": "罗织经",
    "era": "唐",
    "year": 700,
-   "total": 20,
+   "total": 21,
    "firstPublishedAt": "2026-09-12T23:00:00.000Z",
    "readings": {
     "简体": {
@@ -480,10 +480,10 @@
      "title": "罗织经 · 简体版",
      "bytes": 49558,
      "publishedAt": "2026-09-12T23:00:00.000Z",
-     "days": 4.15,
-     "views": 9,
-     "lastViewedAt": "2026-09-16 05:16:29.970612+00",
-     "perDay": 2.167
+     "days": 7.24,
+     "views": 10,
+     "lastViewedAt": "2026-09-18 03:29:14.570787+00",
+     "perDay": 1.382
     },
     "繁體": {
      "slug": "luozhijing",
@@ -492,10 +492,10 @@
      "title": "羅織經 · 繁體版",
      "bytes": 49581,
      "publishedAt": "2026-09-12T23:00:00.000Z",
-     "days": 4.15,
+     "days": 7.24,
      "views": 5,
      "lastViewedAt": "2026-09-16 05:16:31.251022+00",
-     "perDay": 1.204
+     "perDay": 0.691
     },
     "English": {
      "slug": "luozhijing-en",
@@ -504,10 +504,10 @@
      "title": "The Classic of Netting — Luo Zhi Jing (English)",
      "bytes": 47182,
      "publishedAt": "2026-09-12T23:00:00.000Z",
-     "days": 4.15,
+     "days": 7.24,
      "views": 5,
      "lastViewedAt": "2026-09-16 05:16:32.266545+00",
-     "perDay": 1.204
+     "perDay": 0.691
     },
     "日本語": {
      "slug": "luozhijing-ja",
@@ -516,10 +516,10 @@
      "title": "羅織経 — Rashokukei（日本語）",
      "bytes": 46796,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 1,
      "lastViewedAt": "2026-09-16 05:52:21.919047+00",
-     "perDay": 1.437
+     "perDay": 0.265
     }
    }
   },
@@ -528,7 +528,7 @@
    "cn": "小人经",
    "era": "五代",
    "year": 950,
-   "total": 17,
+   "total": 21,
    "firstPublishedAt": "2026-09-13T05:30:00.000Z",
    "readings": {
     "简体": {
@@ -538,10 +538,10 @@
      "title": "小人经 · 简体版",
      "bytes": 40923,
      "publishedAt": "2026-09-13T05:30:00.000Z",
-     "days": 3.88,
-     "views": 8,
-     "lastViewedAt": "2026-09-16 05:16:24.756882+00",
-     "perDay": 2.06
+     "days": 6.96,
+     "views": 9,
+     "lastViewedAt": "2026-09-17 02:50:14.141154+00",
+     "perDay": 1.292
     },
     "繁體": {
      "slug": "xiaorenjing",
@@ -550,10 +550,10 @@
      "title": "小人經 · 繁體版",
      "bytes": 40946,
      "publishedAt": "2026-09-13T05:30:00.000Z",
-     "days": 3.88,
+     "days": 6.96,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:11:22.159167+00",
-     "perDay": 1.03
+     "perDay": 0.574
     },
     "English": {
      "slug": "xiaorenjing-en",
@@ -562,10 +562,10 @@
      "title": "The Classic of the Petty Man — Xiao Ren Jing (English)",
      "bytes": 40987,
      "publishedAt": "2026-09-13T05:30:00.000Z",
-     "days": 3.88,
+     "days": 6.96,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:11:22.204018+00",
-     "perDay": 1.03
+     "perDay": 0.574
     },
     "日本語": {
      "slug": "xiaorenjing-ja",
@@ -574,10 +574,10 @@
      "title": "小人経 — Shojinkyo（日本語）",
      "bytes": 41565,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
-     "views": 1,
-     "lastViewedAt": "2026-09-16 05:52:22.28125+00",
-     "perDay": 1.437
+     "days": 3.78,
+     "views": 4,
+     "lastViewedAt": "2026-09-17 08:15:35.168455+00",
+     "perDay": 1.059
     }
    }
   },
@@ -586,7 +586,7 @@
    "cn": "菜根谭",
    "era": "明",
    "year": 1600,
-   "total": 16,
+   "total": 17,
    "firstPublishedAt": "2026-09-13T09:30:00.000Z",
    "readings": {
     "简体": {
@@ -596,10 +596,10 @@
      "title": "菜根谭 · 简体版",
      "bytes": 215529,
      "publishedAt": "2026-09-13T09:30:00.000Z",
-     "days": 3.72,
-     "views": 6,
-     "lastViewedAt": "2026-09-16 05:28:59.947056+00",
-     "perDay": 1.614
+     "days": 6.8,
+     "views": 7,
+     "lastViewedAt": "2026-09-19 20:22:03.59794+00",
+     "perDay": 1.03
     },
     "繁體": {
      "slug": "caigentan",
@@ -608,10 +608,10 @@
      "title": "菜根譚 · 繁體版",
      "bytes": 215547,
      "publishedAt": "2026-09-13T09:30:00.000Z",
-     "days": 3.72,
+     "days": 6.8,
      "views": 5,
      "lastViewedAt": "2026-09-16 05:29:08.202387+00",
-     "perDay": 1.345
+     "perDay": 0.736
     },
     "English": {
      "slug": "caigentan-en",
@@ -620,10 +620,10 @@
      "title": "The Vegetable Root Discourses — Caigentan (English)",
      "bytes": 168341,
      "publishedAt": "2026-09-13T09:30:00.000Z",
-     "days": 3.72,
+     "days": 6.8,
      "views": 4,
      "lastViewedAt": "2026-09-16 05:29:10.953261+00",
-     "perDay": 1.076
+     "perDay": 0.588
     },
     "日本語": {
      "slug": "caigentan-ja",
@@ -632,10 +632,10 @@
      "title": "菜根譚 — Saikontan（日本語）",
      "bytes": 142357,
      "publishedAt": "2026-09-16T10:00:00.000Z",
-     "days": 0.7,
+     "days": 3.78,
      "views": 1,
      "lastViewedAt": "2026-09-16 05:52:21.258536+00",
-     "perDay": 1.437
+     "perDay": 0.265
     }
    }
   },
@@ -644,7 +644,7 @@
    "cn": "反经",
    "era": "唐",
    "year": 716,
-   "total": 5,
+   "total": 7,
    "firstPublishedAt": "2026-09-16T11:30:00.000Z",
    "readings": {
     "简体": {
@@ -654,10 +654,10 @@
      "title": "反经（长短经）· 简体版",
      "bytes": 818107,
      "publishedAt": "2026-09-16T11:30:00.000Z",
-     "days": 0.63,
-     "views": 2,
-     "lastViewedAt": "2026-09-16 11:46:32.023993+00",
-     "perDay": 3.158
+     "days": 3.71,
+     "views": 4,
+     "lastViewedAt": "2026-09-19 20:21:25.298344+00",
+     "perDay": 1.077
     },
     "繁體": {
      "slug": "fanjing",
@@ -666,10 +666,10 @@
      "title": "反經（長短經）· 繁體版",
      "bytes": 818031,
      "publishedAt": "2026-09-16T11:30:00.000Z",
-     "days": 0.63,
+     "days": 3.71,
      "views": 1,
      "lastViewedAt": "2026-09-16 11:42:47.2388+00",
-     "perDay": 1.579
+     "perDay": 0.269
     },
     "English": {
      "slug": "fanjing-en",
@@ -678,10 +678,10 @@
      "title": "The Classic of Reversal — Fanjing / Changduanjing (English)",
      "bytes": 162162,
      "publishedAt": "2026-09-16T11:30:00.000Z",
-     "days": 0.63,
+     "days": 3.71,
      "views": 1,
      "lastViewedAt": "2026-09-16 11:42:47.340172+00",
-     "perDay": 1.579
+     "perDay": 0.269
     },
     "日本語": {
      "slug": "fanjing-ja",
@@ -690,10 +690,416 @@
      "title": "反経（長短経）— Fanjing（日本語）",
      "bytes": 149685,
      "publishedAt": "2026-09-16T11:30:00.000Z",
-     "days": 0.63,
+     "days": 3.71,
      "views": 1,
      "lastViewedAt": "2026-09-16 11:42:47.377131+00",
-     "perDay": 1.579
+     "perDay": 0.269
+    }
+   }
+  },
+  {
+   "book": "liutao",
+   "cn": "六韬",
+   "era": "先秦",
+   "year": -300,
+   "total": 13,
+   "firstPublishedAt": "2026-09-19T12:00:00.000Z",
+   "readings": {
+    "简体": {
+     "slug": "liutao-hans",
+     "id": "upload-liutao-hans",
+     "zone": "classic",
+     "title": "六韬 · 简体版",
+     "bytes": 249228,
+     "publishedAt": "2026-09-19T12:00:00.000Z",
+     "days": 0.69,
+     "views": 4,
+     "lastViewedAt": "2026-09-19 22:18:10.513339+00",
+     "perDay": 5.766
+    },
+    "繁體": {
+     "slug": "liutao",
+     "id": "upload-liutao",
+     "zone": "classic",
+     "title": "六韜 · 繁體版",
+     "bytes": 249173,
+     "publishedAt": "2026-09-19T12:00:00.000Z",
+     "days": 0.69,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 22:35:00.085949+00",
+     "perDay": 4.324
+    },
+    "English": {
+     "slug": "liutao-en",
+     "id": "upload-liutao-en",
+     "zone": "classic",
+     "title": "The Six Secret Teachings — Liutao (English)",
+     "bytes": 207545,
+     "publishedAt": "2026-09-19T12:00:00.000Z",
+     "days": 0.69,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 22:18:20.384048+00",
+     "perDay": 4.324
+    },
+    "日本語": {
+     "slug": "liutao-ja",
+     "id": "upload-liutao-ja",
+     "zone": "classic",
+     "title": "六韜 — Rikutō（日本語）",
+     "bytes": 200505,
+     "publishedAt": "2026-09-19T12:00:00.000Z",
+     "days": 0.69,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 22:18:14.8326+00",
+     "perDay": 4.324
+    }
+   }
+  },
+  {
+   "book": "sanlue",
+   "cn": "三略",
+   "era": "秦",
+   "year": -210,
+   "total": 9,
+   "firstPublishedAt": "2026-09-19T15:00:00.000Z",
+   "readings": {
+    "简体": {
+     "slug": "sanlue-hans",
+     "id": "upload-sanlue-hans",
+     "zone": "classic",
+     "title": "三略 · 简体版",
+     "bytes": 83814,
+     "publishedAt": "2026-09-19T15:00:00.000Z",
+     "days": 0.57,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 20:22:50.698827+00",
+     "perDay": 5.275
+    },
+    "繁體": {
+     "slug": "sanlue",
+     "id": "upload-sanlue",
+     "zone": "classic",
+     "title": "三略 · 繁體版",
+     "bytes": 83759,
+     "publishedAt": "2026-09-19T15:00:00.000Z",
+     "days": 0.57,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 23:40:22.994061+00",
+     "perDay": 5.275
+    },
+    "English": {
+     "slug": "sanlue-en",
+     "id": "upload-sanlue-en",
+     "zone": "classic",
+     "title": "The Three Strategies of Huang Shigong — Sanlüe (English)",
+     "bytes": 68750,
+     "publishedAt": "2026-09-19T15:00:00.000Z",
+     "days": 0.57,
+     "views": 1,
+     "lastViewedAt": "2026-09-19 13:59:11.807475+00",
+     "perDay": 1.758
+    },
+    "日本語": {
+     "slug": "sanlue-ja",
+     "id": "upload-sanlue-ja",
+     "zone": "classic",
+     "title": "三略 — Sanryaku（日本語）",
+     "bytes": 69101,
+     "publishedAt": "2026-09-19T15:00:00.000Z",
+     "days": 0.57,
+     "views": 2,
+     "lastViewedAt": "2026-09-19 14:07:29.354646+00",
+     "perDay": 3.517
+    }
+   }
+  },
+  {
+   "book": "simafa",
+   "cn": "司马法",
+   "era": "先秦",
+   "year": -400,
+   "total": 8,
+   "firstPublishedAt": "2026-09-19T17:00:00.000Z",
+   "readings": {
+    "简体": {
+     "slug": "simafa-hans",
+     "id": "upload-simafa-hans",
+     "zone": "classic",
+     "title": "司马法 · 简体版",
+     "bytes": 80358,
+     "publishedAt": "2026-09-19T17:00:00.000Z",
+     "days": 0.49,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 22:18:40.251211+00",
+     "perDay": 6.181
+    },
+    "繁體": {
+     "slug": "simafa",
+     "id": "upload-simafa",
+     "zone": "classic",
+     "title": "司馬法 · 繁體版",
+     "bytes": 80302,
+     "publishedAt": "2026-09-19T17:00:00.000Z",
+     "days": 0.49,
+     "views": 1,
+     "lastViewedAt": "2026-09-19 14:24:05.487693+00",
+     "perDay": 2.06
+    },
+    "English": {
+     "slug": "simafa-en",
+     "id": "upload-simafa-en",
+     "zone": "classic",
+     "title": "The Methods of the Sima — Sima fa (English)",
+     "bytes": 79846,
+     "publishedAt": "2026-09-19T17:00:00.000Z",
+     "days": 0.49,
+     "views": 2,
+     "lastViewedAt": "2026-09-19 22:18:46.213493+00",
+     "perDay": 4.12
+    },
+    "日本語": {
+     "slug": "simafa-ja",
+     "id": "upload-simafa-ja",
+     "zone": "classic",
+     "title": "司馬法 — Shiba hō（日本語）",
+     "bytes": 78496,
+     "publishedAt": "2026-09-19T17:00:00.000Z",
+     "days": 0.49,
+     "views": 2,
+     "lastViewedAt": "2026-09-19 22:18:42.012447+00",
+     "perDay": 4.12
+    }
+   }
+  },
+  {
+   "book": "wuzi",
+   "cn": "吴子",
+   "era": "先秦",
+   "year": -380,
+   "total": 9,
+   "firstPublishedAt": "2026-09-19T21:00:00.000Z",
+   "readings": {
+    "简体": {
+     "slug": "wuzi-hans",
+     "id": "upload-wuzi-hans",
+     "zone": "classic",
+     "title": "吴子 · 简体版",
+     "bytes": 100619,
+     "publishedAt": "2026-09-19T21:00:00.000Z",
+     "days": 0.32,
+     "views": 2,
+     "lastViewedAt": "2026-09-19 20:23:20.627434+00",
+     "perDay": 6.275
+    },
+    "繁體": {
+     "slug": "wuzi",
+     "id": "upload-wuzi",
+     "zone": "classic",
+     "title": "吳子 · 繁體版",
+     "bytes": 100564,
+     "publishedAt": "2026-09-19T21:00:00.000Z",
+     "days": 0.32,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 22:26:13.009884+00",
+     "perDay": 9.413
+    },
+    "English": {
+     "slug": "wuzi-en",
+     "id": "upload-wuzi-en",
+     "zone": "classic",
+     "title": "The Wuzi — Wu Qi’s Art of War (English)",
+     "bytes": 109360,
+     "publishedAt": "2026-09-19T21:00:00.000Z",
+     "days": 0.32,
+     "views": 3,
+     "lastViewedAt": "2026-09-20 00:17:11.352627+00",
+     "perDay": 9.413
+    },
+    "日本語": {
+     "slug": "wuzi-ja",
+     "id": "upload-wuzi-ja",
+     "zone": "classic",
+     "title": "呉子 — Goshi（日本語）",
+     "bytes": 105355,
+     "publishedAt": "2026-09-19T21:00:00.000Z",
+     "days": 0.32,
+     "views": 1,
+     "lastViewedAt": "2026-09-19 14:50:02.329533+00",
+     "perDay": 3.138
+    }
+   }
+  },
+  {
+   "book": "tangliwendui",
+   "cn": "唐李问对",
+   "era": "唐",
+   "year": 700,
+   "total": 8,
+   "firstPublishedAt": "2026-09-19T23:30:00.000Z",
+   "readings": {
+    "简体": {
+     "slug": "tangliwendui-hans",
+     "id": "upload-tangliwendui-hans",
+     "zone": "classic",
+     "title": "唐李问对 · 简体版",
+     "bytes": 153560,
+     "publishedAt": "2026-09-19T23:30:00.000Z",
+     "days": 0.21,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 21:52:55.743169+00",
+     "perDay": 13.982
+    },
+    "繁體": {
+     "slug": "tangliwendui",
+     "id": "upload-tangliwendui",
+     "zone": "classic",
+     "title": "唐李問對 · 繁體版",
+     "bytes": 153713,
+     "publishedAt": "2026-09-19T23:30:00.000Z",
+     "days": 0.21,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 21:52:55.703524+00",
+     "perDay": 13.982
+    },
+    "English": {
+     "slug": "tangliwendui-en",
+     "id": "upload-tangliwendui-en",
+     "zone": "classic",
+     "title": "Questions and Replies between Tang Taizong and Li Weigong (English)",
+     "bytes": 105236,
+     "publishedAt": "2026-09-19T23:30:00.000Z",
+     "days": 0.21,
+     "views": 1,
+     "lastViewedAt": "2026-09-19 15:17:30.929101+00",
+     "perDay": 4.661
+    },
+    "日本語": {
+     "slug": "tangliwendui-ja",
+     "id": "upload-tangliwendui-ja",
+     "zone": "classic",
+     "title": "李衛公問対 — Tang Li wendui（日本語）",
+     "bytes": 104695,
+     "publishedAt": "2026-09-19T23:30:00.000Z",
+     "days": 0.21,
+     "views": 1,
+     "lastViewedAt": "2026-09-19 15:17:31.136326+00",
+     "perDay": 4.661
+    }
+   }
+  },
+  {
+   "book": "weiliaozi",
+   "cn": "尉缭子",
+   "era": "先秦",
+   "year": -320,
+   "total": 12,
+   "firstPublishedAt": "2026-09-19T16:00:00.000Z",
+   "readings": {
+    "简体": {
+     "slug": "weiliaozi-hans",
+     "id": "upload-weiliaozi-hans",
+     "zone": "classic",
+     "title": "尉缭子 · 简体版",
+     "bytes": 151935,
+     "publishedAt": "2026-09-19T16:00:00.000Z",
+     "days": 0.53,
+     "views": 5,
+     "lastViewedAt": "2026-09-19 22:15:21.54743+00",
+     "perDay": 9.487
+    },
+    "繁體": {
+     "slug": "weiliaozi",
+     "id": "upload-weiliaozi",
+     "zone": "classic",
+     "title": "尉繚子 · 繁體版",
+     "bytes": 151874,
+     "publishedAt": "2026-09-19T16:00:00.000Z",
+     "days": 0.53,
+     "views": 2,
+     "lastViewedAt": "2026-09-19 21:52:55.450579+00",
+     "perDay": 3.795
+    },
+    "English": {
+     "slug": "weiliaozi-en",
+     "id": "upload-weiliaozi-en",
+     "zone": "classic",
+     "title": "Weiliaozi (English)",
+     "bytes": 133182,
+     "publishedAt": "2026-09-19T16:00:00.000Z",
+     "days": 0.53,
+     "views": 4,
+     "lastViewedAt": "2026-09-19 22:16:23.599812+00",
+     "perDay": 7.589
+    },
+    "日本語": {
+     "slug": "weiliaozi-ja",
+     "id": "upload-weiliaozi-ja",
+     "zone": "classic",
+     "title": "尉繚子 — Utsuryōshi（日本語）",
+     "bytes": 121026,
+     "publishedAt": "2026-09-19T16:00:00.000Z",
+     "days": 0.53,
+     "views": 1,
+     "lastViewedAt": "2026-09-19 15:56:14.19803+00",
+     "perDay": 1.897
+    }
+   }
+  },
+  {
+   "book": "chajing",
+   "cn": "茶经",
+   "era": "唐",
+   "year": 760,
+   "total": 12,
+   "firstPublishedAt": "2026-09-19T17:10:00.000Z",
+   "readings": {
+    "简体": {
+     "slug": "chajing-hans",
+     "id": "upload-chajing-hans",
+     "zone": "classic",
+     "title": "茶经 · 简体版",
+     "bytes": 117769,
+     "publishedAt": "2026-09-19T17:10:00.000Z",
+     "days": 0.48,
+     "views": 4,
+     "lastViewedAt": "2026-09-19 21:52:55.231558+00",
+     "perDay": 8.36
+    },
+    "繁體": {
+     "slug": "chajing",
+     "id": "upload-chajing",
+     "zone": "classic",
+     "title": "茶經 · 繁體版",
+     "bytes": 117682,
+     "publishedAt": "2026-09-19T17:10:00.000Z",
+     "days": 0.48,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 21:52:52.423879+00",
+     "perDay": 6.27
+    },
+    "English": {
+     "slug": "chajing-en",
+     "id": "upload-chajing-en",
+     "zone": "classic",
+     "title": "The Classic of Tea (English)",
+     "bytes": 90360,
+     "publishedAt": "2026-09-19T17:10:00.000Z",
+     "days": 0.48,
+     "views": 3,
+     "lastViewedAt": "2026-09-19 20:45:57.069187+00",
+     "perDay": 6.27
+    },
+    "日本語": {
+     "slug": "chajing-ja",
+     "id": "upload-chajing-ja",
+     "zone": "classic",
+     "title": "茶經 — Chakyō（日本語）",
+     "bytes": 86107,
+     "publishedAt": "2026-09-19T17:10:00.000Z",
+     "days": 0.48,
+     "views": 2,
+     "lastViewedAt": "2026-09-19 20:17:51.13257+00",
+     "perDay": 4.18
     }
    }
   }
@@ -702,62 +1108,110 @@
   "slug": "dianji",
   "id": "upload-dianji",
   "zone": "classic",
-  "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经",
-  "bytes": 54839,
+  "title": "典籍 · 孙子兵法 · 鬼谷子 · 三十六计 · 冰鉴 · 道德经 · 了凡四训 · 素书 · 商君书 · 罗织经 · 小人经 · 菜根谭 · 反经 · 六韬 · 三略 · 司马法 · 吴子 · 唐李问对 · 尉缭子 · 茶经",
+  "bytes": 80909,
   "publishedAt": "2026-09-12T07:58:23.306Z",
-  "days": 4.78,
-  "views": 39,
-  "lastViewedAt": "2026-09-17 02:38:08.111785+00",
-  "perDay": 8.159
+  "days": 7.86,
+  "views": 46,
+  "lastViewedAt": "2026-09-19 16:28:49.43092+00",
+  "perDay": 5.851
  },
  "others": [
   {
-   "id": "upload-page-89f133c0",
-   "title": "苹果发布会（配图版）",
-   "href": "/p/page-89f133c0.html",
+   "id": "upload-python-description-language-ai-stack",
+   "title": "The Description Language: What Python Actually Does in the AI Stack",
+   "href": "/p/python-description-language-ai-stack.html",
    "zone": "article",
-   "views": 8,
-   "lastViewedAt": "2026-09-16 05:19:06.832573+00"
+   "views": 5,
+   "lastViewedAt": "2026-09-19 04:55:24.001858+00"
   },
   {
-   "id": "upload-manus",
-   "title": "Manus团队测模型一点微小的经验",
-   "href": "/p/manus.html",
+   "id": "upload-why-python-matters-ai-stack",
+   "title": "把生态拿掉之后：Python 在 AI 栈里到底承担什么",
+   "href": "/p/why-python-matters-ai-stack.html",
    "zone": "article",
-   "views": 1,
-   "lastViewedAt": "2026-09-11 03:44:03.299531+00"
+   "views": 6,
+   "lastViewedAt": "2026-09-18 23:33:50.869121+00"
   },
   {
-   "id": "upload-ai",
-   "title": "验证的单价：我判断 AI 未来十年唯一用的尺子",
-   "href": "/p/ai.html",
+   "id": "upload-ai-engineer-roles-by-layer",
+   "title": "Under, Of, With, Around: The Seven Layers Hiding Inside the Job Title \"AI Engineer\"",
+   "href": "/p/ai-engineer-roles-by-layer.html",
    "zone": "article",
-   "views": 7,
-   "lastViewedAt": "2026-09-16 05:11:49.980968+00"
+   "views": 3,
+   "lastViewedAt": "2026-09-19 00:31:13.770228+00"
   },
   {
-   "id": "upload-page-87d36ee6",
-   "title": "草稿-人类（修订）：模型什么时候能把今天写回权重里",
-   "href": "/p/page-87d36ee6.html",
-   "zone": "article",
-   "views": 8,
-   "lastViewedAt": "2026-09-16 05:16:05.558119+00"
-  },
-  {
-   "id": "server-worker-split",
-   "title": "How the board runs work",
-   "href": "/docs/server-worker-split.html",
+   "id": "upload-resume-pmf-staff-ai-infra",
+   "title": "这份简历的 PMF 诊断：为什么它卖不进 Staff AI Infrastructure",
+   "href": "/p/resume-pmf-staff-ai-infra.html",
    "zone": "article",
    "views": 2,
-   "lastViewedAt": "2026-09-10 08:19:55.35539+00"
+   "lastViewedAt": "2026-09-18 04:27:12.651459+00"
   },
   {
-   "id": "token",
-   "title": "Token",
-   "href": "/docs/token.html",
+   "id": "upload-python-ai-infra-stages",
+   "title": "从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）",
+   "href": "/p/python-ai-infra-stages.html",
    "zone": "article",
-   "views": 1,
-   "lastViewedAt": "2026-09-10 07:02:53.189742+00"
+   "views": 5,
+   "lastViewedAt": "2026-09-18 23:26:56.719798+00"
+  },
+  {
+   "id": "upload-py-stage5-capstone",
+   "title": "阶段五：Capstone —— LLM 推理网关（6 小时，完整源码 + 真实压测）",
+   "href": "/p/py-stage5-capstone.html",
+   "zone": "article",
+   "views": 3,
+   "lastViewedAt": "2026-09-18 23:37:39.642338+00"
+  },
+  {
+   "id": "upload-py-stage4-ai-infra",
+   "title": "阶段四：AI Infrastructure 核心栈（16 小时，含全部可运行代码）",
+   "href": "/p/py-stage4-ai-infra.html",
+   "zone": "article",
+   "views": 6,
+   "lastViewedAt": "2026-09-19 00:40:39.908076+00"
+  },
+  {
+   "id": "upload-py-stage3-engineering",
+   "title": "阶段三：把工程素养接回来（6 小时，含全部可运行代码）",
+   "href": "/p/py-stage3-engineering.html",
+   "zone": "article",
+   "views": 7,
+   "lastViewedAt": "2026-09-19 09:37:49.650152+00"
+  },
+  {
+   "id": "upload-py-stage2-python-model",
+   "title": "阶段二：对象模型 + Java 没有的那些机制（6 小时，含全部可运行代码）",
+   "href": "/p/py-stage2-python-model.html",
+   "zone": "article",
+   "views": 7,
+   "lastViewedAt": "2026-09-19 11:35:58.125837+00"
+  },
+  {
+   "id": "upload-py-stage1-java-to-python",
+   "title": "阶段一：把 Java 翻译成 Python（6 小时，含全部可运行代码）",
+   "href": "/p/py-stage1-java-to-python.html",
+   "zone": "article",
+   "views": 8,
+   "lastViewedAt": "2026-09-19 11:35:55.299678+00"
+  },
+  {
+   "id": "upload-llm-agent-eval-platform",
+   "title": "LLM Agent 实验平台设计说明书：把一句简历 bullet 拆成可落地的系统",
+   "href": "/p/llm-agent-eval-platform.html",
+   "zone": "article",
+   "views": 2,
+   "lastViewedAt": "2026-09-18 06:53:53.161696+00"
+  },
+  {
+   "id": "four-vocabularies-one-platform-2",
+   "title": "Four Vocabularies, One Platform",
+   "href": "/docs/four-vocabularies-one-platform-2.html",
+   "zone": "article",
+   "views": 3,
+   "lastViewedAt": "2026-09-18 16:44:01.063024+00"
   },
   {
    "id": "article-737d0a60",
@@ -808,12 +1262,36 @@
    "lastViewedAt": "2026-09-16 05:11:50.254742+00"
   },
   {
+   "id": "server-worker-split",
+   "title": "How the board runs work",
+   "href": "/docs/server-worker-split.html",
+   "zone": "article",
+   "views": 2,
+   "lastViewedAt": "2026-09-10 08:19:55.35539+00"
+  },
+  {
+   "id": "upload-manus",
+   "title": "Manus团队测模型一点微小的经验",
+   "href": "/p/manus.html",
+   "zone": "article",
+   "views": 1,
+   "lastViewedAt": "2026-09-11 03:44:03.299531+00"
+  },
+  {
    "id": "optiver-shanghai-senior-swe-research-platform-orp-the-real-requi",
    "title": "Optiver Shanghai — Senior SWE, Research Platform (ORP): The Real Requirements",
    "href": "/docs/optiver-shanghai-senior-swe-research-platform-orp-the-real-requi.html",
    "zone": "article",
    "views": 3,
    "lastViewedAt": "2026-09-07 04:20:39.608802+00"
+  },
+  {
+   "id": "token",
+   "title": "Token",
+   "href": "/docs/token.html",
+   "zone": "article",
+   "views": 1,
+   "lastViewedAt": "2026-09-10 07:02:53.189742+00"
   },
   {
    "id": "ddd-diagrams",
@@ -844,8 +1322,8 @@
    "title": "公开接口（Public API）总览",
    "href": "/docs/public-api.html",
    "zone": "article",
-   "views": 30,
-   "lastViewedAt": "2026-09-16 05:11:50.349544+00"
+   "views": 32,
+   "lastViewedAt": "2026-09-19 02:53:49.732578+00"
   },
   {
    "id": "upload-jing-tian-symbolized",
@@ -912,6 +1390,22 @@
    "lastViewedAt": "2026-09-16 05:11:50.658053+00"
   },
   {
+   "id": "upload-page-89f133c0",
+   "title": "苹果发布会（配图版）",
+   "href": "/p/page-89f133c0.html",
+   "zone": "article",
+   "views": 8,
+   "lastViewedAt": "2026-09-16 05:19:06.832573+00"
+  },
+  {
+   "id": "upload-page-87d36ee6",
+   "title": "草稿-人类（修订）：模型什么时候能把今天写回权重里",
+   "href": "/p/page-87d36ee6.html",
+   "zone": "article",
+   "views": 8,
+   "lastViewedAt": "2026-09-16 05:16:05.558119+00"
+  },
+  {
    "id": "upload-alibaba-one-point",
    "title": "装着外卖的那个分部,只跌了百分之一",
    "href": "/p/alibaba-one-point.html",
@@ -932,8 +1426,16 @@
    "title": "赵长鹏那条推里,没有孙宇晨",
    "href": "/p/why-cz-could-stop-sun.html",
    "zone": "article",
-   "views": 24,
-   "lastViewedAt": "2026-09-16 05:11:50.774978+00"
+   "views": 26,
+   "lastViewedAt": "2026-09-19 10:20:05.688781+00"
+  },
+  {
+   "id": "upload-ai",
+   "title": "验证的单价：我判断 AI 未来十年唯一用的尺子",
+   "href": "/p/ai.html",
+   "zone": "article",
+   "views": 7,
+   "lastViewedAt": "2026-09-16 05:11:49.980968+00"
   }
  ],
  "orphans": [
@@ -1883,9 +2385,39 @@
    "lastViewedAt": "2026-09-11 03:54:14.4346+00"
   },
   {
-   "id": "(266 rows, 33 ms)",
-   "count": null,
-   "lastViewedAt": ""
+   "id": "microsoft-integrated-data-security-resources",
+   "count": 1,
+   "lastViewedAt": "2026-09-17 08:09:09.489672+00"
+  },
+  {
+   "id": "the-cross-tab-that-isn-t-there",
+   "count": 1,
+   "lastViewedAt": "2026-09-17 08:42:55.195587+00"
+  },
+  {
+   "id": "four-vocabularies-one-platform",
+   "count": 1,
+   "lastViewedAt": "2026-09-17 09:13:36.387425+00"
+  },
+  {
+   "id": "upload-python-ai-infra-40h",
+   "count": 5,
+   "lastViewedAt": "2026-09-18 09:02:18.529016+00"
+  },
+  {
+   "id": "upload-resume-summary-math-patents",
+   "count": 1,
+   "lastViewedAt": "2026-09-18 05:25:32.586358+00"
+  },
+  {
+   "id": "upload-control-plane-six-words",
+   "count": 3,
+   "lastViewedAt": "2026-09-18 08:19:09.515268+00"
+  },
+  {
+   "id": "upload-skills-line-rewrite",
+   "count": 2,
+   "lastViewedAt": "2026-09-18 08:43:05.799549+00"
   }
  ]
 }
