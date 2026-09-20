@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import {
   IDLE_POLL_MS, LIVE_POLL_MS, SETTLE_GRACE_MS, deleteHeldBack, deleteRunPrompt,
-  deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel, followedNode, isLive,
+  deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel, finalStepOf, followedNode, isLive,
   mergeExecutions, nodeStateLabel, nodesWithStaleInput, outputPredatesSettings, pollInterval,
   sameValue, stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
@@ -345,5 +345,120 @@ assert.equal(executionStateLabel({ ...parked, status: 'SUCCEEDED' }), 'Done')
 // Called on whatever the poll last returned, so neither may throw on nothing.
 assert.deepEqual(stepsAwaitingStart(undefined), [])
 assert.equal(nodeStateLabel(undefined), undefined)
+
+// --- finalStepOf ----------------------------------------------------------
+
+// A chain: the answer is the step nothing reads, not the last row of the list.
+const endsAtSink = run({
+  nodes: [
+    node({ id: 1, nodeId: 'a', nodeName: 'Collect', finishedAt: '2026-09-09T00:01:00Z' }),
+    node({ id: 2, nodeId: 'b', nodeName: 'Write', dependsOn: ['a'],
+      finishedAt: '2026-09-09T00:02:00Z' }),
+  ],
+})
+assert.equal(finalStepOf(endsAtSink).nodeId, 'b')
+
+// ...and it stays the answer when the rows arrive in some other order, which a
+// topological sort is free to do.
+assert.equal(finalStepOf(run({ nodes: [...endsAtSink.nodes].reverse() })).nodeId, 'b')
+
+// A fan-out ends in two sinks. The one that finished last is where the run came to rest.
+const fan = run({
+  nodes: [
+    node({ id: 1, nodeId: 'a', finishedAt: '2026-09-09T00:01:00Z' }),
+    node({ id: 2, nodeId: 'b', nodeName: 'Post', dependsOn: ['a'], orderIndex: 1,
+      finishedAt: '2026-09-09T00:02:00Z' }),
+    node({ id: 3, nodeId: 'c', nodeName: 'Publish', dependsOn: ['a'], orderIndex: 2,
+      finishedAt: '2026-09-09T00:03:00Z' }),
+  ],
+})
+assert.equal(finalStepOf(fan).nodeName, 'Publish')
+
+// A step that produced nothing is never the answer, however late it is in the graph:
+// the run failed at 'a', so 'b' never ran and the failure is what there is to read.
+// 'b' has an `error` — every skipped step does — but it is boilerplate about not having
+// run, and taking it would bury the one row on the card that says what went wrong.
+const broke = run({
+  status: 'FAILED',
+  nodes: [
+    node({ id: 1, nodeId: 'a', status: 'FAILED', output: null, error: 'boom\ntrace',
+      finishedAt: '2026-09-09T00:01:00Z' }),
+    node({ id: 2, nodeId: 'b', status: 'SKIPPED', output: null, dependsOn: ['a'],
+      error: 'Skipped: the node it depends on ("a") did not succeed.',
+      finishedAt: '2026-09-09T00:01:01Z' }),
+  ],
+})
+assert.equal(finalStepOf(broke).nodeId, 'a')
+
+// Same for a run somebody stopped: "Cancelled by user." on the step that was killed is
+// not the run's answer — the output of the steps that did finish is.
+const stopped = run({
+  status: 'CANCELLED',
+  nodes: [
+    node({ id: 1, nodeId: 'a', nodeName: 'Draft', finishedAt: '2026-09-09T00:01:00Z' }),
+    node({ id: 2, nodeId: 'b', nodeName: 'Publish', status: 'CANCELLED', output: null,
+      error: 'Cancelled by user.', dependsOn: ['a'], finishedAt: '2026-09-09T00:02:00Z' }),
+  ],
+})
+assert.equal(finalStepOf(stopped).nodeName, 'Draft')
+
+// But a cancelled step that got far enough to write something keeps it: the test is
+// what the step produced, not what state it landed in.
+const partial = run({
+  status: 'CANCELLED',
+  nodes: [
+    node({ id: 1, nodeId: 'a', finishedAt: '2026-09-09T00:01:00Z' }),
+    node({ id: 2, nodeId: 'b', nodeName: 'Publish', status: 'CANCELLED', output: 'half of it',
+      error: 'Cancelled by user.', dependsOn: ['a'], finishedAt: '2026-09-09T00:02:00Z' }),
+  ],
+})
+assert.equal(finalStepOf(partial).nodeName, 'Publish')
+
+// Mid-run the sink has nothing yet, so the button opens the furthest step that has
+// spoken — the card is the thing that knows not to call that "the final step".
+const midRun = run({
+  status: 'RUNNING',
+  nodes: [
+    node({ id: 1, nodeId: 'a', finishedAt: '2026-09-09T00:01:00Z' }),
+    node({ id: 2, nodeId: 'b', status: 'RUNNING', output: null, dependsOn: ['a'] }),
+  ],
+})
+assert.equal(finalStepOf(midRun).nodeId, 'a')
+
+// A sink that failed beats a branch that succeeded: the run ended on the failure.
+const endedBadly = run({
+  status: 'FAILED',
+  nodes: [
+    node({ id: 1, nodeId: 'a', finishedAt: '2026-09-09T00:01:00Z' }),
+    node({ id: 2, nodeId: 'b', status: 'FAILED', output: null, error: 'nope', dependsOn: ['a'],
+      finishedAt: '2026-09-09T00:02:00Z' }),
+  ],
+})
+assert.equal(finalStepOf(endedBadly).nodeId, 'b')
+
+// Stamps are parsed, not compared as strings — ISO fractional seconds are only as long
+// as they need to be, so "…:30Z" sorts after "…:30.5Z" lexically and before it in fact.
+const fractional = run({
+  nodes: [
+    node({ id: 1, nodeId: 'a', orderIndex: 1, finishedAt: '2026-09-09T00:00:30.500Z' }),
+    node({ id: 2, nodeId: 'b', orderIndex: 2, finishedAt: '2026-09-09T00:00:31Z' }),
+  ],
+})
+assert.equal(finalStepOf(fractional).nodeId, 'b')
+
+// Older rows with no stamp still order — by their place in the run — so the answer
+// never depends on which way round the array happened to be.
+const unstamped = run({
+  nodes: [
+    node({ id: 1, nodeId: 'a', orderIndex: 2, finishedAt: null }),
+    node({ id: 2, nodeId: 'b', orderIndex: 1, finishedAt: null }),
+  ],
+})
+assert.equal(finalStepOf(unstamped).nodeId, 'a')
+
+// Nothing to open: a queued run, and whatever the poll last returned.
+assert.equal(finalStepOf(run({ status: 'PENDING', nodes: [node({ output: null })] })), null)
+assert.equal(finalStepOf(run({ nodes: [] })), null)
+assert.equal(finalStepOf(undefined), null)
 
 console.log('ok')

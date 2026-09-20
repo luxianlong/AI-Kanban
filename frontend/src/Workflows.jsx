@@ -2,14 +2,14 @@ import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from '
 import { api } from './api.js'
 import Icon from './Icon.jsx'
 import Markdown from './Markdown.jsx'
-import { MaximizeButton } from './resultWindow.jsx'
+import { MaximizeButton, openResultPage } from './resultWindow.jsx'
 import { relTime, runMeta } from './time.js'
 import {
   NODE_H, NODE_W, descendantsOf, edgePath, flowFor, inRunOrder, layoutGraph, reachableFrom,
 } from './workflowGraph.js'
 import {
   deleteHeldBack, deleteRunPrompt, deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel,
-  followedNode, isLive, mergeExecutions, nodeStateLabel, nodesWithStaleInput,
+  finalStepOf, followedNode, isLive, mergeExecutions, nodeStateLabel, nodesWithStaleInput,
   outputPredatesSettings, pollInterval, SETTLE_GRACE_MS, stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
@@ -1245,6 +1245,55 @@ const touches = (edge, nodeId) => !!nodeId && (edge.from === nodeId || edge.to =
 // Executions
 // ---------------------------------------------------------------------------
 
+/**
+ * The small print on a step's row — which attempt this is, the effort it was started
+ * with, whether it was released by hand, whether its settings or its input have moved
+ * since it ran, and then how long it took and what it cost.
+ *
+ * Module-level because two things write it now: the step's own row, and the page the
+ * run row's ⤢ opens on the final step. They are the same page (see openStepResult),
+ * and one that disagreed with the row about which attempt it was showing would be
+ * describing a different piece of work.
+ */
+function nodeRunMeta(run, staleInput) {
+  return [
+    run.attempt > 1 ? `attempt ${run.attempt}` : '',
+    // The level this step's session was actually started with, which the run
+    // snapshotted — so a run keeps saying what it did after the workflow moves on.
+    // Absent on a step left at the default, where there is nothing to explain.
+    run.effort ? `effort ${run.effort}` : '',
+    // Only where it says something the row doesn't: a step that was held and has since
+    // run looks exactly like any other finished step, and the gap before it is unexplained.
+    run.manualStart && run.startApprovedAt ? 'started by hand' : '',
+    outputPredatesSettings(run) ? 'settings edited' : '',
+    staleInput ? 'input changed' : '',
+    runMeta(run),
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
+/**
+ * Open one step's result on a page of its own — what Maximize does from inside the
+ * step, and what the ⤢ on the collapsed run row does to the final step.
+ *
+ * One function rather than two call sites so the row's shortcut cannot drift from the
+ * thing it is a shortcut for: the shortcut exists only to save open-card, find-step,
+ * open-step, Maximize, and it would stop being that the moment it opened a different
+ * page. Output where there is one, the failure otherwise — the same two boxes the step
+ * itself offers, with the failure rendered as-is because its line breaks are the meaning.
+ */
+function openStepResult(run, where, staleInput) {
+  const failed = !run.output
+  return openResultPage({
+    title: failed ? `${run.nodeName} — failed` : run.nodeName,
+    subtitle: where,
+    meta: [stateLabel(run.status), nodeRunMeta(run, staleInput)],
+    text: failed ? run.error : run.output,
+    mono: failed,
+  })
+}
+
 const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName, onChanged }) {
   const [open, setOpen] = useState(false)
   // Which step's detail is expanded. A run's picture is the same graph the editor
@@ -1310,6 +1359,17 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // The step this run started from, as the run itself recorded it — it is drawn
   // differently, and marked as the entry in the step list.
   const entryNodeId = entryNodeIdOf(execution)
+  // The answer the run came to rest on. Reading it used to cost four clicks — open the
+  // card, find the last step among nine rows, open it, Maximize — for the one thing a
+  // finished run is usually opened for at all, so it is on the collapsed row now.
+  const finalStep = useMemo(() => finalStepOf(execution), [execution])
+  const where = `${execution.workflowName} · Run #${execution.id}`
+  // Worded from whether the run is still going, because until it stops this is the
+  // furthest it has got rather than where it ended — the same node either way, but
+  // calling that "the final step" mid-run would be a promise the page can't keep.
+  const finalLabel = !finalStep ? '' : live
+    ? `Open “${finalStep.nodeName}” — the furthest this run has got — on a page of its own`
+    : `Open “${finalStep.nodeName}” — this run's final step — on a page of its own`
 
   // On a run you just started, whatever is running is what you want open — it is
   // the only step with anything to show yet. But once you have picked a step
@@ -1479,19 +1539,38 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
 
   return (
     <li className={`wf-run ${open ? 'open' : ''}`}>
-      <button type="button" className="wf-run-head" onClick={() => setOpen((v) => !v)}>
-        <span
-          className={`wf-state ${execution.status.toLowerCase()} ${waitingSteps.length ? 'awaiting' : ''}`}
-        >
-          {executionStateLabel(execution)}
-        </span>
-        <span className="wf-run-title">
-          {showWorkflowName && <strong>{execution.workflowName} </strong>}
-          <span className="wf-run-id">#{execution.id}</span>
-        </span>
-        <span className="wf-run-progress">{execution.doneNodes}/{execution.totalNodes}</span>
-        <span className="wf-run-when">{relTime(execution.createdAt)}</span>
-      </button>
+      {/* Two controls, so the row can no longer be one <button>: opening the card, and
+          reading the answer without opening it. */}
+      <div className="wf-run-row">
+        <button type="button" className="wf-run-head" onClick={() => setOpen((v) => !v)}>
+          <span
+            className={`wf-state ${execution.status.toLowerCase()} ${waitingSteps.length ? 'awaiting' : ''}`}
+          >
+            {executionStateLabel(execution)}
+          </span>
+          <span className="wf-run-title">
+            {showWorkflowName && <strong>{execution.workflowName} </strong>}
+            <span className="wf-run-id">#{execution.id}</span>
+          </span>
+          <span className="wf-run-progress">{execution.doneNodes}/{execution.totalNodes}</span>
+          <span className="wf-run-when">{relTime(execution.createdAt)}</span>
+        </button>
+        {/* Absent — not disabled — on a run that has produced nothing yet: a control that
+            can't do anything is noise on a row this small, and "queued" already says why. */}
+        {finalStep && (
+          <button
+            type="button"
+            className="wf-run-peek"
+            title={finalLabel}
+            aria-label={finalLabel}
+            /* Called straight from the click on purpose: it opens a tab, and a browser
+               only allows that from inside a gesture. */
+            onClick={() => openStepResult(finalStep, where, staleInput.has(finalStep.nodeId))}
+          >
+            <Icon name="maximize" size={13} />
+          </button>
+        )}
+      </div>
 
       <div className="wf-run-bar" aria-hidden>
         <span
@@ -1590,7 +1669,7 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
               <NodeRun
                 key={run.id}
                 run={run}
-                where={`${execution.workflowName} · Run #${execution.id}`}
+                where={where}
                 isEntry={run.nodeId === entryNodeId}
                 open={openNodeId === run.nodeId}
                 staleInput={staleInput.has(run.nodeId)}
@@ -1712,21 +1791,7 @@ function NodeRun({
   // "Done" over an answer the prompt in the box no longer asked for, and that is worth
   // knowing without opening the step.
   const stale = outputPredatesSettings(run)
-  const meta = [
-    run.attempt > 1 ? `attempt ${run.attempt}` : '',
-    // The level this step's session was actually started with, which the run
-    // snapshotted — so a run keeps saying what it did after the workflow moves on.
-    // Absent on a step left at the default, where there is nothing to explain.
-    run.effort ? `effort ${run.effort}` : '',
-    // Only where it says something the row doesn't: a step that was held and has since
-    // run looks exactly like any other finished step, and the gap before it is unexplained.
-    run.manualStart && run.startApprovedAt ? 'started by hand' : '',
-    stale ? 'settings edited' : '',
-    staleInput ? 'input changed' : '',
-    runMeta(run),
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  const meta = nodeRunMeta(run, staleInput)
 
   return (
     <li className={`wf-noderun ${run.status.toLowerCase()} ${open ? 'open' : ''}`}>
