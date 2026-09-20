@@ -274,13 +274,62 @@ export function deleteHeldBack(settledAt, now) {
 }
 
 /**
+ * What this run was called by hand, or '' if nobody called it anything.
+ *
+ * The server stores null for an unnamed run and never fills the field in with the
+ * workflow's name, so "unnamed" survives the wire — which is the whole point: every
+ * run of a workflow already carries that workflow's name, so a page that could not
+ * tell a name from a fallback would have nothing left to tell two runs apart by.
+ *
+ * Trimmed here as well as on the server because the input is read while it is being
+ * typed: a box holding one space must not make the row look renamed.
+ */
+export function runName(execution) {
+  return (execution?.name || '').trim()
+}
+
+/**
+ * The two pieces of the collapsed row's title: what to call the run, and what to say
+ * after it.
+ *
+ * `showWorkflowName` is false inside a single workflow's panel, where repeating its
+ * name on every row says nothing. A run with a name of its own is the case that
+ * changes: the name goes where the workflow's name went, and the workflow's name
+ * becomes the context behind it — but only in the list where rows from different
+ * workflows sit together, since that is the only place it is still an answer to
+ * anything.
+ */
+export function runRowTitle(execution, showWorkflowName) {
+  const own = runName(execution)
+  const workflow = execution?.workflowName || ''
+  if (own) return { label: own, context: showWorkflowName ? workflow : '' }
+  return { label: showWorkflowName ? workflow : '', context: '' }
+}
+
+/**
+ * Where a step's answer came from, for the subtitle of the page that opens when one
+ * is maximised — read on its own, away from the list, with nothing else to say which
+ * run it belongs to.
+ *
+ * The workflow's name stays even on a named run. A run is named to be told apart from
+ * its siblings, so on its own the name alone ("Tighter brief") answers the smaller
+ * question and drops the larger one.
+ */
+export function runWhere(execution) {
+  const own = runName(execution)
+  const tail = `${execution?.workflowName || ''} · Run #${execution?.id}`
+  return own ? `${own} · ${tail}` : tail
+}
+
+/**
  * The confirm shown before a run is destroyed.
  *
  * It names the run rather than describing the act, because "Delete this run and
  * everything it produced?" is true of every run and therefore tells you nothing about
- * the one under the cursor. The id is what is on the card, the state and the cost are
- * how you recognise the run you did NOT mean to be deleting — a "Done, $0.11" in a
- * dialog you opened to tidy up failures is the moment to stop.
+ * the one under the cursor. The id is what is on the card, its own name is what you
+ * know it by when it has one, and the state and the cost are how you recognise the run
+ * you did NOT mean to be deleting — a "Done, $0.11" in a dialog you opened to tidy up
+ * failures is the moment to stop.
  */
 export function deleteRunPrompt(execution) {
   if (!execution) return 'Delete this run and everything it produced?'
@@ -288,8 +337,11 @@ export function deleteRunPrompt(execution) {
   const steps = execution.totalNodes
   if (steps) parts.push(`${steps} step${steps === 1 ? '' : 's'}`)
   if (execution.costUsd != null) parts.push(`$${execution.costUsd.toFixed(4)}`)
-  const named = execution.workflowName ? ` of "${execution.workflowName}"` : ''
-  return `Delete run #${execution.id}${named} (${parts.join(', ')})?\n\n`
+  const workflow = execution.workflowName ? ` of "${execution.workflowName}"` : ''
+  // The name the user gave it comes first, because it is the one they know the run by
+  // — the id in the dialog is not what they were reading when they reached for Delete.
+  const own = runName(execution) ? ` "${runName(execution)}"` : ''
+  return `Delete run #${execution.id}${own}${workflow} (${parts.join(', ')})?\n\n`
     + 'Its output cannot be recovered.'
 }
 

@@ -6,6 +6,7 @@ import com.kanban.workflow.WorkflowDtos.ExecutionCountView;
 import com.kanban.workflow.WorkflowDtos.ExecutionView;
 import com.kanban.workflow.WorkflowDtos.FavoriteStepView;
 import com.kanban.workflow.WorkflowDtos.InsertNodeRunRequest;
+import com.kanban.workflow.WorkflowDtos.RenameExecutionRequest;
 import com.kanban.workflow.WorkflowDtos.RunWorkflowRequest;
 import com.kanban.workflow.WorkflowDtos.SaveFavoriteStepRequest;
 import com.kanban.workflow.WorkflowDtos.SaveWorkflowRequest;
@@ -79,6 +80,25 @@ public class WorkflowController {
     @GetMapping("/executions/{executionId}")
     public ExecutionView execution(@PathVariable Long executionId) {
         return service.getExecution(executionId);
+    }
+
+    /**
+     * Call one run something of its own — or send a blank name to take it away again.
+     *
+     * <p>Every run of a workflow carries that workflow's name, so the runs list can only
+     * tell them apart by number and by how long ago they started. This is the handle for
+     * the case that makes runs worth keeping in the first place: the same graph tried
+     * several ways, where "the one with the tighter brief" is a fact about the run that
+     * nothing in the record holds.
+     *
+     * <p>No 409, and that is the one way it differs from the other edits below: renaming
+     * is allowed while the run is still going, because it changes nothing any session
+     * will be asked to do.
+     */
+    @PutMapping("/executions/{executionId}/name")
+    public ExecutionView renameExecution(@PathVariable Long executionId,
+                                         @Valid @RequestBody RenameExecutionRequest req) {
+        return service.renameExecution(executionId, req.name());
     }
 
     /** Stop a run in flight: kills the live node session and closes the run out. */

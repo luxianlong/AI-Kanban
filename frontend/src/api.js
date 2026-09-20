@@ -195,6 +195,18 @@ export const api = {
     fetch(`${BASE}/workflows/executions/count${workflowId ? `?workflowId=${encodeURIComponent(workflowId)}` : ''}`)
       .then(json),
 
+  // Call one run something of its own, or send '' to take the name away again.
+  // Every run of a workflow carries that workflow's name, so the list can otherwise
+  // tell them apart only by number and by when they started. Allowed while the run
+  // is still going — unlike the edits below, a name changes nothing any session will
+  // be asked to do. Returns the run.
+  renameExecution: (executionId, name) =>
+    fetch(`${BASE}/workflows/executions/${executionId}/name`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    }).then(json),
+
   // Stop a run in flight: kills the live node session and closes the run out.
   cancelExecution: (executionId) =>
     fetch(`${BASE}/workflows/executions/${executionId}/cancel`, { method: 'POST' }).then(json),

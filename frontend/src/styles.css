@@ -1716,8 +1716,23 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   background: transparent; color: var(--faint); cursor: pointer;
 }
 .wf-run-peek:hover { background: var(--brand-50); color: var(--brand-ink); }
+/* The row while the run is being named: the box sits exactly where the name will,
+   so there is nowhere else to look. */
+.wf-run-namer {
+  display: flex; align-items: center; gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+}
+.wf-run-name-input {
+  flex: 1; min-width: 0;
+  padding: 6px var(--s-2);
+  border: 1px solid var(--hair); border-radius: var(--r-sm);
+  font: inherit; font-size: var(--f-sm); color: var(--ink); background: var(--card);
+}
+.wf-run-name-input::placeholder { color: var(--faint); }
+.wf-run-name-input:focus { outline: none; border-color: var(--brand); box-shadow: var(--focus-ring); }
 .wf-run-title { flex: 1; min-width: 0; font-size: var(--f-sm); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wf-run-id { color: var(--faint); }
+.wf-run-of { color: var(--faint); font-size: var(--f-xs); }
 .wf-run-progress { font-size: var(--f-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
 .wf-run-when { font-size: var(--f-xs); color: var(--faint); white-space: nowrap; }
 
@@ -1897,6 +1912,7 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
      their height was ever wrong — 35px and 30px against a 44px thumb. */
   .wf-run-head { min-height: var(--tap); padding: 8px var(--s-3); }
   .wf-run-peek { min-width: var(--tap); }
+  .wf-run-namer .btn { white-space: nowrap; }
   .wf-noderun-head { min-height: var(--tap); padding: 8px var(--s-2); }
 
   /* A button whose label breaks over two lines reads as two buttons. Let the row

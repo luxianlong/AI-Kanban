@@ -116,6 +116,9 @@ const GLYPHS = {
     </>
   ),
   chevron: <polyline points="9 18 15 12 9 6" />,
+  // Feather's edit-2: a nib, no page behind it — it labels "rename this",
+  // never "compose something new".
+  rename: <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />,
   maximize: (
     <>
       <polyline points="15 3 21 3 21 9" />

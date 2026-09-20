@@ -93,6 +93,18 @@ public final class WorkflowDtos {
     }
 
     /**
+     * Call one run something. Same 200-character cap as a workflow's name and a step's,
+     * so a name that fits anywhere on this page fits here.
+     *
+     * <p>Null or blank clears the name rather than being refused: the box that sets a
+     * name is the box that unsets it, and a run with no name of its own is the state
+     * every run starts in, not an error.
+     */
+    public record RenameExecutionRequest(
+            @Size(max = 200) String name) {
+    }
+
+    /**
      * Rewrite one step's prompt inside one finished run — the run's own copy, not the
      * workflow's. Same 20,000-character cap as {@link NodeSpec#prompt()}, so text that
      * saves in the editor also saves here.
@@ -271,6 +283,17 @@ public final class WorkflowDtos {
     }
 
     /**
+     * How many runs exist in a scope, and how many of them a list call will hand back.
+     *
+     * <p>Two numbers rather than one because the page needs to know the difference:
+     * {@code total} is what deleting the workflow would destroy, {@code pageSize} is
+     * where the list stops. Sending the cap rather than letting the browser assume it
+     * keeps the number in one place — the server's.
+     */
+    public record ExecutionCountView(long total, int pageSize) {
+    }
+
+    /**
      * A run and every node in it. {@code doneNodes}/{@code totalNodes} are computed
      * server-side so the list and the detail agree on progress without the client
      * re-deriving it.
@@ -296,22 +319,18 @@ public final class WorkflowDtos {
      * rest of the graph. The page needs it by name rather than by position: the entry
      * step is drawn differently, and a topological order can legitimately put another
      * node first. Null on runs recorded before the entry was snapshotted.
-     */
-    /**
-     * How many runs exist in a scope, and how many of them a list call will hand back.
      *
-     * <p>Two numbers rather than one because the page needs to know the difference:
-     * {@code total} is what deleting the workflow would destroy, {@code pageSize} is
-     * where the list stops. Sending the cap rather than letting the browser assume it
-     * keeps the number in one place — the server's.
+     * <p>{@code name} is what this run was called by hand, and null on a run nobody has
+     * named — which is most of them. It is deliberately <em>not</em> defaulted to
+     * {@code workflowName} on the way out: the page words itself differently for a run
+     * that has a name of its own, and a server that filled the field in would leave it
+     * no way to tell.
      */
-    public record ExecutionCountView(long total, int pageSize) {
-    }
-
     public record ExecutionView(
             Long id,
             String workflowId,
             String workflowName,
+            String name,
             RunState status,
             String entryNodeId,
             String input,
@@ -334,6 +353,7 @@ public final class WorkflowDtos {
                     e.getId(),
                     e.getWorkflowId(),
                     e.getWorkflowName(),
+                    e.getName(),
                     e.getStatus(),
                     e.getEntryNodeId(),
                     e.getInput(),

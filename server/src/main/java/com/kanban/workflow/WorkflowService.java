@@ -347,6 +347,34 @@ public class WorkflowService {
     }
 
     /**
+     * Call one run something, or blank the box to take its name away again.
+     *
+     * <p>A workflow's runs are otherwise distinguishable only by number and by the
+     * minute they started, which is no help at all in the case that produces them: the
+     * same graph run four times over against four different subjects, or with one step
+     * reworded between each. The list then reads as four rows of the same workflow name
+     * and the answer to "which was the one with the tighter brief" is to open each in
+     * turn. A name is the cheapest possible fix, and it belongs on the run rather than
+     * in a note somewhere because the run is what gets deleted.
+     *
+     * <p>Deliberately allowed while the run is still going, unlike every other edit to a
+     * run (see {@link #requireSettled}). Those rewrite what a session will be asked to
+     * do and so must not race the runner; this one cannot change a character of it. The
+     * moment you know what to call a run is usually the moment you start it.
+     *
+     * <p>Blank comes back as null rather than "": a run has a name or it has none, and
+     * the empty string would be a third state the page would have to keep guessing at.
+     */
+    @Transactional
+    public ExecutionView renameExecution(Long executionId, String name) {
+        WorkflowExecution execution = findExecution(executionId);
+        String trimmed = name == null ? null : name.strip();
+        execution.setName(blankToNull(trimmed));
+        executions.save(execution);
+        return executionView(execution);
+    }
+
+    /**
      * Stop a run on the user's request: kill the node session that is live right now
      * (if any) and mark everything that hadn't finished as cancelled/skipped, so the
      * run reaches a terminal state immediately instead of waiting for the runner.
@@ -1158,8 +1186,12 @@ public class WorkflowService {
         String cost = execution.getCostUsd() == null
                 ? "no recorded cost"
                 : String.format("$%.4f", execution.getCostUsd());
-        return String.format("run #%d of '%s' (%s, %d step%s, %s)",
+        // The name the user gave it, when they gave it one: they deleted the run they
+        // knew by that name, so the line they go looking for afterwards has to carry it.
+        String named = execution.getName() == null ? "" : String.format(" '%s'", execution.getName());
+        return String.format("run #%d%s of '%s' (%s, %d step%s, %s)",
                 execution.getId(),
+                named,
                 execution.getWorkflowName(),
                 execution.getStatus(),
                 nodeCount,

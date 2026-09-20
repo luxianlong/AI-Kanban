@@ -36,6 +36,22 @@ public class WorkflowExecution {
     @Column(nullable = false)
     private String workflowName;
 
+    /**
+     * What the user chose to call <em>this</em> run, or null if they never called it
+     * anything. Null is not "named after the workflow": every run of a workflow carries
+     * the same {@link #workflowName}, which is exactly why it cannot tell two of them
+     * apart, and the page falls back to it only because an unnamed run has to be
+     * labelled something. Blanking the box clears the name back to null rather than
+     * storing "" — there is no run whose name is the empty string.
+     *
+     * <p>Unlike every other thing about a run that can be edited, this one may be
+     * changed while the run is still going: it cannot alter a character of what any
+     * session is asked to do, and watching a run is precisely when you learn what to
+     * call it.
+     */
+    @Column(length = 200)
+    private String name;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RunState status = RunState.PENDING;
@@ -98,6 +114,14 @@ public class WorkflowExecution {
 
     public String getWorkflowName() {
         return workflowName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEntryNodeId() {
