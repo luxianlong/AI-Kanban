@@ -1,8 +1,9 @@
 // node src/workflowDraft.test.mjs
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import {
-  EFFORT_LEVELS, ULTRACODE, appendStep, blankDraft, blankStep, draftFingerprint, draftFrom,
-  favoriteFromStep, favoriteNamed, payloadFrom, stepFromFavorite,
+  DEFAULT_EFFORT, EFFORT_LEVELS, ULTRACODE, appendStep, blankDraft, blankStep, draftFingerprint,
+  draftFrom, favoriteFromStep, favoriteNamed, payloadFrom, stepFromFavorite,
 } from './workflowDraft.js'
 
 const workflow = {
@@ -67,9 +68,21 @@ const ultra = draftFrom({
 assert.equal(ultra.nodes[0].effort, 'ultracode')
 assert.equal(payloadFrom(ultra).nodes[0].effort, 'ultracode')
 
-// A brand new step starts on the default rather than on a level somebody has to
-// notice and undo.
-assert.equal(blankDraft().nodes[0].effort, '')
+// A brand new step starts at the bottom of the scale, not on "Default": the level
+// nobody picks is the one nearly every step runs at, so it has to be the cheap one.
+assert.equal(DEFAULT_EFFORT, 'low')
+assert.ok(EFFORT_LEVELS.includes(DEFAULT_EFFORT))
+assert.equal(DEFAULT_EFFORT, EFFORT_LEVELS[0]) // the bottom of the scale, wherever it moves
+assert.notEqual(DEFAULT_EFFORT, ULTRACODE)     // and never the gated, fan-out one
+assert.equal(blankDraft().nodes[0].effort, DEFAULT_EFFORT)
+// It is a real level and saves as one, rather than a blank the API reads as "no flag".
+assert.equal(payloadFrom(blankDraft()).nodes[0].effort, 'low')
+
+// Steps that already exist are NOT rewritten by that default. A workflow saved before
+// it — or one deliberately left on "Default" — comes back blank, because draftFrom
+// reads what is stored and the picker's "Default" option must stay reachable.
+assert.equal(draftFrom(workflow).nodes.find((n) => n.id === 'a').effort, '')
+assert.equal(payloadFrom(draftFrom(workflow)).nodes.find((n) => n.id === 'a').effort, null)
 
 // Changing a step's level is an unsaved edit — it changes what a run costs, so
 // duplicating without saving would silently take the old one.
@@ -147,7 +160,7 @@ assert.deepEqual(grown.nodes.map((n) => n.id), ['a', 'b', 'c', 'd'])
 assert.deepEqual(grown.nodes[3].inputs, ['c'])
 assert.equal(grown.nodes[3].name, 'Step 4')
 assert.equal(grown.nodes[3].prompt, '')
-assert.equal(grown.nodes[3].effort, '')
+assert.equal(grown.nodes[3].effort, DEFAULT_EFFORT)
 // It leaves the draft it was given alone — the editor holds the working copy in
 // state, and a helper that mutated it would edit the version React is diffing against.
 assert.equal(draft.nodes.length, 3)
@@ -171,8 +184,19 @@ assert.equal(inserted.nodes[3].effort, 'low')
 assert.deepEqual(inserted.nodes[3].inputs, ['c'])
 assert.ok(!('inputs' in favorite))
 
+// The third place a step is born is the "add a step into a finished run" form, which
+// lives in Workflows.jsx and has no pure function to call. Checked at the source, so
+// that form cannot drift back to starting on "Default" while the editor starts on low —
+// the two are the same act and a user who found one cheap and the other not would have
+// no way to tell why.
+const editorSource = readFileSync(new URL('./Workflows.jsx', import.meta.url), 'utf8')
+assert.match(editorSource, /const \[effort, setEffort\] = useState\(DEFAULT_EFFORT\)/)
+assert.ok(!/const \[effort, setEffort\] = useState\(''\)/.test(editorSource))
+
 // A favourite saved with no level inserts at '' — the value the picker's "Default"
 // option carries — not at null, or the <select> would go uncontrolled on first change.
+// Not at DEFAULT_EFFORT either: a favourite is a level somebody already chose and put
+// on the shelf, so inserting it is a read, not the birth of a step.
 assert.equal(stepFromFavorite({ name: 'Tidy', prompt: 'x', effort: null }, 'e').effort, '')
 assert.equal(stepFromFavorite({ name: 'Tidy', prompt: null, effort: null }, 'e').prompt, '')
 
@@ -230,7 +254,9 @@ assert.deepEqual(payloadFrom(gated).nodes.map((n) => n.manualStart), [false, tru
 assert.equal(draftFrom(workflow).nodes.every((n) => n.manualStart === false), true)
 
 // Off on a new step. A graph that walks itself is what a workflow is for; pausing is the
-// exception somebody asks for.
+// exception somebody asks for. (Unlike effort, whose new-step value is a real level —
+// the two defaults differ because "don't pause" and "think cheaply" are opposite kinds
+// of unset: one is the absence of a request, the other is a choice worth storing.)
 assert.equal(blankStep('n1', 0).manualStart, false)
 assert.equal(blankDraft().nodes[0].manualStart, false)
 
