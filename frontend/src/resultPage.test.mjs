@@ -1,6 +1,7 @@
 // node src/resultPage.test.mjs
 import assert from 'node:assert/strict'
-import { buildResultPage, escapeHtml, rawText, styleTags } from './resultPage.js'
+import { readFileSync } from 'node:fs'
+import { RESULT_PAGE_CSS, buildResultPage, escapeHtml, rawText, styleTags } from './resultPage.js'
 
 // --- escaping ---------------------------------------------------------------
 assert.equal(escapeHtml('a & b'), 'a &amp; b')
@@ -78,5 +79,95 @@ assert.ok(bare.includes('<article class="md rp-body"></article>'))
 assert.equal(rawText('boom </article><script>x</script>'),
   '<pre class="rp-raw">boom &lt;/article&gt;&lt;script&gt;x&lt;/script&gt;</pre>')
 assert.ok(!/<script/i.test(buildResultPage({ title: 'x', bodyHtml: rawText('<script>x</script>') })))
+
+// --- the page's own layout and type scale ------------------------------------
+// The page is served by document.write into about:blank, so these rules cannot
+// be exercised without a browser. What IS checkable in bare node is the thing
+// that actually broke: the .md-* rules are inherited from the board, where they
+// are tuned for a 340px scroll box and written in absolute rem — so a heading
+// arrived here SMALLER than the paragraph under it. Below pins the overrides,
+// and, more usefully, notices when the board grows a new .md-* size that this
+// page has not been told about.
+
+const decls = (body) => Object.fromEntries(
+  body.split(';').map((d) => d.split(/:(.*)/s)).filter((kv) => kv.length > 1)
+    .map(([k, v]) => [k.trim(), v.trim().replace(/\s+/g, ' ')]),
+)
+
+/** Flat list of {selector, decls} — at-rule bodies are walked, at-rules themselves skipped. */
+function cssRules(css) {
+  const out = []
+  const stack = []
+  let buf = ''
+  for (const c of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
+    if (c === '{') { const head = buf.trim(); buf = ''; stack.push(head.startsWith('@') ? null : head) }
+    else if (c === '}') { const head = stack.pop(); if (head) out.push({ selector: head.replace(/\s+/g, ' '), decls: decls(buf) }); buf = '' }
+    else buf += c
+  }
+  return out
+}
+
+const boardCss = readFileSync(new URL('./styles.css', import.meta.url), 'utf8')
+const pageRules = cssRules(RESULT_PAGE_CSS)
+const selectors = (r) => r.selector.split(',').map((s) => s.trim())
+const emValue = (v) => /^[\d.]+em$/.test(v)
+
+// Every font-size this page restates is in em, so the whole result scales with
+// --rp-font. One rem in here and that element stops moving with the rest.
+for (const r of pageRules) {
+  if (!r.selector.startsWith('.rp-body ') || !r.decls['font-size']) continue
+  assert.ok(emValue(r.decls['font-size']),
+    `${r.selector} sets font-size ${r.decls['font-size']} — must be em so it tracks --rp-font`)
+}
+
+// Headings outrank the prose they head, and each other. h3 used to be 0.92rem
+// against a 0.95rem paragraph, which is the whole complaint in one number.
+const ruleFor = (sel, prop) => {
+  const r = pageRules.find((x) => selectors(x).includes(sel) && (!prop || x.decls[prop]))
+  assert.ok(r, `the maximize page has no rule setting ${prop || 'anything'} for ${sel}`)
+  return r.decls
+}
+const sizeOf = (sel) => parseFloat(ruleFor(sel, 'font-size')['font-size'])
+const [h2, h3, h4] = ['.rp-body h2.md-h', '.rp-body h3.md-h', '.rp-body h4.md-h'].map(sizeOf)
+assert.ok(h2 > h3 && h3 > h4, `heading scale not descending: ${h2} ${h3} ${h4}`)
+assert.ok(h4 > 1, `h4 (${h4}em) must be larger than the paragraph it heads`)
+// Tables and code were 12.5px against 15.2px prose — near, not far below it.
+for (const sel of ['.rp-body .md-table', '.rp-body .md-pre code']) {
+  assert.ok(sizeOf(sel) >= 0.85, `${sel} at ${sizeOf(sel)}em is back at board density`)
+}
+
+// The board may add a .md-* size at any time; anything absolute has to be
+// restated here or it arrives on the reading page at scroll-box size.
+const overridden = new Set(
+  pageRules.flatMap((r) => (r.decls['font-size'] ? selectors(r) : []))
+    .map((s) => s.replace(/^\.rp-body /, '')),
+)
+for (const r of cssRules(boardCss)) {
+  const size = r.decls['font-size']
+  // .md.logbox.result needs all three classes and so never matches this page.
+  if (!size || emValue(size) || !/(^|[\s.])md[-.\s]/.test(r.selector) || r.selector.includes('.logbox')) continue
+  for (const sel of selectors(r)) {
+    assert.ok(overridden.has(sel),
+      `styles.css sets ${sel} { font-size: ${size} } — absolute, so the maximize page must restate it in em`)
+  }
+}
+
+// Two widths, not one: prose is clamped to a measure, and the blocks whose
+// width is part of their content are let out past it to the sheet's edge.
+const root = ruleFor('.rp', '--rp-measure')
+assert.ok(parseFloat(root['--rp-measure']) < parseFloat(root['--rp-wide']))
+assert.equal(ruleFor('.rp-body > *', 'max-width')['max-width'], 'var(--rp-measure)')
+for (const sel of ['.rp-body > .md-table-wrap', '.rp-body > .md-pre', '.rp-body > .rp-raw']) {
+  assert.equal(ruleFor(sel, 'max-width')['max-width'], 'none', `${sel} is still held to the text measure`)
+}
+// ...and the sheet is only ever as wide as the widest of them.
+assert.equal(ruleFor('.rp-page', 'width').width, 'fit-content')
+
+// The diff stripe is drawn full-bleed by cancelling .md-pre's own padding. The
+// page changes that padding, so the two numbers have to move together.
+const prePad = ruleFor('.rp-body .md-pre', 'padding').padding.split(' ')[1]
+const stripe = ruleFor('.rp-body .md-diff-line', 'padding')
+assert.equal(stripe.margin, `0 -${prePad}`)
+assert.ok(stripe.padding.startsWith(`0 ${prePad} 0 calc(${prePad} +`))
 
 console.log('ok')
