@@ -10,7 +10,8 @@ import {
 import {
   deleteHeldBack, deleteRunPrompt, deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel,
   finalStepOf, followedNode, isLive, mergeExecutions, nodeStateLabel, nodesWithStaleInput,
-  outputPredatesSettings, pollInterval, SETTLE_GRACE_MS, stateLabel, stepsAwaitingStart,
+  outputPredatesSettings, pollInterval, runName, runRowTitle, runWhere, SETTLE_GRACE_MS,
+  stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
@@ -1308,6 +1309,12 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // Whether the card is still following the run. See the effect below.
   const [following, setFollowing] = useState(true)
   const [retrying, setRetrying] = useState(false)
+  // Naming this run. The draft is held here rather than read off the input on submit
+  // so that Escape can throw it away, and so the poll landing mid-edit cannot retype
+  // the box under the cursor.
+  const [naming, setNaming] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [savingName, setSavingName] = useState(false)
   const live = isLive(execution)
 
   // When this card watched the run stop being live — null if it was already finished
@@ -1368,7 +1375,15 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // card, find the last step among nine rows, open it, Maximize — for the one thing a
   // finished run is usually opened for at all, so it is on the collapsed row now.
   const finalStep = useMemo(() => finalStepOf(execution), [execution])
-  const where = `${execution.workflowName} · Run #${execution.id}`
+  const where = runWhere(execution)
+  // What to call this run on its row, and what to say behind it. A run with a name of
+  // its own is called that; an unnamed one falls back to the workflow's name, which is
+  // what every other run of that workflow is also called.
+  const title = runRowTitle(execution, showWorkflowName)
+  const nameHint = runName(execution)
+    ? `Rename this run — it is called “${runName(execution)}”`
+    : 'Give this run a name of its own, so the list can tell it from the other runs of '
+      + 'this workflow'
   // Worded from whether the run is still going, because until it stops this is the
   // furthest it has got rather than where it ended — the same node either way, but
   // calling that "the final step" mid-run would be a promise the page can't keep.
@@ -1531,6 +1546,41 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
     }
   }
 
+  // Giving this run a name of its own. Runs of one workflow are otherwise told apart
+  // only by number and by how long ago they started, which is no help in the case that
+  // makes run history worth keeping: the same graph tried several ways.
+  function startNaming(e) {
+    e.stopPropagation()
+    setNameDraft(runName(execution))
+    setNaming(true)
+  }
+
+  // Deliberately not gated on `live`: a name changes nothing any session will be asked
+  // to do, and while you are watching a run is usually when you learn what to call it.
+  // An empty box clears the name rather than storing one — see the placeholder.
+  async function saveName(e) {
+    e.preventDefault()
+    const next = nameDraft.trim()
+    if (next === runName(execution)) {
+      setNaming(false)
+      return
+    }
+    setSavingName(true)
+    try {
+      await api.renameExecution(execution.id, next)
+      setNaming(false)
+      onChanged()
+    } catch {
+      // The box stays open with what was typed still in it: the name is the user's
+      // words, and a failed request is no reason to make them think of them again.
+      window.alert('This run was not renamed — the server refused the name or could not '
+        + 'be reached. What you typed is still in the box.')
+      onChanged()
+    } finally {
+      setSavingName(false)
+    }
+  }
+
   async function remove(e) {
     e.stopPropagation()
     if (!window.confirm(deleteRunPrompt(execution))) return
@@ -1544,38 +1594,72 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
 
   return (
     <li className={`wf-run ${open ? 'open' : ''}`}>
-      {/* Two controls, so the row can no longer be one <button>: opening the card, and
-          reading the answer without opening it. */}
-      <div className="wf-run-row">
-        <button type="button" className="wf-run-head" onClick={() => setOpen((v) => !v)}>
-          <span
-            className={`wf-state ${execution.status.toLowerCase()} ${waitingSteps.length ? 'awaiting' : ''}`}
-          >
-            {executionStateLabel(execution)}
-          </span>
-          <span className="wf-run-title">
-            {showWorkflowName && <strong>{execution.workflowName} </strong>}
-            <span className="wf-run-id">#{execution.id}</span>
-          </span>
-          <span className="wf-run-progress">{execution.doneNodes}/{execution.totalNodes}</span>
-          <span className="wf-run-when">{relTime(execution.createdAt)}</span>
-        </button>
-        {/* Absent — not disabled — on a run that has produced nothing yet: a control that
-            can't do anything is noise on a row this small, and "queued" already says why. */}
-        {finalStep && (
+      {/* The row becomes the box that names the run, in the place the name will appear —
+          rather than a dialog, which would ask for the name somewhere the answer isn't. */}
+      {naming ? (
+        <form className="wf-run-namer" onSubmit={saveName}>
+          <input
+            className="wf-run-name-input"
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            /* Escape gets out without saving; the form's own submit handles Enter. */
+            onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); setNaming(false) } }}
+            placeholder={`Name run #${execution.id} — leave blank for “${execution.workflowName}”`}
+            aria-label={`Name for run #${execution.id}`}
+            maxLength={200}
+            autoFocus
+          />
+          <button type="submit" className="btn" disabled={savingName}>
+            {savingName ? 'Saving…' : 'Save'}
+          </button>
+          <button type="button" className="btn ghost" onClick={() => setNaming(false)}>Cancel</button>
+        </form>
+      ) : (
+        /* Three controls, so the row can no longer be one <button>: opening the card,
+           naming the run, and reading the answer without opening it. */
+        <div className="wf-run-row">
+          <button type="button" className="wf-run-head" onClick={() => setOpen((v) => !v)}>
+            <span
+              className={`wf-state ${execution.status.toLowerCase()} ${waitingSteps.length ? 'awaiting' : ''}`}
+            >
+              {executionStateLabel(execution)}
+            </span>
+            <span className="wf-run-title">
+              {title.label && <strong>{title.label} </strong>}
+              <span className="wf-run-id">#{execution.id}</span>
+              {/* Only on a named run in the all-workflows list: elsewhere the workflow's
+                  name is either the label itself or already the panel's heading. */}
+              {title.context && <span className="wf-run-of"> {title.context}</span>}
+            </span>
+            <span className="wf-run-progress">{execution.doneNodes}/{execution.totalNodes}</span>
+            <span className="wf-run-when">{relTime(execution.createdAt)}</span>
+          </button>
           <button
             type="button"
-            className="wf-run-peek"
-            title={finalLabel}
-            aria-label={finalLabel}
-            /* Called straight from the click on purpose: it opens a tab, and a browser
-               only allows that from inside a gesture. */
-            onClick={() => openStepResult(finalStep, where, staleInput.has(finalStep.nodeId))}
+            className="wf-run-peek wf-run-rename"
+            title={nameHint}
+            aria-label={nameHint}
+            onClick={startNaming}
           >
-            <Icon name="maximize" size={13} />
+            <Icon name="rename" size={13} />
           </button>
-        )}
-      </div>
+          {/* Absent — not disabled — on a run that has produced nothing yet: a control that
+              can't do anything is noise on a row this small, and "queued" already says why. */}
+          {finalStep && (
+            <button
+              type="button"
+              className="wf-run-peek"
+              title={finalLabel}
+              aria-label={finalLabel}
+              /* Called straight from the click on purpose: it opens a tab, and a browser
+                 only allows that from inside a gesture. */
+              onClick={() => openStepResult(finalStep, where, staleInput.has(finalStep.nodeId))}
+            >
+              <Icon name="maximize" size={13} />
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="wf-run-bar" aria-hidden>
         <span

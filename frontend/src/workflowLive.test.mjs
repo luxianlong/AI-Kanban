@@ -4,7 +4,7 @@ import {
   IDLE_POLL_MS, LIVE_POLL_MS, SETTLE_GRACE_MS, deleteHeldBack, deleteRunPrompt,
   deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel, finalStepOf, followedNode, isLive,
   mergeExecutions, nodeStateLabel, nodesWithStaleInput, outputPredatesSettings, pollInterval,
-  sameValue, stateLabel, stepsAwaitingStart,
+  runName, runRowTitle, runWhere, sameValue, stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
 
 const node = (over = {}) => ({
@@ -460,5 +460,63 @@ assert.equal(finalStepOf(unstamped).nodeId, 'a')
 assert.equal(finalStepOf(run({ status: 'PENDING', nodes: [node({ output: null })] })), null)
 assert.equal(finalStepOf(run({ nodes: [] })), null)
 assert.equal(finalStepOf(undefined), null)
+
+// --- naming one run --------------------------------------------------------
+
+// Unnamed is the state every run starts in, and the server sends null rather than
+// filling the field in with the workflow's name — so the page can still tell the two
+// apart, which is the whole point of the feature.
+assert.equal(runName(run()), '')
+assert.equal(runName(run({ name: null })), '')
+assert.equal(runName(run({ name: 'Tighter brief' })), 'Tighter brief')
+// Trimmed here too, because the box is read while it is being typed: one space must
+// not make the row look renamed.
+assert.equal(runName(run({ name: '  Tighter brief  ' })), 'Tighter brief')
+assert.equal(runName(run({ name: '   ' })), '')
+assert.equal(runName(undefined), '')
+
+// The row's title. In the all-workflows list an unnamed run is labelled with the
+// workflow's name — the same label its siblings get, which is the problem naming
+// solves — and a named one is labelled with its own, with the workflow behind it so
+// the row still says what it is a run of.
+assert.deepEqual(runRowTitle(run(), true), { label: 'W', context: '' })
+assert.deepEqual(runRowTitle(run({ name: 'Tighter brief' }), true),
+  { label: 'Tighter brief', context: 'W' })
+// Inside one workflow's panel the workflow's name is the heading above the list, so
+// it is said neither as the label nor behind it.
+assert.deepEqual(runRowTitle(run(), false), { label: '', context: '' })
+assert.deepEqual(runRowTitle(run({ name: 'Tighter brief' }), false),
+  { label: 'Tighter brief', context: '' })
+// A name of spaces is not a name.
+assert.deepEqual(runRowTitle(run({ name: '  ' }), true), { label: 'W', context: '' })
+// The context is never the label repeated: on a named run it is the workflow, and on
+// an unnamed one there is nothing left to add.
+for (const showWorkflow of [true, false]) {
+  for (const name of [null, 'Tighter brief']) {
+    const { label, context } = runRowTitle(run({ name }), showWorkflow)
+    assert.ok(context === '' || context !== label)
+  }
+}
+
+// The subtitle of the page a maximised step opens on. Read away from the list, so the
+// workflow's name stays even when the run has one of its own — "Tighter brief" alone
+// answers which sibling and drops which workflow.
+assert.equal(runWhere(run({ id: 421, workflowName: 'Research' })), 'Research · Run #421')
+assert.equal(runWhere(run({ id: 421, workflowName: 'Research', name: 'Tighter brief' })),
+  'Tighter brief · Research · Run #421')
+assert.equal(runWhere(run({ id: 421, workflowName: 'Research', name: '  ' })),
+  'Research · Run #421')
+// The run number is in it either way: it is what the API, the log and the row agree on.
+assert.match(runWhere(run({ id: 7, name: 'Anything' })), /#7$/)
+
+// The delete confirm names the run the way the person reaching for Delete knows it —
+// by the name they gave it, not only by its number.
+const labelled = deleteRunPrompt(run({ id: 12, workflowName: 'Research', name: 'Tighter brief' }))
+assert.match(labelled, /#12/)
+assert.match(labelled, /Tighter brief/)
+assert.match(labelled, /Research/)
+// And an unnamed run's dialog is exactly what it was before naming existed.
+assert.equal(deleteRunPrompt(run({ id: 12, workflowName: 'Research' })),
+  deleteRunPrompt(run({ id: 12, workflowName: 'Research', name: null })))
 
 console.log('ok')

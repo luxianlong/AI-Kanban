@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -140,6 +141,25 @@ class WorkflowDeletionAuditTest {
                 .contains("Deleted run #" + runId)
                 .contains("no recorded cost")
                 .doesNotContain("null"));
+    }
+
+    @Test
+    void aRunWithANameOfItsOwnIsLoggedUnderThatName() throws Exception {
+        // The line exists to be found afterwards by somebody asking "where did that run
+        // go" — and they are asking about the name they gave it, not about #14.
+        long runId = queueRun(createWorkflow("Audited"));
+        mvc.perform(put("/api/workflows/executions/" + runId + "/name")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Tighter brief\"}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(delete("/api/workflows/executions/" + runId))
+                .andExpect(status().isNoContent());
+
+        assertThat(lines()).anySatisfy(line -> assertThat(line)
+                .contains("Deleted run #" + runId)
+                .contains("'Tighter brief'")
+                .contains("'Audited'"));
     }
 
     @Test
