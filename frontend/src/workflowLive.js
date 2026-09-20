@@ -125,21 +125,40 @@ export function nodesWithStaleInput(nodes) {
 }
 
 /**
+ * The steps of a run that are out with a worker right now, in graph order.
+ *
+ * A list and not a single step: independent branches of one run are handed out at the
+ * same time, so `a → b, c, d` has three live steps and three live logs. The page used
+ * to ask for "the running step" and get whichever one came first in the graph, which
+ * was the truth only because the server refused to start the other two.
+ */
+export function runningNodeIds(execution) {
+  return (execution?.nodes || []).filter((n) => n.status === 'RUNNING').map((n) => n.nodeId)
+}
+
+/**
  * Which step a run card should have open, given what it had open and what is
  * running now.
  *
- * A card follows the run by default — the running step is the one with a live log,
+ * A card follows the run by default — a running step is the one with a live log,
  * and on a run you just started it is the only thing worth looking at. But once the
  * user has picked a step themselves they are reading it, and the next step starting
  * must not yank the panel away. Following is therefore sticky-off: `following` goes
  * false on the first deliberate pick and only the user turns it back on.
  *
+ * With branches running at once, following also has to be *stable*: a step that is
+ * itself still running stays open, even though its siblings are equally live. Taking
+ * "the first running step" on every poll would otherwise shuffle the panel between
+ * three logs while all three are going, which is following nothing at all. Only when
+ * the followed step stops does the card move on — to the earliest branch still going.
+ *
  * Returns the node id to open, or `openNodeId` unchanged when there is nothing to
  * follow — never null, so this can't close a panel on its own.
  */
-export function followedNode(openNodeId, runningNodeId, following) {
-  if (!following || !runningNodeId) return openNodeId
-  return runningNodeId
+export function followedNode(openNodeId, running, following) {
+  const live = running || []
+  if (!following || !live.length) return openNodeId
+  return live.includes(openNodeId) ? openNodeId : live[0]
 }
 
 /**
