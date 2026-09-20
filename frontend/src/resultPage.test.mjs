@@ -131,6 +131,18 @@ const sizeOf = (sel) => parseFloat(ruleFor(sel, 'font-size')['font-size'])
 const [h2, h3, h4] = ['.rp-body h2.md-h', '.rp-body h3.md-h', '.rp-body h4.md-h'].map(sizeOf)
 assert.ok(h2 > h3 && h3 > h4, `heading scale not descending: ${h2} ${h3} ${h4}`)
 assert.ok(h4 > 1, `h4 (${h4}em) must be larger than the paragraph it heads`)
+// The page title outranks the biggest heading the result can contain — at every
+// breakpoint, which is why both are multiples of the same --rp-font. A fixed
+// rem title fell under h2 on a narrow screen.
+const titleScale = (r) => {
+  const m = /calc\(var\(--rp-font\) \* ([\d.]+)\)/.exec(r['font-size'])
+  assert.ok(m, `.rp-title font-size ${r['font-size']} is not a multiple of --rp-font`)
+  return parseFloat(m[1])
+}
+for (const r of pageRules.filter((x) => selectors(x).includes('.rp-title') && x.decls['font-size'])) {
+  assert.ok(titleScale(r.decls) > h2, `title at ${titleScale(r.decls)}em is under h2 at ${h2}em`)
+}
+
 // Tables and code were 12.5px against 15.2px prose — near, not far below it.
 for (const sel of ['.rp-body .md-table', '.rp-body .md-pre code']) {
   assert.ok(sizeOf(sel) >= 0.85, `${sel} at ${sizeOf(sel)}em is back at board density`)
