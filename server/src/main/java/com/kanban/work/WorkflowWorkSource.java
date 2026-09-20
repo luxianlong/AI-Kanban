@@ -8,24 +8,38 @@ import com.kanban.workflow.WorkflowExecutionRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Picks the next workflow node a worker may run, and takes it.
  *
- * <p><strong>Runs go in parallel; a single run stays sequential.</strong> That was true of the
- * in-process runner and stays true here, but for a different reason. It used to follow from an
- * execution occupying one lane of a thread pool; now it is enforced explicitly — an execution
- * with a node already RUNNING is skipped, so at most one of its nodes is out at a time even
- * where its graph has independent branches. Keeping that promise matters because so much of
- * the graph bookkeeping (skip propagation, closing the run out) reads a run's rows as a whole.
+ * <p><strong>Independent branches of one run go at the same time.</strong> A graph that fans
+ * out — {@code a → b, c, d} and then {@code b, c, d → e} — is saying those three steps do not
+ * read each other, and the only reason to run them one after another was a scheduling
+ * accident: the in-process runner gave each execution one lane of a thread pool, and when
+ * execution moved to workers that lane was re-created here as an explicit "skip an execution
+ * that already has a node RUNNING". Nothing in the graph rules needed it — a node has always
+ * waited for its own dependencies and nothing else — so a fan-out of three cost three steps'
+ * wall-clock for one step's worth of dependency. It now costs one, given three workers.
  *
- * <p>Oldest-first across executions is what keeps the queue fair between workflows: a workflow
- * started twice does not get served ahead of a run that has been waiting longer.
+ * <p>What still serialises is what the graph says serialises: {@code e} waits until
+ * <em>every</em> one of {@code b}, {@code c}, {@code d} has SUCCEEDED, and reads their outputs
+ * in the order its edges were snapshotted, not the order they happened to finish — so a run's
+ * result does not depend on which branch won the race.
+ *
+ * <p><strong>Least-busy-first, then oldest-first</strong>, is what keeps the queue fair now
+ * that one run can hold several workers at once. Oldest-first alone was fair while every run
+ * took one worker; with a fan-out it would hand a ten-way branch every free worker on the
+ * board before a run queued a second later got its first. Sorting by how many nodes a run
+ * already has out fixes that without capping anything: a run uses every idle worker when
+ * nobody else wants them, and yields the next one the moment somebody does. Runs that are
+ * level are still served oldest-first, because the sort is stable and the query already
+ * ordered them that way.
  */
 @Component
 public class WorkflowWorkSource {
@@ -49,7 +63,9 @@ public class WorkflowWorkSource {
      * Claim the next node that is ready to run, or empty if there is none.
      *
      * <p>A lost race is not an error — another worker got there first — so the search simply
-     * moves on, which is what lets several workers drain a graph-heavy board together.
+     * moves on, which is what lets several workers drain a graph-heavy board together. That
+     * race is now also possible between two nodes <em>of the same run</em>; it is the same
+     * race, settled the same way, by {@link NodeExecutionRepository#claimIfPending}.
      */
     public Optional<ClaimedNode> claimNext() {
         List<WorkflowExecution> active =
@@ -57,12 +73,7 @@ public class WorkflowWorkSource {
         if (active.isEmpty()) {
             return Optional.empty();
         }
-        Set<Long> busy = executionsWithSomethingRunning(active);
-
-        for (WorkflowExecution execution : active) {
-            if (busy.contains(execution.getId())) {
-                continue;
-            }
+        for (WorkflowExecution execution : leastBusyFirst(active)) {
             Optional<ClaimedNode> claimed = claimFrom(execution);
             if (claimed.isPresent()) {
                 return claimed;
@@ -71,13 +82,28 @@ public class WorkflowWorkSource {
         return Optional.empty();
     }
 
-    private Set<Long> executionsWithSomethingRunning(List<WorkflowExecution> active) {
+    /**
+     * The active runs, fewest nodes already in flight first.
+     *
+     * <p>{@code active} arrives oldest-first and {@link List#sort} is stable, so runs holding
+     * the same number of workers keep that order — the fairness the queue had before
+     * branches could overlap, now applied within each rung rather than across the whole list.
+     */
+    private List<WorkflowExecution> leastBusyFirst(List<WorkflowExecution> active) {
+        Map<Long, Integer> inFlight = runningNodeCounts(active);
+        List<WorkflowExecution> ordered = new ArrayList<>(active);
+        ordered.sort(Comparator.comparingInt(e -> inFlight.getOrDefault(e.getId(), 0)));
+        return ordered;
+    }
+
+    /** How many nodes each of these runs currently has out with a worker. */
+    private Map<Long, Integer> runningNodeCounts(List<WorkflowExecution> active) {
         List<Long> ids = active.stream().map(WorkflowExecution::getId).toList();
-        Set<Long> busy = new HashSet<>();
+        Map<Long, Integer> counts = new HashMap<>();
         for (NodeExecution run : nodeRuns.findByExecutionIdInAndStatusIn(ids, List.of(RunState.RUNNING))) {
-            busy.add(run.getExecutionId());
+            counts.merge(run.getExecutionId(), 1, Integer::sum);
         }
-        return busy;
+        return counts;
     }
 
     private Optional<ClaimedNode> claimFrom(WorkflowExecution execution) {

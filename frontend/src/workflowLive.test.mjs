@@ -4,7 +4,7 @@ import {
   IDLE_POLL_MS, LIVE_POLL_MS, SETTLE_GRACE_MS, deleteHeldBack, deleteRunPrompt,
   deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel, finalStepOf, followedNode, isLive,
   mergeExecutions, nodeStateLabel, nodesWithStaleInput, outputPredatesSettings, pollInterval,
-  runName, runRowTitle, runWhere, sameValue, stateLabel, stepsAwaitingStart,
+  runName, runningNodeIds, runRowTitle, runWhere, sameValue, stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
 
 const node = (over = {}) => ({
@@ -71,21 +71,46 @@ assert.deepEqual(mergeExecutions(undefined, screen), screen)
 assert.equal(mergeExecutions(screen, null), screen)
 assert.deepEqual(mergeExecutions([], []), [])
 
+// --- runningNodeIds -------------------------------------------------------
+
+// In graph order, and all of them: a fan-out has three steps out at once.
+assert.deepEqual(runningNodeIds(run({
+  nodes: [
+    node({ nodeId: 'a', status: 'SUCCEEDED' }),
+    node({ nodeId: 'b', status: 'RUNNING' }),
+    node({ nodeId: 'c', status: 'RUNNING' }),
+    node({ nodeId: 'd', status: 'RUNNING' }),
+    node({ nodeId: 'e', status: 'PENDING' }),
+  ],
+})), ['b', 'c', 'd'])
+assert.deepEqual(runningNodeIds(run()), [])
+assert.deepEqual(runningNodeIds(null), [])
+
 // --- followedNode ---------------------------------------------------------
 
 // Following: the running step is the open one, and it moves along with the run.
-assert.equal(followedNode(null, 'a', true), 'a')
-assert.equal(followedNode('a', 'b', true), 'b')
+assert.equal(followedNode(null, ['a'], true), 'a')
+assert.equal(followedNode('a', ['b'], true), 'b')
 
 // The user picked a step, so following is off: the next step starting must not take
 // the panel they are reading.
-assert.equal(followedNode('a', 'b', false), 'a')
+assert.equal(followedNode('a', ['b'], false), 'a')
 
 // Nothing running (the run finished, or it hasn't started): never closes what is
 // open, whichever way following is set.
+assert.equal(followedNode('a', [], true), 'a')
 assert.equal(followedNode('a', undefined, true), 'a')
 assert.equal(followedNode('a', null, false), 'a')
-assert.equal(followedNode(null, undefined, true), null)
+assert.equal(followedNode(null, [], true), null)
+
+// Three branches live at once: the one already open stays open, whichever of them it
+// is. Taking the first would shuffle the panel between three logs on every poll.
+assert.equal(followedNode('c', ['b', 'c', 'd'], true), 'c')
+assert.equal(followedNode('d', ['b', 'c', 'd'], true), 'd')
+// A card that had nothing open, or was watching the step that has just finished,
+// moves to the earliest branch still going — not to whichever one the poll listed first.
+assert.equal(followedNode(null, ['b', 'c', 'd'], true), 'b')
+assert.equal(followedNode('a', ['c', 'd'], true), 'c')
 
 // --- outputPredatesSettings -------------------------------------------------
 

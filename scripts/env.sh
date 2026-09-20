@@ -130,6 +130,24 @@ export WORKER_NAME="${WORKER_NAME:-$(hostname -s 2>/dev/null || echo local)}"
 export WORKER_CAPABILITIES="${WORKER_CAPABILITIES:-general,workflow,repo:${KANBAN_REPO_NAME:-Dashboard}}"
 export WORKER_LOG="${WORKER_LOG:-/tmp/kanban-worker.log}"
 
+# How many worker processes to run on this box. One is the default and the old behaviour.
+#
+# A worker runs one Claude session at a time, on purpose — so this number is the board's
+# whole capacity for doing two things at once, and since the server now hands out the
+# independent branches of a single workflow run concurrently (a → b, c, d), it is also how
+# wide a fan-out can actually go here. Three workers finish a three-way branch in one step's
+# wall-clock; one worker still takes three, correctly but slowly.
+#
+# It costs what it sounds like: N workers is up to N Claude sessions billing at once. Raise it
+# in scripts/local.env on a machine that has the work to fill it.
+export WORKER_COUNT="${WORKER_COUNT:-1}"
+# A typo here must not quietly leave the board with no worker at all: `seq 1 three` produces
+# nothing, the start loop runs zero times, and everything afterwards still reports success.
+case "$WORKER_COUNT" in
+  ''|*[!0-9]*|0) echo "⚠ WORKER_COUNT='$WORKER_COUNT' is not a positive number — using 1." >&2
+                 WORKER_COUNT=1 ;;
+esac
+
 export BACKEND_LOG="${BACKEND_LOG:-/tmp/kanban-backend.log}"
 export FRONTEND_LOG="${FRONTEND_LOG:-/tmp/kanban-frontend.log}"
 export JAR="$REPO/server/target/kanban-server-0.1.0.jar"
@@ -151,14 +169,47 @@ backend_launch_args() {
   printf '%s\n' "${args[@]}"
 }
 
-# Build the java launch args array for the worker.
+# What the Nth worker on this box is called. The first keeps the plain name, so a
+# single-worker machine's logs read exactly as they always did.
+worker_name_for() {
+  [ "${1:-1}" = "1" ] && printf '%s' "$WORKER_NAME" || printf '%s-%s' "$WORKER_NAME" "$1"
+}
+
+# ...and where it writes. Same rule: worker 1 owns $WORKER_LOG.
+worker_log_for() {
+  [ "${1:-1}" = "1" ] && printf '%s' "$WORKER_LOG" || printf '%s-%s.log' "${WORKER_LOG%.log}" "$1"
+}
+
+# What the Nth worker will accept.
+#
+# Only the FIRST worker on a box declares `repo:<name>` — the extras get the same list with
+# every repo capability struck out. A project-improvement task edits THIS working tree and
+# runs the guarded deploy in it; two of them at once would be two Claude sessions editing one
+# git checkout, branching over each other and racing to merge. Everything else is safe to
+# double up: general tasks and workflow nodes each run in a scratch directory of their own.
+worker_capabilities_for() {
+  local n="${1:-1}" out="" cap
+  [ "$n" = "1" ] && { printf '%s' "$WORKER_CAPABILITIES"; return 0; }
+  local IFS=','
+  for cap in $WORKER_CAPABILITIES; do
+    case "$cap" in
+      repo:*) continue ;;
+      '') continue ;;
+    esac
+    out="${out:+$out,}$cap"
+  done
+  printf '%s' "$out"
+}
+
+# Build the java launch args array for the Nth worker (default: the first).
 worker_launch_args() {
+  local n="${1:-1}"
   local args=(
     -jar "$WORKER_JAR"
     --worker.server-url="http://localhost:$BACKEND_PORT"
     --worker.token="$KANBAN_WORKER_TOKEN"
-    --worker.name="$WORKER_NAME"
-    --worker.capabilities="$WORKER_CAPABILITIES"
+    --worker.name="$(worker_name_for "$n")"
+    --worker.capabilities="$(worker_capabilities_for "$n")"
     --worker.repo-directory="$WORKER_WORK_DIR"
     --worker.claude-command="$CLAUDE_CMD"
   )
@@ -168,26 +219,39 @@ worker_launch_args() {
   printf '%s\n' "${args[@]}"
 }
 
-# Ends in a printf, deliberately. Under `set -euo pipefail` a bare `pgrep | head` pipeline
-# returns pgrep's exit status when nothing matches, and `pid="$(worker_pid)"` would then abort
-# the whole script — which is exactly what silently stopped start.sh before the worker launched.
-worker_pid() {
-  local pid
-  pid="$(pgrep -f "java .*kanban-worker-.*\.jar" 2>/dev/null | head -1)" || true
-  printf '%s' "$pid"
+# Every worker JVM on this box, one pid per line. Ends in a printf, deliberately: under
+# `set -euo pipefail` a bare `pgrep` pipeline returns pgrep's exit status when nothing
+# matches, and `pids="$(worker_pids)"` would then abort the whole script — which is exactly
+# what silently stopped start.sh before the worker launched.
+worker_pids() {
+  local pids
+  pids="$(pgrep -f "java .*kanban-worker-.*\.jar" 2>/dev/null)" || true
+  printf '%s' "$pids"
 }
 
-# Stop the worker. It kills its own session and hands the lease back on the way down, so give
-# it a moment: vanishing instead leaves the card looking busy until the lease expires.
+# The first one, for the callers that only want to know whether anything is up.
+worker_pid() {
+  printf '%s' "$(worker_pids | head -1)"
+}
+
+# Stop every worker on this box. They kill their own sessions and hand their leases back on
+# the way down, so give them a moment: vanishing instead leaves cards looking busy until the
+# leases expire. All of them and not just the first, because with WORKER_COUNT>1 a restart
+# that stopped one would leave the rest running the jar the deploy just replaced.
 kill_worker() {
-  local pid waited=0
-  pid="$(worker_pid)"
-  [ -n "$pid" ] || return 0
-  echo "▶ Stopping worker (pid $pid)…"
-  kill "$pid" 2>/dev/null || return 0
-  while kill -0 "$pid" 2>/dev/null; do
+  local pids waited=0 alive
+  pids="$(worker_pids)"
+  [ -n "$pids" ] || return 0
+  echo "▶ Stopping worker(s): $(echo $pids)…"
+  for pid in $pids; do kill "$pid" 2>/dev/null || true; done
+  while :; do
+    alive=""
+    for pid in $pids; do
+      if kill -0 "$pid" 2>/dev/null; then alive="$alive $pid"; fi
+    done
+    [ -n "$alive" ] || break
     if [ "$waited" -ge 30 ]; then
-      kill -9 "$pid" 2>/dev/null || true
+      for pid in $alive; do kill -9 "$pid" 2>/dev/null || true; done
       break
     fi
     sleep 1
@@ -195,7 +259,7 @@ kill_worker() {
   done
 }
 
-# Start the worker, unless work is switched off entirely.
+# Start the workers, unless work is switched off entirely.
 start_worker() {
   if [ "$WORKER_ENABLED" != "1" ]; then
     echo "▶ Worker disabled (WORKER_ENABLED=0) — the board will not run anything."
@@ -207,9 +271,12 @@ start_worker() {
     return 0
   fi
   kill_worker
-  echo "▶ Starting worker '$WORKER_NAME' ($WORKER_CAPABILITIES)…"
-  setsid java $(worker_launch_args) < /dev/null > "$WORKER_LOG" 2>&1 &
-  disown || true
+  local n
+  for n in $(seq 1 "$WORKER_COUNT"); do
+    echo "▶ Starting worker '$(worker_name_for "$n")' ($(worker_capabilities_for "$n"))…"
+    setsid java $(worker_launch_args "$n") < /dev/null > "$(worker_log_for "$n")" 2>&1 &
+    disown || true
+  done
 }
 
 # PID of the running backend. Prefer matching the jar: during a graceful shutdown

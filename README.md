@@ -177,6 +177,21 @@ Run as many as you like, on as many machines as you like — they need no coordi
 because the server hands each unit out exactly once. Every setting is in
 `worker/src/main/resources/application.yml`.
 
+**One worker runs one session at a time**, deliberately: more concurrency is another
+worker, not a bigger one. That number is therefore the board's whole capacity for doing
+two things at once — and, since the server hands the independent branches of a workflow
+run out concurrently, it is also how wide a fan-out can actually go. On the box that
+`scripts/start.sh` runs, set `WORKER_COUNT` in `scripts/local.env` to launch several:
+
+```bash
+WORKER_COUNT=3     # up to three Claude sessions billing at once
+```
+
+Only the first of them declares `repo:<name>`. A project-improvement task edits that
+working tree and runs the guarded deploy in it, and two of those at once would be two
+sessions branching over each other in one checkout. Workflow nodes and ordinary tasks
+each get a scratch directory of their own, so they are safe to double up.
+
 To let sessions edit files and run commands unattended, add
 `--dangerously-skip-permissions` to `worker.extra-args`. Understand the risk first: it is
 that machine you are handing over, not the server's.
@@ -344,11 +359,18 @@ both, each labelled with the node it came from. That is what makes a workflow
 composable: what a node does depends only on its own prompt plus the input it was
 handed, never on something an earlier node happened to mention.
 
-The runner works one node per tick and then yields, so a long graph never starves
-the board's task queue; both share the single scheduler thread, so exactly one
-Claude process is alive at a time. If a node fails (or prints `[[TASK_FAILED]]`),
-only what depends on it is skipped — an independent branch still finishes, and the
-run is recorded as failed with every node's output still readable.
+**Independent branches run at the same time.** In the picture above, *Bull case* and
+*Bear case* read nothing from each other, so both go out to workers at once and
+*Verdict* waits for both — a fan-out of three costs one step's wall-clock, not three,
+given three workers to run it on. What serialises is only what the graph says
+serialises; a join reads its inputs in the order its edges were drawn, never in the
+order the branches happened to finish. Board tasks are still handed out ahead of
+workflow nodes, and a run that already has several steps out yields the next free
+worker to a run that has none, so one wide graph cannot take over the queue.
+
+If a node fails (or prints `[[TASK_FAILED]]`), only what depends on it is skipped —
+an independent branch still finishes, and the run is recorded as failed with every
+node's output still readable.
 
 An execution snapshots each node's name, prompt and dependencies when it starts, so
 editing or deleting the workflow afterwards never rewrites what a past run did.

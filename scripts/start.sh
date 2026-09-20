@@ -38,10 +38,17 @@ fi
 echo ""
 if [ "$WORKER_ENABLED" = "1" ] && [ -n "$KANBAN_WORKER_TOKEN" ]; then
   sleep 2
-  if [ -n "$(worker_pid)" ]; then
-    echo "✔ worker '$WORKER_NAME' up  ($WORKER_CAPABILITIES)"
-  else
+  # Nested ifs rather than `[ "$up" -gt 1 ] && echo`: under `set -euo pipefail` that
+  # as the last statement of a branch fails the whole if-statement on a one-worker box,
+  # and takes the script down with it.
+  up="$(worker_pids | grep -c . || true)"
+  if [ "$up" -eq 0 ]; then
     echo "✗ worker did NOT come up — see $WORKER_LOG"
+  else
+    echo "✔ worker '$WORKER_NAME' up  ($WORKER_CAPABILITIES)"
+    if [ "$up" -gt 1 ]; then
+      echo "✔ $up workers up — a run's independent branches can go $up wide"
+    fi
   fi
 fi
 

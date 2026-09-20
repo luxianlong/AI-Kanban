@@ -10,8 +10,8 @@ import {
 import {
   deleteHeldBack, deleteRunPrompt, deleteWorkflowPrompt, entryNodeIdOf, executionStateLabel,
   finalStepOf, followedNode, isLive, mergeExecutions, nodeStateLabel, nodesWithStaleInput,
-  outputPredatesSettings, pollInterval, runName, runRowTitle, runWhere, SETTLE_GRACE_MS,
-  stateLabel, stepsAwaitingStart,
+  outputPredatesSettings, pollInterval, runName, runningNodeIds, runRowTitle, runWhere,
+  SETTLE_GRACE_MS, stateLabel, stepsAwaitingStart,
 } from './workflowLive.js'
 import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // The editor's working copy and its conversions to/from what the API stores —
@@ -1396,10 +1396,14 @@ const ExecutionCard = memo(function ExecutionCard({ execution, showWorkflowName,
   // yourself you are reading it, and a step finishing must not move the panel out
   // from under you. So following is sticky-off: it survives until the first
   // deliberate pick, and only the "Follow the run" button turns it back on.
-  const runningNodeId = execution.nodes.find((n) => n.status === 'RUNNING')?.nodeId
+  // Plural: a fan-out puts several steps out at once, and the card follows one of
+  // them. Carried as a joined string so the effect re-runs when *which* steps are
+  // live changes, and not on every poll that rebuilt an identical array.
+  const runningKey = runningNodeIds(execution).join(',')
   useEffect(() => {
-    setOpenNodeId((current) => followedNode(current, runningNodeId, following))
-  }, [runningNodeId, following])
+    const running = runningKey ? runningKey.split(',') : []
+    setOpenNodeId((current) => followedNode(current, running, following))
+  }, [runningKey, following])
 
   async function cancel(e) {
     e.stopPropagation()
