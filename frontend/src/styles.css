@@ -1696,13 +1696,26 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   overflow: hidden;
 }
 .wf-run.open { border-color: var(--brand-200); }
+/* The collapsed row is two controls side by side — open the card, or read the answer
+   the run ended on — so the row is a flex box and the head is only most of it. */
+.wf-run-row { display: flex; align-items: stretch; }
 .wf-run-head {
-  width: 100%;
+  flex: 1; min-width: 0;
   display: flex; align-items: center; gap: var(--s-2);
   padding: var(--s-2) var(--s-3);
   border: none; background: transparent; font: inherit; text-align: left; cursor: pointer;
 }
 .wf-run-head:hover { background: var(--brand-50); }
+/* Faint until pointed at: on a list of runs the state, the id and the progress are what
+   you scan, and this is what you reach for once you have found the row you wanted. */
+.wf-run-peek {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 var(--s-3);
+  border: none; border-left: 1px solid var(--hair);
+  background: transparent; color: var(--faint); cursor: pointer;
+}
+.wf-run-peek:hover { background: var(--brand-50); color: var(--brand-ink); }
 .wf-run-title { flex: 1; min-width: 0; font-size: var(--f-sm); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wf-run-id { color: var(--faint); }
 .wf-run-progress { font-size: var(--f-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -1883,6 +1896,7 @@ h4.md-h, h5.md-h, h6.md-h { font-size: var(--f-md); }
   /* Opening a run, and opening a step inside it. Both are full-width rows, so only
      their height was ever wrong — 35px and 30px against a 44px thumb. */
   .wf-run-head { min-height: var(--tap); padding: 8px var(--s-3); }
+  .wf-run-peek { min-width: var(--tap); }
   .wf-noderun-head { min-height: var(--tap); padding: 8px var(--s-2); }
 
   /* A button whose label breaks over two lines reads as two buttons. Let the row

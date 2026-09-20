@@ -311,3 +311,49 @@ export function deleteWorkflowPrompt(name, total) {
   return `Delete "${name}" and its ${total} run${total === 1 ? '' : 's'}?\n\n`
     + 'The runs and everything they produced cannot be recovered.'
 }
+
+/**
+ * The step whose answer is the run's answer — what the collapsed row's ⤢ opens.
+ *
+ * A run is a graph, so "the last one" is not simply the bottom of the list: the rows
+ * are in a topological order, and any of several tails could be last in it. What ends
+ * a run is the step nothing else reads — a sink. Among the sinks (there is usually
+ * one, but a fan-out ends in several) the one that finished last is the one the run
+ * came to rest on.
+ *
+ * Only steps that produced something of their own are eligible, and that is what
+ * makes the answer useful mid-run and on a run that broke: while a run is going its
+ * sinks have written nothing yet, and a run that failed at step three never reached
+ * its sink at all — in both cases the rule falls back to the furthest step that did
+ * produce something, so the button opens the failure that stopped the run rather than
+ * nothing at all. The card words the button from `isLive` so it never calls that "the
+ * final step".
+ *
+ * "Produced something" is narrower than "has an `error`": a SKIPPED or CANCELLED step
+ * carries one too, and it is boilerplate about never having run ("Skipped: the node it
+ * depends on did not succeed"). Those are exactly the sinks of a run that broke, so
+ * counting them would hand every failed run its least informative row and bury the
+ * failure that actually stopped it one step above.
+ *
+ * Returns the node run itself, or null when the run has produced nothing yet.
+ */
+export function finalStepOf(execution) {
+  const nodes = execution?.nodes || []
+  const spoke = nodes.filter((n) => n && (n.output || (n.error && n.status === 'FAILED')))
+  if (!spoke.length) return null
+  const feeds = new Set(nodes.flatMap((n) => n?.dependsOn || []))
+  const sinks = spoke.filter((n) => !feeds.has(n.nodeId))
+  return (sinks.length ? sinks : spoke).reduce((best, n) => (settledLater(n, best) ? n : best))
+}
+
+/**
+ * Which of two steps came to rest later. `finishedAt` is the real answer; a step that
+ * has output but no stamp (an older row) falls back to its place in the run order, so
+ * the comparison is still total and never depends on array position.
+ */
+function settledLater(a, b) {
+  const at = a.finishedAt ? Date.parse(a.finishedAt) : -Infinity
+  const bt = b.finishedAt ? Date.parse(b.finishedAt) : -Infinity
+  if (at !== bt) return at > bt
+  return (a.orderIndex ?? 0) > (b.orderIndex ?? 0)
+}
