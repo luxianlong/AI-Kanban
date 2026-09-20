@@ -17,8 +17,8 @@ import { paneColumns, readCollapsed, writeCollapsed } from './workflowPanes.js'
 // nodes carry their own `inputs` rather than a separate edge list, because that is
 // how they are edited. See workflowDraft.js.
 import {
-  EFFORT_LEVELS, ULTRACODE, appendStep, blankDraft, blankStep, draftFingerprint, draftFrom,
-  favoriteFromStep, favoriteNamed, newId, payloadFrom, stepFromFavorite,
+  DEFAULT_EFFORT, EFFORT_LEVELS, ULTRACODE, appendStep, blankDraft, blankStep, draftFingerprint,
+  draftFrom, favoriteFromStep, favoriteNamed, newId, payloadFrom, stepFromFavorite,
 } from './workflowDraft.js'
 
 // The Workflows page: author a DAG of prompt tasks on the left, watch the runs it
@@ -36,10 +36,15 @@ import {
 // does, so the picker has to make "more" and "less" legible rather than just listing
 // five words. "Default" is not a sixth level — it means no --effort flag at all, so
 // the CLI decides (see EffortLevel.java).
+//
+// The advice it gives is "raise it", because a new step now starts at low
+// (DEFAULT_EFFORT): the cheap end is where a step belongs until its work asks for more,
+// and the one step in a graph that has to do the actual reasoning is easier to name than
+// the four that don't.
 export const EFFORT_HINT =
-  'How hard this step thinks. Higher levels reason for longer and cost more; leave it '
-  + 'on Default unless a step is either the one doing the hard thinking or the one just '
-  + 'tidying up what it was handed.'
+  'How hard this step thinks. A new step starts on low; raise it for the step that has '
+  + 'to do the real reasoning, since higher levels reason for longer and cost more. '
+  + '"Default" is not a level — it leaves the flag off and lets the CLI decide.'
 
 // Said separately because ultracode is a separate thing, and a picker that lists it
 // under the same heading as the five would be claiming it is the notch above max.
@@ -2017,7 +2022,9 @@ function NodeRun({
 function AddStepAfter({ after, onCancel, onAdd }) {
   const [name, setName] = useState('')
   const [prompt, setPrompt] = useState('')
-  const [effort, setEffort] = useState('')
+  // The same level a step added in the editor starts on — this is a step being written
+  // now, not one being read back, so it gets the new-step default rather than blank.
+  const [effort, setEffort] = useState(DEFAULT_EFFORT)
   const [saving, setSaving] = useState(false)
   const [problem, setProblem] = useState(null)
   const id = useId()

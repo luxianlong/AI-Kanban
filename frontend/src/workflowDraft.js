@@ -20,6 +20,20 @@ export const EFFORT_LEVELS = ['low', 'medium', 'high', 'xhigh', 'max']
 // thing about it that is untrue. The picker shows it, separately.
 export const ULTRACODE = 'ultracode'
 
+// What a step a person has just created starts on, before anybody has an opinion about
+// it. Not '' — a step that is left at "Default" is thought about at whatever the CLI
+// charges for by default, which is several notches up this scale, and the level nobody
+// chose is the one nearly every step ends up running at. Starting at the bottom makes
+// the expensive levels something a step is *given* because its work needs it.
+//
+// It is only a starting value, written into the step as a real level: the picker still
+// offers "Default", the saved workflow still stores 'low' rather than nothing, and
+// steps already saved are untouched (draftFrom keeps whatever they hold, blank
+// included). That is the difference between this and moving the meaning of "absent",
+// which stays "let the CLI decide" — see EffortLevel.java for why that must not be
+// pinned to a level here.
+export const DEFAULT_EFFORT = 'low'
+
 export const newId = () =>
   (crypto.randomUUID ? crypto.randomUUID() : `n${Date.now()}${Math.random()}`).slice(0, 36)
 
@@ -30,7 +44,9 @@ export function blankDraft() {
     name: '',
     description: '',
     entryNodeId: entry,
-    nodes: [{ id: entry, name: 'Step 1', prompt: '', effort: '', manualStart: false, inputs: [] }],
+    nodes: [{
+      id: entry, name: 'Step 1', prompt: '', effort: DEFAULT_EFFORT, manualStart: false, inputs: [],
+    }],
   }
 }
 
@@ -106,7 +122,7 @@ export function appendStep(draft, step) {
  * name has always made: a name you can edit beats a number that renumbers under you.
  */
 export function blankStep(id, count) {
-  return { id, name: `Step ${count + 1}`, prompt: '', effort: '', manualStart: false }
+  return { id, name: `Step ${count + 1}`, prompt: '', effort: DEFAULT_EFFORT, manualStart: false }
 }
 
 /**
