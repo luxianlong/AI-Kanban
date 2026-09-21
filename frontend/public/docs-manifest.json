@@ -30,21 +30,6 @@
     ]
   },
   {
-    "id": "upload-ai-engineering-stack",
-    "title": "AI Engineering Stack",
-    "href": "/p/ai-engineering-stack.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-21T00:54:55.455Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ai-engineering-stack.html",
-      "frontend/public/p/ai-engineering-stack.meta.json"
-    ]
-  },
-  {
     "id": "upload-page-a64e496c",
     "title": "超额收益从哪里来",
     "href": "/p/page-a64e496c.html",
