@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-ai-engineering-stack-116",
+    "title": "从“试一试”到“可验证”：AI Engineering Stack 十大问题的纵深解剖（附 116 条落地技术脚注）",
+    "href": "/p/ai-engineering-stack-116.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-21T04:57:02.190Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-engineering-stack-116.html",
+      "frontend/public/p/ai-engineering-stack-116.meta.json"
+    ]
+  },
+  {
     "id": "upload-2026-ai-engineering-stack-75",
     "title": "模型之外的那一圈：2026 年 AI Engineering Stack 十大问题的纵深解剖（含 75 条工业实现脚注）",
     "href": "/p/2026-ai-engineering-stack-75.html",
