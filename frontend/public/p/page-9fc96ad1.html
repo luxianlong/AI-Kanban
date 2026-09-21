@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>贴着物理极限的工程学：人工智能技术栈的十个结构性问题及其求解理论</title>
+<style>
+:root{
+  --ink:#1b1b1d; --ink-soft:#4a4a52; --line:#e2e0da; --bg:#fbfaf7;
+  --accent:#8a5a2b; --accent-soft:#f3ece2; --pop-bg:#ffffff;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  font-size:17px; line-height:1.95;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{display:flex; gap:40px; max-width:1220px; margin:0 auto; padding:48px 28px 120px;}
+nav.toc{
+  flex:0 0 250px; position:sticky; top:32px; align-self:flex-start;
+  max-height:calc(100vh - 64px); overflow-y:auto;
+  font-size:13.5px; line-height:1.7; border-right:1px solid var(--line); padding-right:20px;
+}
+nav.toc h2{font-size:13px; letter-spacing:.18em; color:var(--ink-soft); font-weight:600; margin:0 0 14px; border-top:0; padding-top:0}
+nav.toc a{display:block; color:var(--ink-soft); text-decoration:none; padding:3px 0; border-left:2px solid transparent; padding-left:10px; margin-left:-10px}
+nav.toc a:hover{color:var(--accent); border-left-color:var(--accent)}
+nav.toc a.sub{padding-left:24px; font-size:12.8px; color:#7a7a82}
+main{flex:1 1 auto; min-width:0; max-width:760px}
+h1{font-size:30px; line-height:1.5; margin:0 0 10px; font-weight:700; letter-spacing:.01em}
+.byline{color:#8a8a92; font-size:13.5px; margin-bottom:38px; letter-spacing:.06em}
+h2{font-size:21px; margin:56px 0 18px; padding-top:12px; font-weight:700; border-top:1px solid var(--line); scroll-margin-top:16px}
+h3{font-size:17px; margin:34px 0 12px; font-weight:700; color:#2c2c33}
+p{margin:0 0 18px; text-align:justify}
+hr{border:0; border-top:1px solid var(--line); margin:44px 0}
+strong{font-weight:700}
+.abs{background:#f5f2ec; border-left:3px solid var(--accent); padding:20px 24px; margin:0 0 20px; font-size:16px}
+.abs p{margin:0}
+a.fn-mark{
+  color:var(--accent); text-decoration:none; font-size:12px; font-weight:600;
+  padding:0 1px; cursor:pointer; vertical-align:super; line-height:0;
+  font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+a.fn-mark:hover{background:var(--accent-soft); border-radius:3px}
+#popup{
+  position:fixed; z-index:9999; width:400px; max-width:calc(100vw - 24px);
+  max-height:62vh; overflow-y:auto; background:var(--pop-bg);
+  border:1px solid #d8d4cc; border-radius:10px; box-shadow:0 12px 40px rgba(20,18,14,.18);
+  padding:16px 18px 14px; font-size:14px; line-height:1.75; display:none;
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+}
+#popup .fn-t{font-weight:700; font-size:14.5px; margin-bottom:8px; color:var(--accent)}
+#popup p{margin:0 0 7px; text-align:left; font-size:13.5px}
+#popup p:last-child{margin-bottom:0}
+.num{display:inline-block; background:var(--accent-soft); color:var(--accent);
+  border-radius:4px; padding:0 6px; font-size:12px; margin-right:6px; font-weight:700;
+  font-family:-apple-system,"Helvetica Neue",Arial,sans-serif}
+section.notes{margin-top:70px; border-top:2px solid var(--ink); padding-top:26px}
+section.notes h2{border-top:0; margin-top:0}
+.fn{
+  border-bottom:1px solid var(--line); padding:14px 0 12px; font-size:14px; line-height:1.8;
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  scroll-margin-top:24px;
+}
+.fn .fn-t{font-weight:700; color:var(--accent); margin-bottom:5px; font-size:14.5px}
+.fn p{margin:0 0 5px; text-align:left; font-size:13.5px; color:#333}
+.notes h3{font-size:13.5px; letter-spacing:.1em; color:var(--ink-soft); margin:34px 0 2px; scroll-margin-top:20px}
+@media (max-width:900px){
+  .wrap{display:block; padding:28px 18px 90px}
+  nav.toc{position:static; max-height:none; border-right:0; border-bottom:1px solid var(--line);
+    padding:0 0 18px; margin-bottom:28px}
+  main{max-width:none}
+  h1{font-size:24px}
+  #popup{width:calc(100vw - 32px)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="toc">
+<h2>目录</h2>
+<a href="#sec0">摘要</a>
+<a href="#sec1">一、导言：为什么要从守恒律开始</a>
+<a href="#sec2">二、问题一：算力供给的电力化</a>
+<a href="#sec3">三、问题二：推理经济性倒挂</a>
+<a href="#sec4">四、问题三：分布式训练的同步税</a>
+<a href="#sec5">五、问题四：上下文与记忆的伪解决</a>
+<a href="#sec6">六、问题五：数据枯竭与合成数据的熵坍缩</a>
+<a href="#sec7">七、问题六：评测的不可判定性</a>
+<a href="#sec8">八、问题七：智能体的误差复合墙</a>
+<a href="#sec9">九、问题八：非确定性与可复现性丧失</a>
+<a href="#sec10">十、问题九：延迟、吞吐与成本三角</a>
+<a href="#sec11">十一、问题十：抽象层缺失与栈的垂直耦合</a>
+<a href="#sec12">十二、横向比较：三类杠杆</a>
+<a href="#sec13">十三、结论</a>
+<a href="#notes">附注：工业界对应实现</a>
+<a href="#g1" class="sub">注 1–5 电力与调度</a>
+<a href="#g2" class="sub">注 6–13 带宽与条件计算</a>
+<a href="#g3" class="sub">注 14–18 异步训练</a>
+<a href="#g4" class="sub">注 19–24 记忆层</a>
+<a href="#g5" class="sub">注 25–30 数据与环境</a>
+<a href="#g6" class="sub">注 31–38 评测</a>
+<a href="#g7" class="sub">注 39–45 智能体</a>
+<a href="#g8" class="sub">注 46–50 确定性</a>
+<a href="#g9" class="sub">注 51–56 推理服务</a>
+<a href="#g10" class="sub">注 57–61 抽象与 DSL</a>
+<a href="#g11" class="sub">注 62–63 横切资产</a>
+</nav>
+
+<main>
+<h1>贴着物理极限的工程学：人工智能技术栈的十个结构性问题及其求解理论</h1>
+<div class="byline">守恒律 · 配比自由度 · 定义域置换</div>
+<h2 id="sec0">摘要</h2>
+<div class="abs"><p>本文不把人工智能工程栈当作一组待优化的技术选项，而把它当作一个被若干守恒律夹紧的系统。文章先给出一个统一的求解范式：识别守恒量，寻找守恒律内部的配比自由度，或者改变问题的定义域把不可解外包给可解。随后以纵深方式逐一讨论十个结构性问题，每个问题都按照"物理或数学根源、工程表现、解决它的收益、守恒量与可交换自由度、求解理论、残余成本"的同一骨架展开，使读者可以独立读懂任何一节，也可以顺序读完形成整体判断。最后给出横向的杠杆排序。核心结论是：技术栈中的多数努力只能改变系数，少数努力能拆掉一个原本不必要的乘法关系，极少数努力能改变系统边界本身，而后者才是超线性回报的来源。</p></div>
+
+<hr>
+
+<h2 id="sec1">一、导言：为什么要从守恒律开始</h2>
+
+<p>绝大多数关于人工智能工程的讨论从解法开始：某种并行策略、某种缓存机制、某种评测框架。这类讨论的通病是无法判断一项努力的收益上限，因而也无法排序。</p>
+
+<p>一个更稳定的出发点是守恒律。任何工程系统之上都存在若干不可造之物：能量、信号传播速度、信息熵、语义性质的不可判定性。守恒量本身不能被优化,只能被绕过或被交换。但守恒律通常约束的是某个乘积或总量,而非其中每一项,这意味着总量守恒之处必然存在配比自由度,而工程的全部空间恰恰在这个自由度里。</p>
+
+<p>由此得到三步求解范式。第一步,识别这一层的守恒量。第二步,找出守恒律允许交换的那个自由度,并判断交换的代价。第三步,当某个性质根本不可判定时,不要去追求更强的判定器,而要改变问题的定义域:把"证明它是对的"替换为"构造一个环境,使它错的时候会当场暴露"。</p>
+
+<p>十个问题按其守恒量的性质分为三类。前三个受制于能量、光速与存储带宽,称为物理税,其特征是只能改变系数,不能改变量级。第四到第六个受制于信息论与统计学习,称为信息论税,其特征是决定能力天花板的形状。第七到第十个受制于可判定性与概率结构,称为可判定性税,其特征是迫使工程方法论从"证明正确"转向"限制损害"。</p>
+
+<p>以下逐一纵深。</p>
+
+<hr>
+
+<h2 id="sec2">二、问题一：算力供给的电力化</h2>
+
+<p><strong>根源。</strong> 不可逆计算每比特至少耗散一份与温度成正比的能量,这是热力学给出的绝对下界。更现实的约束是登纳德缩放的终结:功耗不再随制程同步下降,算力被"每瓦性能"而非晶体管数量封顶。与此同时栅极已逼近数个原子层,单芯片红利消失,扩展只能依靠堆叠更多芯片与封装。</p>
+
+<p><strong>工程表现。</strong> 瓶颈已经从"买不到加速卡"变成"拉不到电、散不了热"。单机柜功率跨过一百千瓦的分水岭后<a class="fn-mark" data-fn="1" href="#fn-1">[1]</a>,液冷、电网选址、余热回收从设施问题升级为架构决策<a class="fn-mark" data-fn="2" href="#fn-2">[2]</a>。更致命的是时间尺度错配:变电站与主变容量的建设周期是三到五年,而模型迭代周期是六个月。关键路径上出现了一个比技术演进慢一个数量级的环节。</p>
+
+<p><strong>收益。</strong> 每瓦性能的提升等价于产能扩张。把能耗效率从一点五降到一点一,等于凭空多出约四分之一的算力且无需新增电力接入。但真正的杠杆不在效率,而在解耦迭代周期:让训练拓扑摆脱单点电网建设的约束。这项收益是常数级的,但常数极大,且它决定谁有资格参赛。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是能量与散热面积,数据中心的产出上限等于可用功率乘以每焦耳有效计算,两项都不能凭空制造。可交换的自由度是时间与空间:电力并非全局稀缺,而是在特定地点、特定时刻稀缺。真实约束是接入排队与主变容量,不是发电总量。</p>
+
+<p><strong>求解理论。</strong> 把训练任务从同步刚体改造为可分片、可迁移、可中断的弹性负载,用调度换电力<a class="fn-mark" data-fn="3" href="#fn-3">[3]</a>。一旦训练允许跨地域异步执行,一个千兆瓦级站点就可以被十个百兆瓦级站点替代,而后者的电网接入周期短一个数量级<a class="fn-mark" data-fn="4" href="#fn-4">[4]</a>。近年出现的解耦式本地多步训练方法,其真正的经济意义不是通信优化,而是把变电站建设周期从关键路径上移走。</p>
+
+<p><strong>残余税。</strong> 每焦耳有效计算的提升只能来自器件与数值精度,属于常数级改进。结论是:电力问题的解不在能源侧,在调度侧<a class="fn-mark" data-fn="5" href="#fn-5">[5]</a>。</p>
+
+<hr>
+
+<h2 id="sec3">三、问题二:推理经济性倒挂</h2>
+
+<p><strong>根源。</strong> 算力大约每两年增长三倍,而内存带宽增速远低于此,二者的剪刀差构成存储墙<a class="fn-mark" data-fn="6" href="#fn-6">[6]</a>。自回归解码阶段每读取一次权重只执行一次乘加,算术强度约等于一<a class="fn-mark" data-fn="7" href="#fn-7">[7]</a>,因此绝大多数推理算子天然受限于带宽而非算力。</p>
+
+<p><strong>工程表现。</strong> 解码阶段的加速器算力利用率常低于百分之十。成本由带宽与键值缓存占用决定,而非由浮点运算量决定。这导致一个反直觉的局面:模型越强越难商业化。批处理、分页式注意力、量化、投机解码,全都是在压榨同一个带宽常数<a class="fn-mark" data-fn="8" href="#fn-8">[8]</a>。</p>
+
+<p><strong>收益。</strong> 这是全栈中投入产出比最高的一项。解码利用率从百分之十提升到百分之三十,单位输出成本降至三分之一,等价于把商业化门槛整体下移一代。它改变的是可行产品集:成本下降使长对话、常驻智能体、后台批处理从演示变成业务。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是算术强度,这是一个比值,不是速度。可交换的自由度因此只有两个:分子,即每次内存读取所服务的计算量;分母,即每个输出单位必须读取的字节数。</p>
+
+<p>抬高分子的路径包括批处理、投机解码与多标记预测<a class="fn-mark" data-fn="9" href="#fn-9">[9]</a>,本质都是让同一次内存读取服务更多计算。压低分母的路径包括稀疏专家结构、键值缓存压缩与低精度缓存<a class="fn-mark" data-fn="10" href="#fn-10">[10]</a><a class="fn-mark" data-fn="11" href="#fn-11">[11]</a>。近年这条路径推进最猛,公开技术报道显示头部实验室已通过缓存压缩、稀疏注意力、低精度缓存与滑动窗口的组合,把每个标记的缓存占用降到约九百字节量级,削减约四分之三<a class="fn-mark" data-fn="12" href="#fn-12">[12]</a>。</p>
+
+<p><strong>求解理论。</strong> 条件计算是唯一的量级级解法。稠密模型把参数量与每标记内存流量线性绑定,稀疏化直接切断这个绑定:参数可以继续增长,流量可以不增长。这就是"参数几乎翻倍、推理反而更省"能够成立的原因。它不违反任何物理定律,只是解除了一个人为的耦合。</p>
+
+<p><strong>残余税。</strong> 稀疏化把规整的稠密矩阵乘换成了不规则访存与路由通信,瓶颈从显存带宽转移到互连与负载均衡<a class="fn-mark" data-fn="13" href="#fn-13">[13]</a>。这是问题迁移,不是问题消失。</p>
+
+<hr>
+
+<h2 id="sec4">四、问题三:分布式训练的同步税</h2>
+
+<p><strong>根源。</strong> 阿姆达尔定律约束串行份额,而系统平均无故障时间随节点数线性下降。整体同步并行模型中存在全局屏障,任一节点故障等于全局停摆,这是编程模型的性质,不是硬件的性质。</p>
+
+<p><strong>工程表现。</strong> 万卡规模下,全局归约通信与故障恢复合计占据两成到四成的有效时间。检查点频率与算力浪费形成死锁:存得太频浪费算力,存得太疏故障重算代价更大。三维并行策略本质上是在通信量、显存占用与流水线气泡这个三角上做无解权衡<a class="fn-mark" data-fn="14" href="#fn-14">[14]</a>。</p>
+
+<p><strong>收益。</strong> 回收两成到四成有效算力,相当于万卡集群白送三千卡。更关键的是容错:弹性训练让平均无故障时间不再随规模线性恶化,使"更大规模"重新成为可选项。不解决它,规模扩张会先撞上工程墙而不是物理墙。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是串行份额与故障率的乘积效应。可交换的自由度是一致性强度。分布式系统的一条通用真理在此适用:同步是一种被过度购买的商品。梯度下降本身就是随机算法,它在噪声中前进,对延迟具有天然鲁棒性。</p>
+
+<p><strong>求解理论。</strong> 用统计一致性替代严格一致性。本地多步训练<a class="fn-mark" data-fn="15" href="#fn-15">[15]</a>加低频压缩通信<a class="fn-mark" data-fn="16" href="#fn-16">[16]</a>可以把通信量降低两到三个数量级,代价是引入陈旧梯度,而陈旧梯度在数学上等价于一项额外噪声,可以用动量校正与自适应聚合窗口吸收。解耦式设计的关键在于把同步器做成最小共识:单个学习单元故障只损失自己的局部进度,不传染全局<a class="fn-mark" data-fn="17" href="#fn-17">[17]</a>。</p>
+
+<p>换一种表述:有效算力等于峰值算力乘以通信占比的补,再乘以故障重算占比的补。同步训练让后两项同时恶化且相互耦合,异步训练把它们解耦,于是原本无解的三角权衡退化为可以分层求解的问题<a class="fn-mark" data-fn="18" href="#fn-18">[18]</a>。</p>
+
+<p><strong>残余税。</strong> 异步会抬高达到同等损失所需的总步数。目前的经验是收敛开销显著小于同步开销,但这是经验常数,不是定理,规模继续扩大时需要重新测量。</p>
+
+<hr>
+
+<h2 id="sec5">五、问题四:上下文与记忆的伪解决</h2>
+
+<p><strong>根源。</strong> 自注意力的计算量随序列长度平方增长,键值缓存随上下文线性膨胀<a class="fn-mark" data-fn="19" href="#fn-19">[19]</a>。但这只是表象,真正的守恒律来自信息论:信息不能被无损压缩到低于其熵。</p>
+
+<p><strong>工程表现。</strong> 长上下文只是把检索问题转换成了平方级成本问题。检索增强、上下文压缩、稀疏注意力都在做有损近似<a class="fn-mark" data-fn="20" href="#fn-20">[20]</a>,因而必然引入召回失败。不存在既保真、又廉价、又无限的记忆层,这一三难与分布式系统中的一致性、可用性、分区容忍三难同构。</p>
+
+<p><strong>收益。</strong> 承认三难之后,收益来自显式选择损失的形式。工程上把召回失败从随机的幻觉变成可测量、可兜底的已知风险。产品上,稳定的记忆层是从一次性问答跨越到长期协作者的唯一前提,这是产品形态的量级跃迁,不是体验优化。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是熵与保真度的关系。可交换的自由度是保真度的分布。关键洞察在于:任务并不需要对全部历史一致保真,它只需要对与当前决策相关的那部分保真。均匀保真是浪费。</p>
+
+<p><strong>求解理论。</strong> 把记忆从存储问题重构为状态估计问题。正确的抽象不是更长的窗口,而是一个分层的、可重建的状态机,包含三层。工作记忆保存当前任务的完整上下文,短、贵、无损<a class="fn-mark" data-fn="21" href="#fn-21">[21]</a>。压缩记忆对已完成片段做有损摘要,但必须保留回溯指针:摘要错了可以回源重读<a class="fn-mark" data-fn="22" href="#fn-22">[22]</a>。这一条是全部设计的枢纽,有损压缩加上无损回溯在系统层面等价于无损。外部记忆则是文件系统、数据库与代码库<a class="fn-mark" data-fn="23" href="#fn-23">[23]</a>,它们本来就是人类发明的无限而廉价的记忆层,检索失败可以通过重新检索修复。</p>
+
+<p>这条路线近年已从实验走向工程化,上下文压实已成为主流智能体框架的标准动作,专门的记忆层产品也形成了独立品类<a class="fn-mark" data-fn="24" href="#fn-24">[24]</a>。理论结论是:不存在无损无限的记忆层,但存在可恢复的有损记忆层。把召回失败从终局错误降级为可重试事件,是唯一正确的解法方向。</p>
+
+<p><strong>残余税。</strong> 判断"什么是相关的"本身需要模型推理,这引入递归成本;而且判断错误无法被自动检测,问题因此被传递给下一节。</p>
+
+<hr>
+
+<h2 id="sec6">六、问题五:数据枯竭与合成数据的熵坍缩</h2>
+
+<p><strong>根源。</strong> 数据处理不等式指出,信息不能从封闭系统中凭空产生。同时,规模定律是幂律,收益在对数尺度上线性,泛化误差随样本量的平方根倒数下降,意味着每提升一个档次需要指数级投入。</p>
+
+<p><strong>工程表现。</strong> 高质量人类文本趋于耗尽<a class="fn-mark" data-fn="25" href="#fn-25">[25]</a>。用模型生成数据训练模型无法创造新的信息熵,反复自举导致分布收窄,出现模型坍缩<a class="fn-mark" data-fn="26" href="#fn-26">[26]</a>。数据供给正从抓取转向雇佣与环境交互,成本结构完全改变。</p>
+
+<p><strong>收益。</strong> 解决它等于保住规模定律的有效性;不解决,能力天花板将被数据而非算力锁死。附带收益是竞争格局重构:数据护城河从"谁抓得多"变成"谁拥有独占的可交互环境"。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是封闭系统的信息熵。可交换的自由度恰恰是"系统是否封闭"。坍缩定理只对闭环成立,只要引入外部信息源,熵就可以增加。外部熵源有三类,成本结构截然不同:人类专家,单价高且成本随产量线性增长;可执行环境,包括编译器、测试、模拟器与真实接口返回<a class="fn-mark" data-fn="27" href="#fn-27">[27]</a>,单价低且可并行放大;物理世界,包括传感器与机器人交互<a class="fn-mark" data-fn="28" href="#fn-28">[28]</a>,单价高且难以规模化。</p>
+
+<p><strong>求解理论。</strong> 合成数据的价值不来自生成,而来自筛选。生成一千条候选解法,再用验证器留下正确的三条<a class="fn-mark" data-fn="29" href="#fn-29">[29]</a>,这个过程不是自举,而是搜索。信息熵来自验证器这个外部裁判,不来自生成器。这解释了为何经过验证的合成数据能够占据头部实验室训练语料的多数比例,而未经验证的自举仍然坍缩。需要说明的是,关于具体占比的公开数字多属二手转述,应谨慎对待,但机制判断不依赖于该数字。</p>
+
+<p>由此得到一个推论:数据行业的终局不是标注公司,而是环境公司,出售的是可执行、可判分的世界模拟器<a class="fn-mark" data-fn="30" href="#fn-30">[30]</a>。数据从被采集的存量变成被生产的流量。</p>
+
+<p><strong>残余税。</strong> 可验证领域的熵源廉价,不可验证领域仍只能依赖人类。能力增长因此会明显不均衡:代码与数学快速前进,写作、策略与品味缓慢前进。</p>
+
+<hr>
+
+<h2 id="sec7">七、问题六:评测的不可判定性</h2>
+
+<p><strong>根源。</strong> 赖斯定理指出,程序的非平凡语义性质不存在通用判定算法。开放域输出没有基准真值,这是定义层面的困难,不是技术层面的困难。</p>
+
+<p><strong>工程表现。</strong> 以模型充当裁判会把评测误差引入优化目标,形成自指闭环<a class="fn-mark" data-fn="31" href="#fn-31">[31]</a>。工程后果极其严重:无法建立可信的持续集成,回归依赖人工抽检,发版信心来自直觉而非指标。</p>
+
+<p><strong>收益。</strong> 这是被严重低估的一项。可信持续集成的缺失让每次发版都是赌博,迭代速度被人工抽检的吞吐量限制。建立可验证评测的收益是把迭代周期从周级压缩到小时级,而这会复利放大到其余所有问题上。它是元问题:评测不可信,则前五个问题上的任何优化都无法被确认。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是不可判定性本身。可交换的自由度是判定的通用性。不可判定说的是通用判定器不存在,而不是任何判定器都不存在。对受限的性质,在受限的输入域上,判定完全可行。</p>
+
+<p><strong>求解理论。</strong> 把评测拆成三个性质不同的层,分别处理。</p>
+
+<p>可验证层指能执行、能判分的部分,使用确定性验证器<a class="fn-mark" data-fn="32" href="#fn-32">[32]</a>,这一层可以达到传统持续集成的强度,应当尽最大努力扩大它。把"输出好文案"改写为"输出符合结构约束且通过规则校验的文案"<a class="fn-mark" data-fn="33" href="#fn-33">[33]</a>,是用需求工程换可判定性,通常是回报最高的动作。</p>
+
+<p>可比较层指不能判断对错但能判断优劣的部分,使用成对比较与统计显著性检验<a class="fn-mark" data-fn="34" href="#fn-34">[34]</a>。此处必须警惕两类已被实证的失效:模型裁判存在偏好泄漏,倾向于偏爱与自己同源的模型<a class="fn-mark" data-fn="35" href="#fn-35">[35]</a>;主流公开基准存在污染与过拟合<a class="fn-mark" data-fn="36" href="#fn-36">[36]</a>。因此裁判必须与被测模型异源,并需要人类锚定样本做校准。</p>
+
+<p>不可判定层则应放弃前置评测,转为线上可观测性,把评测从发布前移到发布后,用真实用户信号、回滚率与人工抽检构成反馈闭环兜底<a class="fn-mark" data-fn="37" href="#fn-37">[37]</a>。</p>
+
+<p>还有一个关键的理论转变:可信持续集成的前提不是更准的指标,而是指标的置信区间必须小于所关心的效应量<a class="fn-mark" data-fn="38" href="#fn-38">[38]</a>。多数团队的评测失效并非因为不可判定,而是因为样本量不足导致噪声淹没信号。这是可以用统计学解决的问题,不是哲学问题。</p>
+
+<p><strong>残余税。</strong> 扩大可验证层需要改写需求,这会限制产品形态;不可判定层的线上兜底意味着一部分错误必须由用户先行承担。</p>
+
+<hr>
+
+<h2 id="sec8">八、问题七:智能体的误差复合墙</h2>
+
+<p><strong>根源。</strong> 概率乘法。单步正确率百分之九十五,连续五十步之后整体成功率只剩约百分之八。这不是模型缺陷,而是自回归链路的概率结构。</p>
+
+<p><strong>工程表现。</strong> 智能体在开放业务流程上频繁失败,而在代码与数学上迅速落地。这一现象不是偶然的领域偏好,而是误差截断机制是否存在的直接后果。</p>
+
+<p><strong>收益。</strong> 这是最大的能力杠杆。引入可验证环境把误差在每步截断,长任务成功率可以从个位数百分比回到六成以上,这是指数级而非常数级收益。它直接决定智能体能否走出代码与数学,进入开放业务流程。可验证环境的构建成本,本质上就是下一代软件的主要工程投入方向。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是概率乘法。可交换的自由度是"步"的定义,以及步与步之间是否独立。误差复合公式成立的前提是每步错误都不可恢复,而这个前提在工程上是可以打破的。</p>
+
+<p><strong>求解理论。</strong> 三个正交的干预点,每一个都改变公式本身而不是公式中的数值。</p>
+
+<p>其一是截断。在链条中每隔若干步插入验证点<a class="fn-mark" data-fn="39" href="#fn-39">[39]</a>,若验证点能以一定概率捕获错误,则有效错误率被乘以一个小于一的因子,链路长度的指数底数被改写。这正是智能体最先在代码与数学落地的唯一原因:编译器与测试是免费且高精度的验证器<a class="fn-mark" data-fn="40" href="#fn-40">[40]</a>。</p>
+
+<p>其二是重试。可恢复步骤的成功率从单次成功率提升为"至少一次成功"的概率。前提是状态可回滚,因此幂等操作、事务边界与沙箱隔离<a class="fn-mark" data-fn="41" href="#fn-41">[41]</a>不是工程卫生习惯,而是数学上必需的结构<a class="fn-mark" data-fn="42" href="#fn-42">[42]</a>。</p>
+
+<p>其三是降维。把五十步的单链路换成五个十步子任务,每个子任务有独立验收标准<a class="fn-mark" data-fn="43" href="#fn-43">[43]</a>。误差从一条不可修复的长链变成五段可独立修复的短链。这与软件工程中模块化的收益完全同构。</p>
+
+<p>实证方面,近年关于模型可完成任务时长随时间指数增长的观察<a class="fn-mark" data-fn="44" href="#fn-44">[44]</a>,说明这道墙正在被推移而非被绕过,推移的动力恰恰来自上述三项的工程化,以及在可验证环境上的强化学习训练。需要注意该类指标对任务集构成敏感,任务集扩充会影响可比性,跨版本比较应谨慎。</p>
+
+<p><strong>残余税。</strong> 没有验证器的开放业务流程仍然严格遵守原始公式。在这些领域,正确的产品形态是人在回路<a class="fn-mark" data-fn="45" href="#fn-45">[45]</a>,而不是更强的模型。</p>
+
+<hr>
+
+<h2 id="sec9">九、问题八:非确定性与可复现性丧失</h2>
+
+<p><strong>根源。</strong> 浮点加法不满足结合律,这是数值表示标准的性质,不可更改。归约顺序改变,结果就会改变。</p>
+
+<p><strong>工程表现。</strong> 同一输入因批次组成、内核调度与浮点累加顺序而产生不同输出。传统软件工程赖以生存的"复现缺陷、修复、回归"链条断裂,调试退化为统计行为分析。</p>
+
+<p><strong>收益。</strong> 恢复复现链条,让传统软件工程方法论重新可用,调试成本显著下降,事故可归因。对受监管行业而言,可复现性不是效率问题而是准入门槛,解决它等于打开这些市场。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是浮点非结合律。可交换的自由度是归约顺序是否依赖于运行时状态。一项关键诊断指出:采样温度为零时仍然输出不同,主因并非加速器并发的原子累加,而是缺乏批不变性<a class="fn-mark" data-fn="46" href="#fn-46">[46]</a>,服务端的批次组成随负载变化,导致同一请求的归约顺序发生变化。</p>
+
+<p><strong>求解理论。</strong> 非确定性不是物理必然,而是实现选择。解法是让归约密集的三类算子,即归一化、矩阵乘与注意力,做到批不变:固定每个元素的归约顺序,使其与批大小无关<a class="fn-mark" data-fn="47" href="#fn-47">[47]</a>。代价是牺牲部分峰值吞吐,收益是恢复整条软件工程生命线。</p>
+
+<p>工程推论是:应把确定性做成一个可开关的模式,而不是全局属性<a class="fn-mark" data-fn="48" href="#fn-48">[48]</a>。生产环境求吞吐,调试环境与强化学习训练环境求可复现。在强化学习中,训练与推理之间的数值不一致会直接导致策略偏移<a class="fn-mark" data-fn="49" href="#fn-49">[49]</a>,此处的收益远超吞吐损失。</p>
+
+<p><strong>残余税。</strong> 跨硬件代次、跨内核版本的可复现性仍不可得。复现性只能在固定的软硬件快照内保证,这要求版本锁定成为一级工程约束<a class="fn-mark" data-fn="50" href="#fn-50">[50]</a>。</p>
+
+<hr>
+
+<h2 id="sec10">十、问题九:延迟、吞吐与成本三角</h2>
+
+<p><strong>根源。</strong> 排队论与利特尔法则。系统中的平均在制数等于到达率乘以平均停留时间,利用率趋近饱和时排队延迟发散。这是数学,不是工程缺陷。</p>
+
+<p><strong>工程表现。</strong> 提高批大小以提升吞吐必然抬高尾部延迟<a class="fn-mark" data-fn="51" href="#fn-51">[51]</a>;为保障服务等级预留容量则牺牲利用率。而负载本身不可预测:输出长度事先未知。推理平台的可靠性工程难度比传统微服务高一个数量级。</p>
+
+<p><strong>收益。</strong> 在服务等级不变的前提下提升利用率,等于直接降本。更重要的是负载可预测性:若能预估输出长度,调度就从盲目排队变成有信息调度,尾部延迟与利用率之间的取舍曲线整体外移。这是运营能力而非技术突破,但它决定推理平台的毛利率。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是排队论本身。可交换的自由度是工作负载的同质性。三角困境之所以尖锐,是因为把两种性质完全不同的负载混在同一队列中:预填充阶段计算密集且任务长,解码阶段内存密集且任务短。把它们放进同一批次,等于让卡车与自行车共用一条车道,既伤吞吐又伤尾部延迟。</p>
+
+<p><strong>求解理论。</strong> 分离是排队论给出的标准答案,具体有四条。</p>
+
+<p>第一,预填充与解码分离部署在不同资源池<a class="fn-mark" data-fn="52" href="#fn-52">[52]</a>,各自按其瓶颈独立扩缩容,各自优化各自的服务目标。这已成为当前主流推理栈的默认架构<a class="fn-mark" data-fn="53" href="#fn-53">[53]</a>。</p>
+
+<p>第二,按服务等级分级队列。交互式请求走低延迟小批次通道,批处理请求走高吞吐大批次通道,物理隔离,用优先级而非平均值管理<a class="fn-mark" data-fn="54" href="#fn-54">[54]</a>。尾部延迟是被队列中的长任务毒害的,不是被平均负载毒害的。</p>
+
+<p>第三,对抗负载不可预测性。输出长度不可预知是本质困难,解法是输出长度预测器配合抢占式调度:预测错了就抢占并迁移,而不是追求更精确的预测<a class="fn-mark" data-fn="55" href="#fn-55">[55]</a>。</p>
+
+<p>第四,用弹性吸收峰值。把可延迟的批任务作为填充负载,在交互流量的谷段消耗闲置容量。这让高利用率与低尾部延迟不再互斥,因为被牺牲延迟的恰恰是本来就不在乎延迟的请求。</p>
+
+<p><strong>残余税。</strong> 突发流量的瞬时峰值仍需预留容量,冷启动时间为弹性设置了下界<a class="fn-mark" data-fn="56" href="#fn-56">[56]</a>。</p>
+
+<hr>
+
+<h2 id="sec11">十一、问题十:抽象层缺失与栈的垂直耦合</h2>
+
+<p><strong>根源。</strong> 前九个问题的联合作用。因为每一层都在贴着物理极限运行,内核实现、并行策略、模型结构与产品服务目标被迫互相泄漏。更深一层的原因是:抽象需要稳定的下层才能成立。结构化查询语言能存在半个世纪,是因为"表"这个模型在磁盘、固态盘与内存上都成立;而人工智能栈的下层每十八个月更换一代硬件、每六个月更换一代模型结构。在剧烈变化的地基上不可能浇筑稳定的抽象。</p>
+
+<p><strong>工程表现。</strong> 技术栈碎片化,迁移成本极高,人才必须全栈。这是当前工程效率最大的隐性损耗。</p>
+
+<p><strong>收益。</strong> 稳定抽象一旦出现,迁移成本坍塌,人才门槛下降,供应商锁定解除,行业整体工程效率跃升一个量级。但它的前提是下层不再贴着物理极限抖动,因此它是前九个问题逐步收敛之后的果,而不是可以提前强攻的因。</p>
+
+<p><strong>守恒量与自由度。</strong> 守恒量是"抽象的稳定性不能超过其下层的稳定性"。可交换的自由度是抽象的位置。抽象无法建立在快速变化的层上,但可以建立在变化最慢的那一层上。观察哪些东西多年未变:标记流入与流出的接口语义已成事实标准<a class="fn-mark" data-fn="57" href="#fn-57">[57]</a>;工具调用的语义,即函数签名加结构化参数,正在形成通用协议<a class="fn-mark" data-fn="58" href="#fn-58">[58]</a>;算子图层面的分块抽象比特定厂商的内核语言更稳定,能够跨硬件重定向<a class="fn-mark" data-fn="59" href="#fn-59">[59]</a>。</p>
+
+<p><strong>求解理论。</strong> 分层锁定策略:把技术栈按半衰期分层,在每一层的边界上做隔离,而不是追求统一抽象。</p>
+
+<p>产品语义与工具协议层,半衰期三到五年,值得投入设计,做成稳定契约。推理服务接口层,半衰期一到两年,用兼容层适配即可;当前主流推理引擎呈三足鼎立格局,接口趋同而实现分化,兼容层的成本可控<a class="fn-mark" data-fn="60" href="#fn-60">[60]</a>。并行策略与内核层,半衰期六到十二个月,应当视为可丢弃资产:不要抽象,要可替换。</p>
+
+<p>核心判断是:当前追求统一抽象是错误方向,正确方向是降低替换成本。碎片化不是缺陷,而是高速演进期的正常形态;错误的做法是浇筑一个六个月后就会成为负债的抽象层。真正的解法是把内核与并行策略当作可编译产物,即写一次分块级描述、编译到不同硬件,而不是当作需要被抽象的接口<a class="fn-mark" data-fn="61" href="#fn-61">[61]</a>。</p>
+
+<p><strong>残余税。</strong> 贴着物理极限运行的层永远会泄漏。全栈人才的稀缺性在未来数年内不会缓解。</p>
+
+<hr>
+
+<h2 id="sec12">十二、横向比较:三类杠杆</h2>
+
+<p>纵深讨论完成后,把十个问题按"守恒量能否被绕过"重新排序,得到三类杠杆。</p>
+
+<p><strong>第一类,可以通过改变系统边界绕过,回报超线性。</strong> 问题七与问题六同源:用可验证环境替代不可验证评测。这是把不可判定问题外包给可判定环境,它同时解决智能体可靠性、评测可信度与数据熵源三件事。一个动作,三份回报,这是全栈中唯一的超线性杠杆。问题八也属此类:批不变内核是一个明确的、代价可控的实现选择,却恢复了整条软件工程方法论,其投入产出比被严重低估<a class="fn-mark" data-fn="62" href="#fn-62">[62]</a>。</p>
+
+<p><strong>第二类,可以通过解除人为耦合获得量级收益。</strong> 问题二用稀疏化切断参数量与内存流量的绑定。问题一与问题三用异步训练切断算力规模与单点电力的绑定,把电网建设周期移出关键路径。问题九用预填充与解码分离切断吞吐与延迟的绑定。这三者的共同结构是:它们都不是在优化常数,而是在拆掉一个原本不必要的乘法关系。</p>
+
+<p><strong>第三类,只能做常数级优化或形态转换。</strong> 问题四的记忆层只能做到可恢复的有损,无法做到无限保真。问题十的统一抽象在未来数年内不会出现,只能降低替换成本。问题五在不可验证领域仍受制于人类产能。</p>
+
+<hr>
+
+<h2 id="sec13">十三、结论</h2>
+
+<p>三个判断可以带走。</p>
+
+<p>第一,优先押注可验证性。它同时对冲评测、智能体可靠性与可复现性三项,且是唯一能把工程方法论从"限制损害"重新拉回"可证正确"的方向。可验证环境的构建,应当被理解为下一代软件的主要工程投入,而不是评测团队的附属工作<a class="fn-mark" data-fn="63" href="#fn-63">[63]</a>。</p>
+
+<p>第二,凡是能拆掉乘法关系的地方,优先于凡是能改善系数的地方。稀疏化、异步化、分离化三者的价值不在于它们更快,而在于它们让两个原本被绑死的变量重新独立。识别这类人为耦合,是工程判断力的核心。</p>
+
+<p>第三,用异步换同步是目前对物理税唯一的非常数级对冲。它把已经撞上电网物理与建设周期的单点千兆瓦路径,替换为多点百兆瓦的可调度路径。这一条与前述"可验证环境"和"稀疏化"同等重要,且更容易被忽略,因为它看起来像是通信优化,实际上是选址与工期的重构。</p>
+
+<p>最后应当补充一句平衡:其余方向确实多为常数级优化,但在一个能耗以吉瓦计、资本开支以千亿计的产业里,常数级优化仍然值数十亿美元。分辨量级与系数,是为了排序,不是为了轻视后者。</p>
+<section class="notes" id="notes">
+<h2>附注：工业界对应实现</h2>
+<p style="font-size:13.5px;color:#6b6b73;font-family:-apple-system,'PingFang SC','Microsoft YaHei',Arial,sans-serif;">NVIDIA / OCP / PyTorch / opentelemetry.io / GitHub 官方页为一手来源；部分 2026 年的对比结论来自二手技术博客，已在条目内标注为「二手」。</p>
+
+<h3 id="g1">注 1–5　电力与调度</h3>
+
+<div class="fn" id="fn-1">
+<div class="fn-t"><span class="num">1</span>高压直流机架供电</div>
+<p><b>技术</b>：800 VDC 机架供电替代 415 VAC / 54 VDC；固态变压器（SST）前移到园区边界。</p>
+<p><b>分类</b>：硬件架构。<b>归属</b>：NVIDIA（Kyber 机架，2027 量产）；OCP「MV AC → 800 VDC」工作组由 Google + Microsoft + NVIDIA 共同发起（OCP 官方博客，2026-08）。</p>
+<p><b>供应链</b>：Vertiv / Schneider Electric H2 2026 出货；Foxconn 高雄 K-1 首站（二手报道）。</p>
+</div>
+
+<div class="fn" id="fn-2">
+<div class="fn-t"><span class="num">2</span>液冷与开放机架标准（散热面积守恒）</div>
+<p><b>技术</b>：直接芯片液冷（DLC）、冷板 + CDU、Open Rack v3 / ORW。</p>
+<p><b>分类</b>：硬件标准。<b>归属</b>：Open Compute Project（Meta 发起，现 OCP 基金会）。</p>
+</div>
+
+<div class="fn" id="fn-3">
+<div class="fn-t"><span class="num">3</span>软件定义需求响应：把训练变成弹性负载</div>
+<p><b>技术</b>：Emerald Conductor 平台把电网信号接进数据中心调度器，暂停非关键作业、限流训练、跨站迁移推理。</p>
+<p><b>分类</b>：框架 + 电力市场机制。<b>归属</b>：Emerald AI；2026-09-16 与 Google、NVIDIA 成立 AEMA（AI Energy Management Alliance），宣称可释放 100 GW 并网容量（NVIDIA 官方博客）。</p>
+</div>
+
+<div class="fn" id="fn-4">
+<div class="fn-t"><span class="num">4</span>把变电站移出关键路径</div>
+<p><b>技术</b>：FERC 互联排队规则 + 可强制执行的削减合同（curtailment-enforceable interconnection）。</p>
+<p><b>分类</b>：法规 / 协议。<b>归属</b>：FERC；AEMA 正在推动的正是这套规则。</p>
+</div>
+
+<div class="fn" id="fn-5">
+<div class="fn-t"><span class="num">5</span>调度侧的实际抓手</div>
+<p><b>技术</b>：Slurm / Kubernetes 上的功率感知调度、<code>nvidia-smi -pl</code> 功率封顶、DCGM 遥测、GB300 机架级电容储能做功率平滑。</p>
+<p><b>分类</b>：框架 + 硬件。<b>归属</b>：SchedMD / CNCF / NVIDIA。</p>
+<p><b>判断</b>：这一层没有编程语言维度，全部是硬件标准 + 标准组织 + 电力市场协议；唯一的软件抓手是调度器，而它恰好是 AEMA 的技术脊柱。</p>
+</div>
+
+<h3 id="g2">注 6–13　带宽与条件计算</h3>
+
+<div class="fn" id="fn-6">
+<div class="fn-t"><span class="num">6</span>存储墙与绕开带宽墙的硬件路线</div>
+<p><b>技术</b>：HBM4；Groq LPU（SRAM 权重驻留）、Cerebras WSE、TPU v7 Ironwood。</p>
+<p><b>分类</b>：硬件。<b>归属</b>：SK hynix / Samsung / Micron；Groq / Cerebras / Google。</p>
+</div>
+
+<div class="fn" id="fn-7">
+<div class="fn-t"><span class="num">7</span>算术强度的分析方法</div>
+<p><b>技术</b>：Roofline 模型。</p>
+<p><b>分类</b>：分析方法。<b>归属</b>：Samuel Williams et al., UC Berkeley。</p>
+</div>
+
+<div class="fn" id="fn-8">
+<div class="fn-t"><span class="num">8</span>连续批处理与分页式注意力</div>
+<p><b>技术</b>：Continuous batching（Orca, OSDI'22）→ vLLM / SGLang 默认；PagedAttention / vLLM。</p>
+<p><b>分类</b>：框架。<b>归属</b>：Gyeong-In Yu 等，首尔大学 / FriendliAI；vLLM: Woosuk Kwon, Zhuohan Li 等，UC Berkeley Sky Lab → PyTorch Foundation。</p>
+</div>
+
+<div class="fn" id="fn-9">
+<div class="fn-t"><span class="num">9</span>投机解码与多标记预测（抬高分子）</div>
+<p><b>技术</b>：Speculative decoding；Medusa（多头）、EAGLE / EAGLE-3（特征级）、DeepSeek MTP。</p>
+<p><b>分类</b>：算法 + 框架。<b>归属</b>：Google（Leviathan 等原始论文）；Medusa: Tianle Cai, Princeton / Together AI；EAGLE: 李宇辉等，北京大学。</p>
+</div>
+
+<div class="fn" id="fn-10">
+<div class="fn-t"><span class="num">10</span>键值缓存压缩与稀疏注意力（压低分母）</div>
+<p><b>技术</b>：MLA（多头潜在注意力）≈ 98% KV 压缩；DSA（DeepSeek Sparse Attention，token 级稀疏）。</p>
+<p><b>分类</b>：模型架构。<b>归属</b>：DeepSeek（arXiv:2609.19969，一手）。</p>
+</div>
+
+<div class="fn" id="fn-11">
+<div class="fn-t"><span class="num">11</span>低精度缓存与量化</div>
+<p><b>技术</b>：NVFP4 / MXFP4（OCP Microscaling 规范）、AWQ、GPTQ、SmoothQuant、<code>llm-compressor</code>。</p>
+<p><b>分类</b>：硬件数据格式 + 库。<b>归属</b>：NVIDIA Blackwell + OCP；AWQ / SmoothQuant: MIT Han Lab（韩松组）；GPTQ: IST Austria（Frantar &amp; Alistarh）；llm-compressor: Red Hat / Neural Magic。</p>
+</div>
+
+<div class="fn" id="fn-12">
+<div class="fn-t"><span class="num">12</span>约九百字节每标记与稀疏 kernel</div>
+<p><b>技术</b>：CSA2 + FP4 KV + 跨层复用 → V4.1-Flash 890 B/token；FlashMLA（含 DSA 的 prefill/decode 稀疏 kernel，FP8 KV，H800 上 410 TFLOPS 稀疏解码）、DeepGEMM、DeepEP。</p>
+<p><b>分类</b>：模型架构 + 开源 kernel 库。<b>归属</b>：DeepSeek（GitHub 一手）。</p>
+<p><b>通用注意力 kernel</b>：FlashAttention-2/3/4（Tri Dao, Princeton / Together AI）、FlashInfer（Zihao Ye, UW + NVIDIA）。</p>
+</div>
+
+<div class="fn" id="fn-13">
+<div class="fn-t"><span class="num">13</span>瓶颈迁移到互连</div>
+<p><b>技术</b>：MoE all-to-all 通信、NVSHMEM、专家并行负载均衡（EPLB）。</p>
+<p><b>分类</b>：通信库。<b>归属</b>：NVIDIA / DeepSeek。</p>
+<p><b>语言特性维度</b>：这一层真正稀缺的语言能力是 kernel fusion 与显式内存层级控制——CUDA C++ 的 <code>__shared__</code>/TMA、Triton 的 block-level 抽象；稀疏化的代价正是「不规则访存」，这是 Python 层完全表达不了的。</p>
+</div>
+
+<h3 id="g3">注 14–18　异步训练</h3>
+
+<div class="fn" id="fn-14">
+<div class="fn-t"><span class="num">14</span>同步基线（被替代的对象）</div>
+<p><b>技术</b>：Megatron-LM、DeepSpeed ZeRO、FSDP2 + DTensor、JAX Pathways（原生支持多数据中心）；集合通信层 NCCL / RCCL / Gloo / NVSHMEM / UCCL。</p>
+<p><b>分类</b>：框架 + 库。<b>归属</b>：NVIDIA；Microsoft（Rajbhandari &amp; 何雨霆）；Meta；Google。</p>
+</div>
+
+<div class="fn" id="fn-15">
+<div class="fn-t"><span class="num">15</span>本地多步训练</div>
+<p><b>技术</b>：DiLoCo → Streaming DiLoCo → Decoupled DiLoCo（异步、故障隔离「岛」，高故障率下 88% goodput）。</p>
+<p><b>分类</b>：训练算法。<b>归属</b>：Arthur Douillard 等，Google DeepMind（2026-04）。</p>
+<p><b>开源复现与规模化</b>：OpenDiLoCo → <code>prime</code>（原 ZeroBand）→ <code>prime-rl</code>；INTELLECT-1/2/3（32B，跨 14 国），Prime Intellect（一手 GitHub / 博客）。</p>
+</div>
+
+<div class="fn" id="fn-16">
+<div class="fn-t"><span class="num">16</span>低频压缩通信</div>
+<p><b>技术</b>：DisTrO（解耦动量优化器，带宽降 3–4 个数量级）、Psyche 网络（Rust 实现）。</p>
+<p><b>分类</b>：算法 + 框架。<b>归属</b>：Nous Research（Bowen Peng, Jeffrey Quesnelle）。</p>
+<p><b>语言特性维度</b>：Psyche 用 Rust 不是偶然——去中心化训练需要不可信节点上的内存安全 + 确定性序列化。Python 只负责建模，一致性协议层正在 Rust 化。</p>
+</div>
+
+<div class="fn" id="fn-17">
+<div class="fn-t"><span class="num">17</span>单节点故障不传染</div>
+<p><b>技术</b>：torchft（per-step fault tolerance，动态 world size 重配置）；<code>torch.distributed.checkpoint</code> 异步检查点。</p>
+<p><b>分类</b>：框架。<b>归属</b>：Meta / PyTorch Foundation。</p>
+</div>
+
+<div class="fn" id="fn-18">
+<div class="fn-t"><span class="num">18</span>异步模型并行生态</div>
+<p><b>技术</b>：Protocol Models（Pluralis）、SWARM Parallelism、RL Swarm（Gensyn）、Templar（Bittensor）、DiLoCoX（0G）。</p>
+<p><b>分类</b>：框架。<b>归属</b>：各团队（二手汇总）。</p>
+</div>
+
+<h3 id="g4">注 19–24　记忆层</h3>
+
+<div class="fn" id="fn-19">
+<div class="fn-t"><span class="num">19</span>架构层长上下文</div>
+<p><b>技术</b>：滑窗 + attention sink（StreamingLLM）、Mamba/SSM 混合（Jamba、Nemotron-H、Qwen3-Next）、lightning attention（MiniMax-01）。</p>
+<p><b>分类</b>：模型架构。<b>归属</b>：StreamingLLM: 肖光烜, MIT Han Lab；Mamba: Albert Gu &amp; Tri Dao。</p>
+</div>
+
+<div class="fn" id="fn-20">
+<div class="fn-t"><span class="num">20</span>检索层</div>
+<p><b>技术</b>：混合检索 BM25 + dense、ColBERT 后期交互、Rerank、pgvector / Qdrant / Milvus / Weaviate / Pinecone。</p>
+<p><b>分类</b>：库 + 数据库。<b>归属</b>：ColBERT: Omar Khattab, Stanford；pgvector: Andrew Kane；Cohere Rerank。</p>
+</div>
+
+<div class="fn" id="fn-21">
+<div class="fn-t"><span class="num">21</span>工作记忆 = KV 层面的「记忆」</div>
+<p><b>技术</b>：prefix caching（vLLM / SGLang RadixAttention）、LMCache、Mooncake 分层 KV 池；Anthropic prompt caching / Google context caching。</p>
+<p><b>分类</b>：框架 + 商业接口。<b>归属</b>：SGLang（郑怜悯、盛颖）；LMCache: 芝加哥大学 Junchen Jiang 组；Mooncake: 月之暗面 + 清华 MADSys。</p>
+</div>
+
+<div class="fn" id="fn-22">
+<div class="fn-t"><span class="num">22</span>有损压缩 + 无损回溯</div>
+<p><b>技术</b>：Context compaction / context editing / memory tool；Claude Code 的 <code>/compact</code> + <code>CLAUDE.md</code> + 带行号的文件读取（摘要里保留可回源的指针）。</p>
+<p><b>分类</b>：平台能力。<b>归属</b>：Anthropic。</p>
+</div>
+
+<div class="fn" id="fn-23">
+<div class="fn-t"><span class="num">23</span>外部记忆即文件系统</div>
+<p><b>技术</b>：MCP filesystem / 工具服务器；子 agent 上下文隔离。</p>
+<p><b>分类</b>：协议。<b>归属</b>：Anthropic → Linux Foundation AAIF。</p>
+</div>
+
+<div class="fn" id="fn-24">
+<div class="fn-t"><span class="num">24</span>记忆层产品与度量基准</div>
+<p><b>技术</b>：MemGPT → Letta（OS 式分级记忆，self-editing memory）；Mem0；Graphiti / Zep（bi-temporal 图，LongMemEval 63.8% vs Mem0 49.0%，二手数据）；LangGraph Store / LangMem、Cognee、Supermemory。</p>
+<p><b>归属</b>：Charles Packer 等，UC Berkeley Sky Lab → Letta；Mem0（Taranjeet Singh）；Zep（Daniel Chalef）；LangChain（Harrison Chase）。</p>
+<p><b>度量</b>：LongMemEval、∞Bench、RULER（学术社区 / NVIDIA）。</p>
+</div>
+
+<h3 id="g5">注 25–30　数据与环境</h3>
+
+<div class="fn" id="fn-25">
+<div class="fn-t"><span class="num">25</span>语料筛选而非生成</div>
+<p><b>技术</b>：FineWeb / FineWeb-Edu、Nemotron-CC、DataComp-LM、Cosmopedia。</p>
+<p><b>分类</b>：数据集。<b>归属</b>：Hugging Face（Guilherme Penedo）/ NVIDIA / 学术联合。</p>
+</div>
+
+<div class="fn" id="fn-26">
+<div class="fn-t"><span class="num">26</span>熵坍缩定理</div>
+<p><b>技术</b>：Model collapse。</p>
+<p><b>分类</b>：理论。<b>归属</b>：Ilia Shumailov 等，<i>Nature</i> 2024。</p>
+</div>
+
+<div class="fn" id="fn-27">
+<div class="fn-t"><span class="num">27</span>可执行环境的具体形态</div>
+<p><b>技术</b>：编译器 + 单测 + SWE-bench 式 Docker harness；SWE-smith、SWE-Gym。形式化验证作为零噪声验证器：Lean 4 + mathlib、AlphaProof、Goedel-Prover。</p>
+<p><b>分类</b>：基准 / 工具链 + 语言与社区。<b>归属</b>：Princeton（Carlos Jimenez, Ofir Press）；Leonardo de Moura（Lean FRO / AWS）；Google DeepMind。</p>
+</div>
+
+<div class="fn" id="fn-28">
+<div class="fn-t"><span class="num">28</span>世界模型 / 物理熵源</div>
+<p><b>技术</b>：Genie 3；NVIDIA Cosmos / Isaac Sim / Omniverse。</p>
+<p><b>分类</b>：框架。<b>归属</b>：Google DeepMind / NVIDIA。</p>
+</div>
+
+<div class="fn" id="fn-29">
+<div class="fn-t"><span class="num">29</span>验证器即熵源</div>
+<p><b>技术</b>：RLVR（可验证奖励强化学习）。<b>训练后端</b>：verl（字节 Seed）、SkyRL（Berkeley Sky）、NeMo-RL（NVIDIA）、TRL（Hugging Face）、OpenRLHF、rLLM、Tinker（Thinking Machines，远程 GPU 后端）。</p>
+<p><b>分类</b>：训练范式 + 框架。<b>归属</b>：AI2 Tülu 3（Nathan Lambert）；DeepSeek-R1 的 GRPO；rLLM 文档一手确认 verl / Tinker 双后端。</p>
+</div>
+
+<div class="fn" id="fn-30">
+<div class="fn-t"><span class="num">30</span>环境公司与环境的软件分发形态</div>
+<p><b>技术</b>：<code>verifiers</code> 库（v1）+ Environments Hub + <code>prime env install</code> CLI。</p>
+<p><b>分类</b>：库 + 市场。<b>归属</b>：Prime Intellect（William Brown，一手）。</p>
+<p><b>公司形态</b>：Mechanize（replication training）、Mercor、Surge AI、Scale AI、Handshake、Micro1。</p>
+<p><b>关键分类洞察</b>：这一条的「实际技术」不是模型技术，而是软件分发技术——RL 环境被做成 pip 包 + hub + CLI，把 npm/PyPI 的形态搬到了训练数据上。</p>
+</div>
+
+<h3 id="g6">注 31–38　评测</h3>
+
+<div class="fn" id="fn-31">
+<div class="fn-t"><span class="num">31</span>工程化 judge 平台</div>
+<p><b>技术</b>：Braintrust、LangSmith、Langfuse、Arize Phoenix、W&amp;B Weave、Opik、DeepEval、Ragas。</p>
+<p><b>分类</b>：框架。<b>归属</b>：各自。</p>
+</div>
+
+<div class="fn" id="fn-32">
+<div class="fn-t"><span class="num">32</span>确定性验证器与评测编排</div>
+<p><b>技术</b>：Inspect AI；学术基准框架 HELM、lm-evaluation-harness。</p>
+<p><b>分类</b>：框架。<b>归属</b>：UK AI Security Institute（一手）；Stanford CRFM（Percy Liang）；EleutherAI。</p>
+</div>
+
+<div class="fn" id="fn-33">
+<div class="fn-t"><span class="num">33</span>把需求改写成可判定形式：结构化输出 / 约束解码</div>
+<p><b>技术</b>：JSON Schema strict 模式、Outlines、XGrammar、llguidance、Pydantic + Instructor、Zod。</p>
+<p><b>分类</b>：语言特性（类型系统）+ 库。<b>归属</b>：OpenAI；Outlines: dottxt（Rémi Louf）；XGrammar: CMU/MLC（董奕昕）；llguidance: Microsoft；Instructor: Jason Liu。</p>
+<p><b>分类洞察</b>：本质是把类型系统引入 LLM 输出，JSON Schema 即运行时类型。</p>
+</div>
+
+<div class="fn" id="fn-34">
+<div class="fn-t"><span class="num">34</span>可比较层：成对比较</div>
+<p><b>技术</b>：Chatbot Arena / LMArena（Bradley-Terry + bootstrap CI）。</p>
+<p><b>分类</b>：平台。<b>归属</b>：UC Berkeley → LMArena Inc.（Wei-Lin Chiang, Anastasios Angelopoulos, Ion Stoica）。</p>
+</div>
+
+<div class="fn" id="fn-35">
+<div class="fn-t"><span class="num">35</span>偏好泄漏及其对策</div>
+<p><b>技术</b>：裁判与被测异源 + 人类锚定校准；position-bias swap。</p>
+<p><b>分类</b>：方法论。<b>归属</b>：preference-leakage 论文（Dawei Li 等）。</p>
+</div>
+
+<div class="fn" id="fn-36">
+<div class="fn-t"><span class="num">36</span>基准污染对策</div>
+<p><b>技术</b>：LiveBench（滚动更新题目）、LiveCodeBench、FrontierMath（私有题库）、ARC-AGI-2。</p>
+<p><b>分类</b>：基准设计。<b>归属</b>：Abacus.AI / NYU（Colin White, Micah Goldblum）；Berkeley；Epoch AI；ARC Prize（François Chollet）。</p>
+</div>
+
+<div class="fn" id="fn-37">
+<div class="fn-t"><span class="num">37</span>不可判定层：发布后兜底</div>
+<p><b>技术</b>：OpenTelemetry GenAI 语义约定（<code>gen_ai.*</code> span、token 计量、MCP 调用追踪，2026-09 已部分 stable）+ eval-score-as-span-attribute；灰度 / 回滚（Statsig、LaunchDarkly）。</p>
+<p><b>分类</b>：协议 / 标准。<b>归属</b>：CNCF OpenTelemetry（opentelemetry.io 官方博客，一手）。</p>
+<p><b>分类洞察</b>：本质是把 APM 标准引入 LLM——不是 AI 技术，是被借用的成熟软件工程资产。</p>
+</div>
+
+<div class="fn" id="fn-38">
+<div class="fn-t"><span class="num">38</span>置信区间必须小于效应量</div>
+<p><b>技术</b>：bootstrap / 配对检验 / 聚类标准误；<i>Adding Error Bars to Evals</i>。</p>
+<p><b>分类</b>：统计方法。<b>归属</b>：Evan Miller（Anthropic）。</p>
+</div>
+
+<h3 id="g7">注 39–45　智能体</h3>
+
+<div class="fn" id="fn-39">
+<div class="fn-t"><span class="num">39</span>验证点：模型自验证</div>
+<p><b>技术</b>：Reflexion、CriticGPT、LLM-as-critic 子 agent。</p>
+<p><b>分类</b>：方法。<b>归属</b>：Noah Shinn 等；OpenAI。</p>
+</div>
+
+<div class="fn" id="fn-40">
+<div class="fn-t"><span class="num">40</span>免费高精度验证器 = 语言特性</div>
+<p><b>技术</b>：类型检查器（TypeScript <code>tsc</code>、pyright/mypy、Rust 借用检查器）、linter（ruff、clippy）、pytest、CI（GitHub Actions）。</p>
+<p><b>分类</b>：语言特性。<b>归属</b>：各语言社区。</p>
+<p><b>分类洞察</b>：编程语言的静态类型系统就是误差捕获概率 q。Agent 在 Rust / TypeScript 上比在动态无类型脚本上可靠，不是风格偏好，是误差复合公式里的一个变量。</p>
+</div>
+
+<div class="fn" id="fn-41">
+<div class="fn-t"><span class="num">41</span>沙箱隔离与状态回滚</div>
+<p><b>技术</b>：microVM 沙箱 Firecracker（AWS）、gVisor（Google）；商业层 E2B、Modal Sandboxes、Daytona、Cloudflare Sandbox SDK / Containers、Vercel Sandbox、Azure Container Apps dynamic sessions、AWS Bedrock AgentCore（2026 年冷启动已到 ~90 ms 量级，二手）。</p>
+<p><b>文件系统级回滚</b>：OverlayFS 快照、Docker commit、git worktree（Claude Code 的隔离方式）、CRIU / 内存快照。</p>
+<p><b>分类</b>：硬件隔离 + 框架 + 系统原语。<b>归属</b>：各自；Linux 社区 / Anthropic。</p>
+</div>
+
+<div class="fn" id="fn-42">
+<div class="fn-t"><span class="num">42</span>持久执行、幂等与事务边界</div>
+<p><b>技术</b>：持久执行（durable execution）Temporal、Restate、DBOS（Stonebraker &amp; Zaharia）、Inngest、AWS Step Functions；LangGraph checkpointer + time-travel；幂等键、事务性 outbox、Saga 模式。</p>
+<p><b>分类</b>：框架 + 设计模式。<b>归属</b>：各自；Saga: Garcia-Molina &amp; Salem（1987）。</p>
+</div>
+
+<div class="fn" id="fn-43">
+<div class="fn-t"><span class="num">43</span>降维：子任务分解</div>
+<p><b>技术</b>：子 agent（Claude Agent SDK / Claude Code）、OpenAI Agents SDK（原 Swarm）、LangGraph supervisor、Plan mode、规格驱动（GitHub Spec Kit、Amazon Kiro）。</p>
+<p><b>分类</b>：框架。<b>归属</b>：Anthropic / OpenAI / LangChain / GitHub / AWS。</p>
+</div>
+
+<div class="fn" id="fn-44">
+<div class="fn-t"><span class="num">44</span>时间视界曲线</div>
+<p><b>技术</b>：METR time-horizon 方法论。</p>
+<p><b>分类</b>：基准。<b>归属</b>：METR（Beth Barnes）。</p>
+</div>
+
+<div class="fn" id="fn-45">
+<div class="fn-t"><span class="num">45</span>人在回路</div>
+<p><b>技术</b>：LangGraph <code>interrupt()</code>、Claude Code 权限模式、PR review 作为验收闸门。</p>
+<p><b>分类</b>：框架。<b>归属</b>：各自。</p>
+</div>
+
+<h3 id="g8">注 46–50　确定性</h3>
+
+<div class="fn" id="fn-46">
+<div class="fn-t"><span class="num">46</span>诊断：缺乏批不变性</div>
+<p><b>技术</b>：<i>Defeating Nondeterminism in LLM Inference</i>。</p>
+<p><b>分类</b>：研究。<b>归属</b>：Horace He，Thinking Machines Lab（2025-09）。</p>
+</div>
+
+<div class="fn" id="fn-47">
+<div class="fn-t"><span class="num">47</span>批不变实现与生产集成</div>
+<p><b>技术</b>：<code>batch_invariant_ops</code>——用 <code>torch.Library</code> 替换 PyTorch kernel，底层是自定义 Triton kernel，固定归约顺序；vLLM 批不变性开关（<code>docs.vllm.ai/features/batch_invariance</code>，已入官方文档）、SGLang 确定性模式。</p>
+<p><b>分类</b>：库 + 语言特性（算子重载）+ 框架。<b>归属</b>：thinking-machines-lab（GitHub 一手）；vLLM（PyTorch Foundation）/ SGLang。</p>
+</div>
+
+<div class="fn" id="fn-48">
+<div class="fn-t"><span class="num">48</span>可开关的确定性模式</div>
+<p><b>技术</b>：<code>torch.use_deterministic_algorithms(True)</code>、<code>CUBLAS_WORKSPACE_CONFIG</code>、禁用 atomicAdd / split-K 非确定归约、cuDNN benchmark off、Philox 种子。</p>
+<p><b>分类</b>：框架 API。<b>归属</b>：PyTorch / NVIDIA。</p>
+</div>
+
+<div class="fn" id="fn-49">
+<div class="fn-t"><span class="num">49</span>强化学习场景的收益</div>
+<p><b>技术</b>：训练–推理 logprob 不一致 → 隐式 off-policy；修复后策略不漂移。</p>
+<p><b>分类</b>：训练方法。<b>归属</b>：Thinking Machines；<i>Your Efficient RL Framework Secretly Brings You Off-Policy RL Training</i>（Feng Yao 等）。</p>
+</div>
+
+<div class="fn" id="fn-50">
+<div class="fn-t"><span class="num">50</span>版本锁定作为一级约束</div>
+<p><b>技术</b>：<code>uv lock</code>、Docker digest pin、NGC 容器、Nix / Bazel 内容寻址的 hermetic build。</p>
+<p><b>分类</b>：构建系统。<b>归属</b>：Astral（Charlie Marsh）/ Docker / NVIDIA / NixOS 社区 / Google。</p>
+<p><b>语言特性维度</b>：可复现性 = 引用透明性（referential transparency）+ 内容寻址构建。Nix 和 Bazel 解决的是同一个数学问题，只是 30 年前就解决过一次。</p>
+</div>
+
+<h3 id="g9">注 51–56　推理服务</h3>
+
+<div class="fn" id="fn-51">
+<div class="fn-t"><span class="num">51</span>批大小与尾延迟的调度权衡</div>
+<p><b>技术</b>：Little's law（Little, 1961）；Orca 连续批处理 → vLLM / TGI / SGLang 标配；PagedAttention / vLLM；RadixAttention / SGLang 前缀树复用；长短任务混合的中间解 Chunked prefill / Sarathi-Serve。</p>
+<p><b>分类</b>：理论 + 框架 + 调度算法。<b>归属</b>：首尔大学 / FriendliAI；UC Berkeley Sky Lab；郑怜悯、盛颖等；Amey Agrawal 等，Microsoft Research India。</p>
+</div>
+
+<div class="fn" id="fn-52">
+<div class="fn-t"><span class="num">52</span>预填充与解码分离（PD 分离）</div>
+<p><b>技术</b>：论文层 DistServe、Splitwise；生产层 Mooncake Transfer Engine——2026 Q1 被 vLLM / SGLang / TensorRT-LLM 三大引擎在两个月内相继集成（二手，Mooncake DeepWiki 与 SGLang 官方文档均可佐证）。</p>
+<p><b>分类</b>：架构 + 传输层。<b>归属</b>：钟英民（北大）+ 张昊（UCSD）；Microsoft Azure；月之暗面 Kimi + 清华 MADSys。</p>
+</div>
+
+<div class="fn" id="fn-53">
+<div class="fn-t"><span class="num">53</span>编排层与 K8s 层标准</div>
+<p><b>技术</b>：NVIDIA Dynamo 1.0（GTC 2026 GA；KV-aware router + Planner + NIXL 传输）、llm-d（Red Hat + Google + IBM + CoreWeave，K8s 原生；NIXL 可插拔后端，2026-06 新增 UCCL backend）；Gateway API Inference Extension（GIE）、KServe、Ray Serve。</p>
+<p><b>分类</b>：框架 + 协议。<b>归属</b>：NVIDIA / llm-d 社区（llm-d.ai 一手）；Kubernetes SIG / CNCF / Anyscale。</p>
+</div>
+
+<div class="fn" id="fn-54">
+<div class="fn-t"><span class="num">54</span>按 SLO 分级队列：用价格分离负载</div>
+<p><b>技术</b>：Batch API 半价（OpenAI / Anthropic Message Batches / Gemini Batch）、<code>service_tier: priority/flex</code>。</p>
+<p><b>分类</b>：商业协议。<b>归属</b>：OpenAI / Anthropic / Google。</p>
+<p><b>分类洞察</b>：Batch API 的 50% 折扣本质上是把排队论的解法暴露成了商业协议，让用户自己声明「我不在乎延迟」，比任何预测器都准。</p>
+</div>
+
+<div class="fn" id="fn-55">
+<div class="fn-t"><span class="num">55</span>输出长度不可预测的对抗手段</div>
+<p><b>技术</b>：抢占式调度 + 重算（vLLM preemption）、长度预测器。</p>
+<p><b>分类</b>：调度。<b>归属</b>：vLLM 社区。</p>
+</div>
+
+<div class="fn" id="fn-56">
+<div class="fn-t"><span class="num">56</span>弹性与冷启动</div>
+<p><b>技术</b>：KEDA / Knative 扩缩容；模型权重缓存与内存快照（Modal、Baseten）；SkyPilot 跨云抢占式实例。</p>
+<p><b>分类</b>：框架。<b>归属</b>：CNCF / Modal / Baseten / Berkeley Sky（杨宗恒）。</p>
+</div>
+
+<h3 id="g10">注 57–61　抽象与 DSL</h3>
+
+<div class="fn" id="fn-57">
+<div class="fn-t"><span class="num">57</span>标记流入流出的事实标准</div>
+<p><b>技术</b>：OpenAI-compatible <code>/v1/chat/completions</code>；OpenAI Responses API。</p>
+<p><b>分类</b>：事实标准。<b>归属</b>：OpenAI + 各引擎社区。</p>
+</div>
+
+<div class="fn" id="fn-58">
+<div class="fn-t"><span class="num">58</span>工具与 agent 协议（半衰期 3–5 年层）</div>
+<p><b>技术</b>：MCP（Anthropic 于 2025-12-09 捐给 Linux Foundation / Agentic AI Foundation；2026-04 已 &gt;97M SDK 下载、&gt;10k 企业服务器，二手）；A2A（Google；IBM ACP 已并入；2026-08-17 正式加入 AAIF）；AGNTCY（Cisco）、WebMCP；支付语义 x402（Coinbase）、AP2（Google）。</p>
+<p><b>分类</b>：协议。<b>归属</b>：Anthropic → LF AAIF；Google / Linux Foundation。</p>
+</div>
+
+<div class="fn" id="fn-59">
+<div class="fn-t"><span class="num">59</span>分块级 kernel DSL（半衰期 6–12 月层）</div>
+<p><b>技术</b>：Triton（+ 其低层 Gluon / TLX）；Helion（编译到 Triton，未来 Pallas / CuTe DSL / Metal，自带 autotuner）；TileLang（tile-ai 社区，DeepSeek 近期发布中已使用）；CuTe DSL / CUTLASS 4 / CuTile（2026 走向 GA）；Pallas（Google JAX）；ThunderKittens（Stanford Hazy Research, Ben Spector）；Mojo / MAX（Modular, Chris Lattner）。</p>
+<p><b>分类</b>：语言 / DSL。<b>归属</b>：Triton: Philippe Tillet, OpenAI；Helion: Jason Ansel, Oguz Ulgen, Jongsok Choi, Ethan Che（Meta / PyTorch Foundation，PLDI 2026 tutorial，一手）；NVIDIA。</p>
+</div>
+
+<div class="fn" id="fn-60">
+<div class="fn-t"><span class="num">60</span>兼容层、引擎格局与真正稳定的那一层</div>
+<p><b>技术</b>：三大引擎 vLLM / SGLang / TensorRT-LLM 接口趋同、实现分化；适配策略 LiteLLM、OpenRouter 等兼容层与供应商无关 SDK。</p>
+<p><b>真正稳定的那一层</b>：PyTorch eager API 本身——后端在 CUDA / ROCm / PJRT(TPU) / Neuron 之间换，用户代码不动。</p>
+<p><b>分类</b>：库 + 框架。<b>归属</b>：各自；PyTorch Foundation。</p>
+</div>
+
+<div class="fn" id="fn-61">
+<div class="fn-t"><span class="num">61</span>kernel 作为可编译产物</div>
+<p><b>技术</b>：MLIR 作为共同 IR；TorchInductor / OpenXLA / IREE / TVM / ONNX；KernelBench + LLM 自动生成 kernel。</p>
+<p><b>证据</b>：Red Hat 2026-02 跨厂商可复现基准——手写 vs TorchInductor vs Helion vs LLM 生成 kernel（next.redhat.com，一手）。</p>
+<p><b>分类</b>：编译器基础设施 + 基准。<b>归属</b>：MLIR: Chris Lattner → LLVM Foundation；TVM: 陈天奇；Stanford（Anne Ouyang, Azalia Mirhoseini）；Red Hat。</p>
+</div>
+
+<h3 id="g11">注 62–63　横切资产</h3>
+
+<div class="fn" id="fn-62">
+<div class="fn-t"><span class="num">62</span>三个超线性杠杆对应的三项非 AI 技术</div>
+<p>可验证环境对应的是 <b>CI / 沙箱 / 包管理</b>；批不变性对应的是 <b>hermetic build</b>（Nix / Bazel）；PD 分离对应的是<b>排队论与 K8s</b>。</p>
+<p><b>判断</b>：AI 栈当前最高回报的工程动作，几乎全部是把成熟的系统工程资产迁移进来，而不是发明新的模型技术。</p>
+</div>
+
+<div class="fn" id="fn-63">
+<div class="fn-t"><span class="num">63</span>十条理论共用的五类落地资产</div>
+<p><b>标准组织</b>（把私有实践变成公共地基，见问题一、二、六、十）：OCP、Linux Foundation AAIF、CNCF OpenTelemetry、PyTorch Foundation。</p>
+<p><b>编程语言特性</b>（把概率问题变成编译期问题，见问题三、六、七、八）：类型系统 = 验证器 q；引用透明 = 可复现；Rust 内存安全 = 不可信节点。</p>
+<p><b>DSL / 编译器</b>（把硬件变化关进笼子，见问题二、八、十）：Triton / Helion / TileLang / CuTe DSL / MLIR。</p>
+<p><b>协议</b>（把耦合降级为契约，见问题四、六、九、十）：MCP、A2A、OpenAI-compatible API、OTel GenAI、Batch API 的 SLO 声明。</p>
+<p><b>软件分发形态</b>（把资产变成包，见问题五）：<code>verifiers</code> + Environments Hub + <code>prime env install</code>。</p>
+</div>
+
+</section>
+</main>
+</div>
+
+<div id="popup" role="tooltip" aria-live="polite"></div>
+<script>
+(function () {
+  var POPUP_TIMEOUT = 120000;
+  var GRACE = 260;
+  var popup = document.getElementById('popup');
+  var hideTimer = null, autoTimer = null, current = null;
+
+  function clearTimers() {
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  }
+
+  function hide() {
+    clearTimers();
+    popup.style.display = 'none';
+    popup.innerHTML = '';
+    current = null;
+  }
+
+  function scheduleHide() {
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(hide, GRACE);
+  }
+
+  function place(marker) {
+    var r = marker.getBoundingClientRect();
+    popup.style.left = '0px';
+    popup.style.top = '0px';
+    var w = popup.offsetWidth, h = popup.offsetHeight;
+    var vw = document.documentElement.clientWidth;
+    var vh = document.documentElement.clientHeight;
+    var left = r.left - 24;
+    if (left + w > vw - 12) left = vw - w - 12;
+    if (left < 12) left = 12;
+    var top = r.bottom + 10;
+    if (top + h > vh - 12) {
+      var above = r.top - h - 10;
+      top = (above >= 12) ? above : Math.max(12, vh - h - 12);
+    }
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+  }
+
+  function show(marker) {
+    var id = marker.getAttribute('data-fn');
+    var src = document.getElementById('fn-' + id);
+    if (!src) return;
+    clearTimers();
+    if (current !== id) {
+      popup.innerHTML = src.innerHTML;
+      current = id;
+    }
+    popup.style.display = 'block';
+    place(marker);
+    autoTimer = setTimeout(hide, POPUP_TIMEOUT);
+  }
+
+  var marks = document.querySelectorAll('a.fn-mark');
+  for (var i = 0; i < marks.length; i++) {
+    (function (m) {
+      m.addEventListener('mouseenter', function () { show(m); });
+      m.addEventListener('mouseleave', scheduleHide);
+      m.addEventListener('focus', function () { show(m); });
+      m.addEventListener('blur', scheduleHide);
+    })(marks[i]);
+  }
+
+  popup.addEventListener('mouseenter', function () {
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+  });
+  popup.addEventListener('mouseleave', scheduleHide);
+
+  window.addEventListener('scroll', function (e) {
+    if (!current) return;
+    if (e.target && e.target.nodeType === 1 && popup.contains(e.target)) return;
+    if (e.target === popup) return;
+    hide();
+  }, true);
+  window.addEventListener('resize', hide);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hide(); });
+})();
+</script>
+
+<script src="/vendor/toc-fold.js" defer></script>
+</body>
+</html>

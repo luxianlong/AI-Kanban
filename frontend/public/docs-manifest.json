@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-page-9fc96ad1",
+    "title": "贴着物理极限的工程学：人工智能技术栈的十个结构性问题及其求解理论",
+    "href": "/p/page-9fc96ad1.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-21T05:37:20.576Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/page-9fc96ad1.html",
+      "frontend/public/p/page-9fc96ad1.meta.json"
+    ]
+  },
+  {
     "id": "upload-ai-2",
     "title": "AI 工程栈的十个约束（附技术脚注）",
     "href": "/p/ai-2.html",
