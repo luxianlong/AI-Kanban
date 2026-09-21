@@ -15,21 +15,6 @@
     ]
   },
   {
-    "id": "upload-ai-engineering-stack-116",
-    "title": "从“试一试”到“可验证”：AI Engineering Stack 十大问题的纵深解剖（附 116 条落地技术脚注）",
-    "href": "/p/ai-engineering-stack-116.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-21T04:57:02.190Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ai-engineering-stack-116.html",
-      "frontend/public/p/ai-engineering-stack-116.meta.json"
-    ]
-  },
-  {
     "id": "upload-ai-5",
     "title": "AI 工程技术栈的系统性问题（带工业实现脚注）",
     "href": "/p/ai-5.html",
