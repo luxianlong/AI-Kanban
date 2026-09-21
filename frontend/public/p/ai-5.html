@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 工程技术栈的系统性问题</title>
+<style>
+:root{--ink:#1f2328;--mut:#5c6370;--line:#e5e0d6;--accent:#b4531a;--bg:#fbf9f5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,"Microsoft YaHei",serif;line-height:1.95;font-size:16.5px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:56px 26px 120px}
+h1{font-size:30px;line-height:1.4;margin:0 0 6px;letter-spacing:-.4px}
+.sub{font-size:17px;color:var(--mut);margin:0 0 30px;font-weight:400}
+h2{font-size:23px;margin:54px 0 16px;padding-top:18px;border-top:2px solid var(--line);letter-spacing:-.2px}
+h3{font-size:18.5px;margin:36px 0 10px}
+h4{font-size:16px;margin:24px 0 8px;color:var(--mut)}
+p{margin:12px 0}
+ul,ol{padding-left:22px;margin:12px 0}
+li{margin:6px 0}
+hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+code{background:#f0ece3;padding:1px 5px;border-radius:4px;font-size:.87em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+blockquote{margin:16px 0;padding:10px 18px;border-left:3px solid var(--accent);background:#f6f2ea;color:#3a3f46}
+blockquote p{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14.5px;line-height:1.7;background:#fff}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:#f3efe7;font-weight:600}
+.meta{font-size:14px;color:var(--mut);background:#f3efe7;border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:inline-block;margin:6px 0 2px}
+.tail{font-size:14px;color:var(--mut);font-style:italic;margin-top:40px;border-top:1px solid var(--line);padding-top:18px}
+.fn{position:relative;display:inline-block}
+.fn>sup{color:var(--accent);cursor:help;font-weight:700;font-size:.70em;padding:0 1px;font-family:ui-monospace,Menlo,monospace}
+.fn>sup:hover{background:#f4e3d4;border-radius:3px}
+.fn .pop{display:none;position:absolute;z-index:999;top:1.25em;left:50%;transform:translateX(-50%);width:min(470px,88vw);background:#fffdf9;border:1px solid #ddd2bd;border-radius:10px;box-shadow:0 12px 34px rgba(60,40,10,.22);padding:13px 15px;font-size:13.2px;line-height:1.78;color:#2c3038;text-align:left;font-weight:400;font-style:normal;white-space:normal;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.fn:hover .pop,.fn .pop.on{display:block}
+.fn .pop.off{display:none !important}
+.fn .pop b{color:var(--accent);display:block;margin-bottom:5px;font-size:13.6px}
+.fn .pop .k{display:block;margin-top:6px;color:#111;font-weight:600;font-size:12.6px}
+.fn .pop::before{content:"";position:absolute;top:-7px;left:0;right:0;height:9px}
+@media (max-width:640px){.wrap{padding:30px 16px 90px}h1{font-size:24px}table{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>AI 工程技术栈的系统性问题</h1>
+<p class="sub">一个深度优先的「病理—价值—定级—求解」诊断框架</p>
+<hr>
+
+<h2>摘要</h2>
+<p>本文以 AI 工程技术栈（AI Engineering Stack）本身为分析对象，识别其六层结构中的 26 项系统性问题，并对每一项做<b>深度优先</b>的完整论述：先剖析病理机制（问题为何必然发生），再论证解决收益（为何值得投入），继而做关键性定级（为何是这个优先级），最后给出适用理论与工程落地（如何求解）。</p>
+<p>全文的核心论点是：AI 工程栈当前的瓶颈不在模型能力，而在于<b>用确定性时代的工程手段去管理一个概率系统</b>所产生的结构性错配。确定性软件工程的三件基础设施——断言、diff、回滚——在概率系统中全部失效，而其统计学替代品（分布验收、血缘溯源、不可变发布节点）尚未普遍建立。由此导致评测、血缘、成本归因、回归门禁四项基础能力集体缺席，系统停留在"能快速做出 demo，无法稳定演进生产"的状态。</p>
+<p><b>关键词</b>：AI 工程、可观测性、评测驱动开发、数据血缘、可靠性工程、最小权限</p>
+
+<h2>1. 导论：研究对象、方法与阅读方式</h2>
+
+<h3>1.1 系统边界</h3>
+<p>典型 AI 工程栈自下而上分为六层，本文的问题清单严格按此边界组织：</p>
+<table>
+<tr><th>层</th><th>职责</th><th>主要制品</th></tr>
+<tr><td>L1 算力与基础设施</td><td>GPU/TPU 集群、调度、存储、网络</td><td>容量、调度策略</td></tr>
+<tr><td>L2 数据</td><td>采集、清洗、标注、特征库、向量库</td><td>数据集、特征、切片</td></tr>
+<tr><td>L3 模型</td><td>预训练/微调、模型注册表、权重管理</td><td>权重、实验记录</td></tr>
+<tr><td>L4 推理服务</td><td>Serving、量化、KV cache、路由</td><td>端点、SLO</td></tr>
+<tr><td>L5 编排</td><td>Prompt、RAG、Agent、工具调用、workflow</td><td>Prompt、链路、工具</td></tr>
+<tr><td>L6 评测与治理</td><td>评测、可观测性、成本、安全合规</td><td>评测集、trace、门禁</td></tr>
+</table>
+
+<h3>1.2 分析模板：对每个问题问四个问题</h3>
+<p>本文放弃"按层横向罗列"的写法，改为<b>对每个问题纵向穿透到底</b>。每一节固定回答：</p>
+<ol>
+<li><b>病理机制</b>——问题为何<b>必然</b>发生，而非偶然发生。这一问最重要：只有找到必然性，才知道要改的是结构还是纪律。</li>
+<li><b>后果与解决收益</b>——不解决会付出什么，解决能换回什么，如何量化。</li>
+<li><b>关键性定级</b>——它排在第几位，依据是什么。</li>
+<li><b>理论与求解</b>——适用的既有理论，理论如何作用于该病理，以及可执行推论。</li>
+</ol>
+
+<h3>1.3 定级判据</h3>
+<p>关键性由三个维度决定，而非"听起来是否严重"：</p>
+<ul>
+<li><b>爆炸半径</b>：局部降级，还是全链路 / 不可逆损失（资金、数据、合规）？</li>
+<li><b>静默性</b>：是否无告警、靠人事后发现？<b>静默问题的关键性乘以 2</b>——它持续失血且误导归因。</li>
+<li><b>修复深度</b>：加监控/加流程即可（浅），还是必须动架构（深）？浅而致命者应最先做。</li>
+</ul>
+<p>等级定义：<b>P0 致命</b>（阻断生产化或可致不可逆损失）｜<b>P1 严重</b>｜<b>P2 中等</b>｜<b>P3 可延后</b>。</p>
+
+<h3>1.4 一条贯穿全文的元理论</h3>
+<p>所有 26 项问题在求解时收敛到同一条控制论主线：</p>
+<blockquote><p><b>任何系统只有在「可观测 → 可归因 → 可控制」三步闭合后，才可被工程化改进。</b></p></blockquote>
+<p>传统软件工程之所以有效，是因为它默认系统确定：观测退化为一次断言，归因退化为一次 diff，控制退化为一次回滚。AI 系统的输出是分布而非点值，三步全部失效，必须用统计学版本重建：</p>
+<table>
+<tr><th>传统（确定性）</th><th>AI 系统（概率性）</th><th>替换后的理论基础</th></tr>
+<tr><td>断言 assert</td><td>分布验收（抽样 + 置信区间）</td><td>统计过程控制 / 验收抽样</td></tr>
+<tr><td>diff 定位</td><td>血缘溯源 + 消融归因</td><td>Provenance 理论 / 因果归因</td></tr>
+<tr><td>回滚到版本 N</td><td>回滚到「输入向量」快照</td><td>纯函数与密封构建</td></tr>
+<tr><td>布尔通过/失败</td><td>SLO 化质量（p95 任务成功率）</td><td>可靠性工程</td></tr>
+</table>
+<p>读者可将第 2–8 章视为这张表在各层的具体投影。</p>
+
+<h2>2. L1 算力与基础设施层</h2>
+
+<h3>2.1 资源碎片化：GPU 利用率仅 30–50%</h3>
+<p class="meta"><code>P2</code>｜静默性：低｜修复深度：中｜收益类型：成本</p>
+<p><b>病理机制。</b> 训练是长时、独占、延迟不敏感的大块负载；推理是短时、弹性、延迟敏感的小块负载。两者共享资源池并按"先到先得"调度时，产生<b>多维装箱</b>（显存 × SM × 网络带宽）的碎片。碎片不是调度器写得差，而是异质负载在无优先级机制下共存的数学必然。</p>
+<p><b>后果与收益。</b> 同等业务量下算力开支虚高 25–40%。引入混部与抢占后利用率可达 65–80%，等价于不加预算支撑 1.5–2 倍业务增长，空闲卡还可承接离线评测——这反过来给第 8 章的评测闭环供血。</p>
+<p><b>为何是 P2。</b> 它烧钱但不致命：系统功能正常、指标显性可测、可渐进优化。这是全栈最常被讨论、实际关键性却最低的一类问题——因为它是<b>成本项而非能力项</b>。</p>
+<p><b>理论与求解。</b> 适用<b>统计复用</b>、<b>多维装箱</b>与<b>时间尺度分离</b>。统计复用的数学依据是：独立波动负载叠加后总量方差按 √n 增长而均值按 n 增长，故合池天然优于分池。但复用的前提是存在<b>优先级抢占</b><span class="fn"><sup>[1]</sup><span class="pop"><b>[1] 混池 + 优先级抢占的生产原型</b><span class="k">框架系统</span>Borg（Google，Wilkes/Verghese, EuroSys 2015）——首个把「在线服务 + 批处理」混池并用优先级抢占填充空洞的生产系统，prod/non-prod 两级 tier 就是统计复用的原型。Kubernetes（Google → CNCF）继承其 PriorityClass / Preemption / ResourceQuota。Mesos（Hindman/Zaharia, UC Berkeley AMPLab）的 two-level scheduling 即「一级配额、二级填充」。<span class="k">GPU 场景</span>Volcano（华为，CNCF）gang scheduling、Koordinator（阿里，混部 QoS 分级）、Katalyst（字节）、Kueue（K8s SIG-Scheduling）、Slurm（SchedMD）、Ray（Anyscale，Moritz/Nishihara, UC Berkeley）。</span></span>——低优先级负载作为"可压缩流量"填充高优先级留下的空洞。装箱理论进一步指出碎片率主要由"最大任务尺寸 / 节点容量"之比决定，故需在调度前做<b>形状归一化</b>（模型切分为固定尺寸 shard）<span class="fn"><sup>[2]</sup><span class="pop"><b>[2] 形状归一化的硬件与切分实现</b><span class="k">硬件</span>NVIDIA MIG（A100 起）把单卡硬切成固定尺寸实例 = 理论中「形状归一化」的硬件实现；MPS、time-slicing、vGPU 是软性版本。HAMi（CNCF Sandbox，原第四范式 k8s-vGPU）做显存/算力软隔离。<span class="k">分片尺寸归一化</span>Megatron-LM（NVIDIA）的 TP/PP 切分、DeepSpeed ZeRO（Microsoft，Rajbhandari）的 stage 分级。</span></span>。</p>
+<p>落地推论：两级调度（一级配额、二级抢占式填充）；定义抢占等级 P0 在线 / P1 微调 / P2 批处理 / P3 评测，P2/P3 支持秒级 checkpoint 中断<span class="fn"><sup>[3]</sup><span class="pop"><b>[3] 秒级 checkpoint：可抢占的前提</b><span class="k">语言/运行时特性</span>PyTorch Distributed Checkpoint（Meta）、ByteCheckpoint（字节）、Gemini（异步 checkpoint 论文）、CRIU / NVIDIA cuda-checkpoint（进程级 CUDA 状态冻结）。</span></span>；KPI 用 <b>MFU（有效算力利用率）</b> 而非"GPU 占用率"——占用不等于在算<span class="fn"><sup>[4]</sup><span class="pop"><b>[4] MFU 的术语出处与采集链路</b><span class="k">指标标准</span>MFU（Model FLOPs Utilization）术语出自 PaLM 论文（Google, Chowdhery et al. 2022）；采集用 NVIDIA DCGM Exporter + Prometheus/Grafana。这正是「占用率 ≠ 有效算力」的可测化。</span></span>。</p>
+
+<h3>2.2 供给刚性：采购按月，流量按天</h3>
+<p class="meta"><code>P2</code>｜静默性：低｜修复深度：中｜收益类型：成本 + 可用性</p>
+<p><b>病理机制。</b> 容量决策是在需求分布未知时做出的一次性不可逆投入，属典型<b>单周期库存问题</b>。GPU 采购/租赁周期以月计，业务流量以天为单位波动，结构上只能"要么闲置，要么排队"。</p>
+<p><b>后果与收益。</b> 峰值排队与限流导致用户流失，是不在账面上的机会成本。建立混合容量池后，营销活动与突发流量可承接。</p>
+<p><b>为何是 P2。</b> 爆炸半径限于可用性，且多为外部约束——工程侧只能缓解，不能根治。</p>
+<p><b>理论与求解。</b> <b>报童模型</b>给出最优备货分位点 = Cu/(Cu+Co)，Cu 为缺货成本（流失、SLA 罚金），Co 为超配成本（闲置折旧）。AI 场景 Cu 通常远大于 Co，故最优解偏高备货，<b>并把超配部分转为低优先级负载消化</b>（与 2.1 耦合，这是两个问题唯一的正确联解）。<b>实物期权</b>理论说明短期租赁的溢价本质是购买"不确定性消解后的选择权"，需求方差越大越划算<span class="fn"><sup>[5]</sup><span class="pop"><b>[5] 实物期权的软件实现</b><span class="k">框架系统</span>SkyPilot（UC Berkeley Sky Computing Lab，Zongheng Yang / Ion Stoica）——跨云跨区自动寻找最便宜容量 + Spot 中断自动迁移，是「实物期权」最直接的软件实现。</span></span>。</p>
+<p>落地推论：三层容量结构——自有/长约（基载 50–60%）+ 短约（波动带 30%）+ 按需/Spot（尖峰 10–20%）<span class="fn"><sup>[6]</sup><span class="pop"><b>[6] 合约品种即期权的工程化</b><span class="k">协议/商业结构</span>AWS：Reserved Instances / Savings Plans（长约基载）、Capacity Blocks for ML（定期定量 GPU，等于欧式期权）、Spot（尖峰层）。GCP：Committed Use Discounts + Dynamic Workload Scheduler（Flex Start 即「排队换低价」）。Neocloud 短约层：CoreWeave / Lambda / Together / Crusoe。<span class="k">组织实践</span>FinOps Foundation（Linux Foundation）的 Crawl-Walk-Run 与 FOCUS 成本数据规范。</span></span>；用队列与降级削平尖峰，使<b>尖峰层永不成为可用性的必要条件</b><span class="fn"><sup>[7]</sup><span class="pop"><b>[7] 削峰工具</b><span class="k">框架系统</span>消息队列（Kafka/SQS）+ Batch API（Anthropic Message Batches、OpenAI Batch，50% 折扣本质是用户把尖峰负载让渡给供应商做统计复用）。</span></span>。</p>
+
+<h3>2.3 异构锁定：CUDA 生态绑定</h3>
+<p class="meta"><code>P3</code>｜静默性：高｜修复深度：深｜收益类型：议价权</p>
+<p><b>病理机制。</b> 上层框架直接依赖厂商专有算子，依赖方向是"应用 → 厂商"，迁移成本等于重写全部依赖点<span class="fn"><sup>[8]</sup><span class="pop"><b>[8] 后端适配层：迁移成本的实际承载者</b><span class="k">硬件/后端适配层</span>AMD ROCm/HIP + HIPIFY（源码级 CUDA 翻译）、Intel oneAPI/SYCL（Khronos 标准）、AWS Neuron SDK、Apple MLX/Metal、华为 CANN。</span></span>。</p>
+<p><b>后果与收益。</b> 最被低估的收益不是技术可移植性，而是<b>议价能力</b>：多供应商可比价通常带来 15–30% 采购折让，并规避单一供应商断供风险。</p>
+<p><b>为何是 P3。</b> 当前无任何业务影响，是战略风险而非工程问题。为它提前构建完整抽象层通常是过度设计。</p>
+<p><b>理论与求解。</b> <b>依赖倒置</b> + <b>沙漏/窄腰模型</b>。互联网靠 IP 这一"窄腰"实现上下层独立演化。可移植性不是靠"支持所有后端"获得的，而是靠<b>收敛出一层足够薄、语义足够完备的中间表示（IR）</b><span class="fn"><sup>[9]</sup><span class="pop"><b>[9] 编译器 IR：最正统的窄腰实现</b><span class="k">编译器 IR</span>MLIR（Chris Lattner，Google → Modular；现属 LLVM Foundation）——多层方言，专为「薄而可组合」设计。StableHLO / OpenXLA / PJRT（Google）——PJRT 是运行时侧的插件接口，JAX/TF 靠它同时打 TPU、GPU、CPU。ONNX（Microsoft + Facebook 联合发起，现 LF AI）、TVM（陈天奇，UW → Apache）、IREE（Google/OpenXLA）。</span></span>——薄是关键，抽象越厚泄漏越多，移植性反而更差<span class="fn"><sup>[10]</sup><span class="pop"><b>[10] 语言层的窄腰：算子注册表与内核 DSL</b><span class="k">语言特性</span>PyTorch Dispatcher + ATen（Meta，Edward Yang）——算子注册表就是窄腰：上层只写 <code>aten::matmul</code>，后端各自注册实现；AMD/Intel/昇腾均以此接入。Triton（OpenAI，Philippe Tillet）——用 Python DSL 写 kernel，绕开手写 CUDA 的绑定；已成事实上的「内核层窄腰」（AMD 也实现 Triton 后端）。</span></span>。</p>
+<p>落地推论：选定一层 IR（StableHLO/ONNX 量级）为内部标准；禁止业务代码直呼厂商 API<span class="fn"><sup>[11]</sup><span class="pop"><b>[11] API 层窄腰</b><span class="k">协议/标准</span>OpenAI-compatible API 事实标准（vLLM/SGLang/Ollama 全部实现）；LiteLLM（BerriAI）、OpenRouter、Vercel AI SDK 作为供应商适配层；MCP（Anthropic）作为工具/上下文侧的窄腰协议。</span></span>；在 CI 中对<b>次选后端</b>跑冒烟测试，使"可迁移性"成为被持续验证的资产而非纸面承诺。</p>
+
+<h2>3. L2 数据层</h2>
+
+<h3>3.1 数据质量不可度量</h3>
+<p class="meta"><code>P1</code>｜静默性：<b>极高</b>｜修复深度：浅｜收益类型：成本 + 速度</p>
+<p><b>病理机制。</b> 绝大多数团队只统计数据的"量"，不统计其"性质"。质量问题因而只能在下游（模型效果）被<b>间接且滞后地</b>观测到。</p>
+<p><b>后果与收益。</b> 典型失效：3% 污染样本进入微调集，模型行为偏移，上线两周后经用户投诉才暴露，需回滚 + 重训。一次避免即节省数十万级算力与数周工期。收益的本质是把缺陷的<b>平均发现阶段</b>向上游移动。</p>
+<p><b>为何是 P1 而非 P0。</b> 完全静默是其危险所在，但加若干统计指标即可大幅缓解——<b>修复成本极低</b>，故不必占用 P0 的注意力预算。</p>
+<p><b>理论与求解。</b> <b>统计过程控制（SPC）</b> 的核心洞见是：缺陷应在<b>产生工序</b>被拦截，而非在成品检验被发现，因为修复成本随传播距离指数上升。方法是为每道工序定义可测受控变量与控制限，超限即停线<span class="fn"><sup>[12]</sup><span class="pop"><b>[12] SPC 式数据校验框架</b><span class="k">框架系统</span>Great Expectations（GX）、Deequ（AWS Labs，Sebastian Schelter，基于 Spark 的 SPC 式约束）、TFDV / TensorFlow Data Validation（Google，schema 推断 + 漂移检测）、Pandera（Python DataFrame 契约）、Soda、Monte Carlo（Barr Moses，data observability 品类创造者）。dbt（dbt Labs，Tristan Handy）的 <code>tests</code> + model contracts；Dagster（Nick Schrock，Elementl）的 Asset Checks 支持 <code>ERROR</code> 级别——即理论中的「失败而非告警」。</span></span>。<b>数据契约</b>把这一思想形式化为生产者与消费者间可执行的 schema + 语义约束，使质量责任前移到数据产生方<span class="fn"><sup>[13]</sup><span class="pop"><b>[13] 数据契约最成熟的工业形态</b><span class="k">协议标准</span>Protobuf（Google）/ Avro（Doug Cutting, Apache）+ Confluent Schema Registry 的兼容性模式（BACKWARD/FORWARD）是数据契约最成熟的工业形态；Buf 做 breaking-change 检测并进 CI。</span></span>。</p>
+<p>落地推论：为每个数据集定义可自动计算的质量指标（空值率、重复率、分布漂移 PSI/KL、标签污染率、评测集泄漏率）并设控制限<span class="fn"><sup>[14]</sup><span class="pop"><b>[14] 漂移与污染的度量实现</b><span class="k">漂移</span>PSI/KL 实现：Evidently AI、whylogs/WhyLabs、NannyML。<span class="k">评测集泄漏</span>MinHash/LSH 去重——Google C4、Meta CCNet、HuggingFace datatrove；BIG-bench canary GUID（Google）用于标记「不应被训练」的文本。</span></span>；<b>管道超限时失败而非告警</b>——告警会被忽略，失败不会。</p>
+
+<h3>3.2 训练-推理特征偏斜（training-serving skew）</h3>
+<p class="meta"><code>P0</code>｜静默性：<b>极高且自带误导性</b>｜修复深度：架构级｜收益类型：可行性</p>
+<p><b>病理机制。</b> 同一语义的特征由两套代码在两种运行时计算，逻辑随时间<b>独立漂移</b>，误差不可见地注入模型输入。根因不是"没对齐"，而是<b>存在两个可独立变更的实现</b>——只要允许两份实现，对齐就只能靠纪律，而纪律必然失效<span class="fn"><sup>[15]</sup><span class="pop"><b>[15] 问题的命名者</b><span class="k">文献</span>Martin Zinkevich（Google）《Rules of Machine Learning》正式提出 training-serving skew；D. Sculley et al.（Google, NIPS 2015）《Hidden Technical Debt in ML Systems》给出「胶水代码/管道丛林」框架。</span></span>。</p>
+<p><b>后果与收益。</b> 典型失效：离线评测 92%，上线 71%，且离线怎么测都测不出来。这是"离线有效、线上无效"的最经典根因，<b>且自带误导性</b>——团队会误判为模型能力问题而反复调模型，浪费整个季度。解决后，离线指标恢复对线上的预测力，迭代不再依赖线上试错。</p>
+<p><b>为何是 P0。</b> 三项全中：静默、误导归因、必须动架构。它同时污染了<b>所有</b>离线实验的可信度，是一个"使其他改进全部失效"的乘数型故障。</p>
+<p><b>理论与求解。</b> <b>单一事实来源（SSOT）</b> + <b>引用透明性</b>。消除之道是从"事后校验两份实现"改为"结构上只允许一份"：特征定义为纯函数，离线批处理与在线服务是该函数的两种<b>执行策略</b>而非两份代码<span class="fn"><sup>[16]</sup><span class="pop"><b>[16] 「同一定义两种执行策略」的语言学基础</b><span class="k">语言特性</span>声明式 + 批流统一：Apache Beam / Dataflow 模型（Google，Tyler Akidau）、Apache Flink 的 Table API 批流同源、Kappa 架构（Jay Kreps, LinkedIn/Confluent）。<span class="k">LLM 场景的同构问题</span>tokenizer 与 chat template 版本必须训练/推理一致（HuggingFace <code>tokenizers</code> 把模板写进 <code>tokenizer_config.json</code>，正是把隐式约定变成可版本化的单一定义）。</span></span>。</p>
+<p>落地推论：特征以声明式定义注册到特征库，离线/在线共用同一定义<span class="fn"><sup>[17]</sup><span class="pop"><b>[17] 特征库 = 结构性单一实现</b><span class="k">框架系统</span>Uber Michelangelo Palette（Uber，Jeremy Hermann/Mike Del Balso）——首个生产级 feature store；创始人后创办 Tecton。Feast（Gojek 开源，现 LF AI）、Databricks Feature Store（与 Unity Catalog 血缘打通）、SageMaker / Vertex Feature Store。</span></span>；同时保留兜底检测——在线抽样记录特征值与离线重算对拍，输出偏斜率指标。<b>结构保证 + 统计验证，双保险</b>。</p>
+
+<h3>3.3 血缘断裂：无法回答"这个输出从哪来"</h3>
+<p class="meta"><code>P0</code>｜静默性：高｜修复深度：深｜收益类型：<b>准入（market access）</b></p>
+<p><b>病理机制。</b> 数据经多级转换后身份丢失，系统只保存"当前状态"而不保存"如何到达该状态"。</p>
+<p><b>后果与收益。</b> 双重致命：<b>故障不可定位</b>（坏输出无法回溯到具体数据批次或文档切片，修复只能靠重训碰运气）+ <b>合规不可举证</b>（数据删除权、版权溯源、审计问询无法应答）。后者在监管介入时是停业级风险，且直接决定能否进入金融、医疗、政企市场——这不是优化，是<b>门票</b>。</p>
+<p><b>为何是 P0，且是特殊的 P0。</b> 它是清单中<b>唯一无法事后补建</b>的能力：历史血缘一旦未记录即永久损失。其他问题晚做只是多付代价，这一项晚做是能力永久缺失。</p>
+<p><b>理论与求解。</b> <b>溯源理论</b>区分三个问题——<i>Where</i>（值来自哪个源字段）、<i>Why</i>（哪些输入记录导致它被产生）、<i>How</i>（经过什么变换）；可审计性要求至少捕获 Why-provenance<span class="fn"><sup>[18]</sup><span class="pop"><b>[18] 溯源理论的出处</b><span class="k">文献</span>Why/Where Provenance：Buneman, Khanna, Tan（UPenn, ICDT 2001）；W3C PROV 标准化；Event Sourcing：Greg Young / Martin Fowler。</span></span>。<b>内容寻址（Merkle DAG）</b> 提供低成本实现：以内容哈希作数据标识，任何变换记为 <code>output_hash = f_hash(input_hashes)</code>，历史构成不可变 DAG，溯源退化为图上的反向遍历<span class="fn"><sup>[19]</sup><span class="pop"><b>[19] 内容寻址的工业范式</b><span class="k">框架系统</span>Git（Torvalds）本身就是 Merkle DAG；Nix（Eelco Dolstra 博士论文）的 derivation hash = 「输入向量哈希」；Bazel remote cache（Google）；OCI image digest；IPFS（Protocol Labs, Juan Benet）。</span></span>。</p>
+<p>落地推论：所有数据集/切片/权重用内容哈希标识<span class="fn"><sup>[20]</sup><span class="pop"><b>[20] 数据/模型版本化与血缘系统</b><span class="k">数据/模型版本化</span>Apache Iceberg（Netflix，Ryan Blue）snapshot + time travel、Delta Lake（Databricks）、lakeFS（Treeverse，给对象存储加 Git 语义）、DVC（Iterative.ai）、HuggingFace Hub（git-lfs → Xet 内容寻址分块）。<span class="k">血缘系统</span>OpenLineage（LF AI，Julien Le Dem——亦是 Parquet/Arrow 作者）+ Marquez；DataHub（LinkedIn）、Apache Atlas、Unity Catalog（Databricks）、Spline。实验/模型侧：MLflow（Databricks，Matei Zaharia）、Weights &amp; Biases。</span></span>；RAG 每个 chunk 携带 <code>(doc_id, version, offset, ingest_run_id)</code> 并<b>原样透传</b>到生成结果的引用中<span class="fn"><sup>[21]</sup><span class="pop"><b>[21] RAG 引用透传</b><span class="k">框架系统</span>Anthropic Citations API（chunk 级引用由 API 强制返回）、Gemini grounding metadata、LlamaIndex/LangChain 的 <code>source_nodes</code> metadata 约定。</span></span>；合规删除请求通过反向遍历定位全部派生物<span class="fn"><sup>[22]</sup><span class="pop"><b>[22] 供应链溯源</b><span class="k">协议标准</span>SLSA（Google）、in-toto（NYU，Santiago Torres-Arias）、Sigstore、SPDX / CycloneDX ML-BOM、Model Cards（Margaret Mitchell, Timnit Gebru et al., Google）。</span></span>。</p>
+
+<h3>3.4 标注一致性低：评测集本身是噪声源</h3>
+<p class="meta"><code>P1</code>｜静默性：高｜修复深度：中｜收益类型：速度（决策质量）</p>
+<p><b>病理机制。</b> 把人工标注当作"真值"，而它实际是<b>带噪声的观测</b>，且噪声水平从未被测量。</p>
+<p><b>后果与收益。</b> 典型失效：评测集自身噪声 15%，两个模型 3% 的差距完全不可信，所有 A/B 决策退化为掷硬币。危害在于它污染的是<b>决策依据本身</b>——"优化三个月，指标涨 2 个点，其实全在噪声范围内"的伪进步由此产生。</p>
+<p><b>为何是 P1。</b> 它不制造故障，但使研发投入方向失去校准；可通过多人交叉标注定点修复。</p>
+<p><b>理论与求解。</b> <b>测量信度理论</b>（Cohen's κ / Krippendorff α）指出：<b>测量工具的信度上限决定了它能检测的效应上限</b>——若 κ=0.6，任何小于该噪声量级的改进都不可观测，评测即失效<span class="fn"><sup>[23]</sup><span class="pop"><b>[23] 信度统计量的实现</b><span class="k">统计方法</span>Cohen's κ / Krippendorff α：<code>sklearn.metrics.cohen_kappa_score</code>、<code>statsmodels</code>、NLTK。</span></span>。<b>Dawid–Skene EM</b> 从多个含噪标注中同时估计"每个样本真值"与"每个标注者的混淆矩阵"，恢复更优真值并识别低质标注者<span class="fn"><sup>[24]</sup><span class="pop"><b>[24] Dawid–Skene 及其产品化</b><span class="k">算法</span>Dawid &amp; Skene (1979) 原始 EM 算法；开源实现 Crowd-Kit（Toloka）、MACE（CMU，Dirk Hovy）、spark-crowd。<span class="k">框架系统</span>Snorkel（Stanford，Alexander Ratner / Chris Ré）——labeling function + 生成式标注聚合，是 Dawid–Skene 思想的产品化。Cleanlab（MIT，Curtis Northcutt，confident learning）——自动定位「评测集本身的错标」，直接对应理论中「评测集是噪声源」。</span></span>。<b>主动学习</b>用分歧度采样把标注预算投向信息量最大的样本<span class="fn"><sup>[25]</sup><span class="pop"><b>[25] 标注平台与主动学习采样</b><span class="k">框架系统</span>Label Studio（HumanSignal）、Argilla（现属 HuggingFace）、Scale AI、Surge AI、Lightly（主动学习采样）。</span></span>。</p>
+<p>落地推论：<b>先测 κ 再建评测集</b>；κ 不达标时先修<b>标注规范</b>（歧义几乎总是来自规范而非标注者）<span class="fn"><sup>[26]</sup><span class="pop"><b>[26] 「修规范而非修模型」</b><span class="k">组织实践</span>Andrew Ng 的 Data-Centric AI 运动；LLM 时代对应物是 rubric / grading guideline 的版本化（Anthropic 与 OpenAI 的 evals 文档均要求先写 rubric 再标注）。</span></span>；关键评测集三重标注 + 聚合；模型-人类分歧样本优先送标。</p>
+
+<h2>4. L3 模型层</h2>
+
+<h3>4.1 不可复现</h3>
+<p class="meta"><code>P1</code>｜静默性：中｜修复深度：中｜收益类型：速度 + 组织韧性</p>
+<p><b>病理机制。</b> 模型是一个<b>隐式依赖未被声明的函数</b>：种子、库版本、数据快照、硬件数值行为都是未记录的输入。把训练视为 <code>model = f(code, data_snapshot, config, seed, runtime_image, hardware_class)</code>，不可复现即"存在未被固定的自由变量"。</p>
+<p><b>后果与收益。</b> 效果下降时无法二分定位是数据、代码还是硬件所致，排查从小时级升至周级——它<b>放大所有其他故障的 MTTR</b>。解决后实验结论可累积，且实现<b>团队知识资产化</b>：人员流动时模型可被接手，消除"只有某人能跑通"的关键人风险。</p>
+<p><b>为何是 P1。</b> 不直接造成故障，但作为放大器影响全局。</p>
+<p><b>理论与求解。</b> <b>密封式构建（Hermetic Build）</b> 的原则是：构建过程不得读取任何未经声明的环境状态，从而把"希望能复现"变为"结构上不可能不复现"<span class="fn"><sup>[27]</sup><span class="pop"><b>[27] 密封式构建的正统实现</b><span class="k">构建系统</span>Bazel（Google）的 hermetic sandbox、Nix / NixOS（Eelco Dolstra）、GNU Guix、reproducible-builds.org（Debian 发起）——「构建不得读取未声明的环境状态」的正统实现。<span class="k">容器层</span>OCI digest 固定镜像（不是 tag）。</span></span>。需注意浮点非结合性使 GPU 上 bitwise 复现代价极高，故实务目标应是<b>统计复现</b>——重跑指标落在预先声明的容差带内<span class="fn"><sup>[28]</sup><span class="pop"><b>[28] 硬件层不可复现的根因与最新对策</b><span class="k">根因</span>浮点非结合性 + atomics 归约顺序不定：NVIDIA framework-determinism（Duncan Riach）。<span class="k">推理侧最新进展</span>Thinking Machines Lab《Defeating Nondeterminism in LLM Inference》（2025，Horace He 等）指出根因是 batch-size 依赖的 kernel 归约策略，解法是 batch-invariant kernels——把「统计复现」推回「bitwise 复现」。</span></span>。</p>
+<p>落地推论：训练产物随附完整"输入清单"（含全部哈希）；容器镜像固定<span class="fn"><sup>[29]</sup><span class="pop"><b>[29] 语言层根治「种子不可复现」</b><span class="k">语言特性（最关键的一项）</span>JAX 的显式 PRNGKey（Google）——随机数作为<b style="display:inline">显式参数</b>传递而非隐藏全局状态，这是语言层面根治「种子不可复现」的方案，与 PyTorch 的全局 <code>torch.manual_seed</code> 形成对照。PyTorch 侧：<code>torch.use_deterministic_algorithms(True)</code>、<code>cudnn.deterministic</code>、<code>CUBLAS_WORKSPACE_CONFIG</code>。Hydra（Meta，Omry Yadan）+ OmegaConf：配置组合可序列化，输出完整 resolved config 作为「输入清单」。</span></span>；<b>显式声明复现等级</b>（bitwise / 统计 / 不保证）及对应容差；CI 定期重跑金标准任务，验证复现性未腐化<span class="fn"><sup>[30]</sup><span class="pop"><b>[30] 统计复现的评测载体</b><span class="k">框架系统</span>lm-evaluation-harness（EleutherAI，Leo Gao）固定 few-shot 顺序与 seed；HELM（Stanford CRFM，Percy Liang）固定场景配置。</span></span>。</p>
+
+<h3>4.2 版本语义缺失</h3>
+<p class="meta"><code>P1</code>｜静默性：低｜修复深度：浅｜收益类型：速度（MTTR）</p>
+<p><b>病理机制。</b> 一维版本号无法表达多维变更。语义化版本在传统软件中有效，是因为变更沿单一维度（API 兼容性）排序；而 AI 系统的变更至少有四个正交维度：基座、数据、训练配置、提示/上下文。于是"回滚"这一操作本身语义不明<span class="fn"><sup>[31]</sup><span class="pop"><b>[31] SemVer 的失效与正确类比</b><span class="k">标准与其局限</span>SemVer（Tom Preston-Werner）假设变更沿单维排序，对 AI 失效；正确类比是 Nix derivation hash 或 OCI manifest——身份由全部输入哈希共同确定。</span></span>。</p>
+<p><b>后果与收益。</b> 线上告警需回滚，却不知 v1.4→v1.3 是否会连带回滚掉一个必要的安全补丁，决策被延迟 30 分钟。解决后 MTTR 从小时级降到分钟级；更重要的次生收益是<b>敢发布</b>，发布频率随之提高。</p>
+<p><b>为何是 P1。</b> 事故放大器，但修复成本极低。</p>
+<p><b>理论与求解。</b> 正确模型是把"发布"定义为<b>血缘图中一个被命名的不可变节点</b>，其身份由全部父节点哈希共同确定；"回滚"是切换服务指针到另一个已验证节点，而非版本号减一<span class="fn"><sup>[32]</sup><span class="pop"><b>[32] 「回滚 = 切换指针」的实现</b><span class="k">框架系统</span>Argo Rollouts（Intuit）、Flagger（Weaveworks）的蓝绿/金丝雀；Feature Flag：LaunchDarkly、OpenFeature（CNCF 标准）、Statsig——模型版本作为 flag 值，回滚是配置变更而非重新部署。</span></span>。</p>
+<p>落地推论：发布 = 不可变 <code>release manifest</code>（基座 + 数据快照 + 配置 + prompt 集合 + 评测报告）<span class="fn"><sup>[33]</sup><span class="pop"><b>[33] release manifest 的直接实现</b><span class="k">框架系统</span>MLflow Model Registry、HuggingFace Hub revision (commit sha)、SageMaker / Vertex Model Registry。KitOps / ModelKit（Jozu，CNCF Sandbox）——把模型+数据+配置打成单个 OCI artifact，即「release manifest」的直接实现；ORAS 提供通用 OCI artifact 分发。</span></span>；变更说明强制声明变更维度；支持按维度对比两个 release。</p>
+
+<h3>4.3 外部基座模型静默升级</h3>
+<p class="meta"><code>P0</code>（纯 API 应用场景）｜静默性：<b>最高</b>｜修复深度：浅｜收益类型：风险可控</p>
+<p><b>病理机制。</b> 把外部服务当作稳定函数依赖，而它实际是<b>由第三方单方面变更的可变实体</b>。</p>
+<p><b>后果与收益。</b> 典型失效：供应商夜间更新，输出格式微变，JSON 解析全量失败——而<b>变更不来自你的代码库</b>，所有内部排查手段全部指向"无变更"。不可控、无预警、全量影响，是外部依赖中最危险的一类。解决后，不可控外部风险转为可计划的升级项目。</p>
+<p><b>为何是 P0。</b> 爆炸半径全量 + 归因手段全部失灵。缓解手段明确且廉价，但多数团队未做——这种"低成本高风险"组合正是 P0 的典型特征。</p>
+<p><b>理论与求解。</b> <b>反腐层（ACL）</b> 思想：外部模型的语义变化不应直接穿透业务域，须在边界处被翻译与校验。<b>契约式设计</b>要求把隐式期望（输出格式、语调、拒答率、延迟）变为<b>可执行的后置条件</b>，从而使供应商变更由"静默"变为"可检测的契约违约"<span class="fn"><sup>[34]</sup><span class="pop"><b>[34] 契约式设计与反腐层的出处</b><span class="k">理论出处</span>Design by Contract：Bertrand Meyer（Eiffel 语言，前置/后置条件是语言级构造）。Anti-Corruption Layer：Eric Evans《Domain-Driven Design》。</span></span>。</p>
+<p>落地推论：只要供应商支持，<b>必须钉死带日期的模型版本</b><span class="fn"><sup>[35]</sup><span class="pop"><b>[35] 版本钉死</b><span class="k">协议/供应商能力</span>Anthropic 带日期的 model id（如 <code>claude-haiku-4-5-20251001</code>）、OpenAI snapshot id、Azure OpenAI deployment 版本策略——「钉死」这一能力本身是供应商提供的契约。</span></span>；对所有外部调用做输出契约校验并统计违约率<span class="fn"><sup>[36]</sup><span class="pop"><b>[36] 输出契约的实现</b><span class="k">框架系统</span>Pydantic（Samuel Colvin）——Python 生态事实上的后置条件校验器；Instructor（Jason Liu）、Outlines（dottxt，Rémi Louf）、XGrammar（LMSYS）、Guidance（Microsoft）——constrained decoding 把契约从「事后校验」提前到「解码时结构性保证」。<span class="k">供应商侧</span>Anthropic tool use / JSON schema、OpenAI Structured Outputs（语法约束解码）。</span></span>；建立<b>影子流量</b>通道，新版本先旁路接收真实流量并与当前版本对比后再切换<span class="fn"><sup>[37]</sup><span class="pop"><b>[37] 影子流量</b><span class="k">框架系统</span>Envoy <code>request_mirror_policies</code>（Lyft，Matt Klein）、Istio traffic mirroring、NGINX <code>mirror</code> 模块。GitHub Scientist（Ruby gem，GitHub）——在生产中并行跑新旧实现并比对结果，是「影子验证」的经典代码模式。</span></span>；关键路径保持至少一个可切换备选供应商。</p>
+
+<h2>5. L4 推理服务层</h2>
+
+<h3>5.1 长尾延迟：P99 为 P50 的 5–10 倍</h3>
+<p class="meta"><code>P1</code>｜静默性：低｜修复深度：中｜收益类型：体验/留存</p>
+<p><b>病理机制。</b> LLM 推理的服务时间本身高度分散：输出长度可变、prefill 与 decode 阶段异构、批次内抢占。而排队系统对服务时间<b>方差</b>极其敏感。</p>
+<p><b>后果与收益。</b> 5% 用户等待 40 秒后放弃。用户体验由长尾而非均值决定，故 P99 改善通常直接带来会话完成率与留存提升，收益远大于同等幅度的平均延迟优化。可压缩 40–60%。</p>
+<p><b>为何是 P1。</b> 影响真实但<b>显性可测</b>，优化手段成熟——属工程活，不属未知风险。</p>
+<p><b>理论与求解。</b> <b>Pollaczek–Khinchine 公式</b>表明 M/G/1 平均等待时间正比于 (1 + C²)，C 为服务时间变异系数——<b>降低方差与降低均值同等重要</b>，这是长尾治理的理论核心。<b>The Tail at Scale</b> 进一步指出：请求扇出到 N 个组件时端到端 P99 按 <code>1-(1-p)^N</code> 放大，组件级小尾部在链路上急剧恶化；对冲请求（hedged request）在 P95 时刻发起副本，以约 5% 额外负载换取尾部大幅收敛<span class="fn"><sup>[38]</sup><span class="pop"><b>[38] 理论出处</b><span class="k">文献</span>《The Tail at Scale》（Jeff Dean &amp; Luiz Barroso, Google, CACM 2013）——对冲请求、微分区、选择性复制全部出自此文。</span></span>。</p>
+<p>落地推论：按预估输出长度分队列（避免短请求排在长请求后的队头阻塞）<span class="fn"><sup>[39]</sup><span class="pop"><b>[39] 消除队头阻塞与异构阶段分离</b><span class="k">框架系统</span>Sarathi-Serve 的 chunked prefill（Microsoft Research India，Amey Agrawal, OSDI 2024）；DistServe（UCSD/PKU）与 Mooncake（月之暗面 + 清华，FAST 2025）的 prefill/decode 分离——直接对应「异构服务时间必须分队列」。NVIDIA Dynamo（2025）把 PD 分离 + KV 路由产品化。</span></span>；连续批处理 + 抢占上限控制单请求最坏等待<span class="fn"><sup>[40]</sup><span class="pop"><b>[40] 降方差的 serving 框架</b><span class="k">框架系统</span>Orca（Seoul National Univ., Gyeong-In Yu, OSDI 2022）提出 continuous/iteration-level batching；vLLM + PagedAttention（UC Berkeley Sky Lab，Woosuk Kwon, SOSP 2023）；SGLang + RadixAttention（LMSYS，Lianmin Zheng）；TensorRT-LLM（NVIDIA）；TGI（HuggingFace）。<span class="k">降尾的模型技术</span>Speculative decoding（Medusa、EAGLE、Google 的 speculative sampling 原论文 Leviathan et al.）、prefix caching（降 TTFT，Anthropic prompt caching / vLLM automatic prefix caching）。</span></span>；对<b>幂等的</b>短请求启用对冲，非幂等请求禁用（与 5.4 的幂等性设计耦合）<span class="fn"><sup>[41]</sup><span class="pop"><b>[41] 对冲的声明式实现</b><span class="k">框架系统</span>gRPC hedging policy（Google，服务配置里声明式开启）、Envoy <code>hedge_on_per_try_timeout</code>、Finagle backup request（Twitter）。</span></span>；过载时做准入控制——<b>拒绝部分请求而非让全体变慢</b>，这是保护 SLO 的唯一有效手段<span class="fn"><sup>[42]</sup><span class="pop"><b>[42] 过载保护</b><span class="k">框架系统</span>Netflix concurrency-limits（自适应并发，借鉴 TCP Vegas）、Google SRE Book 的 adaptive throttling、Facebook CoDel 队列丢弃、Kubernetes API Priority and Fairness。</span></span>。</p>
+
+<h3>5.2 成本不可归因</h3>
+<p class="meta"><code>P1</code>｜静默性：高（静默失血）｜修复深度：浅｜收益类型：<b>经营决策</b></p>
+<p><b>病理机制。</b> 成本在基础设施维度可见（GPU 小时），在业务维度不可见（哪个功能、哪个租户、哪个用户）。</p>
+<p><b>后果与收益。</b> 月账单 80 万，却无法回答"哪个功能值不值"，只能一刀切砍质量。这是<b>定价能力的前提</b>：没有单位经济模型就无法判断哪个功能在亏钱、哪个大客户不该续约、免费额度该设多少。经验上首次归因即可发现 10–20% 成本集中在低价值路径上，可直接裁撤。</p>
+<p><b>为何是 P1。</b> 不造成故障，但使商业决策长期失去依据；埋点即可解，投入产出比极高。</p>
+<p><b>理论与求解。</b> <b>作业成本法（ABC）</b> 的核心是识别<b>成本动因</b>并沿动因分摊。AI 系统的动因链条异常清晰：<code>功能 → 请求 → 调用步骤 → token（输入/输出/缓存命中）→ 金额</code>。只要在链路 trace 中传播业务标签，成本即可沿同一 trace 聚合，从技术指标转为经营指标<span class="fn"><sup>[43]</sup><span class="pop"><b>[43] 上下文传播：整条理论的关键载体</b><span class="k">协议标准</span>W3C Trace Context（<code>traceparent</code> header）——上下文传播的标准协议。OpenTelemetry（CNCF，OpenTracing + OpenCensus 合并）及其 GenAI Semantic Conventions（<code>gen_ai.usage.input_tokens</code> / <code>output_tokens</code> / <code>gen_ai.request.model</code>）——把 token 变成标准化的 cost driver 字段。</span></span>。</p>
+<p>落地推论：每次模型调用记录 <code>(trace_id, feature, tenant, model, in_tok, out_tok, cached_tok, cost)</code><span class="fn"><sup>[44]</sup><span class="pop"><b>[44] LLM 可观测与成本归因工具</b><span class="k">LLM 可观测</span>LangSmith（LangChain）、Langfuse、Arize Phoenix、W&amp;B Weave、Braintrust、Helicone、Datadog LLM Observability。<span class="k">基础设施成本归因</span>OpenCost / Kubecost（CNCF）、AWS Cost Allocation Tags、FOCUS（FinOps Foundation 的统一成本数据模型）。<span class="k">供应商侧账单维度</span>Anthropic Admin API usage/cost endpoints、OpenAI Usage API——支持按 API key / workspace 拆分，即租户维度归因。</span></span>；构建单位经济模型看板（每次成功任务成本、每活跃用户月成本、毛利率）<span class="fn"><sup>[45]</sup><span class="pop"><b>[45] 成本动因的新维度：缓存计费必须单列</b><span class="k">协议/计费字段</span>Anthropic 的 <code>cache_creation_input_tokens</code> / <code>cache_read_input_tokens</code>、OpenAI cached input、Gemini context caching——不区分则单位经济模型完全失真。</span></span>；<b>把成本纳入发布门禁</b>——效果 +2% 而成本 +200% 应被拦截。</p>
+
+<h3>5.3 容量规划失效：按 QPS 扩容导致 OOM</h3>
+<p class="meta"><code>P1</code>｜静默性：低（响亮失败）｜修复深度：中｜收益类型：可用性 + 成本</p>
+<p><b>病理机制。</b> QPS 不是真实资源约束。真实约束是 <b>KV cache 显存</b>与 <b>token 吞吐</b>，二者与并发数、上下文长度耦合。按错误的约束建模，扩容必然失准。</p>
+<p><b>后果与收益。</b> 长输入请求撑爆 KV cache，实例连环崩溃触发雪崩。改用正确模型后，既消除 OOM 雪崩，又避免过度冗余采购——两头都省。</p>
+<p><b>为何是 P1 而非 P0。</b> 爆炸半径大（全站不可用），但<b>响亮失败</b>：第一次事故后必然被修复，不会长期潜伏。这正是它与 3.2 等静默问题的分级差异所在。</p>
+<p><b>理论与求解。</b> <b>约束理论（TOC）</b> 要求先识别真瓶颈，再围绕瓶颈调度，其余资源一律服从——对瓶颈之外的优化不产生任何系统级收益。<b>Little's Law</b>（L = λ·W）给出定量关系：并发请求数 = 到达率 × 平均驻留时间；由于 KV cache 显存 ≈ 并发数 × 平均上下文长度 × 每 token 显存，可直接推出<b>最大安全并发</b>，再反推可承载到达率<span class="fn"><sup>[46]</sup><span class="pop"><b>[46] 瓶颈识别与三个可调闸门</b><span class="k">框架系统</span>真瓶颈是 KV cache 显存：PagedAttention（vLLM）用 OS 分页思想消除碎片；vLLM 的 <code>gpu_memory_utilization</code> / <code>max_num_seqs</code> / <code>max_num_batched_tokens</code> 就是 Little's Law 的三个可调闸门。</span></span>。</p>
+<p>落地推论：容量模型以 <code>token/s</code> 与 <code>KV 显存占用</code> 为一等指标<span class="fn"><sup>[47]</sup><span class="pop"><b>[47] 一等指标与压测工具</b><span class="k">指标</span>TTFT / TPOT(ITL) / goodput——goodput（满足 SLO 约束的吞吐）概念由 DistServe 论文正式提出，正是「TOC 下的有效产出」。<span class="k">工具</span>NVIDIA GenAI-Perf、vLLM <code>benchmark_serving</code>、LLMPerf（Anyscale）、MLPerf Inference（MLCommons）的 Server scenario（带 TTFT 约束的吞吐，而非裸 QPS）。</span></span>；设并发上限，超限时排队或拒绝而非 OOM<span class="fn"><sup>[48]</sup><span class="pop"><b>[48] 按真实瓶颈扩缩容与路由</b><span class="k">框架系统</span>KEDA（Microsoft，CNCF）按队列深度而非 CPU 扩缩；Gateway API Inference Extension（Kubernetes SIG Network）与 llm-d（Red Hat + Google + IBM）——KV-cache-aware 负载均衡，即按真实瓶颈而非 QPS 路由；AIBrix（字节）、NVIDIA Dynamo Planner 同理。</span></span>；<b>压测必须覆盖长上下文场景</b>——真实瓶颈只在长上下文下暴露。</p>
+
+<h2>6. L5 编排层（整体最脆弱）</h2>
+
+<h3>6.1 Prompt 是未受管的代码</h3>
+<p class="meta"><code>P0</code>｜静默性：高｜修复深度：<b>极浅</b>｜收益类型：速度 + 治理完整性</p>
+<p><b>病理机制。</b> Prompt 实际决定系统行为，却被当作配置甚至字符串字面量对待，游离于软件配置管理之外。这是一个<b>分类错误</b>导致整套成熟实践被绕过的典型案例。</p>
+<p><b>后果与收益。</b> 典型失效：某人直接修改数据库中的 prompt 字符串，全量生效，无评审、无测试、无变更记录，出事后连"改了什么"都查不到。本质是<b>一条绕过全部软件工程管控的生产变更通道</b>。纳管后解锁<b>安全的快速迭代</b>：prompt 是当前迭代频率最高的资产，纳管后产品、运营等非算法角色也能参与优化并被防护网兜住，团队吞吐显著提高。</p>
+<p><b>为何是 P0。</b> 修复成本在全清单中最低，但不修则<b>所有其他治理措施都可被绕过</b>——这是它定 P0 的唯一理由，也是充分理由。</p>
+<p><b>理论与求解。</b> <b>软件配置管理（SCM）</b> 的判定标准很朴素：<b>任何变更后会改变系统外部行为的工件，都是源代码</b>。Prompt 完全符合<span class="fn"><sup>[49]</sup><span class="pop"><b>[49] 理论出处</b><span class="k">文献</span>Twelve-Factor App（Adam Wiggins, Heroku）：配置与代码分离但同等受管；SCM 的判定标准「变更后改变外部行为者即源码」。</span></span>。此处不需要新理论，需要的是正确的分类；一旦承认其为代码，版本控制、评审、测试、灰度、回滚整套实践自动适用<span class="fn"><sup>[50]</sup><span class="pop"><b>[50] 最彻底的形态：把 prompt 编译出来</b><span class="k">框架系统</span>DSPy（Stanford，Omar Khattab / Chris Ré）——prompt 不再手写，而是由声明式签名 + 优化器<b style="display:inline">编译</b>产生，从「配置」升格为「可编译程序」。</span></span>。</p>
+<p>落地推论：Prompt 存于仓库或带版本的注册表，变更走 PR + 评审<span class="fn"><sup>[51]</sup><span class="pop"><b>[51] Prompt 注册表与文件格式标准化</b><span class="k">Prompt 注册表</span>LangSmith Prompt Hub、Langfuse Prompt Management（带 label 与版本回滚）、PromptLayer、Humanloop、Braintrust、Agenta。<span class="k">文件格式标准化</span>.prompty（Microsoft）、dotprompt（Google Firebase Genkit）——把 prompt 变成带 front-matter 的可版本化文件。</span></span>；每个 prompt 绑定一组用例作为其单元测试；支持灰度与一键回滚；运行时把<b>实际生效的 prompt 版本号</b>记入 trace<span class="fn"><sup>[52]</sup><span class="pop"><b>[52] 运行时要求</b><span class="k">框架系统</span>生效的 prompt 版本号必须写入 trace（LangSmith / Langfuse 均内置该字段），否则线上问题无法归因到具体 prompt 版本。</span></span>。</p>
+
+<h3>6.2 RAG 检索失败被误判为"模型幻觉"</h3>
+<p class="meta"><code>P0</code>｜静默性：<b>最高（伪装成其他问题）</b>｜修复深度：极浅｜收益类型：<b>方向正确性</b></p>
+<p><b>病理机制。</b> 只观测端到端结果，无法区分"没检到"与"检到了但没用好"，于是所有错误都被归因到链路最后一环——生成。串联系统的端到端指标是各环节的复合，单看复合值在数学上就不可定位。</p>
+<p><b>后果与收益。</b> 典型失效：团队花三个月换更大模型、调温度、加约束提示，准确率纹丝不动，因为真实瓶颈是召回率只有 61%。<b>致命性不在故障本身，而在归因错误导致整个团队的投入方向长期错误。</b> 多数团队做完分层评测会发现主要瓶颈在检索侧，而修检索的成本比换更大模型低一个数量级。</p>
+<p><b>为何是 P0。</b> 它不是一个故障，而是一台<b>方向误导机</b>；修复成本近乎为零，杠杆极高。</p>
+<p><b>理论与求解。</b> <b>误差归因分解</b> + <b>Oracle 上限分析（消融）</b>。经典方法是逐级替换为完美组件测量上限：若把检索结果替换为人工标注的黄金上下文后准确率从 62% 跃升到 91%，则至少 29 个百分点的损失归属检索，生成环节的优化空间上限只有 9 个点。这把"该优化哪里"从争论变成<b>测量</b><span class="fn"><sup>[53]</sup><span class="pop"><b>[53] 方法出处</b><span class="k">文献</span>Oracle 消融方法论出自 Hoiem, Chodpathumwan, Dai《Diagnosing Error in Object Detectors》(ECCV 2012)——逐级替换完美组件测上限。检索指标 nDCG：Järvelin &amp; Kekäläinen；评测传统来自 TREC（NIST，Ellen Voorhees）。</span></span>。</p>
+<p>落地推论：建立分层指标——检索层 recall@k / nDCG，重排层命中率，生成层「给定黄金上下文的准确率」，端到端任务成功率<span class="fn"><sup>[54]</sup><span class="pop"><b>[54] 分层指标的框架实现</b><span class="k">检索层</span>BEIR（UKP Lab, Nandan Thakur）、MTEB（HuggingFace + Cohere）。<span class="k">RAG 分层评测</span>RAGAS（Exploding Gradients）——<code>context_precision</code> / <code>context_recall</code> / <code>faithfulness</code> 正是检索层与生成层的拆分；TruLens（TruEra）的 RAG Triad；ARES（Stanford）。<span class="k">重排层</span>ColBERT（Omar Khattab, Stanford）、Cohere Rerank、cross-encoder（sentence-transformers，Nils Reimers）。</span></span>；每次归因讨论以 oracle 消融数据为准；同时监控<b>引用可核验率</b>（生成的每个断言能否在检索片段中找到支撑）<span class="fn"><sup>[55]</sup><span class="pop"><b>[55] 引用可核验率</b><span class="k">学术定义</span>AIS（Attributable to Identified Sources）框架（Google, Rashkin et al.）是该指标的学术定义。<span class="k">产品实现</span>Anthropic Citations、Gemini grounding、Perplexity。</span></span>。</p>
+
+<h3>6.3 Agent 多步误差累积：0.95¹⁰ ≈ 0.60</h3>
+<p class="meta"><code>P1</code>（长链路自主场景升 <code>P0</code>）｜静默性：低｜修复深度：架构级｜收益类型：<b>可行性（阶跃式）</b></p>
+<p><b>病理机制。</b> 串联可靠性 R = ∏rᵢ。单步 95% 在 10 步后即约 60%。这是<b>开环系统的固有宿命</b>，不是模型不够强——再强的模型也逃不出乘积律。</p>
+<p><b>后果与收益。</b> 用户体验为"时灵时不灵"，无法进入关键业务。这决定 Agent 产品<b>能否从 demo 走向生产</b>：低于某个成功率阈值，用户核对成本高于自己动手，产品价值为负；跨过阈值后价值是<b>阶跃式</b>而非线性的。引入校验后 10 步链路成功率可从 ~60% 提升到 85%+。</p>
+<p><b>为何在长链路自主场景升 P0。</b> 当 Agent 具备自主执行权且链路超过 5 步时，它从"体验问题"变为"产品不成立"问题。</p>
+<p><b>理论与求解。</b> <b>可靠性工程</b>指出提升串联系统只有三条路径，且必须组合：</p>
+<ol>
+<li><b>提高单步可靠性</b>——受乘积律限制，边际效应衰减快；</li>
+<li><b>减少串联步数</b>——把 10 步压成 3 步的收益远大于把 95% 提到 97%，<b>这是最高杠杆项</b><span class="fn"><sup>[56]</sup><span class="pop"><b>[56] 「减少步数」的工业共识</b><span class="k">文献</span>Anthropic《Building Effective Agents》（2024）明确主张：优先用确定性 workflow（prompt chaining / routing / orchestrator-worker），只在必要时用自主 agent——这正是「压缩串联步数」的最高杠杆项。</span></span>；</li>
+<li><b>引入反馈与冗余</b>——每步后插入校验器，失败则重试或回退。</li>
+</ol>
+<p>控制论的关键洞见是：<b>开环链路的误差单调累积，闭环链路的误差在每个校验点被截断</b>，可靠性从 ∏rᵢ 变为 ∏(rᵢ + (1-rᵢ)·rᵢ·c)，c 为校验器有效性。</p>
+<p>落地推论：设"步数预算"，超出即说明任务分解有问题；为每步定义<b>可机器验证的后置条件</b>（结构化输出 schema、工具返回码、约束检查），而非让模型自评"我做得对吗"<span class="fn"><sup>[57]</sup><span class="pop"><b>[57] 可机器验证的后置条件</b><span class="k">确定性校验器的典范</span>编译器 / 类型检查器 / 单元测试——SWE-bench 的 pass@1 即以测试套件作 verifier；Lean 形式化证明作 verifier（DeepMind AlphaProof）；JSON Schema + Pydantic validator；工具返回码。<span class="k">过程级校验</span>OpenAI《Let's Verify Step by Step》（Lightman et al.）的 Process Reward Model，把端到端奖励改为逐步校验。</span></span>；设检查点，失败回退到上一已验证状态而非从头重来<span class="fn"><sup>[58]</sup><span class="pop"><b>[58] 持久化执行 = 检查点回退</b><span class="k">框架系统</span>Temporal（Maxim Fateev，源自 Uber Cadence / AWS SWF）——event-sourced durable execution，失败从上一个已完成活动恢复而非从头重来；Restate、AWS Step Functions、Inngest、DBOS（Stonebraker et al.）。LangGraph（LangChain）的 checkpointer + time-travel、Ray Workflows。</span></span>；<b>校验器必须比生成器更简单、更可靠</b>——用确定性代码校验概率性输出，而非用另一个 LLM 校验（后者引入相关性失效，两个模型常在同一处一起错）<span class="fn"><sup>[59]</sup><span class="pop"><b>[59] 概率校验器的风险有实证</b><span class="k">文献</span>LLM-as-judge 自偏好偏差（Panickssery et al.；LMSYS MT-Bench 论文 Zheng et al. 亦记录 position / verbosity bias）——印证理论中「相关性失效」的警告。</span></span>。</p>
+
+<h3>6.4 非确定性 + 重试：成本翻倍与副作用重复执行</h3>
+<p class="meta"><code>P0</code>｜静默性：低｜修复深度：中｜收益类型：<b>不可逆损失规避</b></p>
+<p><b>病理机制。</b> 重试机制隐含假设"操作可安全重复"，但工具调用往往带有外部副作用（下单、发消息、转账）。非确定性系统失败率更高，触发重试更频繁，于是该假设被高频检验并高频失败。</p>
+<p><b>后果与收益。</b> 超时重试导致用户被重复下单三次、重复扣款。<b>不可逆的真实世界损失 + 法律与信任风险</b>，单次事件即足以造成重大后果；同时重试使成本翻倍。</p>
+<p><b>为何是 P0，且有时间窗口。</b> 不可逆 + 单次即重大。关键在于：修复必须在 <b>Agent 接入写操作之前</b>完成，事后补救代价极高。</p>
+<p><b>理论与求解。</b> 分布式系统早已证明"恰好一次投递"不可实现，可实现的是「<b>至少一次投递 + 幂等消费</b>」= 效果上的恰好一次。幂等键把重复请求在服务端去重<span class="fn"><sup>[60]</sup><span class="pop"><b>[60] 幂等键的工业标准</b><span class="k">协议标准</span>Stripe Idempotency-Key（Brandur Leach 的工程文章是该模式的规范文本）；AWS ClientToken；IETF HTTP Idempotency-Key header 草案（Stripe/Adyen 推动）。<span class="k">「至少一次 + 幂等消费 = 效果恰好一次」</span>Kafka EOS 事务（Confluent，Jason Gustafson）、Flink checkpoint + 两阶段提交 sink。</span></span>。对无法幂等的长流程，<b>Saga 模式</b>以"一系列本地事务 + 对应补偿事务"替代分布式事务，失败时按逆序补偿<span class="fn"><sup>[61]</sup><span class="pop"><b>[61] Saga 的出处与补偿事务实现</b><span class="k">理论出处</span>Saga：Garcia-Molina &amp; Salem（Princeton, SIGMOD 1987）。Confused Deputy（补偿与授权交叉处的经典陷阱）：Norm Hardy, 1988。<span class="k">补偿事务</span>Temporal 的 compensation pattern、Camunda/Zeebe、Eventuate Tram Saga（Chris Richardson）、AWS Step Functions 的 Catch/Rollback 分支。</span></span>。<b>重试预算与断路器</b>防止重试风暴——无约束重试会在下游故障时把负载放大数倍，将局部故障转为雪崩<span class="fn"><sup>[62]</sup><span class="pop"><b>[62] 重试治理</b><span class="k">框架系统</span>Google SRE Book 的 retry budget；Hystrix（Netflix，Ben Christensen）→ resilience4j；Envoy retry budget、gRPC retry throttling；指数退避 + 抖动的规范文本是 AWS Architecture Blog（Marc Brooker）《Exponential Backoff and Jitter》。</span></span>。</p>
+<p>落地推论：所有带副作用的工具调用强制携带幂等键（由 <code>trace_id + step_id</code> 派生）<span class="fn"><sup>[63]</sup><span class="pop"><b>[63] LLM 层的语义编码</b><span class="k">协议标准</span>MCP（Anthropic）的 tool annotations：<code>readOnlyHint</code> / <code>destructiveHint</code> / <code>idempotentHint</code>——协议层直接携带「此工具是否可安全重试」，使编排器无需猜测。</span></span>；为每个写操作定义补偿操作；重试用指数退避 + 抖动，并设全局重试预算（如重试流量 ≤ 10%）；下游异常率超阈值即断路降级。</p>
+
+<h2>7. L6 评测与可观测性（最高杠杆层）</h2>
+
+<h3>7.1 评测滞后于开发</h3>
+<p class="meta"><code>P0</code>｜静默性：高｜修复深度：中（流程级）｜收益类型：<b>速度（乘数项）</b></p>
+<p><b>病理机制。</b> 先实现后评测，导致"什么算做对了"在实现完成前从未被定义，开发过程因而<b>没有梯度信号</b>——团队只能凭感觉调 prompt。</p>
+<p><b>后果与收益。</b> 出事后才建评测集，样本来自已知故障，天然过拟合已修复的问题，对下一类故障零防护。这是<b>其余所有质量能力的前置依赖</b>：没有它，回归门禁、指标对齐、反馈闭环全部无从谈起。</p>
+<p><b>为何是全栈第一优先级。</b> 它是唯一一个<b>放大其余全部改进</b>的乘数项。在评测缺失时投入更大的模型，等于在没有秤的情况下反复调整配方——变化有，改进不可知。</p>
+<p><b>理论与求解。</b> <b>评测驱动开发（EDD）</b>。TDD 的真正价值不在覆盖率，而在于<b>强迫把模糊需求转为可判定的验收条件</b>。AI 开发中这一点更关键：没有编译器和类型系统兜底，<b>评测集是唯一的规格载体</b><span class="fn"><sup>[64]</sup><span class="pop"><b>[64] 理论出处</b><span class="k">文献</span>TDD（Kent Beck）、BDD（Dan North）；AI 版本的方法论主推者是 Hamel Husain &amp; Shreya Shankar（error analysis → 开放编码 → 轴心编码 → 评测集），「先写 30 条评测再写 demo」的建议即源于此。</span></span>。先建评测还带来第二重收益——把优化变成有明确目标函数的搜索问题。</p>
+<p>落地推论：任何新功能的第一个交付物是评测集（哪怕只有 30 条），而非 demo<span class="fn"><sup>[65]</sup><span class="pop"><b>[65] 评测框架</b><span class="k">框架系统</span>OpenAI Evals、lm-evaluation-harness（EleutherAI）、HELM（Stanford CRFM）、Inspect AI（UK AI Safety Institute——设计上把 solver/scorer 分离，适合做规格载体）、promptfoo（Ian Webster，CI 友好）、DeepEval（Confident AI）、Braintrust、LangSmith Datasets、Vertex Gen AI Evaluation。</span></span>；评测集随线上失败样本持续扩充；评测集与代码同仓同版本<span class="fn"><sup>[66]</sup><span class="pop"><b>[66] 「评测即规格」的落地形态</b><span class="k">工程约束</span>promptfoo 的 YAML、Inspect 的 Python task 文件均可 Git 管理，这是「评测即规格」的落地形态。</span></span>。</p>
+
+<h3>7.2 指标与业务脱节</h3>
+<p class="meta"><code>P0</code>｜静默性：<b>最高（制造虚假进展感）</b>｜修复深度：中｜收益类型：方向正确性</p>
+<p><b>病理机制。</b> 用便于计算的代理指标（BLEU、相似度）替代难以计算的目标指标（任务是否完成），却从未验证二者相关性。</p>
+<p><b>后果与收益。</b> 相似度从 0.71 涨到 0.78，庆功会开完，用户满意度和转化率毫无变化。危险在于它<b>制造虚假的进展感</b>，使团队在错误方向上持续投入数个季度而无人察觉——比"没有指标"更糟，因为它提供了停止思考的理由。</p>
+<p><b>为何是 P0。</b> 与 6.2 同类：不是故障，是方向误导机，且修复成本近乎为零。</p>
+<p><b>理论与求解。</b> <b>构念效度</b>追问"这个测量真的在测它声称要测的东西吗"——文本相似度测的是与参考答案的<b>表面接近度</b>，业务关心的是<b>任务是否被完成</b>，二者在开放生成任务中相关性很弱<span class="fn"><sup>[67]</sup><span class="pop"><b>[67] 理论出处</b><span class="k">文献</span>构念效度：Cronbach &amp; Meehl (1955)；Goodhart (1975)；Campbell's Law。OEC（Overall Evaluation Criterion）与 guardrail metric 两个术语均出自 Ronny Kohavi（Microsoft ExP，《Trustworthy Online Controlled Experiments》）。</span></span>。<b>古德哈特定律</b>进一步警告：一旦代理指标成为优化目标，它与真实目标的相关性会被优化过程<b>主动破坏</b>（模型学会迎合指标）<span class="fn"><sup>[68]</sup><span class="pop"><b>[68] 指标被优化破坏的实证</b><span class="k">文献</span>RLHF reward hacking 与 KL 惩罚（OpenAI / Anthropic）；specification gaming 案例库（DeepMind，Victoria Krakovna）。</span></span>。解法不是放弃代理指标——它便宜、可高频运行——而是<b>周期性用高成本的真实指标校准代理指标的相关系数</b>，并在相关性衰减时更换代理<span class="fn"><sup>[69]</sup><span class="pop"><b>[69] 代理指标及其相关性校准</b><span class="k">代理指标的演进</span>BLEU（Papineni et al., IBM 2002）、ROUGE（Chin-Yew Lin）→ BERTScore、COMET（Unbabel）→ Chatbot Arena Elo / Bradley-Terry（LMArena，Wei-Lin Chiang, UC Berkeley）。<span class="k">制度化范例</span>WMT Metrics Shared Task 每年用人工评分对自动指标做 meta-evaluation（Kendall τ），这正是理论要求的「周期性校准代理指标」。</span></span>。</p>
+<p>落地推论：定义单一北极星指标（任务成功率 / 人工采纳率）；代理指标仅用于高频回归，每季度做一次与北极星的相关性回归分析；设护栏指标（拒答率、有害率、成本、P99 延迟），任一破线即阻断发布，防止单指标优化的副作用<span class="fn"><sup>[70]</sup><span class="pop"><b>[70] A/B 与护栏工具</b><span class="k">框架系统</span>Statsig、Eppo、GrowthBook、Optimizely；方差缩减用 CUPED（Microsoft，Deng/Xu/Kohavi）。</span></span>。</p>
+
+<h3>7.3 回归防护缺失（无 CI 门禁）</h3>
+<p class="meta"><code>P0</code>｜静默性：中｜修复深度：中｜收益类型：速度 + 质量下限</p>
+<p><b>病理机制。</b> 非确定性系统中两次运行结果本就不同，团队因此<b>放弃了自动门禁</b>——"无法判断是回归还是噪声"。这是一个基于错误前提的放弃：非确定性并不妨碍判定，只是把判定从"相等"改为"分布无显著劣化"。</p>
+<p><b>后果与收益。</b> 每次 prompt/模型变更都是直接在生产上做实验，用户充当测试集；与 6.1（Prompt 未纳管）叠加时风险相乘。建立门禁后，质量信号从"数天人工"压缩到"分钟级自动"，反馈周期缩短一个数量级，单位时间可验证的假设数同比例上升——<b>实质上等于研发效能翻倍</b>。</p>
+<p><b>为何是 P0。</b> 它是防止质量倒退的唯一机制，也是 7.1 与 6.1 的收益兑现通道。</p>
+<p><b>理论与求解。</b> <b>统计假设检验 + 验收抽样</b>。用固定评测集跑 N 次取均值，构造差值的置信区间：若区间上界仍低于基线 −δ（δ 为可接受劣化阈值），判定为回归。样本量 N 由所需检出效应量与噪声方差经<b>功效分析</b>决定——这正面回答了"多大的下降才算真下降"这一让多数团队却步的问题<span class="fn"><sup>[71]</sup><span class="pop"><b>[71] 统计方法</b><span class="k">方法</span>配对比较降噪：paired bootstrap、McNemar 检验；序贯检验 Wald SPRT（提前停止）；功效分析定 N（<code>statsmodels.stats.power</code>）。</span></span>。</p>
+<p>落地推论：CI 中固化三类门禁——<b>能力门禁</b>（核心任务成功率劣化不超 δ）、<b>安全门禁</b>（有害/越权样例零通过）<span class="fn"><sup>[72]</sup><span class="pop"><b>[72] 安全门禁工具</b><span class="k">框架系统</span>garak（现属 NVIDIA，Leon Derczynski）、PyRIT（Microsoft AI Red Team）、promptfoo red team、HarmBench（CAIS）——红队用例进 CI 即理论要求的「安全门禁零通过」。</span></span>、<b>成本门禁</b>（单任务成本涨幅上限）<span class="fn"><sup>[73]</sup><span class="pop"><b>[73] 门禁实现</b><span class="k">框架系统</span>promptfoo 的 assertions + <code>--fail-on-threshold</code> 直接接 GitHub Actions；Braintrust / LangSmith 内置 regression 检测与 baseline 比较；Databricks / Vertex 的 model gating。</span></span>；评测集分为<b>公开集</b>（可用于迭代）与<b>封存集</b>（仅发布前跑一次，防止过拟合评测）<span class="fn"><sup>[74]</sup><span class="pop"><b>[74] 防过拟合评测集（封存集）</b><span class="k">机制原型</span>Kaggle private leaderboard 机制是该思想的原型；Dynabench（Meta）动态对抗构造；LiveBench（Abacus AI + NYU，LeCun 参与，按月刷新题目）；SWE-bench Verified（OpenAI 人工校验子集）；BIG-bench canary GUID 防污染标记。</span></span>；门禁结果必须是<b>硬阻断</b>。</p>
+
+<h3>7.4 反馈闭环断裂</h3>
+<p class="meta"><code>P1</code>｜静默性：高｜修复深度：中｜收益类型：<b>长期复利</b></p>
+<p><b>病理机制。</b> 线上失败信息停留在日志中，未被结构化回收为训练/评测资产，系统无法从自身错误中学习。</p>
+<p><b>后果与收益。</b> 同类问题反复出现。它不造成新故障，但使系统<b>失去自我改进的复利能力</b>——是增长天花板而非事故源。打通后系统越用越好，且评测集分布自动贴近真实流量，<b>竞争壁垒随使用量累积</b>，这是长期差异化的唯一可持续来源。</p>
+<p><b>为何是 P1。</b> 收益巨大但滞后，且依赖 7.1/7.3 先行；在基础评测缺失时无处可回流。</p>
+<p><b>理论与求解。</b> <b>控制论反馈闭环</b>指出：控制系统的品质由反馈通道的<b>带宽与延迟</b>决定，而非控制器本身的复杂度<span class="fn"><sup>[75]</sup><span class="pop"><b>[75] 理论出处</b><span class="k">文献</span>PDCA（Deming / Shewhart）、OODA（John Boyd）。</span></span>。<b>数据飞轮</b>描述正反馈结构：更多真实失败样本 → 更好的评测与训练集 → 更好的模型 → 更多流量 → 更多样本。飞轮的启动条件是通道被打通<b>且自动化</b>——人工搬运的通道必然在忙碌期断裂<span class="fn"><sup>[76]</sup><span class="pop"><b>[76] 数据引擎</b><span class="k">公开案例</span>Tesla Data Engine（Andrej Karpathy）——触发器捕获失败场景 → 自动入库 → 重训 → 部署的闭环，是「飞轮」最完整的公开案例；Scale Nucleus 提供商业化版本。<span class="k">工具</span>LangSmith Annotation Queue + Feedback API、Langfuse Scores、Argilla、Label Studio。</span></span>。</p>
+<p>落地推论：产品内嵌轻量反馈（点赞/点踩/重试/放弃，后两者为高价值隐式信号）<span class="fn"><sup>[77]</sup><span class="pop"><b>[77] 隐式信号采集的工业范例</b><span class="k">案例</span>GitHub Copilot 的 acceptance rate / 代码留存率（Ziegler et al.《Productivity Assessment of Neural Code Completion》）——用「是否被采纳」而非满意度问卷作主信号。Chatbot Arena 的成对投票；产品内点赞/点踩/重试/放弃。</span></span>；线上低置信、被用户重写、被人工接管的样本自动进入待标注队列；建立"<b>每个线上事故永久转化为一条回归用例</b>"的机制<span class="fn"><sup>[78]</sup><span class="pop"><b>[78] 事故转回归用例</b><span class="k">组织实践</span>Google SRE postmortem 文化中的 action item「为每个事故补一条测试」；在 LLM 场景表现为「线上 failure → 评测集新增一条」的自动化管道。</span></span>。</p>
+
+<h2>8. 安全与合规</h2>
+
+<h3>8.1 Prompt 注入与工具越权</h3>
+<p class="meta"><code>P0</code>｜静默性：中｜修复深度：<b>架构级</b>｜收益类型：准入 + 不可逆损失规避</p>
+<p><b>病理机制。</b> 把 LLM 输出当作可信内容送入有权限的执行路径，<b>信任边界划错了位置</b>。防护以外挂式内容过滤为主，而内容过滤对抗的是无限的输入空间，必然被绕过。</p>
+<p><b>后果与收益。</b> 用户在输入中嵌入指令，诱导 Agent 调用内部工具读取他人数据或执行写操作。<b>外部主动攻击 + 不可逆 + 单次即重大</b>，三项全中——这是全清单中唯一存在<b>主动对手</b>的风险，其余问题的"对手"只是熵。解决后，安全从"过滤准确率"这种概率性保证升级为"权限边界"这种结构性保证，这是通过企业安全评审、拿下大客户合同的硬性门槛。</p>
+<p><b>为何是 P0 且越晚越贵。</b> 它是架构决策，需在工具接口设计阶段收口；事后改造意味着重写全部工具层。</p>
+<p><b>理论与求解。</b> 注入类攻击的本质与 SQL 注入同构——<b>数据被当作指令执行</b>。SQL 注入的根治不是过滤关键字，而是参数化查询，即<b>结构上分离数据与指令</b><span class="fn"><sup>[79]</sup><span class="pop"><b>[79] 污点追踪的语言与工具实现</b><span class="k">语言级</span>Perl taint mode（<code>-T</code>）是最早的生产实现；Ruby <code>$SAFE</code>（已废弃）。<span class="k">类型级结构性分离</span>Trusted Types（W3C/Google，防 DOM XSS）——「数据不能隐式变成指令」的浏览器范例；Rust newtype、TypeScript branded types 可复刻同一模式。<span class="k">静态污点分析</span>CodeQL（Semmle/GitHub，Oege de Moor）、Pysa / Zoncolan（Meta）、Semgrep。</span></span>。LLM 场景无法完全参数化（自然语言没有语法边界），因此防线必须<b>后移到执行侧</b>：假定模型随时可能被诱导发出任意指令，用工具层的权限约束保证"即使模型被完全控制，可造成的损害仍然有界"<span class="fn"><sup>[80]</sup><span class="pop"><b>[80] LLM 注入的专门方案</b><span class="k">术语与框架</span>「lethal trifecta（私有数据 + 不可信内容 + 外发能力）」：Simon Willison；OWASP Top 10 for LLM Applications（LLM01 Prompt Injection）。<span class="k">工程实现</span>Dual LLM pattern（Simon Willison）→ CaMeL（Google DeepMind, 2025）——特权 LLM 生成代码、隔离 LLM 处理不可信数据，能力标签随数据流传播并由解释器强制执行，是理论中「污点 + 能力」最完整的工程实现。Spotlighting（Microsoft，Hines et al.）：delimiting / datamarking / encoding，属缓解而非根治。</span></span>。这是 Saltzer &amp; Schroeder 的<b>最小权限 + 完全中介</b>组合：每次工具调用经过独立授权检查，授权依据是<b>发起请求的用户身份与会话范围</b>，而非模型的自述意图。<b>能力安全模型</b>进一步要求权限以不可伪造的令牌形式随调用传递，避免"混淆代理（confused deputy）"问题<span class="fn"><sup>[81]</sup><span class="pop"><b>[81] 理论出处</b><span class="k">文献</span>Saltzer &amp; Schroeder (1975, MIT) 八原则；STRIDE（Microsoft，Loren Kohnfelder &amp; Praerit Garg）；object-capability（Dennis &amp; Van Horn → Mark Miller 的 E 语言 / Caja）。</span></span>。</p>
+<p>落地推论：</p>
+<ul>
+<li>对所有外部输入（检索文档、网页、用户上传、工具返回）打<b>污点标记</b>，污点内容永不获得指令权限；</li>
+<li>工具接口按最小权限设计：读写分离、范围限定（只能操作本用户资源）、金额/数量上限、危险操作强制人工确认<span class="fn"><sup>[82]</sup><span class="pop"><b>[82] 执行侧的最小权限与沙箱</b><span class="k">沙箱</span>gVisor（Google）、Firecracker（AWS）、Kata Containers、WebAssembly + WASI Preview 2（Bytecode Alliance，能力式 API）、Deno 权限模型（Ryan Dahl）、E2B、Cloudflare Workers isolates。<span class="k">凭证范围收窄</span>AWS IAM session policy / RFC 8693 Token Exchange、OAuth 2.1 scopes；MCP 授权规范（Anthropic）要求 server 作为 OAuth Resource Server 并校验 audience——正是为防混淆代理。<span class="k">工具层强制确认</span>Claude Code 的 permission modes、MCP <code>destructiveHint</code>。</span></span>；</li>
+<li><b>授权在工具层做，不在 prompt 里"要求模型不要这么做"</b>——后者不是安全机制；</li>
+<li>设计阶段做 STRIDE 威胁建模，把安全需求转为可测评测集，红队用例进 CI 门禁（见 7.3）。</li>
+</ul>
+
+<h3>8.2 敏感数据外泄</h3>
+<p class="meta"><code>P0</code>｜静默性：高｜修复深度：中｜收益类型：准入</p>
+<p><b>病理机制。</b> 权限过滤发生在检索之前还是之后，决定了系统是否会跨租户泄露。若向量库不做租户隔离而依赖后置过滤，则模型已经"看过"不该看的内容，任何后置手段都无法撤销其对生成的影响。</p>
+<p><b>后果与收益。</b> 内部文档经 RAG 检索后跨租户返回给无权用户，合规与信任双重不可逆损失。</p>
+<p><b>理论与求解。</b> 同属最小权限与完全中介：<b>权限过滤必须前置到检索查询条件中</b>（而非对结果集后过滤）；出站侧补充 DLP 检查，防止敏感数据经模型回显外泄<span class="fn"><sup>[83]</sup><span class="pop"><b>[83] 出站侧防护</b><span class="k">框架系统</span>DLP：Google Cloud DLP、Microsoft Purview、Nightfall；网络 egress 白名单（沙箱默认拒绝外连）。</span></span>。</p>
+
+<h3>8.3 开源权重供应链投毒</h3>
+<p class="meta"><code>P2</code>｜静默性：高｜修复深度：浅｜收益类型：风险规避</p>
+<p><b>病理机制。</b> 第三方权重是不可审查的二进制资产，其行为无法通过代码审计验证。</p>
+<p><b>为何仅 P2。</b> 低频、高危，但<b>已有成熟缓解</b>：来源哈希与签名校验、依赖纳入 SBOM、隔离环境加载、沙箱评测。以标准流程覆盖即可，不值得投入专项资源<span class="fn"><sup>[84]</sup><span class="pop"><b>[84] 权重供应链的成熟缓解</b><span class="k">框架系统</span>Safetensors（HuggingFace）——用非可执行格式根治 pickle 反序列化 RCE，是「结构性约束替代扫描」的典型；OpenSSF model-signing + Sigstore（Google 主推）、HF 的 ProtectAI/JFrog 扫描、CycloneDX ML-BOM。<span class="k">投毒研究</span>BadNets（Gu, Dolan-Gavitt, Garg, NYU）、Sleeper Agents（Anthropic）——证明训练期后门可躲过安全微调，故需源头校验而非事后检测。</span></span>。</p>
+
+<h2>9. 跨层根因</h2>
+<p>前 26 项问题并非彼此独立，它们由四条跨层根因共同生成。治理根因的收益是复合的。</p>
+
+<h3>9.1 R1 确定性假设失效 <code>P0（元问题）</code></h3>
+<p>它不是可修的 bug，而是解释了 3.1、4.1、7.1、7.3 为何<b>普遍缺席</b>：团队沿用确定性软件的工具与直觉，因而根本没意识到需要建这些能力。这是认知层面的问题，关键性最高却无法直接"修复"，只能通过组织共识改变。</p>
+<p><b>求解理论：SLO 作为质量的一等表达 + 验收抽样。</b> 放弃"系统必须总是正确"，改为声明"任务成功率 ≥ 92%，P95 延迟 ≤ 3s，有害输出率 ≤ 0.1%"<span class="fn"><sup>[85]</sup><span class="pop"><b>[85] SLO 的标准化载体</b><span class="k">框架系统</span>Google SRE Book（Beyer/Jones/Petoff/Murphy）的 SLO / error budget；标准化：OpenSLO、Nobl9、Sloth（Prometheus SLO 生成器）。</span></span>，并为剩余失败设计<b>可接受的失败路径</b>（降级、转人工、明确告知不确定）<span class="fn"><sup>[86]</sup><span class="pop"><b>[86] AI 特化的「可接受失败路径」</b><span class="k">框架系统</span>多供应商 fallback 路由（LiteLLM / OpenRouter）、降级到小模型、转人工（Intercom Fin 公开以 resolution rate 计费并保留 handoff，是质量 SLO 商业化的范例）、拒答/表达不确定（abstention 训练）。</span></span>。这同时解决一个组织病症：没有 SLO 时，任何单个失败案例都可能引发过度反应；有 SLO 后，讨论焦点回到分布。</p>
+
+<h3>9.2 R2 抽象层未收敛 <code>P2</code></h3>
+<p>框架半年一换，团队反复重写胶水代码。这属行业外部条件，理性应对是薄封装 + 接受重写，而非自研框架。</p>
+<p><b>求解理论：端口-适配器 + 延迟绑定 + 以变更成本为架构指标。</b> 在技术尚未收敛的领域，正确的架构目标不是"选对框架"，而是<b>让选错的代价可控</b><span class="fn"><sup>[87]</sup><span class="pop"><b>[87] 理论出处</b><span class="k">文献</span>Hexagonal Architecture（Alistair Cockburn）、Clean Architecture（Robert C. Martin）。</span></span>。把领域逻辑（任务定义、评测、数据契约、权限模型）与实现细节（框架、供应商、向量库）隔离<span class="fn"><sup>[88]</sup><span class="pop"><b>[88] 端口实现与可替换的后端</b><span class="k">端口实现</span>MCP（Anthropic，工具端口）、Vercel AI SDK provider 接口、Spring AI（Broadcom/VMware）、Semantic Kernel connectors（Microsoft）、LangChain <code>VectorStore</code> / <code>BaseChatModel</code> 接口。<span class="k">可替换的后端事实</span>pgvector（Andrew Kane）/ Milvus（Zilliz）/ Qdrant / Weaviate / FAISS（Meta，Johnson &amp; Douze）/ Lucene HNSW。</span></span>。判断标准很直接：更换某个组件需要改动多少文件？若答案是"到处都是"，说明抽象缺失<span class="fn"><sup>[89]</sup><span class="pop"><b>[89] 把「变更成本」变成 CI 断言</b><span class="k">框架系统</span>ArchUnit（Java）、import-linter（Python）、dependency-cruiser（JS）、Bazel 反向依赖查询——直接回答「换掉某组件要改多少文件」。</span></span>。</p>
+
+<h3>9.3 R3 组织割裂 <code>P1</code></h3>
+<p>数据、算法、平台、业务四方 KPI 不一致，故障时无人承接。它决定上述所有修复<b>能否落地</b>。</p>
+<p><b>求解理论：康威定律 + 团队拓扑 + 共享 SLO。</b> 康威定律指出系统架构必然映射组织沟通结构，因此四分的组织必然产出四段互不负责的割裂管线。逆康威策略主张<b>先按目标架构重组团队</b>：设立对端到端任务成功率负责的 stream-aligned 团队，平台团队以自助服务方式提供能力而非承接工单<span class="fn"><sup>[90]</sup><span class="pop"><b>[90] 理论出处</b><span class="k">文献</span>Conway (1968)；Team Topologies（Matthew Skelton &amp; Manuel Pais）的 stream-aligned / platform 划分；Inverse Conway Maneuver（ThoughtWorks 推广）。</span></span>。关键在于<b>四方共享同一个 SLO</b>——只要 KPI 不同，接口处的责任真空就无法靠流程填补<span class="fn"><sup>[91]</sup><span class="pop"><b>[91] 平台自助服务与共享 SLO 的机制化</b><span class="k">载体</span>Backstage（Spotify → CNCF）、Internal Developer Platform。<span class="k">ML 平台团队的历史案例</span>Uber Michelangelo、Meta FBLearner Flow、Airbnb Bighead、LinkedIn ProML、Netflix Metaflow（Ville Tuulos → Outerbounds）。<span class="k">共享 SLO</span>Google 的 error budget 作为产品团队与 SRE 的共同「货币」——KPI 统一而非流程协调。</span></span>。</p>
+
+<h3>9.4 R4 反馈周期过长 <code>P1</code></h3>
+<p>从变更到质量信号需数天人工评估，阻断快速迭代。它是 7.1/7.3 落地后的自然收益，不需单独治理，但值得单独度量。</p>
+<p><b>求解理论：精益小批量 + 排队论。</b> 排队论表明周期时间随利用率上升而非线性爆炸，且批量越大等待越长。数天的人工评估意味着每次迭代的有效实验次数极低，而 AI 系统的改进本质是<b>搜索过程</b>——搜索速度直接决定最终质量<span class="fn"><sup>[92]</sup><span class="pop"><b>[92] 理论谱系与度量</b><span class="k">文献</span>TPS（大野耐一）→ Lean Software Development（Poppendieck）→ Kanban（David Anderson）→ Donald Reinertsen《Product Development Flow》（把排队论正式引入研发管理，批量大小与在制品限制的理论依据）。<span class="k">度量</span>DORA 四指标（Nicole Forsgren, Jez Humble, Gene Kim，《Accelerate》）。</span></span>。自动化评测的价值不只是省人力，而是把每天 1 次实验变成每天 20 次<span class="fn"><sup>[93]</sup><span class="pop"><b>[93] LLM 特化的提速杠杆</b><span class="k">框架系统</span>prompt caching（Anthropic，缓存读取约为基础价 10%）把高频评测成本压下来；Batch API 跑全量集；vLLM 离线批推理跑本地评测——直接把「每天 1 次实验」变成「每天 20 次」。</span></span>。</p>
+<p>落地推论：目标设为"从提交到质量信号 &lt; 30 分钟"；评测分层（秒级冒烟集 / 分钟级核心集 / 小时级全量集）；限制并行在制品数量<span class="fn"><sup>[94]</sup><span class="pop"><b>[94] 加速手段</b><span class="k">工程实践</span>trunk-based development、远端构建缓存（Bazel Remote Cache、Nx Cloud）、评测分层（秒级冒烟 / 分钟级核心 / 小时级全量）。</span></span>。</p>
+
+<h2>10. 求解次序：为何必须按这个顺序</h2>
+<p>上述理论若并行铺开，成本高且相互阻塞。依赖关系决定了唯一合理的次序：</p>
+<table>
+<tr><th>阶段</th><th>解决的问题</th><th>依据理论</th><th>为何必须在此位置</th></tr>
+<tr><td><b>1 可观测</b></td><td>7.1 7.2 5.2 6.2</td><td>EDD、构念效度、ABC、误差归因</td><td>没有测量，后续所有改进都不可验证，投入无法证伪</td></tr>
+<tr><td><b>2 可归因</b></td><td>3.3 4.1 4.2</td><td>溯源理论、密封构建</td><td>能测量但不能定位只能猜；血缘是一切根因分析的前提</td></tr>
+<tr><td><b>3 可控制</b></td><td>7.3 6.1 7.4</td><td>假设检验门禁、SCM、反馈闭环</td><td>有测量与归因才能设门禁；门禁是防止质量倒退的唯一机制</td></tr>
+<tr><td><b>4 可靠化</b></td><td>6.3 6.4 5.1 5.3 8.1 8.2</td><td>可靠性工程、幂等/Saga、排队论、TOC、最小权限</td><td>结构性加固，依赖前三步提供的验证能力</td></tr>
+<tr><td><b>5 经济化</b></td><td>2.1 2.2 2.3</td><td>统计复用、报童模型、窄腰抽象</td><td>成本优化须在质量可守住之后做，否则是在劣化质量换成本</td></tr>
+</table>
+<p><b>一个例外。</b> 6.4（重试副作用）与 8.1（工具越权）虽列于阶段 4，但若系统即将接入<b>带副作用的写操作</b>，二者必须提前到阶段 1 之前完成——它们的失效不可逆，不存在"先上线再补"的选项。</p>
+<p><b>核心判断：</b> 阶段 1–3 属于<b>反馈闭环基础设施</b>，是全部改进的乘数项；阶段 4–5 是被乘数。在闭环缺失时投入更大的模型或更多框架，等于在没有秤的情况下反复调整配方。</p>
+
+<h3>10.1 首批必做的七项</h3>
+<p>按 <b>「不可逆 × 静默 × 修复成本低」</b> 三维筛选，以下七项应立即处理：</p>
+<table>
+<tr><th>#</th><th>问题</th><th>入选理由</th></tr>
+<tr><td>1</td><td>6.1 Prompt 未纳管</td><td>修复成本最低，却是所有治理的缺口</td></tr>
+<tr><td>2</td><td>7.1 评测缺失</td><td>其余全部质量能力的前置依赖</td></tr>
+<tr><td>3</td><td>8.1 工具越权/注入</td><td>唯一存在主动对手的风险，且越晚改越贵</td></tr>
+<tr><td>4</td><td>6.4 重试副作用</td><td>不可逆真实损失，接入写操作前必须完成</td></tr>
+<tr><td>5</td><td>3.3 血缘缺失</td><td>唯一无法事后补建的能力，错过即永久损失</td></tr>
+<tr><td>6</td><td>6.2 检索归因错误</td><td>修复成本近乎为零，防止整季度方向错误</td></tr>
+<tr><td>7</td><td>7.2 指标脱节</td><td>同上，且消除"虚假进展感"</td></tr>
+</table>
+<p>值得注意的是：<b>1.x 算力类问题虽最常被讨论，实为全栈关键性最低的一组</b>——它们烧钱，但不阻断生产化。</p>
+
+<h2>11. 结论</h2>
+
+<h3>11.1 收益的四种类型</h3>
+<p>解决这 26 项问题的收益可归为四类，其性质截然不同：</p>
+<ol>
+<li><b>成本收益</b>（算力利用率、成本归因）——直接体现在账面，易量化但天花板有限；</li>
+<li><b>速度收益</b>（评测闭环、Prompt 纳管、可复现）——<b>放大所有其他投入，长期杠杆最高</b>；</li>
+<li><b>准入收益</b>（血缘合规、安全内建）——不是优化而是<b>门票</b>，决定能否进入高价值市场；</li>
+<li><b>可行性收益</b>（Agent 成功率、检索质量）——决定产品从"能演示"变为"能用"，价值呈<b>阶跃而非线性</b>。</li>
+</ol>
+<p>最应优先投入的是第 2 类。它本身不直接创造收入，但决定其余所有改进的兑现速度：在一个反馈周期以天计的团队里，任何优化都只能验证个位数次；把它压到分钟级，团队的有效迭代能力立即提升一个数量级。这也解释了为何"补齐基础能力"的长期收益高于"换更大的模型"。</p>
+
+<h3>11.2 总纲</h3>
+<p>AI 工程栈的全部问题，归根结底是<b>用确定性时代的工程手段去管理一个概率系统</b>所产生的错配。求解的统一理论可压缩为三句话：</p>
+<blockquote>
+<p>把每一处「隐式假设」替换为「显式测量」<span class="fn"><sup>[95]</sup><span class="pop"><b>[95] 隐式假设 → 显式测量</b><span class="k">最具代表性的单项技术</span>OpenTelemetry GenAI 语义约定 + W3C Trace Context。<span class="k">出处</span>CNCF / W3C。</span></span>；<br>
+把每一条「开环链路」替换为「带校验的闭环」<span class="fn"><sup>[96]</sup><span class="pop"><b>[96] 开环链路 → 带校验闭环</b><span class="k">最具代表性的单项技术</span>Temporal durable execution + 确定性 verifier（测试 / 类型 / schema）。<span class="k">出处</span>Maxim Fateev；Meyer 契约传统。</span></span>；<br>
+把每一个「信任」替换为「结构性约束」<span class="fn"><sup>[97]</sup><span class="pop"><b>[97] 信任 → 结构性约束</b><span class="k">最具代表性的单项技术</span>CaMeL（能力标签 + 解释器强制）、Safetensors、constrained decoding。<span class="k">出处</span>Google DeepMind / HuggingFace / dottxt。</span></span>。</p>
+</blockquote>
+<p>三者分别对应可观测性、控制论与安全设计原则。它们不是三套方法，而是同一条原则在不同层的投影<span class="fn"><sup>[98]</sup><span class="pop"><b>[98] 三者的共同祖先</b><span class="k">工程原则谱系</span>Saltzer &amp; Schroeder 的「失败安全默认」、Shewhart 的「在工序内拦截」、维纳的「反馈截断误差」——它们比 LLM 早半个世纪，但恰好是概率系统唯一可依赖的地基。</span></span>：</p>
+<p><b>不要依赖系统的良好行为，要让不良行为在结构上被限制、在发生时被检测、在检测后被自动拦截。</b></p>
+
+<p class="tail">方法论说明：本文以「AI 工程技术栈」这一系统主题本身为分析对象，未针对具体代码库或架构文档。若需对特定系统做定向诊断，可将本文第 1.2 节的四问模板与 1.3 节的定级判据直接套用于该系统的实际制品清单。</p>
+</div>
+<script>
+(function(){
+  var TIMEOUT = 120000;
+  document.querySelectorAll('.fn').forEach(function(fn){
+    var pop = fn.querySelector('.pop'); if(!pop) return;
+    var timer = null;
+    fn.addEventListener('mouseenter', function(){
+      pop.classList.remove('off');
+      pop.classList.add('on');
+      if(timer) clearTimeout(timer);
+      timer = setTimeout(function(){ pop.classList.add('off'); pop.classList.remove('on'); }, TIMEOUT);
+      pop.style.left = '50%';
+      pop.style.transform = 'translateX(-50%)';
+      var r = pop.getBoundingClientRect();
+      var pad = 12;
+      if(r.left < pad){ pop.style.transform = 'translateX(calc(-50% + ' + (pad - r.left) + 'px))'; }
+      else if(r.right > window.innerWidth - pad){ pop.style.transform = 'translateX(calc(-50% - ' + (r.right - window.innerWidth + pad) + 'px))'; }
+    });
+    fn.addEventListener('mouseleave', function(){
+      if(timer) clearTimeout(timer);
+      pop.classList.remove('on');
+      pop.classList.remove('off');
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-ai-5",
+    "title": "AI 工程技术栈的系统性问题（带工业实现脚注）",
+    "href": "/p/ai-5.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-21T01:27:08.702Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-5.html",
+      "frontend/public/p/ai-5.meta.json"
+    ]
+  },
+  {
     "id": "upload-ai-4",
     "title": "AI 工程技术栈的系统性问题研究（带工业落地脚注）",
     "href": "/p/ai-4.html",
