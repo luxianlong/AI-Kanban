@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-ai-2",
+    "title": "AI 工程栈的十个约束（附技术脚注）",
+    "href": "/p/ai-2.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-21T05:03:46.172Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-2.html",
+      "frontend/public/p/ai-2.meta.json"
+    ]
+  },
+  {
     "id": "upload-ai-engineering-stack-116",
     "title": "从“试一试”到“可验证”：AI Engineering Stack 十大问题的纵深解剖（附 116 条落地技术脚注）",
     "href": "/p/ai-engineering-stack-116.html",
