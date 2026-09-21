@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-ai-engineering-stack",
+    "title": "AI Engineering Stack",
+    "href": "/p/ai-engineering-stack.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-21T00:54:55.455Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-engineering-stack.html",
+      "frontend/public/p/ai-engineering-stack.meta.json"
+    ]
+  },
+  {
     "id": "upload-ai-2",
     "title": "AI 工程技术栈的系统性问题研究",
     "href": "/p/ai-2.html",
