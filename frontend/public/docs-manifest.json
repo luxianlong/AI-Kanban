@@ -30,21 +30,6 @@
     ]
   },
   {
-    "id": "upload-2026-ai-engineering-stack-75",
-    "title": "模型之外的那一圈：2026 年 AI Engineering Stack 十大问题的纵深解剖（含 75 条工业实现脚注）",
-    "href": "/p/2026-ai-engineering-stack-75.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-21T02:47:45.744Z",
-    "isNew": true,
-    "private": false,
-    "paths": [
-      "frontend/public/p/2026-ai-engineering-stack-75.html",
-      "frontend/public/p/2026-ai-engineering-stack-75.meta.json"
-    ]
-  },
-  {
     "id": "upload-ai-5",
     "title": "AI 工程技术栈的系统性问题（带工业实现脚注）",
     "href": "/p/ai-5.html",
