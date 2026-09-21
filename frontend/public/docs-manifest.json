@@ -1,5 +1,20 @@
 [
   {
+    "id": "upload-ai-2",
+    "title": "AI 工程技术栈的系统性问题研究",
+    "href": "/p/ai-2.html",
+    "zone": "article",
+    "deletable": true,
+    "file": null,
+    "updatedAt": "2026-09-21T00:44:31.127Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "frontend/public/p/ai-2.html",
+      "frontend/public/p/ai-2.meta.json"
+    ]
+  },
+  {
     "id": "upload-page-a64e496c",
     "title": "超额收益从哪里来",
     "href": "/p/page-a64e496c.html",
