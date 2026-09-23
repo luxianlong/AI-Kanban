@@ -24,6 +24,12 @@ import {
   stripPrivateViewCounts,
   readDocsManifest,
 } from './docsGate.mjs'
+import {
+  createDocCache,
+  docCacheControl,
+  resolvePublicFile,
+  sendCached,
+} from './docsCache.mjs'
 
 // During `npm run dev`, proxy API calls to the Spring Boot backend on :8080
 // so the browser talks to a single origin (no CORS surprises in dev).
@@ -346,6 +352,23 @@ function canonicalHost() {
   }
 }
 
+// Serve a doc page / asset / listing out of the in-memory docs cache (task
+// #566): compressed, ETag'd, and with cache headers that let the browser show
+// it instantly. Anything the cache can't answer — a missing file (so the 404 /
+// SPA fallback is unchanged), an unknown type, a Range request — falls through
+// to Vite's own static serving exactly as before.
+const docCache = createDocCache()
+
+function serveDoc(req, res, next, urlPath, kind, isPrivate) {
+  if (req.headers.range) return next()
+  const file = resolvePublicFile(PUBLIC_DIR, urlPath)
+  const entry = file && docCache.get(file)
+  if (!entry) return next()
+  // index/manifest bodies differ for owner vs anonymous: keep caches apart.
+  const vary = kind === 'index' || kind === 'manifest' ? ['Cookie'] : []
+  return sendCached(req, res, docCache, entry, docCacheControl(kind, { isPrivate }), { vary })
+}
+
 function basicAuthGate() {
   const cache = { mtimeMs: -1, creds: null }
   const manifestCache = { mtimeMs: -1, data: null }
@@ -467,35 +490,25 @@ function basicAuthGate() {
               if (authed) {
                 if (!headOnly) recordDocView(req, urlPath, manifest, viewSeen)
                 if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
-                return next()
+                return serveDoc(req, res, next, urlPath, kind, true)
               }
             } else if (!authed && kind === 'index') {
               // Anonymous listing -> serve the index with private cards removed.
-              try {
-                const html = stripPrivateCards(fs.readFileSync(INDEX_FILE, 'utf8'))
-                res.statusCode = 200
-                res.setHeader('Content-Type', 'text/html; charset=utf-8')
-                res.setHeader('Cache-Control', 'no-store')
-                return res.end(headOnly ? undefined : html)
-              } catch {
-                return next()
-              }
+              // The filtered copy is cached too (task #566), rebuilt only when
+              // docs.html changes on disk.
+              const entry = docCache.get(INDEX_FILE, 'anon', stripPrivateCards)
+              if (!entry) return next()
+              return sendCached(req, res, docCache, entry, docCacheControl(kind), { vary: ['Cookie'] })
             } else if (!authed && kind === 'manifest') {
               // Anonymous manifest -> drop private entries so they stay unknown.
-              try {
-                const text = stripPrivateManifest(fs.readFileSync(MANIFEST_FILE, 'utf8'))
-                res.statusCode = 200
-                res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                res.setHeader('Cache-Control', 'no-store')
-                return res.end(headOnly ? undefined : text)
-              } catch {
-                return next()
-              }
+              const entry = docCache.get(MANIFEST_FILE, 'anon', stripPrivateManifest)
+              if (!entry) return next()
+              return sendCached(req, res, docCache, entry, docCacheControl(kind), { vary: ['Cookie'] })
             } else {
               // Public page/asset, or an authed listing -> serve, no password.
               if (kind === 'page' && !headOnly) recordDocView(req, urlPath, manifest, viewSeen)
               if (isUploadedPagePath(urlPath)) sandboxUploadedPage(res)
-              return next()
+              return serveDoc(req, res, next, urlPath, kind, false)
             }
           }
         }
