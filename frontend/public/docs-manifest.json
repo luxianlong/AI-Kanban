@@ -15,21 +15,6 @@
     ]
   },
   {
-    "id": "upload-sun-objective-evaluation",
-    "title": "「客观评价孙宇晨」:前排答案没有一个在回答客观",
-    "href": "/p/sun-objective-evaluation.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T06:26:53.790Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/sun-objective-evaluation.html",
-      "frontend/public/p/sun-objective-evaluation.meta.json"
-    ]
-  },
-  {
     "id": "2026-2",
     "title": "2026 国内信息流自媒体创业可行性分析",
     "href": "/docs/2026-2.html",
