@@ -1230,21 +1230,6 @@
     ]
   },
   {
-    "id": "upload-jing-tian-four-lines",
-    "title": "景甜昨天发了四行字,热搜只给你看了前两行",
-    "href": "/p/jing-tian-four-lines.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T06:24:31.117Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/jing-tian-four-lines.html",
-      "frontend/public/p/jing-tian-four-lines.meta.json"
-    ]
-  },
-  {
     "id": "upload-tangliwendui-ja",
     "title": "李衛公問対 — Tang Li wendui（日本語）",
     "href": "/p/tangliwendui-ja.html",
