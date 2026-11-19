@@ -1185,21 +1185,6 @@
     ]
   },
   {
-    "id": "staff",
-    "title": "新加坡高级 / Staff 软件工程师的机会",
-    "href": "/docs/staff.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/staff.md",
-    "updatedAt": "2026-09-04T10:14:11.144Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "docs/staff.md",
-      "frontend/public/docs/staff.html"
-    ]
-  },
-  {
     "id": "upload-tangliwendui-ja",
     "title": "李衛公問対 — Tang Li wendui（日本語）",
     "href": "/p/tangliwendui-ja.html",
