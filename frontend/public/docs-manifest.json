@@ -90,21 +90,6 @@
     ]
   },
   {
-    "id": "upload-llm-agent-eval-platform",
-    "title": "LLM Agent 实验平台设计说明书：把一句简历 bullet 拆成可落地的系统",
-    "href": "/p/llm-agent-eval-platform.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-18T04:59:44.443Z",
-    "isNew": false,
-    "private": true,
-    "paths": [
-      "frontend/public/p/llm-agent-eval-platform.html",
-      "frontend/public/p/llm-agent-eval-platform.meta.json"
-    ]
-  },
-  {
     "id": "upload-manus",
     "title": "Manus团队测模型一点微小的经验",
     "href": "/p/manus.html",
