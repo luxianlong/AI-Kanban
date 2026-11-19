@@ -1650,21 +1650,6 @@
     ]
   },
   {
-    "id": "upload-py-stage4-ai-infra",
-    "title": "阶段四：AI Infrastructure 核心栈（16 小时，含全部可运行代码）",
-    "href": "/p/py-stage4-ai-infra.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-18T04:59:44.458Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/py-stage4-ai-infra.html",
-      "frontend/public/p/py-stage4-ai-infra.meta.json"
-    ]
-  },
-  {
     "id": "upload-ai",
     "title": "验证的单价：我判断 AI 未来十年唯一用的尺子",
     "href": "/p/ai.html",
