@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Runs one headless Claude Code session and reports what it produced.
+ * Runs one headless Copilot CLI session and reports what it produced.
  *
  * <p>This is the single place that knows how to launch the CLI, enforce the
- * timeout, and turn {@code --output-format stream-json} events into readable log
+ * timeout, and turn {@code --output-format json} events into readable log
  * lines. Both things that run sessions use it — {@link ClaudeWorkerService} for a
  * board task and {@code WorkflowRunnerService} for one node of a workflow — so the
  * live log, the stop button and the shutdown abort behave identically for both.
@@ -37,24 +37,16 @@ public class ClaudeSessionRunner {
     public static final String FAIL_SENTINEL = "[[TASK_FAILED]]";
 
     /**
-     * The CLI prints this — as plain text, not as a stream-json event — when it stops
-     * waiting for background work a session started and terminates it. The rest of the
-     * line carries how long it waited.
+     * The {@code warningType} the CLI reports in a {@code session.warning} event when
+     * it stops waiting for background work a session started and terminates it.
      *
-     * <p>It has to be matched on text. The terminal {@code result} event that follows
-     * looks exactly like a clean finish, and the session's answer is whatever it said
-     * <em>before</em> the wait — typically a promise to report back about work that has
-     * just been destroyed. Without this the run is recorded as a success holding a
-     * stand-in for an answer.
-     *
-     * <p>The stream does carry a {@code system/task_updated} event with
-     * {@code status: "killed"} for each task torn down, which looks like the structured
-     * signal to use instead, but it is a broader thing: leftover tasks are killed on the
-     * way out of a session that answered perfectly well, and a task the agent stopped
-     * itself reads the same. Only this line means "the wait ran out", which is the case
-     * worth failing on.
+     * <p>This is a structured, typed field rather than a text line to match. The
+     * terminal {@code result} event that follows looks exactly like a clean finish, and
+     * the session's answer is whatever it said <em>before</em> the wait — typically a
+     * promise to report back about work that has just been destroyed. Without this the
+     * run is recorded as a success holding a stand-in for an answer.
      */
-    static final String BACKGROUND_WORK_ABANDONED = "Background tasks still running after";
+    static final String BACKGROUND_WORK_ABANDONED_WARNING_TYPE = "background_task_wait_timeout";
 
     private final SessionSettings settings;
     private final SessionLog liveLog;
@@ -82,12 +74,12 @@ public class ClaudeSessionRunner {
     }
 
     /**
-     * Launch {@code claude -p <prompt>} and block until it finishes or hits the timeout.
+     * Launch {@code copilot -p <prompt>} and block until it finishes or hits the timeout.
      *
      * <p>One entry point, because everything that used to vary between callers now arrives
      * from the server in the work unit: the directory to run in, the per-unit CLI args (the
-     * read fence, the effort level) and both clocks. The worker applies them without needing
-     * to know why they differ.
+     * effort level) and both clocks. The worker applies them without needing to know why
+     * they differ.
      *
      * @param sessionKey the key this run logs under and can be stopped by
      */
@@ -108,19 +100,30 @@ public class ClaudeSessionRunner {
         ProcessBuilder pb = new ProcessBuilder(cmd)
                 .directory(workDir)
                 .redirectErrorStream(true);
-        // Worker sessions are one-shot task runners, not a continuing conversation with
-        // the user: nothing they learn should be written to (or read from) the CLI's
-        // auto-memory store, which is shared with the interactive sessions run by hand.
-        pb.environment().put("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "1");
-        // How long the CLI may wait, after the last turn, for background work this
-        // session started before killing it. Its own default is 600s, which is both
-        // much shorter than the timeout enforced below and silent when it fires — see
-        // WorkerProperties#getBackgroundWaitSeconds. Waiting is the whole point: work
-        // that lands inside the ceiling gets the session another turn, and that turn is
-        // what the caller reads back. It comes from the same SessionLimitsDto as the
-        // timeout below, which is what stops the two drifting apart.
-        pb.environment().put("CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS",
-                Long.toString(limits.backgroundWaitSeconds() * 1000L));
+        // Worker sessions are one-shot task runners, not a continuing conversation with the
+        // user, but nothing needs to be done about that here: unlike Claude Code, Copilot
+        // CLI's memory auto-save is opt-in (--enable-memory) and already off by default in
+        // non-interactive/-p mode.
+        //
+        // How long the CLI may wait, after the last turn, for background work this session
+        // started before killing it. Its own default is 600s, which is both much shorter
+        // than the timeout enforced below and silent when it fires — see
+        // WorkerProperties#getBackgroundWaitSeconds. Waiting is the whole point: work that
+        // lands inside the ceiling gets the session another turn, and that turn is what the
+        // caller reads back. It comes from the same SessionLimitsDto as the timeout below,
+        // which is what stops the two drifting apart.
+        //
+        // Unlike Claude Code's CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS (milliseconds, 0 = wait
+        // indefinitely), Copilot CLI's COPILOT_TASK_WAIT_TIMEOUT_SECONDS takes seconds and
+        // treats 0 as "don't wait at all" — the opposite sentinel, and there is no documented
+        // way to ask Copilot to wait indefinitely. A configured wait of 0 is approximated here
+        // by waiting as long as the whole process is allowed to live: the hard destroyForcibly
+        // below still fires at limits.timeoutSeconds() regardless, so this can never actually
+        // outlive the process, only ask the CLI not to give up on the wait before that happens.
+        long backgroundWaitSeconds = limits.backgroundWaitSeconds() > 0
+                ? limits.backgroundWaitSeconds() : limits.timeoutSeconds();
+        pb.environment().put("COPILOT_TASK_WAIT_TIMEOUT_SECONDS",
+                Long.toString(backgroundWaitSeconds));
         Process process = pb.start();
         process.getOutputStream().close();
         // Expose the live process so a user can stop this session on demand; always
@@ -166,15 +169,10 @@ public class ClaudeSessionRunner {
                 if (line.isBlank()) {
                     continue;
                 }
-                if (line.contains(BACKGROUND_WORK_ABANDONED)) {
-                    // Recorded rather than acted on here: the line arrives before the
-                    // terminal result event, which then replaces finalOutput with the
-                    // session's answer and erases every trace of it.
-                    metrics.abandonedBackgroundWork = true;
-                }
                 JsonNode event = tryParse(line);
                 if (event == null) {
-                    // Not JSON (e.g. text/plain output format) — stream verbatim.
+                    // Not JSON (e.g. text output format, or a CLI argument error printed
+                    // before any session starts) — stream verbatim.
                     liveLog.append(sessionKey, line);
                     finalOutput.append(line).append('\n');
                     continue;
@@ -199,61 +197,70 @@ public class ClaudeSessionRunner {
     }
 
     /**
-     * Turns one stream-json event into a readable log line. Captures the final
-     * answer from the terminal {@code result} event into {@code finalOutput}.
-     * Returns {@code null} to skip an event that has nothing worth showing.
+     * Turns one Copilot CLI JSON event into a readable log line.
+     *
+     * <p>Unlike Claude Code's stream-json, Copilot's terminal {@code result} event
+     * carries no answer text — only exit/usage bookkeeping. The final answer instead
+     * has to be read off the last {@code assistant.message} event's {@code data.content},
+     * which this overwrites into {@code finalOutput} every time a non-blank one arrives
+     * (a turn that only makes tool calls reports an empty {@code content} and is
+     * skipped, so the field always ends up holding the session's last real reply).
+     *
+     * <p>Returns {@code null} to skip an event that has nothing worth showing — most of
+     * the stream is Copilot's own internal/ephemeral bookkeeping (deltas, idle pings,
+     * tool-loading, usage checkpoints) that would just be noise in the live log.
      */
     private String renderEvent(JsonNode e, StringBuilder finalOutput, RunMetrics metrics) {
         String type = e.path("type").asText("");
+        JsonNode data = e.path("data");
         switch (type) {
-            case "system" -> {
-                if ("init".equals(e.path("subtype").asText())) {
-                    return "● Session started · model " + e.path("model").asText("?");
+            case "session.model_change" -> {
+                // The very first model_change (no previousModel yet) is the model the
+                // session actually started with; every later one is a mid-session switch,
+                // which is not worth a log line of its own.
+                if (!data.has("previousModel")) {
+                    return "● Session started · model " + data.path("newModel").asText("?");
                 }
                 return null;
             }
-            case "assistant" -> {
-                StringBuilder out = new StringBuilder();
-                for (JsonNode part : e.path("message").path("content")) {
-                    String pt = part.path("type").asText();
-                    if ("text".equals(pt)) {
-                        String text = part.path("text").asText("").strip();
-                        if (!text.isBlank()) {
-                            out.append("🤖 ").append(text).append('\n');
-                        }
-                    } else if ("tool_use".equals(pt)) {
-                        out.append("🔧 ").append(part.path("name").asText("tool"))
-                                .append("  ").append(summarizeInput(part.path("input"))).append('\n');
-                    }
+            case "assistant.message" -> {
+                String text = data.path("content").asText("").strip();
+                if (text.isBlank()) {
+                    return null;
                 }
-                String s = out.toString().strip();
-                return s.isBlank() ? null : s;
+                finalOutput.setLength(0);
+                finalOutput.append(text);
+                return "🤖 " + text;
             }
-            case "user" -> {
-                for (JsonNode part : e.path("message").path("content")) {
-                    if ("tool_result".equals(part.path("type").asText())) {
-                        boolean err = part.path("is_error").asBoolean(false);
-                        return (err ? "   ↳ ✗ " : "   ↳ ✓ ") + firstLine(toolResultText(part), 160);
-                    }
+            case "tool.execution_start" -> {
+                return "🔧 " + data.path("toolName").asText("tool")
+                        + "  " + summarizeInput(data.path("arguments"));
+            }
+            case "tool.execution_complete" -> {
+                boolean ok = data.path("success").asBoolean(true);
+                return (ok ? "   ↳ ✓ " : "   ↳ ✗ ")
+                        + firstLine(data.path("result").path("content").asText(""), 160);
+            }
+            case "session.warning" -> {
+                String warningType = data.path("warningType").asText("");
+                if (BACKGROUND_WORK_ABANDONED_WARNING_TYPE.equals(warningType)) {
+                    // Recorded rather than acted on here: this event arrives before the
+                    // terminal result event (which carries no answer of its own), while
+                    // finalOutput was already set by the session's last assistant.message
+                    // — the stand-in reply it wrote before the wait ran out.
+                    metrics.abandonedBackgroundWork = true;
                 }
-                return null;
+                return "⚠ " + data.path("message").asText(warningType);
             }
             case "result" -> {
-                String result = e.path("result").asText("");
-                if (!result.isBlank()) {
-                    finalOutput.setLength(0);
-                    finalOutput.append(result);
-                }
-                if (e.has("total_cost_usd")) {
-                    metrics.costUsd = e.path("total_cost_usd").asDouble();
-                }
-                if (e.has("duration_ms")) {
-                    metrics.durationMs = e.path("duration_ms").asLong();
-                }
-                String cost = metrics.costUsd != null
-                        ? String.format(" · $%.4f", metrics.costUsd) : "";
-                double secs = e.path("duration_ms").asLong(0) / 1000.0;
-                return String.format("✔ Completed in %.1fs%s", secs, cost);
+                long durationMs = e.path("usage").path("sessionDurationMs").asLong(0);
+                int premiumRequests = e.path("usage").path("premiumRequests").asInt(0);
+                metrics.durationMs = durationMs > 0 ? durationMs : null;
+                // Copilot CLI reports usage in premium requests, not a dollar figure —
+                // there is no equivalent of Claude's total_cost_usd, so costUsd is left
+                // unset (ProcessResult#costUsd stays null for every Copilot-run session).
+                return String.format("✔ Completed in %.1fs · %d premium request(s)",
+                        durationMs / 1000.0, premiumRequests);
             }
             default -> {
                 return null;
@@ -272,23 +279,6 @@ public class ClaudeSessionRunner {
             }
         }
         return firstLine(input.toString(), 160);
-    }
-
-    private String toolResultText(JsonNode part) {
-        JsonNode content = part.path("content");
-        if (content.isTextual()) {
-            return content.asText();
-        }
-        if (content.isArray()) {
-            StringBuilder sb = new StringBuilder();
-            for (JsonNode c : content) {
-                if (c.hasNonNull("text")) {
-                    sb.append(c.get("text").asText());
-                }
-            }
-            return sb.toString();
-        }
-        return content.toString();
     }
 
     private String firstLine(String s, int max) {

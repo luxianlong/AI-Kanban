@@ -111,7 +111,7 @@ markdown 转 HTML 常见的 ` ```mermaid ` → `<code class="language-mermaid">`
 
 ## 2. 代理任务：`/api/public/tasks`
 
-看板上的任务默认由本机的 Claude worker 去做。被标成**代理（delegated）**的任务是个例外：
+看板上的任务默认由本机的 Copilot worker 去做。被标成**代理（delegated）**的任务是个例外：
 worker 会跳过它，转而把它发布在这条公开接口上，让**外部的**执行者 —— 另一个 bot、一位同事、
 一个 cron 脚本 —— 发现它、在别处做完、再把结果写回看板。
 

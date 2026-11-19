@@ -1,6 +1,6 @@
 # AI Kanban
 
-A kanban board where you create **todo items** and a scheduled **Claude Code session**
+A kanban board where you create **todo items** and a scheduled **Copilot CLI session**
 regularly picks them up and tries to resolve them — writing the result back for you to read.
 
 - **Frontend** — React + Vite, styled as a **kanban board**: tasks are cards that flow
@@ -11,14 +11,14 @@ regularly picks them up and tries to resolve them — writing the result back fo
   executions, the H2 database and the frontend. It decides *what* should run and what a
   result *means*, but never runs anything itself.
 - **Worker** (`worker/`) — a separate process that claims work from the server over REST,
-  shells out to the `claude` CLI in headless (`-p` / print) mode, streams the session back,
+  shells out to the `copilot` CLI in headless (`-p` / print) mode, streams the session back,
   and reports what it produced. Runs on any machine with a JDK and the CLI.
 - **Protocol** (`protocol/`) — the wire types the two share.
 
 ```
  ┌──────────┐  POST /api/todos   ┌──────────────┐  POST /api/agent/claim   ┌──────────────┐
  │  React   │ ─────────────────▶ │    Server    │ ◀────────────────────── │    Worker    │
- │  (Vite)  │ ◀── GET /api/todos │  + H2 store  │ ──── WorkUnit ────────▶ │ claude -p ".."│
+ │  (Vite)  │ ◀── GET /api/todos │  + H2 store  │ ──── WorkUnit ────────▶ │ copilot -p ".."│
  └──────────┘  (polls every 4s)  └──────────────┘ ◀─ heartbeat / result ─ └──────────────┘
                                                    (worker dials out only)
 ```
@@ -58,8 +58,9 @@ means, how a lease replaces "the process holding the row", and what capabilities
 
 - **JDK 21** (a full JDK, not a headless JRE — you need `javac` to build)
 - **Node 18+** and npm
-- **[Claude Code CLI](https://docs.claude.com/en/docs/claude-code)** installed and
-  authenticated (`claude --version` should work). This is what the worker invokes.
+- **[Copilot CLI](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/copilot-cli)**
+  installed and authenticated (`copilot --version` should work). This is what the worker
+  invokes.
 
 Maven is **not** required — the backend ships a Maven wrapper (`./mvnw`).
 
@@ -106,10 +107,10 @@ Open <http://localhost:5173>. Vite proxies `/api/*` to the backend on :8080, so
 there's a single origin in dev.
 
 Create a todo, and within one poll interval the status flips to **In progress**,
-then **Resolved** with the Claude session's output attached.
+then **Resolved** with the Copilot session's output attached.
 
 **Click any todo to expand it.** While it's *In progress*, the expanded view shows
-a **live session log** — the Claude session's reasoning, tool calls, and results
+a **live session log** — the Copilot session's reasoning, tool calls, and results
 streaming in as they happen (polled every ~1.5s). When it finishes you get the
 final **Result**, with the full session transcript available under "Full session log".
 
@@ -125,7 +126,7 @@ self-contained **work unit**, and reads back what happened:
    has succeeded — with a conditional `UPDATE`, so two workers claiming at the same instant
    cannot both get it. It replies with the finished prompt, the CLI flags, both clocks, and a
    **lease**.
-3. The worker runs `claude` and POSTs `/api/agent/leases/{id}/heartbeat` every few seconds.
+3. The worker runs `copilot` and POSTs `/api/agent/leases/{id}/heartbeat` every few seconds.
    The heartbeat carries the session's output up and the **Stop** button down — the server
    cannot dial a worker behind NAT, so that is the only channel it has.
 4. When the session ends the worker POSTs the raw facts: exit code, whether it timed out,
@@ -184,7 +185,7 @@ run out concurrently, it is also how wide a fan-out can actually go. On the box 
 `scripts/start.sh` runs, set `WORKER_COUNT` in `scripts/local.env` to launch several:
 
 ```bash
-WORKER_COUNT=3     # up to three Claude sessions billing at once
+WORKER_COUNT=3     # up to three Copilot sessions billing at once
 ```
 
 Only the first of them declares `repo:<name>`. A project-improvement task edits that
@@ -193,7 +194,7 @@ sessions branching over each other in one checkout. Workflow nodes and ordinary 
 each get a scratch directory of their own, so they are safe to double up.
 
 To let sessions edit files and run commands unattended, add
-`--dangerously-skip-permissions` to `worker.extra-args`. Understand the risk first: it is
+`--allow-all-tools` to `worker.extra-args`. Understand the risk first: it is
 that machine you are handing over, not the server's.
 
 ### Server-side worker configuration (`server/src/main/resources/application.yml`)
@@ -218,8 +219,8 @@ that machine you are handing over, not the server's.
 | `worker.scratch-root` | `$TMPDIR/kanban-worker` | Parent of the per-unit throwaway directories. |
 | `worker.poll-interval-ms` | `5000` | How often to ask for work when idle. |
 | `worker.heartbeat-interval-ms` | `3000` | How often to check in while running — also how promptly Stop lands and how far behind the live log runs. |
-| `worker.claude-command` | `claude` | Path to the CLI. |
-| `worker.extra-args` | stream-json + verbose | Args before the prompt on every session. |
+| `worker.claude-command` | `copilot` | Path to the CLI. |
+| `worker.extra-args` | `--output-format json --allow-all-tools` | Args before the prompt on every session. |
 
 Any key can be overridden at launch:
 
@@ -227,11 +228,11 @@ Any key can be overridden at launch:
 java -jar kanban-worker-0.1.0.jar --worker.name=laptop-01 --worker.poll-interval-ms=2000
 ```
 
-### Letting Claude actually *do* things
+### Letting Copilot actually *do* things
 
 By default the session runs with normal permissions, so it will answer/plan but won't edit
 files or run commands unattended. To let it act autonomously, add
-`--dangerously-skip-permissions` to the **worker's** `worker.extra-args` and point
+`--allow-all-tools` to the **worker's** `worker.extra-args` and point
 `worker.repo-directory` at a **trusted, sandboxed** repo.
 
 Note where the risk now lives: it is the worker's machine that gets handed over, not the
@@ -288,7 +289,7 @@ H2 console (dev): <http://localhost:8080/h2-console> (JDBC URL from `application
 ### Delegated ("代理") tasks — work handed to an outside worker
 
 Tick **Delegate to an outside worker** when adding a task (or `POST /api/todos` with
-`"delegated": true`) and this server will never run it. The Claude worker skips it
+`"delegated": true`) and this server will never run it. The worker skips it
 entirely; instead it is published on the `/api/public/tasks` API above, which is the
 one task surface exempt from the site password, so anyone who can reach the board can
 poll for work:
@@ -393,7 +394,7 @@ that step's name exists.
 cd backend && ./mvnw test
 ```
 
-Covers the API with the worker disabled (no Claude process is launched).
+Covers the API with the worker disabled (no Copilot process is launched).
 
 ## Build for production
 

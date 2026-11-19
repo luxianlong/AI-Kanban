@@ -39,8 +39,8 @@ if [ -z "${MVN:-}" ]; then
 fi
 export MVN
 
-# Claude Code CLI the worker launches.
-export CLAUDE_CMD="${CLAUDE_CMD:-$(command -v claude || echo "$HOME/.npm-global/bin/claude")}"
+# Copilot CLI the worker launches.
+export CLAUDE_CMD="${CLAUDE_CMD:-$(command -v copilot || echo "$HOME/.local/bin/copilot")}"
 
 # Ports.
 export BACKEND_PORT="${BACKEND_PORT:-8080}"
@@ -93,7 +93,7 @@ export WORKER_POLL_MS="${WORKER_POLL_MS:-5000}"
 export WORKER_SKIP_PERMS="${WORKER_SKIP_PERMS:-1}"
 # Master switch for picking up work at all — both the board's task worker and the
 # workflow runner. Set to 0 (usually via scripts/local.env) while the repo itself is
-# being refactored: the worker runs sessions IN this repo with --dangerously-skip-permissions,
+# being refactored: the worker runs sessions IN this repo with --allow-all-tools,
 # so a task picked up mid-change can deploy or restart a half-migrated tree.
 export WORKER_ENABLED="${WORKER_ENABLED:-1}"
 
@@ -106,7 +106,7 @@ export KANBAN_WORKER_TOKEN="${KANBAN_WORKER_TOKEN:-}"
 # --- The worker process ------------------------------------------------------------------
 #
 # The board no longer runs sessions itself: the server hands work out over /api/agent and a
-# WORKER process claims it, runs `claude`, and reports back. So one worker has to be running
+# WORKER process claims it, runs `copilot`, and reports back. So one worker has to be running
 # for anything on the board to happen, and start.sh launches one here alongside the server.
 #
 # This local worker declares the repo, which is what makes it eligible for project-improvement
@@ -184,7 +184,7 @@ worker_log_for() {
 #
 # Only the FIRST worker on a box declares `repo:<name>` — the extras get the same list with
 # every repo capability struck out. A project-improvement task edits THIS working tree and
-# runs the guarded deploy in it; two of them at once would be two Claude sessions editing one
+# runs the guarded deploy in it; two of them at once would be two sessions editing one
 # git checkout, branching over each other and racing to merge. Everything else is safe to
 # double up: general tasks and workflow nodes each run in a scratch directory of their own.
 worker_capabilities_for() {
@@ -214,7 +214,7 @@ worker_launch_args() {
     --worker.claude-command="$CLAUDE_CMD"
   )
   if [ "$WORKER_SKIP_PERMS" = "1" ]; then
-    args+=(--worker.extra-args=--output-format,stream-json,--verbose,--dangerously-skip-permissions)
+    args+=(--worker.extra-args=--output-format,json,--allow-all-tools)
   fi
   printf '%s\n' "${args[@]}"
 }

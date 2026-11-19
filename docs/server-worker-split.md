@@ -2,7 +2,7 @@
 
 The Kanban is two programs. The **server** owns the board — tasks, stories, workflows,
 executions, the database, the website — and decides what should run next and what a result
-means. The **worker** owns a machine's ability to run `claude`, and does as it is told. They
+means. The **worker** owns a machine's ability to run `copilot`, and does as it is told. They
 talk over one small REST API.
 
 It was one program until this split. Everything below is either a consequence of separating
@@ -19,7 +19,7 @@ sequenceDiagram
     Note over S: task sits PENDING
     W->>S: POST /api/agent/claim
     S-->>W: WorkUnit + lease
-    Note over W: claude -p "…"
+    Note over W: copilot -p "…"
     loop every ~3s
         W->>S: heartbeat (log lines)
         S-->>W: stopRequested?

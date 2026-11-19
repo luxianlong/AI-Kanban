@@ -1,12 +1,9 @@
 package com.kanban.workflow;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kanban.agent.AgentService;
 import com.kanban.protocol.ClaimRequest;
 import com.kanban.protocol.WorkDirMode;
 import com.kanban.protocol.WorkUnit;
-import com.kanban.work.NodeSessionPlanner;
 import com.kanban.worker.WorkerProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,10 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>So this queues a real two-step run and claims each step through the agent API, reading
  * back exactly what a worker would be told to do. What it pins is that <em>every</em> step is
- * handed out the same way: a directory of its own, a session fenced into it, and nothing
- * prepended to the prompt its author wrote. Both steps are asserted on, because the entry step
- * is the one that used to be launched differently and the downstream step is the one a fence
- * stopping at the entry would leave unenforced.
+ * handed out the same way: a directory of its own, and nothing prepended to the prompt its
+ * author wrote. Both steps are asserted on, because the entry step is the one that used to be
+ * launched differently.
  *
  * <p>No CLI is stubbed, because none is involved any more: the server's whole job here is to
  * describe the work, and this is that description.
@@ -61,14 +57,11 @@ class WorkflowNodeHandOffTest {
     @Autowired
     WorkerProperties props;
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
     @BeforeEach
     void clearQueue() {
         nodeRuns.deleteAll();
         executions.deleteAll();
     }
-
     /** A two-step chain — collect, then summarise — with the entry snapshotted as a real run has it. */
     private Long queueChain(EffortLevel entryEffort) {
         WorkflowExecution execution = executions.save(
@@ -95,20 +88,12 @@ class WorkflowNodeHandOffTest {
                 0, false, false, false, output, null, null));
     }
 
-    private JsonNode settings(List<String> args) throws Exception {
-        int i = args.indexOf("--settings");
-        assertThat(i).as("a --settings arg is present").isGreaterThanOrEqualTo(0);
-        return mapper.readTree(args.get(i + 1));
-    }
-
     @Test
-    void everyStepIsHandedOutFencedIntoItsOwnDirectory() throws Exception {
+    void everyStepIsHandedOutInItsOwnDirectory() {
         queueChain(null);
 
         WorkUnit first = claim();
         assertThat(first.title()).isEqualTo("Collect");
-        assertThat(settings(first.sessionArgs())
-                .path("permissions").path(NodeSessionPlanner.FENCE_KEY).asBoolean()).isTrue();
         assertThat(first.workDirMode())
                 .as("a node transforms text and never gets the repo")
                 .isEqualTo(WorkDirMode.SCRATCH);
@@ -117,10 +102,6 @@ class WorkflowNodeHandOffTest {
 
         WorkUnit second = claim();
         assertThat(second.title()).isEqualTo("Summarise");
-        assertThat(settings(second.sessionArgs())
-                .path("permissions").path(NodeSessionPlanner.FENCE_KEY).asBoolean())
-                .as("the step after the entry is fenced too")
-                .isTrue();
         assertThat(second.workDirKey())
                 .as("each step gets a directory of its own, so it cannot read a sibling's leftovers")
                 .isNotEqualTo(first.workDirKey());
@@ -149,7 +130,7 @@ class WorkflowNodeHandOffTest {
         queueChain(EffortLevel.ULTRACODE);
 
         WorkUnit ultracode = claim();
-        assertThat(ultracode.sessionArgs()).containsSequence("--effort", "ultracode");
+        assertThat(ultracode.sessionArgs()).containsSequence("--reasoning-effort", "ultracode");
         assertThat(ultracode.limits().timeoutSeconds())
                 .as("an ultracode step is a step plus the sub-sessions it starts")
                 .isGreaterThan(props.getTimeoutSeconds());
@@ -177,9 +158,9 @@ class WorkflowNodeHandOffTest {
     }
 
     @Test
-    void aStepWithNoLevelIsHandedNoEffortFlagSoTheCliDecides() {
+    void aStepWithNoLevelIsHandedNoReasoningEffortFlagSoTheCliDecides() {
         queueChain(null);
 
-        assertThat(claim().sessionArgs()).doesNotContain("--effort");
+        assertThat(claim().sessionArgs()).doesNotContain("--reasoning-effort");
     }
 }

@@ -1,5 +1,35 @@
 [
   {
+    "id": "public-api",
+    "title": "公开接口（Public API）总览",
+    "href": "/docs/public-api.html",
+    "zone": "article",
+    "deletable": true,
+    "file": "docs/public-api.md",
+    "updatedAt": "2026-11-19T04:26:17.952Z",
+    "isNew": true,
+    "private": false,
+    "paths": [
+      "docs/public-api.md",
+      "frontend/public/docs/public-api.html"
+    ]
+  },
+  {
+    "id": "server-worker-split",
+    "title": "How the board runs work",
+    "href": "/docs/server-worker-split.html",
+    "zone": "article",
+    "deletable": true,
+    "file": "docs/server-worker-split.md",
+    "updatedAt": "2026-11-19T04:26:17.948Z",
+    "isNew": true,
+    "private": true,
+    "paths": [
+      "docs/server-worker-split.md",
+      "frontend/public/docs/server-worker-split.html"
+    ]
+  },
+  {
     "id": "2026",
     "title": "2026 海外信息流自媒体创业可行性分析",
     "href": "/docs/2026.html",
@@ -42,21 +72,6 @@
     "paths": [
       "frontend/public/p/guiguzi-en.html",
       "frontend/public/p/guiguzi-en.meta.json"
-    ]
-  },
-  {
-    "id": "server-worker-split",
-    "title": "How the board runs work",
-    "href": "/docs/server-worker-split.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/server-worker-split.md",
-    "updatedAt": "2026-09-10T07:08:18.210Z",
-    "isNew": false,
-    "private": true,
-    "paths": [
-      "docs/server-worker-split.md",
-      "frontend/public/docs/server-worker-split.html"
     ]
   },
   {
@@ -507,21 +522,6 @@
     "paths": [
       "frontend/public/p/page-d04c5f72.html",
       "frontend/public/p/page-d04c5f72.meta.json"
-    ]
-  },
-  {
-    "id": "public-api",
-    "title": "公开接口（Public API）总览",
-    "href": "/docs/public-api.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/public-api.md",
-    "updatedAt": "2026-08-29T12:35:44.714Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "docs/public-api.md",
-      "frontend/public/docs/public-api.html"
     ]
   },
   {

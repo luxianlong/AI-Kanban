@@ -5,7 +5,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * How hard one node's Claude session thinks — the CLI's {@code --effort} levels.
+ * How hard one node's coding-agent session thinks — effort/reasoning levels shared by
+ * Claude Code's {@code --effort} flag and Copilot CLI's {@code --reasoning-effort} flag
+ * (see {@link com.kanban.work.NodeSessionPlanner#sessionArgsFor}, which decides which
+ * flag name to emit).
  *
  * <p>{@link #LOW} through {@link #MAX} are one scale, ascending. {@link #ULTRACODE} sits
  * at the end of the list but is not a sixth notch on that scale — see its own note.
@@ -17,7 +20,7 @@ import java.util.stream.Stream;
  * output tokens at {@link #LOW} against 386 at {@link #MAX}.
  *
  * <p><strong>Absent means default.</strong> A node with no level set is run with no
- * {@code --effort} flag at all, so it gets whatever the CLI's own default is — which
+ * effort flag at all, so it gets whatever the CLI's own default is — which
  * is deliberately not spelled out as a sixth constant here, because then a release
  * that moved the default would leave every stored node claiming the old one.
  */
@@ -30,10 +33,24 @@ public enum EffortLevel {
     MAX,
 
     /**
-     * Not "one harder than {@link #MAX}". Ultracode is xhigh thinking <em>plus</em> a
-     * standing instruction to orchestrate dynamic workflows, so it changes how many
-     * sessions a step is rather than only how long one of them reasons — which is why
-     * it is worth choosing per step and not worth defaulting to.
+     * Not "one harder than {@link #MAX}". Under Claude Code, ultracode was xhigh
+     * thinking <em>plus</em> a standing instruction to orchestrate dynamic workflows, so
+     * it changed how many sessions a step was rather than only how long one of them
+     * reasoned.
+     *
+     * <p><strong>Copilot CLI has no equivalent level.</strong> Its {@code
+     * --reasoning-effort} flag only accepts {@code none, minimal, low, medium, high,
+     * xhigh, max} — there is no dynamic-workflow-orchestration mode behind any of them.
+     * Passing {@code ultracode} to Copilot CLI still fails visibly rather than quietly
+     * running at a default, same as it always did: the CLI rejects the invalid flag
+     * value outright (exit 1, a clear "invalid value ... possible values: ..." message)
+     * instead of falling back silently.
+     *
+     * <p>The rest of this note describes the original Claude Code behaviour, kept for
+     * context: it was xhigh thinking plus a standing instruction to orchestrate dynamic
+     * workflows, so it changed how many sessions a step is rather than only how long one
+     * of them reasons — which is why it was worth choosing per step and not worth
+     * defaulting to.
      *
      * <p>It is listed last because that is where a picker has to put it, not because it
      * is the top of the scale. Two things follow that the other levels do not carry:
@@ -57,16 +74,16 @@ public enum EffortLevel {
      * ({@code WorkflowRunnerService#limitsFor}). The other five levels all share one
      * timeout, which is right: they are the same shape of work thought about for longer.
      *
-     * <p>It is missing from {@code claude --help}'s {@code (low, medium, high, xhigh,
-     * max)} list, which is the whole reason it was absent here: the picker was built
-     * from that help text, and the help text is incomplete. The flag itself works — an
-     * A/B of the same session with and without it differs by ~6,300 cache-creation
-     * tokens, the Workflow tool schema being injected, and {@code --effort ultracode}
-     * produces neither the warning nor the fallback an unknown value produces.
+     * <p>Under Claude Code it was missing from {@code claude --help}'s {@code (low,
+     * medium, high, xhigh, max)} list, which is the whole reason it was absent here: the
+     * picker was built from that help text, and the help text was incomplete. The flag
+     * itself worked — an A/B of the same session with and without it differed by ~6,300
+     * cache-creation tokens, the Workflow tool schema being injected, and {@code --effort
+     * ultracode} produced neither the warning nor the fallback an unknown value produces.
      */
     ULTRACODE;
 
-    /** The spelling the {@code --effort} flag takes. */
+    /** The spelling the CLI's effort/reasoning-effort flag takes. */
     public String cliValue() {
         return name().toLowerCase(Locale.ROOT);
     }

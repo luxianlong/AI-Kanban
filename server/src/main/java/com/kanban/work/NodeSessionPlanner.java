@@ -1,7 +1,5 @@
 package com.kanban.work;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.kanban.workflow.EffortLevel;
 import com.kanban.protocol.SessionLimitsDto;
 import com.kanban.worker.WorkerProperties;
@@ -23,16 +21,21 @@ import java.util.List;
 public class NodeSessionPlanner {
 
     /**
-     * Settings key that refuses file-tool reads (Read, Grep, Glob, LSP) outside the
-     * session's working directory. Paired with each node getting a directory of its own, this
-     * is what makes a node unable to see anything but its own files.
+     * Settings key Claude Code used to refuse file-tool reads (Read, Grep, Glob, LSP)
+     * outside the session's working directory. Paired with each node getting a
+     * directory of its own, this used to be what made a node unable to see anything
+     * but its own files.
      *
-     * <p>It is the right key rather than a set of {@code permissions.deny} globs because
-     * the CLI applies it <em>in every permission mode</em> — including the
-     * {@code bypassPermissions} that {@code worker.extra-args} switches on with
-     * {@code --dangerously-skip-permissions}. A deny list would also have to enumerate
-     * everything on the box; this one names what is allowed instead, so a path nobody
-     * thought of is out by default.
+     * <p><strong>Copilot CLI has no equivalent one-flag read fence.</strong> It has no
+     * {@code --settings} flag at all, and its closest analogue — a sandbox subsystem
+     * with {@code sandbox.enabled} / {@code sandbox.userPolicy.filesystem.*} config —
+     * is a different shape of feature that would need real design work to replicate
+     * safely (and isn't exposed as a single CLI flag it would be safe to pass per-run).
+     * So under Copilot, {@link #sessionArgsFor} no longer emits a read fence at all:
+     * {@link #fenceReads} (the {@code workflow.node-fence-reads} property) is read but
+     * has no effect, and a workflow node's own working directory is now the only thing
+     * keeping it from wandering into another node's scratch files — not an enforced
+     * sandbox.
      */
     public static final String FENCE_KEY = "blockReadsOutsideWorkingDirectories";
 
@@ -109,31 +112,25 @@ public class NodeSessionPlanner {
     }
 
     /**
-     * Extra CLI args for this node's session: the read fence, and this node's own effort
-     * level when it has one. The same for every node — which step a run starts from
-     * makes no difference here.
+     * Extra CLI args for this node's session: this node's own effort level, when it
+     * has one. The same for every node — which step a run starts from makes no
+     * difference here.
      *
-     * <p>The fence travels in a {@code --settings} blob, built with Jackson rather than
-     * concatenated: in {@code --print} mode a settings value that fails to parse is
-     * <em>ignored without a word</em>, so a stray escape would not fail the build or log
-     * anything, it would just quietly unfence every node. Anything else that ever needs
-     * to be a setting has to go in this same blob — {@code --settings} takes a single
-     * value, so a second occurrence replaces the first rather than adding to it.
+     * <p>Formerly also carried the read fence as a {@code --settings} blob; Copilot CLI
+     * has no equivalent flag, so that is no longer emitted — see {@link #FENCE_KEY}.
      *
-     * <p>Effort is its own {@code --effort} flag instead, because the CLI has one.
+     * <p>Effort is {@code --reasoning-effort} (Claude Code's {@code --effort}, renamed
+     * to match Copilot CLI's own flag). {@link EffortLevel#ULTRACODE} has no Copilot
+     * equivalent — Copilot's accepted values are {@code none, minimal, low, medium,
+     * high, xhigh, max} — so passing it is left to fail the same way an unknown
+     * {@code --effort} value failed under Claude Code: the CLI itself rejects the
+     * session outright (exit 1, a clear "invalid value" message) rather than silently
+     * falling back to a default.
      */
     public List<String> sessionArgsFor(EffortLevel effort) {
-        ObjectNode settings = JsonNodeFactory.instance.objectNode();
-        if (fenceReads) {
-            settings.putObject("permissions").put(FENCE_KEY, true);
-        }
         List<String> args = new ArrayList<>();
-        if (!settings.isEmpty()) {
-            args.add("--settings");
-            args.add(settings.toString());
-        }
         if (effort != null) {
-            args.add("--effort");
+            args.add("--reasoning-effort");
             args.add(effort.cliValue());
         }
         return List.copyOf(args);

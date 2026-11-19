@@ -58,9 +58,9 @@ public class WorkerSettings implements SessionSettings {
      */
     private long heartbeatIntervalMs = 3000;
 
-    private String claudeCommand = "claude";
+    private String claudeCommand = "copilot";
 
-    private List<String> extraArgs = List.of("--output-format", "stream-json", "--verbose");
+    private List<String> extraArgs = List.of("--output-format", "json", "--allow-all-tools");
 
     private static String defaultName() {
         String host = System.getenv("HOSTNAME");

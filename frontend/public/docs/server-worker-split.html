@@ -262,7 +262,7 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
 </ul>
 </nav>
 <main class="content">
-<p>The Kanban is two programs. The <strong>server</strong> owns the board — tasks, stories, workflows,<br />executions, the database, the website — and decides what should run next and what a result<br />means. The <strong>worker</strong> owns a machine's ability to run <code>claude</code>, and does as it is told. They<br />talk over one small REST API.</p>
+<p>The Kanban is two programs. The <strong>server</strong> owns the board — tasks, stories, workflows,<br />executions, the database, the website — and decides what should run next and what a result<br />means. The <strong>worker</strong> owns a machine's ability to run <code>copilot</code>, and does as it is told. They<br />talk over one small REST API.</p>
 <p>It was one program until this split. Everything below is either a consequence of separating<br />them or a thing that had to be rebuilt because separating them broke it.</p>
 <h2 id="the-loop">The loop<a class="anchor" href="#the-loop" aria-label="链接到本节">#</a></h2>
 <pre class="mermaid">sequenceDiagram
@@ -273,7 +273,7 @@ pre.code code { background: none; padding: 0; color: inherit; font-size: inherit
     Note over S: task sits PENDING
     W-&gt;&gt;S: POST /api/agent/claim
     S--&gt;&gt;W: WorkUnit + lease
-    Note over W: claude -p "…"
+    Note over W: copilot -p "…"
     loop every ~3s
         W-&gt;&gt;S: heartbeat (log lines)
         S--&gt;&gt;W: stopRequested?

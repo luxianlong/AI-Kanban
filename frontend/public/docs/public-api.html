@@ -343,7 +343,7 @@ graph TD
 </ul>
 <hr />
 <h2 id="2-代理任务apipublictasks">2. 代理任务：<code>/api/public/tasks</code><a class="anchor" href="#2-代理任务apipublictasks" aria-label="链接到本节">#</a></h2>
-<p>看板上的任务默认由本机的 Claude worker 去做。被标成<strong>代理（delegated）</strong>的任务是个例外：<br />worker 会跳过它，转而把它发布在这条公开接口上，让<strong>外部的</strong>执行者 —— 另一个 bot、一位同事、<br />一个 cron 脚本 —— 发现它、在别处做完、再把结果写回看板。</p>
+<p>看板上的任务默认由本机的 Copilot worker 去做。被标成<strong>代理（delegated）</strong>的任务是个例外：<br />worker 会跳过它，转而把它发布在这条公开接口上，让<strong>外部的</strong>执行者 —— 另一个 bot、一位同事、<br />一个 cron 脚本 —— 发现它、在别处做完、再把结果写回看板。</p>
 <p>三步流程：</p>
 <pre class="code"><code class="language-bash"># 1. 找活儿（默认只返回还没做完的）
 curl http://localhost:8080/api/public/tasks

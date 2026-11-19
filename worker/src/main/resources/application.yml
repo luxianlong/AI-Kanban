@@ -33,8 +33,9 @@ worker:
   # Working tree for units that need the repo. Only meaningful alongside a repo: capability.
   # repo-directory: /home/you/Dashboard
 
-  # Everything else runs in a throwaway directory under here, one per unit — which is what
-  # makes the read fence the server sends mean anything per step.
+  # Everything else runs in a throwaway directory under here, one per unit — one directory of
+  # its own per step, though Copilot CLI has no equivalent of the read fence the server used to
+  # send to enforce it (see NodeSessionPlanner#FENCE_KEY).
   scratch-root: ${java.io.tmpdir}/kanban-worker
 
   # How often to ask for work when idle.
@@ -45,15 +46,15 @@ worker:
   # than the server's agent.lease-seconds — which is what each of these renews.
   heartbeat-interval-ms: 3000
 
-  claude-command: claude
-  # Args before the prompt for every session. stream-json (+ --verbose) is what makes the CLI
-  # emit events as they happen, which is what the live log is made of. To let sessions edit
-  # files and run commands unattended, add --dangerously-skip-permissions — only ever pointed
-  # at a machine you are willing to hand over.
+  claude-command: copilot
+  # Args before the prompt for every session. --output-format json is what makes the CLI emit
+  # events as they happen, which is what the live log is made of. To let sessions edit files
+  # and run commands unattended, --allow-all-tools is included — only ever pointed at a
+  # machine you are willing to hand over.
   extra-args:
     - "--output-format"
-    - "stream-json"
-    - "--verbose"
+    - "json"
+    - "--allow-all-tools"
 
 logging:
   level:

@@ -131,19 +131,19 @@ agent:
   reap-interval-ms: 15000
   reap-initial-delay-ms: 20000
 
-# --- Claude Code worker ---
+# --- Copilot CLI worker ---
 worker:
   enabled: true
-  # Path to the Claude Code CLI. Use an absolute path if it isn't on the service PATH.
-  claude-command: claude
-  # Args before the prompt. stream-json (+ --verbose) makes the session emit events as
-  # they happen, which feed the live per-todo log. To let the session edit files / run
-  # commands unattended, add "--dangerously-skip-permissions" (only in a trusted sandbox).
+  # Path to the Copilot CLI. Use an absolute path if it isn't on the service PATH.
+  claude-command: copilot
+  # Args before the prompt. --output-format json makes the session emit events as they
+  # happen, which feed the live per-todo log. To let the session edit files / run
+  # commands unattended, --allow-all-tools is included (only in a trusted sandbox).
   extra-args:
     - "--output-format"
-    - "stream-json"
-    - "--verbose"
-  # The directory each Claude session runs in — point this at a repo or sandbox.
+    - "json"
+    - "--allow-all-tools"
+  # The directory each Copilot session runs in — point this at a repo or sandbox.
   working-directory: ${user.home}/kanban-work
   # Per-task hard timeout. Autonomous/agentic tasks (research, multi-file edits,
   # anything that browses or runs many tools) can take tens of minutes — 30 min
@@ -152,7 +152,9 @@ worker:
   # How long a session may wait, AFTER its last turn, for background work it started —
   # a dynamic workflow (what the ultracode effort level exists to run), a background
   # sub-session — before the CLI gives up and kills that work. Passed through as
-  # CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS; 0 means wait indefinitely.
+  # COPILOT_TASK_WAIT_TIMEOUT_SECONDS; 0 means don't wait at all (Copilot CLI's own
+  # sentinel is the opposite of Claude Code's old CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS,
+  # where 0 meant wait indefinitely).
   #
   # The CLI's own default is 600s, and it is set here because that default is both far
   # shorter than timeout-seconds above and silent when it fires. A step that hands its
@@ -178,8 +180,9 @@ worker:
   # own allowance unspent. Unset, the wait is derived as timeout-seconds minus 300s
   # headroom, from whatever timeout is actually in force — command line included.
   #
-  # Set it only to depart from that: a number pins the wait regardless of the timeout,
-  # 0 means wait indefinitely, and a negative value means "derive", same as unset.
+  # Set it only to depart from that: a number pins the wait regardless of the timeout —
+  # 0 pinned here means "don't wait at all" rather than "derive" — and a negative value
+  # means "derive", same as unset.
   # background-wait-seconds:
   batch-size: 1
   poll-interval-ms: 15000
@@ -240,22 +243,21 @@ workflow:
   # so a long ultracode step at 2 lanes leaves one lane for everything else.
   ultracode-timeout-multiplier: 3
   # --- What a step can SEE (every node, entry included) ---
-  # Each step already runs in a scratch directory of its own. This is what keeps it
-  # there: it passes permissions.blockReadsOutsideWorkingDirectories to the CLI, which
-  # refuses file-tool reads (Read, Grep, Glob, LSP) outside the session's working
-  # directory — and, unlike a permissions.deny list, it holds in EVERY permission mode,
-  # including the bypassPermissions that worker.extra-args switches on with
-  # --dangerously-skip-permissions. Bash reads outside the directory are refused too.
+  # Each step already runs in a scratch directory of its own, which is still what gives
+  # it its own place to write to and keeps one step's output from landing in another's.
   #
-  # So a step cannot read this repo, the live database, another step's scratch files, or
-  # another session's transcript under ~/.claude. The only thing that reaches a step is
-  # the text handed to it across an edge. Writing inside its own directory is unaffected,
-  # and the web is not the filesystem — the entry step's browser and search tools still
-  # work.
+  # Under Claude Code this property also made that directory an enforced read fence:
+  # passing permissions.blockReadsOutsideWorkingDirectories to the CLI refused file-tool
+  # reads (Read, Grep, Glob, LSP) — and Bash reads — outside the session's working
+  # directory, in EVERY permission mode, including bypassPermissions.
   #
-  # Set to false only for a workflow whose steps genuinely have to read the machine.
-  # Note the consequence if you do the reverse elsewhere: a step that wants a file
-  # outside its directory needs that directory opened deliberately, not this turned off.
+  # COPILOT CLI HAS NO EQUIVALENT ONE-FLAG READ FENCE — it has no --settings flag at
+  # all, and its own sandboxing subsystem is a structurally different, more involved
+  # feature, not a drop-in replacement (see NodeSessionPlanner#FENCE_KEY). So this
+  # property is now a no-op kept only for backward compatibility with existing config:
+  # setting it to false changes nothing, and a step's own scratch directory is the only
+  # thing standing between it and this repo, the live database, or another step's
+  # scratch files — not an enforced sandbox.
   node-fence-reads: true
 
 logging:

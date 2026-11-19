@@ -1,8 +1,5 @@
 package com.kanban.workflow;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.kanban.protocol.SessionLimitsDto;
 import com.kanban.work.NodeSessionPlanner;
 import com.kanban.worker.WorkerProperties;
@@ -18,10 +15,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * confined to, and the clocks it runs against.
  *
  * <p>All of this is decided on the server and handed to a worker in its work unit, which is
- * the point — a worker applies the fence and the effort level without knowing what either is
- * for, so an old worker jar cannot bring an old idea of them. Every step is launched the same
- * way; the entry step is where a run starts and is drawn as such, but it is given no stronger
- * session than the rest.
+ * the point — a worker applies the effort level without knowing what it is for, so an old
+ * worker jar cannot bring an old idea of it. Every step is launched the same way; the entry
+ * step is where a run starts and is drawn as such, but it is given no stronger session than
+ * the rest.
+ *
+ * <p>Copilot CLI has no one-flag equivalent of the read fence Claude Code's
+ * {@code --settings} blob used to carry (see {@link NodeSessionPlanner#FENCE_KEY}), so
+ * {@code sessionArgsFor} no longer emits one and there is nothing left here to test for it;
+ * a node's own working directory is what keeps it out of a sibling's scratch files.
  */
 class NodeSessionPlannerTest {
 
@@ -47,67 +49,13 @@ class NodeSessionPlannerTest {
         return new WorkflowExecution("wf", "Research pipeline", input);
     }
 
-    // --- every step is launched the same way ------------------------------
-
-    /** The fence off too — the only shape with no --settings at all. */
-    private final NodeSessionPlanner unfenced =
-            new NodeSessionPlanner(new WorkerProperties(), false, 3);
-
     private WorkflowExecution executionFrom(String entryNodeId) {
         WorkflowExecution execution = execution("gold prices in 2026");
         execution.setEntryNodeId(entryNodeId);
         return execution;
     }
 
-    @Test
-    void noStepIsStartedInUltracodeMode() {
-        assertThat(settings(service.sessionArgsFor(null)).has("ultracode")).isFalse();
-        assertThat(settings(service.sessionArgsFor(EffortLevel.LOW)).has("ultracode")).isFalse();
-    }
-
-    @Test
-    void theSettingsArgIsTheFlagCarryingValidJson() {
-        // In --print mode a settings value that fails to parse is ignored WITHOUT a word:
-        // a malformed blob would not fail the build or log anything, it would silently
-        // unfence every node.
-        List<String> args = service.sessionArgsFor(null);
-
-        assertThat(args).hasSize(2);
-        assertThat(args.get(0)).isEqualTo("--settings");
-        assertThat(settings(args).isObject()).isTrue();
-    }
-
-    // --- a node cannot see outside its own directory ----------------------
-
-    @Test
-    void everyStepIsFencedIntoItsWorkingDirectory() {
-        // A step handed an answer to improve has even less business reading the machine
-        // than the one that has to go and find the material, so the fence is on all of
-        // them and takes no view of which step is the entry.
-        assertThat(settings(service.sessionArgsFor(null))
-                .path("permissions").path(NodeSessionPlanner.FENCE_KEY).asBoolean())
-                .isTrue();
-        assertThat(settings(service.sessionArgsFor(EffortLevel.MAX))
-                .path("permissions").path(NodeSessionPlanner.FENCE_KEY).asBoolean())
-                .isTrue();
-    }
-
-    @Test
-    void theFenceTravelsInOneSettingsBlobBecauseASecondOneWouldReplaceIt() {
-        // --settings takes a single value, so two occurrences do not merge — the last
-        // wins. Anything else that ever becomes a setting has to join this blob rather
-        // than arrive as a flag of its own.
-        List<String> args = service.sessionArgsFor(null);
-
-        assertThat(args).filteredOn("--settings"::equals).hasSize(1);
-        assertThat(settings(args).path("permissions").path(NodeSessionPlanner.FENCE_KEY).asBoolean())
-                .isTrue();
-    }
-
-    @Test
-    void theFenceCanBeTurnedOffAndThenAStepGetsNoSettingsAtAll() {
-        assertThat(unfenced.sessionArgsFor(null)).isEmpty();
-    }
+    // --- a node's working directory ----------------------------------------
 
     @Test
     void eachStepOfARunGetsItsOwnDirectorySoItCannotReadASiblingsScratchFiles() {
@@ -119,7 +67,6 @@ class NodeSessionPlannerTest {
         String b = NodeSessionPlanner.workDirKeyFor(execution.getId(), second.getId());
 
         assertThat(a).isNotEqualTo(b);
-        // Neither is inside the other, so the fence around one excludes the other.
         assertThat(b).doesNotStartWith(a + "/");
         assertThat(a).doesNotStartWith(b + "/");
         // Still grouped under the run — the worker resolves these under its own scratch
@@ -157,26 +104,14 @@ class NodeSessionPlannerTest {
         }
     }
 
-    /** The blob the CLI would parse out of {@code --settings}. */
-    private JsonNode settings(List<String> args) {
-        if (args.isEmpty()) {
-            return JsonNodeFactory.instance.objectNode();
-        }
-        try {
-            return new ObjectMapper().readTree(args.get(args.indexOf("--settings") + 1));
-        } catch (Exception e) {
-            throw new AssertionError("--settings did not carry parseable JSON: " + args, e);
-        }
-    }
-
-    // --- a step's own effort level ---------------------------------------
+    // --- a step's own effort level ------------------------------------------
 
     @Test
-    void aStepWithNoLevelSetGetsNoEffortFlagSoTheCliDecides() {
-        // Not "--effort medium" chosen as a stand-in for the default: the default is
-        // the CLI's to move, and naming it here would pin every unset step to whatever
-        // it happened to be on the day this was written.
-        assertThat(service.sessionArgsFor(null)).doesNotContain("--effort");
+    void aStepWithNoLevelSetGetsNoReasoningEffortFlagSoTheCliDecides() {
+        // Not "--reasoning-effort medium" chosen as a stand-in for the default: the
+        // default is the CLI's to move, and naming it here would pin every unset step to
+        // whatever it happened to be on the day this was written.
+        assertThat(service.sessionArgsFor(null)).doesNotContain("--reasoning-effort");
     }
 
     @Test
@@ -184,31 +119,29 @@ class NodeSessionPlannerTest {
         for (EffortLevel level : EffortLevel.values()) {
             List<String> args = service.sessionArgsFor(level);
 
-            assertThat(args).as("level=" + level).containsSequence("--effort", level.cliValue());
+            assertThat(args).as("level=" + level)
+                    .containsSequence("--reasoning-effort", level.cliValue());
         }
     }
 
     @Test
-    void theLevelIsSpeltTheWayTheCliSpellsItBecauseAWrongSpellingIsIgnoredSilently() {
-        // The CLI takes an unknown --effort value, warns on stderr and runs at its
-        // default. So a casing slip here would not fail anything — it would just
-        // quietly undo the setting while the page kept showing it.
+    void theLevelIsSpeltTheWayTheCliSpellsIt() {
         assertThat(EffortLevel.XHIGH.cliValue()).isEqualTo("xhigh");
         assertThat(EffortLevel.allowed()).isEqualTo("low, medium, high, xhigh, max, ultracode");
     }
 
     @Test
-    void ultracodeIsOfferedEvenThoughTheCliHelpTextLeavesItOut() {
-        // `claude --help` prints "(low, medium, high, xhigh, max)" and so does the CLI's
-        // own warning for an unknown value — both lists are incomplete, and building the
-        // picker from them is exactly why this level was missing. Measured against the
-        // real CLI: `--effort ultracode` emits no "Unknown --effort value" warning (an
-        // unknown one does) and injects ~6,300 more cache-creation tokens than
-        // `--effort max`, which is the orchestration schema being loaded.
+    void ultracodeHasNoCopilotEquivalentButStillFailsVisiblyRatherThanSilently() {
+        // Copilot CLI's own --reasoning-effort only accepts none/minimal/low/medium/
+        // high/xhigh/max — there is no "ultracode". It is still passed through
+        // unchanged: the CLI rejects an unknown value outright (exit 1, a clear
+        // "invalid value" message) rather than silently falling back to a default, so a
+        // step still configured with ultracode fails visibly instead of quietly running
+        // at the wrong level.
         assertThat(EffortLevel.parse("ultracode")).isEqualTo(EffortLevel.ULTRACODE);
         assertThat(EffortLevel.parse("UltraCode")).isEqualTo(EffortLevel.ULTRACODE);
         assertThat(service.sessionArgsFor(EffortLevel.ULTRACODE))
-                .containsSequence("--effort", "ultracode");
+                .containsSequence("--reasoning-effort", "ultracode");
     }
 
     @Test
@@ -223,16 +156,11 @@ class NodeSessionPlannerTest {
     }
 
     @Test
-    void theEffortFlagIsItsOwnArgAndLeavesTheSettingsBlobAlone() {
-        // --settings takes a single value; folding effort into that blob would mean
-        // rebuilding it, and the fence already rides in it.
+    void theReasoningEffortFlagIsItsOwnArg() {
         List<String> args = service.sessionArgsFor(EffortLevel.LOW);
 
-        assertThat(args).filteredOn("--settings"::equals).hasSize(1);
-        JsonNode blob = settings(args);
-        assertThat(blob.path("permissions").path(NodeSessionPlanner.FENCE_KEY).asBoolean()).isTrue();
-        assertThat(blob.has("effort")).isFalse();
-        assertThat(args).containsSequence("--effort", "low");
+        assertThat(args).containsSequence("--reasoning-effort", "low");
+        assertThat(args).hasSize(2);
     }
 
     @Test
@@ -271,7 +199,7 @@ class NodeSessionPlannerTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    // --- how long a step is allowed to take -----------------------------
+    // --- how long a step is allowed to take ---------------------------------
 
     @Test
     void everyLevelButUltracodeRunsOnTheWorkersOwnClocks() {
@@ -344,8 +272,8 @@ class NodeSessionPlannerTest {
     @Test
     void aWaitSomebodyPinnedIsStillTheWaitEvenForAnUltracodeStep() {
         // Deriving is the default, not the only option: worker.background-wait-seconds is
-        // documented as pinning the wait regardless of the timeout, and 0 means "wait
-        // indefinitely". Scaling a number an operator wrote down would be inventing one.
+        // documented as pinning the wait regardless of the timeout when set above zero.
+        // Scaling a number an operator wrote down would be inventing one.
         WorkerProperties props = new WorkerProperties();
         props.setTimeoutSeconds(3600);
         props.setBackgroundWaitSeconds(900L);

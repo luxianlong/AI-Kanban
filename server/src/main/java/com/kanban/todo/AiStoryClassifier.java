@@ -24,12 +24,12 @@ import java.util.regex.Pattern;
  * non-Latin (e.g. two Chinese tasks that clearly belong together but share no
  * ASCII word — its tokenizer drops all CJK characters). When a freshly created
  * task lands standalone, {@link TodoController} hands it here: a short headless
- * Claude call reads the task and the existing stories and decides which one, if
+ * CLI call reads the task and the existing stories and decides which one, if
  * any, it belongs to, then re-files it.
  *
  * <p>It runs <em>asynchronously</em> so task creation returns instantly — the
  * task is held ({@code classifying}) out of the worker queue and, a few seconds
- * later, hops into a story if Claude finds a home for it, or is released to run
+ * later, hops into a story if the CLI finds a home for it, or is released to run
  * standalone (the frontend polls, so it just moves). It only acts on a task still
  * in that held state, so it never yanks one already filed, released, or started.
  */
@@ -108,7 +108,7 @@ public class AiStoryClassifier {
             stories.add(StoryRef.of(story));
         }
 
-        // Ask Claude which story (if any) fits. No stories, a "none" answer, or a
+        // Ask the CLI which story (if any) fits. No stories, a "none" answer, or a
         // failed/timed-out call all resolve to "no match" — the task is then
         // released to run standalone.
         StoryRef chosen = null;
@@ -166,7 +166,7 @@ public class AiStoryClassifier {
     private static final Pattern CHOICE = Pattern.compile("(?i)none|\\d+");
 
     /**
-     * Parse Claude's reply into a 1-based story index, or 0 for "none"/unclear.
+     * Parse the CLI's reply into a 1-based story index, or 0 for "none"/unclear.
      * Scans left to right and honours whichever of a number or "none" appears
      * first, ignoring out-of-range numbers. Package-private for testing.
      */
@@ -193,8 +193,9 @@ public class AiStoryClassifier {
     }
 
     private String runClaude(String prompt) throws Exception {
-        // Run in a neutral scratch dir so the CLI doesn't load a repo's CLAUDE.md
-        // or files — this is a pure text question, not an agentic task.
+        // Run in a neutral scratch dir so the CLI doesn't load a repo's instructions
+        // file (CLAUDE.md / AGENTS.md / etc.) or files — this is a pure text question,
+        // not an agentic task.
         File dir = new File(System.getProperty("java.io.tmpdir"), "kanban-classify");
         if (!dir.exists() && !dir.mkdirs()) {
             log.warn("Could not create classify scratch dir {}", dir);
@@ -203,9 +204,6 @@ public class AiStoryClassifier {
         ProcessBuilder pb = new ProcessBuilder(cmd)
                 .directory(dir)
                 .redirectErrorStream(true);
-        // Same reason as the neutral scratch dir: keep this throwaway call out of the
-        // CLI's auto-memory store.
-        pb.environment().put("CLAUDE_CODE_DISABLE_AUTO_MEMORY", "1");
         Process p = pb.start();
         p.getOutputStream().close();
 

@@ -6,25 +6,25 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.util.List;
 
 /**
- * Configuration for the Claude Code worker, bound from the {@code worker.*}
+ * Configuration for the agent worker, bound from the {@code worker.*}
  * namespace in {@code application.yml} (override via env vars, e.g.
  * {@code WORKER_ENABLED=false}).
  */
 @ConfigurationProperties(prefix = "worker")
 public class WorkerProperties {
 
-    /** Master switch. When false, no Claude sessions are ever launched. */
+    /** Master switch. When false, no agent sessions are ever launched. */
     private boolean enabled = true;
 
-    /** Path to the Claude Code CLI binary. */
-    private String claudeCommand = "claude";
+    /** Path to the Copilot CLI binary. */
+    private String claudeCommand = "copilot";
 
     /**
-     * Extra CLI args inserted before the prompt. To let the session act
-     * autonomously (edit files, run commands) without prompting, add
-     * {@code --dangerously-skip-permissions} here — understand the risk first.
+     * Extra CLI args inserted before the prompt. {@code --allow-all-tools} is what lets
+     * the session act autonomously (edit files, run commands) without prompting —
+     * understand the risk first.
      */
-    private List<String> extraArgs = List.of("--output-format", "stream-json", "--verbose");
+    private List<String> extraArgs = List.of("--output-format", "json", "--allow-all-tools");
 
     /** Working directory the Claude session runs in (its sandbox/repo). */
     private String workingDirectory = System.getProperty("java.io.tmpdir") + "/kanban-work";
@@ -36,7 +36,12 @@ public class WorkerProperties {
      * How long a session may wait, after its last turn, for background work it started
      * — a dynamic workflow, a background subagent — before the CLI gives up and
      * terminates that work. Passed to the CLI as
-     * {@code CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS}; {@code 0} means wait indefinitely.
+     * {@code COPILOT_TASK_WAIT_TIMEOUT_SECONDS} (seconds, not milliseconds); {@code 0}
+     * here is treated as "wait as long as the session is allowed to live" — Copilot CLI
+     * has no "wait indefinitely" sentinel, and (unlike Claude Code) its own {@code 0}
+     * means the opposite: stop waiting immediately. See
+     * {@link com.kanban.worker.session.ClaudeSessionRunner#run} for how that gap is
+     * bridged.
      *
      * <p>This exists because the CLI's own default is 600s, which is far shorter than
      * {@link #timeoutSeconds} and is applied silently: a session that hands its real
@@ -66,7 +71,8 @@ public class WorkerProperties {
      * minutes, which is the same silent mismatch this setting exists to remove, just
      * with different numbers. Unset means {@link #getBackgroundWaitSeconds()} derives it,
      * so raising the timeout raises the wait with it. A value set here (or a negative
-     * one, meaning "derive") still wins; {@code 0} still means wait indefinitely.
+     * one, meaning "derive") still wins; {@code 0} still means "as long as the session
+     * may live" (see the Copilot CLI caveat above).
      */
     private Long backgroundWaitSeconds;
 
@@ -105,10 +111,12 @@ public class WorkerProperties {
 
     /**
      * When true, a task that isn't caught by the fast keyword classifier gets a
-     * second, smarter pass: a short headless Claude call decides which existing
+     * second, smarter pass: a short headless CLI call decides which existing
      * story (if any) it belongs to, and re-files it. This is what lets semantic /
      * non-English tasks join a story when they share no literal keyword. Runs only
-     * when {@link #enabled} is also true (it uses the same CLI).
+     * when {@link #enabled} is also true (it uses the same CLI). The field is named
+     * {@code classifyWithClaude} for config-key stability; it now runs whatever CLI
+     * {@link #claudeCommand} points at.
      */
     private boolean classifyWithClaude = true;
 
