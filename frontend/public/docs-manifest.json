@@ -420,21 +420,6 @@
     ]
   },
   {
-    "id": "ddd-diagrams",
-    "title": "三张 DDD 图：这个看板的上下文、模型与分层",
-    "href": "/docs/ddd-diagrams.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/ddd-diagrams.md",
-    "updatedAt": "2026-09-09T03:11:13.359Z",
-    "isNew": false,
-    "private": true,
-    "paths": [
-      "docs/ddd-diagrams.md",
-      "frontend/public/docs/ddd-diagrams.html"
-    ]
-  },
-  {
     "id": "upload-sanlue-ja",
     "title": "三略 — Sanryaku（日本語）",
     "href": "/p/sanlue-ja.html",
