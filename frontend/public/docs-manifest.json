@@ -30,21 +30,6 @@
     ]
   },
   {
-    "id": "upload-jing-tian-career-penalty",
-    "title": "464 万那笔罚款,和她的演艺事业是两件事",
-    "href": "/p/jing-tian-career-penalty.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T06:25:32.710Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/jing-tian-career-penalty.html",
-      "frontend/public/p/jing-tian-career-penalty.meta.json"
-    ]
-  },
-  {
     "id": "four-vocabularies-one-platform-2",
     "title": "Four Vocabularies, One Platform",
     "href": "/docs/four-vocabularies-one-platform-2.html",
