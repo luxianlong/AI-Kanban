@@ -90,21 +90,6 @@
     ]
   },
   {
-    "id": "upload-manus",
-    "title": "Manus团队测模型一点微小的经验",
-    "href": "/p/manus.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-11T02:12:19.693Z",
-    "isNew": false,
-    "private": true,
-    "paths": [
-      "frontend/public/p/manus.html",
-      "frontend/public/p/manus.meta.json"
-    ]
-  },
-  {
     "id": "upload-tangliwendui-en",
     "title": "Questions and Replies between Tang Taizong and Li Weigong (English)",
     "href": "/p/tangliwendui-en.html",
