@@ -840,21 +840,6 @@
     ]
   },
   {
-    "id": "upload-jing-tian-symbolized",
-    "title": "只有一个人在决定这件事以什么形式被记住",
-    "href": "/p/jing-tian-symbolized.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T06:46:04.689Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/jing-tian-symbolized.html",
-      "frontend/public/p/jing-tian-symbolized.meta.json"
-    ]
-  },
-  {
     "id": "upload-simafa-ja",
     "title": "司馬法 — Shiba hō（日本語）",
     "href": "/p/simafa-ja.html",
