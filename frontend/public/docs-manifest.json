@@ -1515,21 +1515,6 @@
     ]
   },
   {
-    "id": "upload-alibaba-one-point",
-    "title": "装着外卖的那个分部,只跌了百分之一",
-    "href": "/p/alibaba-one-point.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T16:25:05.576Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/alibaba-one-point.html",
-      "frontend/public/p/alibaba-one-point.meta.json"
-    ]
-  },
-  {
     "id": "upload-page-9fc96ad1",
     "title": "贴着物理极限的工程学：人工智能技术栈的十个结构性问题及其求解理论",
     "href": "/p/page-9fc96ad1.html",
