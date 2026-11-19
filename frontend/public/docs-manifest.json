@@ -660,21 +660,6 @@
     ]
   },
   {
-    "id": "upload-python-ai-infra-stages",
-    "title": "从 Java 到 Python AI Infrastructure：40 小时实操版（五阶段 · 全部代码可运行）",
-    "href": "/p/python-ai-infra-stages.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-18T04:59:44.462Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/python-ai-infra-stages.html",
-      "frontend/public/p/python-ai-infra-stages.meta.json"
-    ]
-  },
-  {
     "id": "upload-page-d04c5f72",
     "title": "从第一性原理重建英语能力：面向汉语母语者的十个问题及其解法",
     "href": "/p/page-d04c5f72.html",
