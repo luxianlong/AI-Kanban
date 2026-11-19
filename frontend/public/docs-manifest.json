@@ -1635,21 +1635,6 @@
     ]
   },
   {
-    "id": "upload-ai",
-    "title": "验证的单价：我判断 AI 未来十年唯一用的尺子",
-    "href": "/p/ai.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-10T12:57:42.671Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/ai.html",
-      "frontend/public/p/ai.meta.json"
-    ]
-  },
-  {
     "id": "upload-guiguzi-ja",
     "title": "鬼谷子 — Kikokushi（日本語）",
     "href": "/p/guiguzi-ja.html",
