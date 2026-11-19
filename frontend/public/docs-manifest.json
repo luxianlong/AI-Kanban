@@ -1380,21 +1380,6 @@
     ]
   },
   {
-    "id": "upload-2",
-    "title": "花少2里的花学到底是什么",
-    "href": "/p/2.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-02T07:39:31.968Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/2.html",
-      "frontend/public/p/2.meta.json"
-    ]
-  },
-  {
     "id": "upload-page-89f133c0",
     "title": "苹果发布会（配图版）",
     "href": "/p/page-89f133c0.html",
