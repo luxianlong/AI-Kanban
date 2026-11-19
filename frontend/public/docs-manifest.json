@@ -1560,21 +1560,6 @@
     ]
   },
   {
-    "id": "upload-why-cz-could-stop-sun",
-    "title": "赵长鹏那条推里,没有孙宇晨",
-    "href": "/p/why-cz-could-stop-sun.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-08-29T09:11:11.475Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/why-cz-could-stop-sun.html",
-      "frontend/public/p/why-cz-could-stop-sun.meta.json"
-    ]
-  },
-  {
     "id": "upload-daodejing-ja",
     "title": "道徳経 — Dotokukyo（日本語）",
     "href": "/p/daodejing-ja.html",
