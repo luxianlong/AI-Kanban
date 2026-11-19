@@ -1650,21 +1650,6 @@
     ]
   },
   {
-    "id": "upload-py-stage2-python-model",
-    "title": "阶段二：对象模型 + Java 没有的那些机制（6 小时，含全部可运行代码）",
-    "href": "/p/py-stage2-python-model.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-18T04:59:44.451Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/py-stage2-python-model.html",
-      "frontend/public/p/py-stage2-python-model.meta.json"
-    ]
-  },
-  {
     "id": "upload-py-stage5-capstone",
     "title": "阶段五：Capstone —— LLM 推理网关（6 小时，完整源码 + 真实压测）",
     "href": "/p/py-stage5-capstone.html",
