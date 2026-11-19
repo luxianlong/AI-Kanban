@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Todo 599: swap the Mixer #14 Vimeo embed for the locally saved MP4.
-Run after 598-english-mixer-video-build.py (idempotent)."""
+Run after generated/598-english-mixer-video-build.py (idempotent)."""
 import os
 for d in ('public', 'dist'):
     p = os.path.expanduser(f'~/Dashboard/frontend/{d}/p/english-learning-mixer-video.html')

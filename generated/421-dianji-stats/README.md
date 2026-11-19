@@ -43,7 +43,7 @@ java -cp $H2 org.h2.tools.Shell \
   -sql "select doc_id, view_count, last_viewed_at from doc_views" \
   | sed -e 's/ *| */\t/g' > /tmp/viewsdb/views.tsv
 
-cd ~/Dashboard/421-dianji-stats
+cd ~/Dashboard/generated/421-dianji-stats
 # 留档上一份，按它自己的 asof 命名（例：dataset-20260917.json）
 cp dataset.json "dataset-$(node -p "require('./dataset.json').asof.slice(0,10).replace(/-/g,'')").json"
 node collect.mjs /tmp/viewsdb/views.tsv > dataset.json

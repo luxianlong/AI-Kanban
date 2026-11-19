@@ -446,7 +446,7 @@ const CLASSICS = [
     // book, and four collectors' seals. That same printing is one of the two
     // witnesses the reading pages are collated against. The djvu renders at most
     // 960x1351 per page; the ink measures x 1..802, y 98..1262 (column/row
-    // luminance, see 485-classics-liutao/meas.js), cut a few pixels wider at
+    // luminance, see generated/485-classics-liutao/meas.js), cut a few pixels wider at
     // x 0..811, y 90..1271 so the frame is not flush, and scaled to 560 wide —
     // so the JPEG simply fills the box.
     crop: 'background-size:100% 100%;background-position:0% 0%',
@@ -478,7 +478,7 @@ const CLASSICS = [
     // was corrected from the Exposition and the Direct Explanation — it is the
     // third witness the reading pages were checked against by eye. The PDF is
     // 10150x8693; rendered at 4200 wide, the ink measures x 200..1975,
-    // y 435..2840 (column/row luminance, see 486-classics-sanlue/meas.js), cut a
+    // y 435..2840 (column/row luminance, see generated/486-classics-sanlue/meas.js), cut a
     // little wider at x 175..1995, y 345..2930 to leave a margin of paper, and
     // scaled to 560 wide — so the JPEG simply fills the box.
     crop: 'background-size:100% 100%;background-position:0% 0%',
@@ -511,7 +511,7 @@ const CLASSICS = [
     // 以義治之之謂正」, and two vermilion collectors' seals at the right.
     // One djvu leaf is 2600x4578; taken at 1920 wide, the ink measures the frame
     // at y 300..2638 and the right rule at x 1630, the left rule faintly near
-    // x 114 (column/row luminance, see 487-classics-simafa/meas.js). Cut a little
+    // x 114 (column/row luminance, see generated/487-classics-simafa/meas.js). Cut a little
     // wider at x 70..1680, y 250..2690 to leave a margin of paper, and scaled to
     // 560 wide — so the JPEG simply fills the box.
     crop: 'background-size:100% 100%;background-position:0% 0%',
@@ -546,7 +546,7 @@ const CLASSICS = [
     // two leaves per page, one above the other. Taken at 3840 wide, the upper
     // leaf's frame measures y 295..2488 with side rules at x 360 and x 3427, and
     // the centre fold at x 1837..1957 (column/row luminance, see
-    // 488-classics-wuzi/meas.js). Only the right half-leaf is used, cut a little
+    // generated/488-classics-wuzi/meas.js). Only the right half-leaf is used, cut a little
     // wider at x 1820..3450, y 270..2520 to leave a margin of paper, and scaled
     // to 560 wide — so the JPEG simply fills the box.
     crop: 'background-size:100% 100%;background-position:0% 0%',
@@ -580,7 +580,7 @@ const CLASSICS = [
     // has 計 there, and the first of this page's twelve corrections is legible on
     // its own cover. Commons caps PDF thumbnails at 1280 wide, so the page's
     // embedded JPEG (1652x1211) is lifted out whole by
-    // 489-classics-tangliwendui/pdfjpg.py; column/row luminance puts the frame at
+    // generated/489-classics-tangliwendui/pdfjpg.py; column/row luminance puts the frame at
     // y 262..1147 with side rules at x 620..636 and x 25, so the cut is x 0..656,
     // y 243..1168, scaled to 560 wide — the JPEG simply fills the box.
     crop: 'background-size:100% 100%;background-position:0% 0%',
@@ -623,7 +623,7 @@ const CLASSICS = [
     // book, with two collector's seals below the title. Column three reads
     // 「黃帝刑德」 where the Siku text has 形德: the first character corrected on
     // this page is legible on its own cover. The PDF page is a two-leaf opening
-    // (1503x1134) whose right half is blank paper; 490-classics-weiliaozi/pdfjpg.py
+    // (1503x1134) whose right half is blank paper; generated/490-classics-weiliaozi/pdfjpg.py
     // lifts the embedded JPEG out whole, and column/row luminance puts the
     // half-leaf's right rule at x 633..644 and its horizontals at y 180..189 and
     // y 1062..1073, so the cut is x 0..656, y 160..1092, scaled to 560 wide —
@@ -668,7 +668,7 @@ const CLASSICS = [
     // the pages keep the base text's titles rather than the Siku text's
     // 「一茶之源」, and the author line 「唐　竟陵陸羽」 differs from the Siku
     // text's 「唐　陸羽　撰」 in the same way. The PDF page is a two-leaf opening
-    // (5847x5047) whose left half is the opening leaf; 491-classics-chajing
+    // (5847x5047) whose left half is the opening leaf; generated/491-classics-chajing
     // lifts the embedded JPEG out whole with pdfjpg.py, and inkscan.js puts the
     // ink of that half-leaf at x 317..2967 and y 614..3990, so the cut is
     // x 300..2990, y 590..4020, scaled to 560 wide — the JPEG fills the box.

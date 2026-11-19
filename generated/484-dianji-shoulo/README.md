@@ -20,7 +20,7 @@
 ## 重跑
 
 ```bash
-cd 484-dianji-shoulo
+cd generated/484-dianji-shoulo
 python3 collect-pageviews.py      # 需要 pageview-input.tsv（脚本里叫 cands.tsv，按需改名）
 python3 count-chars.py
 python3 gapcheck.py               # 约 3 分钟，archive.org 会限流

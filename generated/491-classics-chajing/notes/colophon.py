@@ -149,7 +149,7 @@ COLO = [
  '〈七之事〉所引各書的書名一律譯出並附漢字原名。'
  '兩頁的卷末各有一份與此相當的〈底本與校例〉。',
 
- '<b>重跑</b>　從原始材料到四個頁面的全部腳本留在 <code>491-classics-chajing/</code>：'
+ '<b>重跑</b>　從原始材料到四個頁面的全部腳本留在 <code>generated/491-classics-chajing/</code>：'
  '<code>bash fetch.sh</code> 取底本與二錄文，<code>bash cover.sh</code> 裁封面，'
  '<code>bash rebuild.sh</code> 一路跑到四個讀本。'
  '<code>verify.py</code> 每次重跑都核一遍：錨點、id、標籤的開閉、'
