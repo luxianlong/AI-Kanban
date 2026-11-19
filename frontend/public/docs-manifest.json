@@ -1455,21 +1455,6 @@
     ]
   },
   {
-    "id": "upload-page-87d36ee6",
-    "title": "草稿-人类（修订）：模型什么时候能把今天写回权重里",
-    "href": "/p/page-87d36ee6.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-10T12:53:41.920Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/page-87d36ee6.html",
-      "frontend/public/p/page-87d36ee6.meta.json"
-    ]
-  },
-  {
     "id": "upload-caigentan-ja",
     "title": "菜根譚 — Saikontan（日本語）",
     "href": "/p/caigentan-ja.html",
