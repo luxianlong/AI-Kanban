@@ -15,21 +15,6 @@
     ]
   },
   {
-    "id": "2026-2",
-    "title": "2026 国内信息流自媒体创业可行性分析",
-    "href": "/docs/2026-2.html",
-    "zone": "article",
-    "deletable": true,
-    "file": "docs/2026-2.md",
-    "updatedAt": "2026-09-04T10:47:52.343Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "docs/2026-2.md",
-      "frontend/public/docs/2026-2.html"
-    ]
-  },
-  {
     "id": "2026",
     "title": "2026 海外信息流自媒体创业可行性分析",
     "href": "/docs/2026.html",
