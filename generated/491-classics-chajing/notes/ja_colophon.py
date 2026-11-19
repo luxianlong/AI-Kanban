@@ -170,7 +170,7 @@ COLO = [
  'ある読本の一段へのリンクは、ほかの読本でも同じ場所に着く。',
 
  '<b>再構築</b>　原材料から四つの頁までのすべてのスクリプトは'
- '<code>491-classics-chajing/</code> に残してある。'
+ '<code>generated/491-classics-chajing/</code> に残してある。'
  '<code>bash fetch.sh</code> が底本と二種の録文を取り、'
  '<code>bash cover.sh</code> が封面を裁ち、'
  '<code>bash rebuild.sh</code> が四つの読本まで一気に走る。'

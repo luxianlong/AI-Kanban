@@ -138,7 +138,7 @@ COLO = [
  'share the same paragraph ids, so a link into one lands in the same place in the others.',
 
  '<b>Rebuilding.</b> Every script from the raw sources to the four pages is kept in '
- '<code>491-classics-chajing/</code>: <code>bash fetch.sh</code> fetches the base text and the two '
+ '<code>generated/491-classics-chajing/</code>: <code>bash fetch.sh</code> fetches the base text and the two '
  'transcriptions, <code>bash cover.sh</code> cuts the cover, and <code>bash rebuild.sh</code> runs through to '
  'the four readings. <code>verify.py</code> checks on every rebuild that no anchor dangles, that no id is '
  'repeated, that the tags balance, that the four readings share their paragraph ids, that the cover is the '

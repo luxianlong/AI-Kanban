@@ -78,8 +78,8 @@ External links、Reddit r/taoism 与 r/ChineseLanguage、Hacker News Show HN、
    页面里的 `<link rel="alternate">` 已足够 Google 用，但 sitemap 里再来一份更稳。同样在
    `docsGate.mjs`。
 
-另：`scripts/build-docs-site.mjs` 的两个补丁（`414-classics-xiaorenjing.patch`、
-`416-classics-caigentan.patch`）**仍未打**——与本轮无关，但不打的话下次 `gen:docs`
+另：`scripts/build-docs-site.mjs` 的两个补丁（`generated/414-classics-xiaorenjing.patch`、
+`generated/416-classics-caigentan.patch`）**仍未打**——与本轮无关，但不打的话下次 `gen:docs`
 会把《小人经》《菜根谭》从书架抹掉。本轮改的是 `/p/*.html`，生成器只从 `*.meta.json`
 取标题，所以 `gen:docs` 不会回滚本轮改动。
 
