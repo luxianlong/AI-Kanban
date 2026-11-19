@@ -1575,21 +1575,6 @@
     ]
   },
   {
-    "id": "upload-page-a64e496c",
-    "title": "超额收益从哪里来",
-    "href": "/p/page-a64e496c.html",
-    "zone": "article",
-    "deletable": true,
-    "file": null,
-    "updatedAt": "2026-09-20T05:11:31.759Z",
-    "isNew": false,
-    "private": false,
-    "paths": [
-      "frontend/public/p/page-a64e496c.html",
-      "frontend/public/p/page-a64e496c.meta.json"
-    ]
-  },
-  {
     "id": "upload-daodejing-ja",
     "title": "道徳経 — Dotokukyo（日本語）",
     "href": "/p/daodejing-ja.html",
